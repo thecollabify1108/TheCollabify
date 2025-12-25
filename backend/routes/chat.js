@@ -30,12 +30,14 @@ router.get('/conversations', auth, async (req, res) => {
         const userId = req.userId;
 
         // Find conversations where user is either seller or creator
+        // Exclude conversations deleted by this user
         const conversations = await Conversation.find({
             $or: [
                 { sellerId: userId },
                 { creatorUserId: userId }
             ],
-            status: 'active'
+            status: { $in: ['active', 'pending'] },
+            'deletedBy.userId': { $ne: userId }  // Exclude deleted by this user
         })
             .populate('sellerId', 'name email avatar')
             .populate('creatorUserId', 'name email avatar')
@@ -261,6 +263,156 @@ router.get('/unread-count', auth, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to get unread count'
+        });
+    }
+});
+
+/**
+ * @route   PUT /api/chat/messages/:messageId
+ * @desc    Edit a message
+ * @access  Private
+ */
+router.put('/messages/:messageId', auth, [
+    body('content').trim().notEmpty().withMessage('Message content is required')
+        .isLength({ max: 2000 }).withMessage('Message too long'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.messageId);
+
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message not found'
+            });
+        }
+
+        // Only sender can edit
+        if (message.senderId.toString() !== req.userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'You can only edit your own messages'
+            });
+        }
+
+        // Can't edit deleted messages
+        if (message.isDeleted) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot edit a deleted message'
+            });
+        }
+
+        message.content = req.body.content;
+        message.isEdited = true;
+        message.editedAt = new Date();
+        await message.save();
+
+        await message.populate('senderId', 'name avatar');
+
+        res.json({
+            success: true,
+            data: { message }
+        });
+    } catch (error) {
+        console.error('Edit message error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to edit message'
+        });
+    }
+});
+
+/**
+ * @route   DELETE /api/chat/messages/:messageId
+ * @desc    Delete a message (soft delete)
+ * @access  Private
+ */
+router.delete('/messages/:messageId', auth, async (req, res) => {
+    try {
+        const message = await Message.findById(req.params.messageId);
+
+        if (!message) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message not found'
+            });
+        }
+
+        // Only sender can delete
+        if (message.senderId.toString() !== req.userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'You can only delete your own messages'
+            });
+        }
+
+        message.isDeleted = true;
+        message.deletedAt = new Date();
+        message.content = 'This message was deleted';
+        await message.save();
+
+        res.json({
+            success: true,
+            message: 'Message deleted'
+        });
+    } catch (error) {
+        console.error('Delete message error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete message'
+        });
+    }
+});
+
+/**
+ * @route   DELETE /api/chat/conversations/:id
+ * @desc    Delete conversation (one-sided - only removes from user's view)
+ * @access  Private
+ */
+router.delete('/conversations/:id', auth, async (req, res) => {
+    try {
+        const conversation = await Conversation.findById(req.params.id);
+
+        if (!conversation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Conversation not found'
+            });
+        }
+
+        // Verify user is part of conversation
+        const userId = req.userId.toString();
+        if (conversation.sellerId.toString() !== userId &&
+            conversation.creatorUserId.toString() !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to delete this conversation'
+            });
+        }
+
+        // Add user to deletedBy array (one-sided delete)
+        const alreadyDeleted = conversation.deletedBy.some(
+            d => d.userId.toString() === userId
+        );
+
+        if (!alreadyDeleted) {
+            conversation.deletedBy.push({
+                userId: req.userId,
+                deletedAt: new Date()
+            });
+            await conversation.save();
+        }
+
+        res.json({
+            success: true,
+            message: 'Conversation deleted from your view'
+        });
+    } catch (error) {
+        console.error('Delete conversation error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete conversation'
         });
     }
 });
