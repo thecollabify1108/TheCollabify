@@ -108,22 +108,23 @@ const SellerDashboard = () => {
 
     const handleMessageCreator = async (requestId, creatorId, creatorName) => {
         try {
-            // Find the conversation for this request and creator
-            const res = await chatAPI.getConversations();
-            const conversation = res.data.data.conversations.find(
-                c => c.promotionId?._id === requestId && c.creatorUserId?._id === creatorId
-            );
+            // Find or restore the conversation (works even if deleted previously)
+            const res = await chatAPI.findOrRestoreConversation(requestId, creatorId);
+            const conversation = res.data.data.conversation;
 
             if (conversation) {
+                if (res.data.data.wasRestored) {
+                    toast.success('Chat restored!');
+                }
                 setSelectedConversation({
                     ...conversation,
-                    creatorUserId: { name: creatorName }
+                    creatorUserId: conversation.creatorUserId || { name: creatorName }
                 });
             } else {
                 toast.error('Conversation not found. Please try again.');
             }
         } catch (error) {
-            toast.error('Failed to open chat');
+            toast.error(error.response?.data?.message || 'Failed to open chat');
         }
     };
 

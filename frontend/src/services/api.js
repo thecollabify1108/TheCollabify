@@ -94,7 +94,8 @@ export const chatAPI = {
     getUnreadCount: () => api.get('/chat/unread-count'),
     editMessage: (messageId, content) => api.put(`/chat/messages/${messageId}`, { content }),
     deleteMessage: (messageId) => api.delete(`/chat/messages/${messageId}`),
-    deleteConversation: (conversationId) => api.delete(`/chat/conversations/${conversationId}`)
+    deleteConversation: (conversationId) => api.delete(`/chat/conversations/${conversationId}`),
+    findOrRestoreConversation: (promotionId, creatorId) => api.post('/chat/find-or-restore', { promotionId, creatorId })
 };
 
 // Admin API
