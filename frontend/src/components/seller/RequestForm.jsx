@@ -42,6 +42,18 @@ const RequestForm = ({ onSubmit }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Title validation
+        if (formData.title.trim().length < 5) {
+            toast.error('Campaign title must be at least 5 characters');
+            return;
+        }
+
+        // Description validation
+        if (formData.description.trim().length < 20) {
+            toast.error('Description must be at least 20 characters');
+            return;
+        }
+
         if (parseInt(formData.budgetRange.min) > parseInt(formData.budgetRange.max)) {
             toast.error('Maximum budget must be greater than minimum');
             return;
