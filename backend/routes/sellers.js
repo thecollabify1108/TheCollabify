@@ -11,7 +11,8 @@ const {
     notifyCreatorNewMatch,
     notifyCreatorAccepted,
     notifyCreatorRejected,
-    notifyRequestUpdate
+    notifyRequestUpdate,
+    notifyRequestDeleted
 } = require('../services/notificationService');
 
 /**
@@ -416,6 +417,60 @@ router.post('/requests/:id/reject/:creatorId', auth, isSeller, async (req, res) 
         res.status(500).json({
             success: false,
             message: 'Failed to reject creator'
+        });
+    }
+});
+
+/**
+ * @route   DELETE /api/sellers/requests/:id
+ * @desc    Delete a promotion request
+ * @access  Private (Seller)
+ */
+router.delete('/requests/:id', auth, isSeller, async (req, res) => {
+    try {
+        const request = await PromotionRequest.findOne({
+            _id: req.params.id,
+            sellerId: req.userId
+        });
+
+        if (!request) {
+            return res.status(404).json({
+                success: false,
+                message: 'Promotion request not found'
+            });
+        }
+
+        // Notify all creators who applied to this request
+        const appliedCreators = request.matchedCreators.filter(mc =>
+            ['Applied', 'Matched'].includes(mc.status)
+        );
+
+        for (const match of appliedCreators) {
+            try {
+                const creatorProfile = await CreatorProfile.findById(match.creatorId);
+                if (creatorProfile) {
+                    await notifyRequestDeleted(creatorProfile.userId, request);
+                }
+            } catch (err) {
+                console.error('Failed to notify creator about deletion:', err);
+            }
+        }
+
+        // Also delete any conversations related to this request
+        await Conversation.deleteMany({ promotionId: request._id });
+
+        // Delete the request
+        await PromotionRequest.findByIdAndDelete(req.params.id);
+
+        res.json({
+            success: true,
+            message: 'Promotion request deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete request error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete promotion request'
         });
     }
 });

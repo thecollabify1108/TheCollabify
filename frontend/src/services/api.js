@@ -69,6 +69,7 @@ export const sellerAPI = {
     createRequest: (data) => api.post('/sellers/requests', data),
     getRequest: (id) => api.get(`/sellers/requests/${id}`),
     updateRequest: (id, data) => api.put(`/sellers/requests/${id}`, data),
+    deleteRequest: (id) => api.delete(`/sellers/requests/${id}`),
     acceptCreator: (requestId, creatorId) => api.post(`/sellers/requests/${requestId}/accept/${creatorId}`),
     rejectCreator: (requestId, creatorId) => api.post(`/sellers/requests/${requestId}/reject/${creatorId}`),
     updateStatus: (requestId, status) => api.put(`/sellers/requests/${requestId}/status`, { status }),

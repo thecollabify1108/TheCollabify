@@ -7,7 +7,8 @@ import {
     FaUsers,
     FaCheck,
     FaTimes,
-    FaEye
+    FaEye,
+    FaTrash
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -82,6 +83,21 @@ const SellerDashboard = () => {
             fetchRequests();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update status');
+        }
+    };
+
+    const handleDeleteRequest = async (requestId, e) => {
+        e.stopPropagation(); // Prevent card click
+        if (!window.confirm('Are you sure you want to delete this request? All applied creators will be notified.')) {
+            return;
+        }
+        try {
+            await sellerAPI.deleteRequest(requestId);
+            toast.success('Request deleted successfully');
+            setSelectedRequest(null);
+            fetchRequests();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete request');
         }
     };
 
@@ -177,8 +193,8 @@ const SellerDashboard = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                                        ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
-                                        : 'text-dark-400 hover:text-dark-200 hover:bg-dark-700'
+                                    ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
+                                    : 'text-dark-400 hover:text-dark-200 hover:bg-dark-700'
                                     }`}
                             >
                                 <span className="mr-2">{tab.icon}</span>
@@ -226,10 +242,10 @@ const SellerDashboard = () => {
                                                     <div className="flex items-center mb-2">
                                                         <h3 className="text-lg font-semibold text-dark-100 mr-3">{request.title}</h3>
                                                         <span className={`badge ${request.status === 'Completed' ? 'badge-success' :
-                                                                request.status === 'Accepted' ? 'badge-info' :
-                                                                    request.status === 'Creator Interested' ? 'badge-warning' :
-                                                                        request.status === 'Cancelled' ? 'badge-danger' :
-                                                                            'badge-neutral'
+                                                            request.status === 'Accepted' ? 'badge-info' :
+                                                                request.status === 'Creator Interested' ? 'badge-warning' :
+                                                                    request.status === 'Cancelled' ? 'badge-danger' :
+                                                                        'badge-neutral'
                                                             }`}>
                                                             {request.status}
                                                         </span>
@@ -314,9 +330,9 @@ const SellerDashboard = () => {
                                                         <div className="flex items-center mb-2">
                                                             <h3 className="text-lg font-semibold text-dark-100 mr-3">{request.title}</h3>
                                                             <span className={`badge ${request.status === 'Completed' ? 'badge-success' :
-                                                                    request.status === 'Accepted' ? 'badge-info' :
-                                                                        request.status === 'Creator Interested' ? 'badge-warning' :
-                                                                            'badge-neutral'
+                                                                request.status === 'Accepted' ? 'badge-info' :
+                                                                    request.status === 'Creator Interested' ? 'badge-warning' :
+                                                                        'badge-neutral'
                                                                 }`}>
                                                                 {request.status}
                                                             </span>
@@ -329,8 +345,19 @@ const SellerDashboard = () => {
                                                             </span>
                                                         </div>
                                                     </div>
-                                                    <div className="mt-4 md:mt-0 text-sm text-dark-400">
-                                                        Created: {new Date(request.createdAt).toLocaleDateString()}
+                                                    <div className="mt-4 md:mt-0 flex items-center gap-4">
+                                                        <div className="text-sm text-dark-400">
+                                                            Created: {new Date(request.createdAt).toLocaleDateString()}
+                                                        </div>
+                                                        {request.status !== 'Completed' && (
+                                                            <button
+                                                                onClick={(e) => handleDeleteRequest(request._id, e)}
+                                                                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition"
+                                                                title="Delete request"
+                                                            >
+                                                                <FaTrash />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </motion.div>
