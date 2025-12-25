@@ -14,7 +14,8 @@ import {
     FaToggleOff,
     FaStar,
     FaDollarSign,
-    FaHashtag
+    FaHashtag,
+    FaComments
 } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -28,6 +29,8 @@ import NotificationBell from '../components/common/NotificationBell';
 // InsightsCard removed - AI profile insights disabled
 import ProfileForm from '../components/creator/ProfileForm';
 import PromotionList from '../components/creator/PromotionList';
+import ChatBox from '../components/common/ChatBox';
+import ConversationList from '../components/common/ConversationList';
 
 const CreatorDashboard = () => {
     const { user, logout } = useAuth();
@@ -37,6 +40,7 @@ const CreatorDashboard = () => {
     const [applications, setApplications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showProfileForm, setShowProfileForm] = useState(false);
+    const [selectedConversation, setSelectedConversation] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -107,6 +111,7 @@ const CreatorDashboard = () => {
         { id: 'overview', label: 'Overview', icon: <FaChartLine /> },
         { id: 'promotions', label: 'Opportunities', icon: <FaBriefcase /> },
         { id: 'applications', label: 'My Applications', icon: <FaCheck /> },
+        { id: 'messages', label: 'Messages', icon: <FaComments /> },
         { id: 'profile', label: 'Edit Profile', icon: <FaEdit /> }
     ];
 
@@ -353,6 +358,20 @@ const CreatorDashboard = () => {
                                 </motion.div>
                             )}
 
+                            {activeTab === 'messages' && (
+                                <motion.div
+                                    key="messages"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                >
+                                    <h2 className="text-xl font-semibold text-dark-100 mb-6">Messages</h2>
+                                    <ConversationList
+                                        onSelectConversation={(conv) => setSelectedConversation(conv)}
+                                    />
+                                </motion.div>
+                            )}
+
                             {activeTab === 'profile' && (
                                 <motion.div
                                     key="profile"
@@ -366,6 +385,18 @@ const CreatorDashboard = () => {
                         </AnimatePresence>
                     </>
                 )}
+
+                {/* ChatBox Popup */}
+                <AnimatePresence>
+                    {selectedConversation && (
+                        <ChatBox
+                            conversationId={selectedConversation._id}
+                            otherUserName={selectedConversation.sellerId?.name || 'Seller'}
+                            promotionTitle={selectedConversation.promotionId?.title || 'Promotion'}
+                            onClose={() => setSelectedConversation(null)}
+                        />
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

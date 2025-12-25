@@ -8,7 +8,8 @@ import {
     FaCheck,
     FaTimes,
     FaEye,
-    FaTrash
+    FaTrash,
+    FaComments
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -20,6 +21,8 @@ import Navbar from '../components/common/Navbar';
 import RequestForm from '../components/seller/RequestForm';
 import CreatorCard from '../components/seller/CreatorCard';
 import CampaignTracker from '../components/seller/CampaignTracker';
+import ChatBox from '../components/common/ChatBox';
+import ConversationList from '../components/common/ConversationList';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -28,6 +31,7 @@ const SellerDashboard = () => {
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showNewRequestForm, setShowNewRequestForm] = useState(false);
+    const [selectedConversation, setSelectedConversation] = useState(null);
 
     useEffect(() => {
         fetchRequests();
@@ -111,6 +115,7 @@ const SellerDashboard = () => {
     const tabs = [
         { id: 'overview', label: 'Overview', icon: <FaChartLine /> },
         { id: 'requests', label: 'My Requests', icon: <FaBriefcase /> },
+        { id: 'messages', label: 'Messages', icon: <FaComments /> },
         { id: 'newrequest', label: 'New Request', icon: <FaPlus /> }
     ];
 
@@ -368,6 +373,20 @@ const SellerDashboard = () => {
                         </motion.div>
                     )}
 
+                    {activeTab === 'messages' && (
+                        <motion.div
+                            key="messages"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                        >
+                            <h2 className="text-xl font-semibold text-dark-100 mb-6">Messages</h2>
+                            <ConversationList
+                                onSelectConversation={(conv) => setSelectedConversation(conv)}
+                            />
+                        </motion.div>
+                    )}
+
                     {activeTab === 'newrequest' && (
                         <motion.div
                             key="newrequest"
@@ -377,6 +396,18 @@ const SellerDashboard = () => {
                         >
                             <RequestForm onSubmit={handleCreateRequest} />
                         </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* ChatBox Popup */}
+                <AnimatePresence>
+                    {selectedConversation && (
+                        <ChatBox
+                            conversationId={selectedConversation._id}
+                            otherUserName={selectedConversation.creatorUserId?.name || 'Creator'}
+                            promotionTitle={selectedConversation.promotionId?.title || 'Promotion'}
+                            onClose={() => setSelectedConversation(null)}
+                        />
                     )}
                 </AnimatePresence>
             </div>
