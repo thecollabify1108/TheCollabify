@@ -23,6 +23,21 @@ const messageSchema = new mongoose.Schema({
     },
     readAt: {
         type: Date
+    },
+    // For edit/delete functionality
+    isEdited: {
+        type: Boolean,
+        default: false
+    },
+    editedAt: {
+        type: Date
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    deletedAt: {
+        type: Date
     }
 }, {
     timestamps: true

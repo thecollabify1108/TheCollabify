@@ -22,9 +22,19 @@ const conversationSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['active', 'closed', 'archived'],
+        enum: ['pending', 'active', 'closed', 'archived'],
         default: 'active'
     },
+    // For accept/reject feature - tracks if conversation needs approval
+    acceptanceStatus: {
+        byCreator: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'accepted' },
+        bySeller: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'accepted' }
+    },
+    // For one-sided delete - tracks who has deleted the conversation from their view
+    deletedBy: [{
+        userId: mongoose.Schema.Types.ObjectId,
+        deletedAt: { type: Date, default: Date.now }
+    }],
     lastMessage: {
         content: String,
         senderId: mongoose.Schema.Types.ObjectId,

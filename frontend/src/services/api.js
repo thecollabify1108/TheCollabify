@@ -91,7 +91,10 @@ export const chatAPI = {
     getConversation: (id) => api.get(`/chat/conversations/${id}`),
     getMessages: (conversationId, params) => api.get(`/chat/conversations/${conversationId}/messages`, { params }),
     sendMessage: (conversationId, content) => api.post(`/chat/conversations/${conversationId}/messages`, { content }),
-    getUnreadCount: () => api.get('/chat/unread-count')
+    getUnreadCount: () => api.get('/chat/unread-count'),
+    editMessage: (messageId, content) => api.put(`/chat/messages/${messageId}`, { content }),
+    deleteMessage: (messageId) => api.delete(`/chat/messages/${messageId}`),
+    deleteConversation: (conversationId) => api.delete(`/chat/conversations/${conversationId}`)
 };
 
 // Admin API
