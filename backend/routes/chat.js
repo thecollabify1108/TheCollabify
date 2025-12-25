@@ -58,6 +58,72 @@ router.get('/conversations', auth, async (req, res) => {
 });
 
 /**
+ * @route   POST /api/chat/find-or-restore
+ * @desc    Find conversation and restore if deleted (for Message button)
+ * @access  Private
+ */
+router.post('/find-or-restore', auth, async (req, res) => {
+    try {
+        const { promotionId, creatorId } = req.body;
+        const userId = req.userId;
+
+        // Find conversation regardless of deletedBy status
+        let conversation = await Conversation.findOne({
+            promotionId,
+            creatorUserId: creatorId
+        })
+            .populate('sellerId', 'name email avatar')
+            .populate('creatorUserId', 'name email avatar')
+            .populate('promotionId', 'title status');
+
+        if (!conversation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Conversation not found. The creator may not have been accepted yet.'
+            });
+        }
+
+        // Verify user is part of conversation
+        if (conversation.sellerId._id.toString() !== userId.toString() &&
+            conversation.creatorUserId._id.toString() !== userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: 'Not authorized to access this conversation'
+            });
+        }
+
+        // Remove user from deletedBy array if present (restore conversation)
+        const wasDeleted = conversation.deletedBy.some(
+            d => d.userId.toString() === userId.toString()
+        );
+
+        if (wasDeleted) {
+            conversation.deletedBy = conversation.deletedBy.filter(
+                d => d.userId.toString() !== userId.toString()
+            );
+            await conversation.save();
+
+            // Re-populate after save
+            conversation = await Conversation.findById(conversation._id)
+                .populate('sellerId', 'name email avatar')
+                .populate('creatorUserId', 'name email avatar')
+                .populate('promotionId', 'title status');
+        }
+
+        res.json({
+            success: true,
+            data: { conversation, wasRestored: wasDeleted }
+        });
+    } catch (error) {
+        console.error('Find or restore conversation error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to find conversation'
+        });
+    }
+});
+
+/**
  * @route   GET /api/chat/conversations/:id
  * @desc    Get a specific conversation
  * @access  Private
