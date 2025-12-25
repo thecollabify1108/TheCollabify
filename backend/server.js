@@ -21,7 +21,7 @@ app.use(compression()); // Compress responses
 // Rate limiting - prevent brute force attacks
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per windowMs
+    max: 1000, // Limit each IP to 1000 requests per windowMs
     message: {
         success: false,
         message: 'Too many requests, please try again later.'
@@ -36,7 +36,7 @@ app.use('/api', limiter);
 // Stricter rate limit for auth routes
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // Limit each IP to 10 login/register attempts per 15 minutes
+    max: 50, // Limit each IP to 50 login/register attempts per 15 minutes
     message: {
         success: false,
         message: 'Too many authentication attempts, please try again later.'
