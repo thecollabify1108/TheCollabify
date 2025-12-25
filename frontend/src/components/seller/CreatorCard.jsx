@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
-import { FaInstagram, FaCheck, FaTimes, FaInfoCircle } from 'react-icons/fa';
+import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
 
-const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject }) => {
+const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage }) => {
     const profile = creator.creatorId || creator;
     const user = profile.userId || {};
 
@@ -76,7 +76,7 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                 <span className="badge badge-info">{profile.category}</span>
                 {profile.insights?.engagementQuality && (
                     <span className={`badge ${profile.insights.engagementQuality === 'High' ? 'badge-success' :
-                            profile.insights.engagementQuality === 'Medium' ? 'badge-warning' : 'badge-danger'
+                        profile.insights.engagementQuality === 'Medium' ? 'badge-warning' : 'badge-danger'
                         }`}>
                         {profile.insights.engagementQuality} Engagement
                     </span>
@@ -122,9 +122,20 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                     </button>
                 </div>
             ) : status === 'Accepted' ? (
-                <div className="badge badge-success w-full justify-center py-3">
-                    <FaCheck className="mr-2" />
-                    Accepted
+                <div className="space-y-2">
+                    <div className="badge badge-success w-full justify-center py-3">
+                        <FaCheck className="mr-2" />
+                        Accepted
+                    </div>
+                    {onMessage && (
+                        <button
+                            onClick={onMessage}
+                            className="w-full btn-3d py-3 flex items-center justify-center"
+                        >
+                            <FaComments className="mr-2" />
+                            Message
+                        </button>
+                    )}
                 </div>
             ) : status === 'Rejected' ? (
                 <div className="badge badge-danger w-full justify-center py-3">
