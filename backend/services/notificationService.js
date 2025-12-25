@@ -101,6 +101,19 @@ const notifyRequestUpdate = async (userId, promotionRequest, newStatus) => {
 };
 
 /**
+ * Notify creator when a request they applied to is deleted
+ */
+const notifyRequestDeleted = async (creatorUserId, promotionRequest) => {
+    return createNotification({
+        userId: creatorUserId,
+        type: 'REQUEST_UPDATE',
+        title: 'Request Deleted',
+        message: `The promotion request "${promotionRequest.title}" that you applied to has been deleted by the seller.`,
+        relatedRequest: promotionRequest._id
+    });
+};
+
+/**
  * Send welcome notification to new user
  */
 const notifyWelcome = async (userId, role) => {
@@ -187,6 +200,7 @@ module.exports = {
     notifyCreatorAccepted,
     notifyCreatorRejected,
     notifyRequestUpdate,
+    notifyRequestDeleted,
     notifyWelcome,
     notifyProfileInsights,
     getUserNotifications,
