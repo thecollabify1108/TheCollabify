@@ -13,7 +13,7 @@ import {
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
-import { sellerAPI } from '../services/api';
+import { sellerAPI, chatAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 // Components
@@ -103,6 +103,27 @@ const SellerDashboard = () => {
             fetchRequests();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to delete request');
+        }
+    };
+
+    const handleMessageCreator = async (requestId, creatorId, creatorName) => {
+        try {
+            // Find the conversation for this request and creator
+            const res = await chatAPI.getConversations();
+            const conversation = res.data.data.conversations.find(
+                c => c.promotionId?._id === requestId && c.creatorUserId?._id === creatorId
+            );
+
+            if (conversation) {
+                setSelectedConversation({
+                    ...conversation,
+                    creatorUserId: { name: creatorName }
+                });
+            } else {
+                toast.error('Conversation not found. Please try again.');
+            }
+        } catch (error) {
+            toast.error('Failed to open chat');
         }
     };
 
@@ -349,6 +370,7 @@ const SellerDashboard = () => {
                                         onAccept={handleAcceptCreator}
                                         onReject={handleRejectCreator}
                                         onUpdateStatus={handleUpdateStatus}
+                                        onMessage={handleMessageCreator}
                                     />
                                 </div>
                             ) : (

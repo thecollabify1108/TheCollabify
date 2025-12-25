@@ -11,7 +11,7 @@ import {
 import { HiSparkles } from 'react-icons/hi';
 import CreatorCard from './CreatorCard';
 
-const CampaignTracker = ({ request, onAccept, onReject, onUpdateStatus }) => {
+const CampaignTracker = ({ request, onAccept, onReject, onUpdateStatus, onMessage }) => {
     const [activeSection, setActiveSection] = useState('applicants');
 
     const applicants = request.matchedCreators?.filter(mc => mc.status === 'Applied') || [];
@@ -119,8 +119,8 @@ const CampaignTracker = ({ request, onAccept, onReject, onUpdateStatus }) => {
                         key={section}
                         onClick={() => setActiveSection(section)}
                         className={`px-4 py-2 rounded-lg font-medium transition-all capitalize ${activeSection === section
-                                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
-                                : 'text-dark-400 hover:text-dark-200'
+                            ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
+                            : 'text-dark-400 hover:text-dark-200'
                             }`}
                     >
                         {section} ({
@@ -187,6 +187,7 @@ const CampaignTracker = ({ request, onAccept, onReject, onUpdateStatus }) => {
                         matchScore={mc.matchScore}
                         matchReason={mc.matchReason}
                         status={mc.status}
+                        onMessage={() => onMessage && onMessage(request._id, mc.creatorId._id || mc.creatorId, mc.creatorId?.userId?.name || 'Creator')}
                     />
                 ))}
             </div>
