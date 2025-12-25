@@ -59,7 +59,6 @@ router.get('/profile', auth, isCreator, async (req, res) => {
  * @access  Private (Creator)
  */
 router.post('/profile', auth, isCreator, [
-    body('instagramUsername').trim().notEmpty().withMessage('Instagram username is required'),
     body('followerCount').isInt({ min: 0 }).withMessage('Follower count must be a positive number'),
     body('engagementRate').isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
     body('category').notEmpty().withMessage('Category is required'),
