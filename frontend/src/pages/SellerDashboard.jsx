@@ -158,7 +158,10 @@ const SellerDashboard = () => {
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div className="glass-card p-6">
+                    <div
+                        className="glass-card p-6 cursor-pointer hover:border-primary-500/50 transition-all"
+                        onClick={() => setActiveTab('requests')}
+                    >
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-dark-400">Total Requests</span>
                             <FaBriefcase className="text-primary-400 text-xl" />
@@ -166,7 +169,10 @@ const SellerDashboard = () => {
                         <div className="text-3xl font-bold text-dark-100">{stats.total}</div>
                     </div>
 
-                    <div className="glass-card p-6">
+                    <div
+                        className="glass-card p-6 cursor-pointer hover:border-amber-500/50 transition-all"
+                        onClick={() => setActiveTab('requests')}
+                    >
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-dark-400">Active Campaigns</span>
                             <FaChartLine className="text-amber-400 text-xl" />
@@ -174,7 +180,10 @@ const SellerDashboard = () => {
                         <div className="text-3xl font-bold text-dark-100">{stats.active}</div>
                     </div>
 
-                    <div className="glass-card p-6">
+                    <div
+                        className="glass-card p-6 cursor-pointer hover:border-emerald-500/50 transition-all"
+                        onClick={() => { setActiveTab('requests'); setHideInactive(false); }}
+                    >
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-dark-400">Completed</span>
                             <FaCheck className="text-emerald-400 text-xl" />
@@ -182,7 +191,10 @@ const SellerDashboard = () => {
                         <div className="text-3xl font-bold text-dark-100">{stats.completed}</div>
                     </div>
 
-                    <div className="glass-card p-6">
+                    <div
+                        className="glass-card p-6 cursor-pointer hover:border-secondary-500/50 transition-all"
+                        onClick={() => setActiveTab('requests')}
+                    >
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-dark-400">Total Matches</span>
                             <HiSparkles className="text-secondary-400 text-xl" />
