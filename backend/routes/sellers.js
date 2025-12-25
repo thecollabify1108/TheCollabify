@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const PromotionRequest = require('../models/PromotionRequest');
 const CreatorProfile = require('../models/CreatorProfile');
+const Conversation = require('../models/Conversation');
 const { auth } = require('../middleware/auth');
 const { isSeller } = require('../middleware/roleCheck');
 const { findMatchingCreators, explainMatch } = require('../services/aiMatching');
@@ -325,6 +326,23 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
                 await notifyCreatorAccepted(creatorProfile.userId, request);
             } catch (err) {
                 console.error('Failed to notify creator:', err);
+            }
+
+            // Create a conversation for chat
+            try {
+                await Conversation.findOneAndUpdate(
+                    { promotionId: request._id, creatorUserId: creatorProfile.userId },
+                    {
+                        promotionId: request._id,
+                        sellerId: req.userId,
+                        creatorUserId: creatorProfile.userId,
+                        creatorProfileId: creatorProfile._id,
+                        status: 'active'
+                    },
+                    { upsert: true, new: true }
+                );
+            } catch (err) {
+                console.error('Failed to create conversation:', err);
             }
         }
 
