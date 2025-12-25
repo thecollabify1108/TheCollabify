@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaInstagram, FaHashtag, FaDollarSign } from 'react-icons/fa';
+import { FaHashtag, FaRupeeSign } from 'react-icons/fa';
 import { creatorAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -15,7 +15,6 @@ const PROMOTION_TYPES = ['Reels', 'Stories', 'Posts', 'Website Visit'];
 const ProfileForm = ({ profile, onSave }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        instagramUsername: profile?.instagramUsername || '',
         followerCount: profile?.followerCount || '',
         engagementRate: profile?.engagementRate || '',
         category: profile?.category || '',
@@ -97,24 +96,8 @@ const ProfileForm = ({ profile, onSave }) => {
                 {profile ? 'Edit Your Profile' : 'Create Your Creator Profile'}
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Instagram Username */}
-                <div>
-                    <label className="input-label">Instagram Username</label>
-                    <div className="relative">
-                        <FaInstagram className="absolute left-4 top-1/2 transform -translate-y-1/2 text-primary-400" />
-                        <input
-                            type="text"
-                            name="instagramUsername"
-                            value={formData.instagramUsername}
-                            onChange={handleChange}
-                            placeholder="your_username"
-                            className="input-field pl-11"
-                            required
-                        />
-                    </div>
-                </div>
 
+            <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Follower Count & Engagement Rate */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -174,8 +157,8 @@ const ProfileForm = ({ profile, onSave }) => {
                                 type="button"
                                 onClick={() => handlePromotionTypeToggle(type)}
                                 className={`p-3 rounded-xl border-2 transition-all text-sm font-medium ${formData.promotionTypes.includes(type)
-                                        ? 'border-primary-500 bg-primary-500/10 text-primary-400'
-                                        : 'border-dark-600 text-dark-300 hover:border-dark-500'
+                                    ? 'border-primary-500 bg-primary-500/10 text-primary-400'
+                                    : 'border-dark-600 text-dark-300 hover:border-dark-500'
                                     }`}
                             >
                                 {type}
@@ -186,10 +169,10 @@ const ProfileForm = ({ profile, onSave }) => {
 
                 {/* Price Range */}
                 <div>
-                    <label className="input-label">Price Range (USD)</label>
+                    <label className="input-label">Price Range (₹ INR)</label>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="relative">
-                            <FaDollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
+                            <FaRupeeSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
                             <input
                                 type="number"
                                 name="priceRange.min"
@@ -202,7 +185,7 @@ const ProfileForm = ({ profile, onSave }) => {
                             />
                         </div>
                         <div className="relative">
-                            <FaDollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
+                            <FaRupeeSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
                             <input
                                 type="number"
                                 name="priceRange.max"

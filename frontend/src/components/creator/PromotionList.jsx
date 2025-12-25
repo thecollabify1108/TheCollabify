@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { FaBriefcase, FaDollarSign, FaUsers, FaCheck } from 'react-icons/fa';
-import { HiSparkles } from 'react-icons/hi';
+import { FaBriefcase, FaRupeeSign, FaUsers, FaCheck } from 'react-icons/fa';
 
 const PromotionList = ({ promotions, onApply }) => {
     if (!promotions || promotions.length === 0) {
@@ -17,15 +16,9 @@ const PromotionList = ({ promotions, onApply }) => {
 
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-dark-100">
-                    Matching Opportunities ({promotions.length})
-                </h2>
-                <span className="badge badge-info flex items-center">
-                    <HiSparkles className="mr-1" />
-                    AI Matched
-                </span>
-            </div>
+            <h2 className="text-xl font-semibold text-dark-100">
+                Matching Opportunities ({promotions.length})
+            </h2>
 
             {promotions.map((promotion, index) => (
                 <motion.div
@@ -40,8 +33,8 @@ const PromotionList = ({ promotions, onApply }) => {
                             <div className="flex items-center flex-wrap gap-2 mb-2">
                                 <h3 className="text-lg font-semibold text-dark-100">{promotion.title}</h3>
                                 <span className={`badge ${promotion.status === 'Open' ? 'badge-success' :
-                                        promotion.status === 'Creator Interested' ? 'badge-warning' :
-                                            'badge-neutral'
+                                    promotion.status === 'Creator Interested' ? 'badge-warning' :
+                                        'badge-neutral'
                                     }`}>
                                     {promotion.status}
                                 </span>
@@ -59,10 +52,9 @@ const PromotionList = ({ promotions, onApply }) => {
 
                             <div className="flex flex-wrap gap-6 text-sm text-dark-400">
                                 <div className="flex items-center">
-                                    <FaDollarSign className="mr-1 text-emerald-400" />
-                                    <span>${promotion.budgetRange?.min} - ${promotion.budgetRange?.max}</span>
-                                </div>
-                                <div className="flex items-center">
+                                    <FaRupeeSign className="mr-1 text-emerald-400" />
+                                    <span>₹{promotion.budgetRange?.min} - ₹{promotion.budgetRange?.max}</span>
+                                </div>                        <div className="flex items-center">
                                     <FaUsers className="mr-1 text-primary-400" />
                                     <span>
                                         {promotion.followerRange?.min >= 1000

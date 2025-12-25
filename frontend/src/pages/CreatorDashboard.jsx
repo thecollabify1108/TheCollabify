@@ -25,7 +25,7 @@ import toast from 'react-hot-toast';
 // Components
 import Navbar from '../components/common/Navbar';
 import NotificationBell from '../components/common/NotificationBell';
-import InsightsCard from '../components/creator/InsightsCard';
+// InsightsCard removed - AI profile insights disabled
 import ProfileForm from '../components/creator/ProfileForm';
 import PromotionList from '../components/creator/PromotionList';
 
@@ -141,8 +141,8 @@ const CreatorDashboard = () => {
                         <button
                             onClick={handleToggleAvailability}
                             className={`mt-4 md:mt-0 flex items-center px-4 py-2 rounded-xl font-medium transition-all ${profile.isAvailable
-                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                    : 'bg-dark-700 text-dark-300 border border-dark-600'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : 'bg-dark-700 text-dark-300 border border-dark-600'
                                 }`}
                         >
                             {profile.isAvailable ? (
@@ -181,8 +181,8 @@ const CreatorDashboard = () => {
                                         key={tab.id}
                                         onClick={() => setActiveTab(tab.id)}
                                         className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                                                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
-                                                : 'text-dark-400 hover:text-dark-200 hover:bg-dark-700'
+                                            ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
+                                            : 'text-dark-400 hover:text-dark-200 hover:bg-dark-700'
                                             }`}
                                     >
                                         <span className="mr-2">{tab.icon}</span>
@@ -215,7 +215,7 @@ const CreatorDashboard = () => {
                                                         ? `${(profile.followerCount / 1000).toFixed(1)}K`
                                                         : profile.followerCount}
                                             </div>
-                                            <div className="text-sm text-dark-400 mt-1">@{profile.instagramUsername}</div>
+                                            <div className="text-sm text-dark-400 mt-1">{profile.category} Creator</div>
                                         </div>
 
                                         <div className="glass-card p-6">
@@ -229,11 +229,11 @@ const CreatorDashboard = () => {
 
                                         <div className="glass-card p-6">
                                             <div className="flex items-center justify-between mb-4">
-                                                <span className="text-dark-400">Profile Score</span>
-                                                <HiSparkles className="text-secondary-400 text-xl" />
+                                                <span className="text-dark-400">Category</span>
+                                                <FaHashtag className="text-secondary-400 text-xl" />
                                             </div>
-                                            <div className="text-3xl font-bold text-dark-100">{profile.insights?.score || 0}</div>
-                                            <div className="text-sm text-dark-400 mt-1">out of 100</div>
+                                            <div className="text-2xl font-bold text-dark-100">{profile.category}</div>
+                                            <div className="text-sm text-dark-400 mt-1">Niche</div>
                                         </div>
 
                                         <div className="glass-card p-6">
@@ -246,9 +246,8 @@ const CreatorDashboard = () => {
                                         </div>
                                     </div>
 
-                                    {/* Insights Card */}
+                                    {/* Profile Info */}
                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                        <InsightsCard insights={profile.insights} />
 
                                         {/* Quick Info */}
                                         <div className="glass-card p-6">
@@ -261,7 +260,7 @@ const CreatorDashboard = () => {
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-dark-400">Price Range</span>
                                                     <span className="text-dark-200">
-                                                        ${profile.priceRange.min} - ${profile.priceRange.max}
+                                                        ₹{profile.priceRange.min} - ₹{profile.priceRange.max}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between">
@@ -331,14 +330,14 @@ const CreatorDashboard = () => {
                                                                 <span className="badge badge-info">{app.promotion.promotionType}</span>
                                                                 <span className="badge badge-neutral">{app.promotion.campaignGoal}</span>
                                                                 <span className="text-sm text-dark-400">
-                                                                    Budget: ${app.promotion.budgetRange?.min} - ${app.promotion.budgetRange?.max}
+                                                                    Budget: ₹{app.promotion.budgetRange?.min} - ₹{app.promotion.budgetRange?.max}
                                                                 </span>
                                                             </div>
                                                         </div>
                                                         <div className="mt-4 md:mt-0 md:ml-6">
                                                             <span className={`badge ${app.applicationStatus === 'Accepted' ? 'badge-success' :
-                                                                    app.applicationStatus === 'Rejected' ? 'badge-danger' :
-                                                                        'badge-warning'
+                                                                app.applicationStatus === 'Rejected' ? 'badge-danger' :
+                                                                    'badge-warning'
                                                                 }`}>
                                                                 {app.applicationStatus}
                                                             </span>
