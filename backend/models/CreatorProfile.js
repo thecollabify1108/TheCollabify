@@ -9,9 +9,8 @@ const creatorProfileSchema = new mongoose.Schema({
     },
     instagramUsername: {
         type: String,
-        required: [true, 'Instagram username is required'],
         trim: true,
-        unique: true
+        default: ''
     },
     followerCount: {
         type: Number,
