@@ -7,7 +7,19 @@ const connectDB = async () => {
     });
 
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    
+
+    // Drop old unique index on instagramUsername (no longer needed)
+    try {
+      const CreatorProfile = conn.connection.collection('creatorprofiles');
+      await CreatorProfile.dropIndex('instagramUsername_1');
+      console.log('✅ Dropped old instagramUsername unique index');
+    } catch (indexError) {
+      // Index might not exist, that's fine
+      if (indexError.code !== 27) { // 27 = index not found
+        console.log('ℹ️ instagramUsername index already removed or does not exist');
+      }
+    }
+
     // Handle connection events
     mongoose.connection.on('error', (err) => {
       console.error(`❌ MongoDB connection error: ${err.message}`);
