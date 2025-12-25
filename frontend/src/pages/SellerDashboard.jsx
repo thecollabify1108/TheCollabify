@@ -286,16 +286,27 @@ const SellerDashboard = () => {
                                                         <div className="text-dark-400 text-sm mb-2">
                                                             {request.matchedCreators?.length || 0} matches
                                                         </div>
-                                                        <button
-                                                            onClick={() => {
-                                                                setSelectedRequest(request);
-                                                                setActiveTab('requests');
-                                                            }}
-                                                            className="btn-outline text-sm py-1 px-3 flex items-center"
-                                                        >
-                                                            <FaEye className="mr-1" />
-                                                            View Details
-                                                        </button>
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedRequest(request);
+                                                                    setActiveTab('requests');
+                                                                }}
+                                                                className="btn-outline text-sm py-1 px-3 flex items-center"
+                                                            >
+                                                                <FaEye className="mr-1" />
+                                                                View Details
+                                                            </button>
+                                                            {['Completed', 'Cancelled'].includes(request.status) && (
+                                                                <button
+                                                                    onClick={(e) => handleDeleteRequest(request._id, e)}
+                                                                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition"
+                                                                    title="Delete campaign"
+                                                                >
+                                                                    <FaTrash />
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </motion.div>
