@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaBell, FaCheck, FaTimes } from 'react-icons/fa';
 import { HiSparkles, HiBriefcase, HiUserAdd, HiCheckCircle } from 'react-icons/hi';
 import { useNotifications } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 
 const NotificationBell = () => {
     const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+    const { user } = useAuth();
+    const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef(null);
 
@@ -52,6 +56,44 @@ const NotificationBell = () => {
             await markAsRead(notification._id);
         }
         setIsOpen(false);
+
+        // Navigate based on notification type and user role
+        const requestId = notification.relatedRequest?._id || notification.relatedRequest;
+
+        switch (notification.type) {
+            case 'CREATOR_APPLIED':
+                // Seller clicked - go to seller dashboard with the specific request
+                if (requestId) {
+                    navigate(`/seller-dashboard?tab=requests&request=${requestId}`);
+                } else {
+                    navigate('/seller-dashboard?tab=requests');
+                }
+                break;
+            case 'NEW_MATCH':
+                // Creator clicked - go to promotions tab
+                navigate('/creator-dashboard?tab=promotions');
+                break;
+            case 'CREATOR_ACCEPTED':
+            case 'CREATOR_REJECTED':
+                // Creator clicked - go to applications tab
+                navigate('/creator-dashboard?tab=applications');
+                break;
+            case 'REQUEST_UPDATE':
+                // Go to appropriate dashboard based on role
+                if (user?.role === 'seller') {
+                    navigate('/seller-dashboard?tab=requests');
+                } else {
+                    navigate('/creator-dashboard?tab=applications');
+                }
+                break;
+            default:
+                // Go to main dashboard
+                if (user?.role === 'seller') {
+                    navigate('/seller-dashboard');
+                } else {
+                    navigate('/creator-dashboard');
+                }
+        }
     };
 
     return (

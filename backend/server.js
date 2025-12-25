@@ -68,6 +68,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/creators', require('./routes/creators'));
 app.use('/api/sellers', require('./routes/sellers'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/chat', require('./routes/chat'));
 app.use('/api/admin', require('./routes/admin'));
 
 // Health check endpoint

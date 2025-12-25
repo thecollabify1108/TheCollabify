@@ -84,6 +84,15 @@ export const notificationAPI = {
     deleteNotification: (id) => api.delete(`/notifications/${id}`)
 };
 
+// Chat API
+export const chatAPI = {
+    getConversations: () => api.get('/chat/conversations'),
+    getConversation: (id) => api.get(`/chat/conversations/${id}`),
+    getMessages: (conversationId, params) => api.get(`/chat/conversations/${conversationId}/messages`, { params }),
+    sendMessage: (conversationId, content) => api.post(`/chat/conversations/${conversationId}/messages`, { content }),
+    getUnreadCount: () => api.get('/chat/unread-count')
+};
+
 // Admin API
 export const adminAPI = {
     getStats: () => api.get('/admin/stats'),
