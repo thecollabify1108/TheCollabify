@@ -32,6 +32,7 @@ const SellerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showNewRequestForm, setShowNewRequestForm] = useState(false);
     const [selectedConversation, setSelectedConversation] = useState(null);
+    const [hideInactive, setHideInactive] = useState(true); // Hide completed/cancelled by default
 
     useEffect(() => {
         fetchRequests();
@@ -233,55 +234,72 @@ const SellerDashboard = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-6">
-                                    <h2 className="text-xl font-semibold text-dark-100">Recent Campaigns</h2>
-                                    {requests.slice(0, 5).map((request, index) => (
-                                        <motion.div
-                                            key={request._id}
-                                            className="glass-card p-6"
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.1 }}
-                                        >
-                                            <div className="flex flex-col md:flex-row md:items-start md:justify-between">
-                                                <div className="flex-1">
-                                                    <div className="flex items-center mb-2">
-                                                        <h3 className="text-lg font-semibold text-dark-100 mr-3">{request.title}</h3>
-                                                        <span className={`badge ${request.status === 'Completed' ? 'badge-success' :
-                                                            request.status === 'Accepted' ? 'badge-info' :
-                                                                request.status === 'Creator Interested' ? 'badge-warning' :
-                                                                    request.status === 'Cancelled' ? 'badge-danger' :
-                                                                        'badge-neutral'
-                                                            }`}>
-                                                            {request.status}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-dark-400 text-sm mb-3">{request.description?.substring(0, 150)}...</p>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        <span className="badge badge-info">{request.promotionType}</span>
-                                                        <span className="badge badge-neutral">{request.targetCategory}</span>
-                                                        <span className="text-sm text-dark-400">
-                                                            Budget: ${request.budgetRange?.min} - ${request.budgetRange?.max}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-end">
-                                                    <div className="text-dark-400 text-sm mb-2">
-                                                        {request.matchedCreators?.length || 0} matches
-                                                    </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedRequest(request);
-                                                            setActiveTab('requests');
-                                                        }}
-                                                        className="btn-outline text-sm py-1 px-3 flex items-center"
-                                                    >
-                                                        <FaEye className="mr-1" />
-                                                        View Details
-                                                    </button>
-                                                </div>
+                                    <div className="flex items-center justify-between">
+                                        <h2 className="text-xl font-semibold text-dark-100">Recent Campaigns</h2>
+                                        <label className="flex items-center cursor-pointer">
+                                            <span className="text-sm text-dark-400 mr-3">Hide inactive</span>
+                                            <div className="relative">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={hideInactive}
+                                                    onChange={() => setHideInactive(!hideInactive)}
+                                                    className="sr-only"
+                                                />
+                                                <div className={`w-10 h-5 rounded-full transition-colors ${hideInactive ? 'bg-primary-600' : 'bg-dark-600'}`}></div>
+                                                <div className={`absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform ${hideInactive ? 'translate-x-5' : ''}`}></div>
                                             </div>
-                                        </motion.div>
-                                    ))}
+                                        </label>
+                                    </div>
+                                    {requests
+                                        .filter(r => hideInactive ? ['Open', 'Creator Interested', 'Accepted'].includes(r.status) : true)
+                                        .slice(0, 5).map((request, index) => (
+                                            <motion.div
+                                                key={request._id}
+                                                className="glass-card p-6"
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.1 }}
+                                            >
+                                                <div className="flex flex-col md:flex-row md:items-start md:justify-between">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center mb-2">
+                                                            <h3 className="text-lg font-semibold text-dark-100 mr-3">{request.title}</h3>
+                                                            <span className={`badge ${request.status === 'Completed' ? 'badge-success' :
+                                                                request.status === 'Accepted' ? 'badge-info' :
+                                                                    request.status === 'Creator Interested' ? 'badge-warning' :
+                                                                        request.status === 'Cancelled' ? 'badge-danger' :
+                                                                            'badge-neutral'
+                                                                }`}>
+                                                                {request.status}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-dark-400 text-sm mb-3">{request.description?.substring(0, 150)}...</p>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <span className="badge badge-info">{request.promotionType}</span>
+                                                            <span className="badge badge-neutral">{request.targetCategory}</span>
+                                                            <span className="text-sm text-dark-400">
+                                                                Budget: ${request.budgetRange?.min} - ${request.budgetRange?.max}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-4 md:mt-0 md:ml-6 flex flex-col items-end">
+                                                        <div className="text-dark-400 text-sm mb-2">
+                                                            {request.matchedCreators?.length || 0} matches
+                                                        </div>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedRequest(request);
+                                                                setActiveTab('requests');
+                                                            }}
+                                                            className="btn-outline text-sm py-1 px-3 flex items-center"
+                                                        >
+                                                            <FaEye className="mr-1" />
+                                                            View Details
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
                                 </div>
                             )}
                         </motion.div>
