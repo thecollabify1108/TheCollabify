@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaDollarSign, FaUsers } from 'react-icons/fa';
+import { FaRupeeSign, FaUsers } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 const CATEGORIES = [
@@ -146,10 +146,10 @@ const RequestForm = ({ onSubmit }) => {
 
                 {/* Budget Range */}
                 <div>
-                    <label className="input-label">Budget Range (USD)</label>
+                    <label className="input-label">Budget Range (₹ INR)</label>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="relative">
-                            <FaDollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
+                            <FaRupeeSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
                             <input
                                 type="number"
                                 name="budgetRange.min"
@@ -162,7 +162,7 @@ const RequestForm = ({ onSubmit }) => {
                             />
                         </div>
                         <div className="relative">
-                            <FaDollarSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
+                            <FaRupeeSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
                             <input
                                 type="number"
                                 name="budgetRange.max"
@@ -220,8 +220,8 @@ const RequestForm = ({ onSubmit }) => {
                                 type="button"
                                 onClick={() => setFormData(prev => ({ ...prev, campaignGoal: goal }))}
                                 className={`p-4 rounded-xl border-2 transition-all text-center ${formData.campaignGoal === goal
-                                        ? 'border-primary-500 bg-primary-500/10 text-primary-400'
-                                        : 'border-dark-600 text-dark-300 hover:border-dark-500'
+                                    ? 'border-primary-500 bg-primary-500/10 text-primary-400'
+                                    : 'border-dark-600 text-dark-300 hover:border-dark-500'
                                     }`}
                             >
                                 <div className="font-medium">{goal}</div>
