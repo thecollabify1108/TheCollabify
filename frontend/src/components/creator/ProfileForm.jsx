@@ -53,8 +53,34 @@ const ProfileForm = ({ profile, onSave }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validate all required fields
+        if (!formData.followerCount || parseInt(formData.followerCount) <= 0) {
+            toast.error('Please enter your follower count');
+            return;
+        }
+
+        if (!formData.engagementRate || parseFloat(formData.engagementRate) <= 0) {
+            toast.error('Please enter your engagement rate');
+            return;
+        }
+
+        if (!formData.category) {
+            toast.error('Please select your content category/niche');
+            return;
+        }
+
         if (formData.promotionTypes.length === 0) {
             toast.error('Please select at least one promotion type');
+            return;
+        }
+
+        if (!formData.priceRange.min || !formData.priceRange.max) {
+            toast.error('Please enter your price range');
+            return;
+        }
+
+        if (parseFloat(formData.priceRange.min) > parseFloat(formData.priceRange.max)) {
+            toast.error('Maximum price must be greater than minimum price');
             return;
         }
 
