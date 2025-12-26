@@ -12,6 +12,7 @@ import ResetPassword from './pages/ResetPassword';
 import CreatorDashboard from './pages/CreatorDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import AdminPanel from './pages/AdminPanel';
+import ScrollToTop from './components/common/ScrollToTop';
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -85,6 +86,7 @@ function App() {
             </div>
             <div className="grid-pattern"></div>
 
+            <ScrollToTop />
             <Routes>
                 {/* Public routes */}
                 <Route
