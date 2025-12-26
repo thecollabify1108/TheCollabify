@@ -40,8 +40,15 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link to={getDashboardLink()} className="flex items-center">
-                        <img src="/logo.png" alt="The Collabify" className="h-10 w-auto" />
+                    <Link to={getDashboardLink()} className="flex items-center space-x-3">
+                        <img src="/watermark.png" alt="" className="h-8 w-8 object-contain" />
+                        <div className="flex flex-col">
+                            <span className="text-lg font-bold text-dark-100">The Collabify.ai</span>
+                            <span className="text-xs text-dark-400 -mt-1">AI-powered influencer marketing platform</span>
+                        </div>
+                        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary-500 text-white rounded-full">
+                            BETA
+                        </span>
                     </Link>
 
                     {/* Right side */}
