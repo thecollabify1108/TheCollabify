@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaComments } from 'react-icons/fa';
+import { FaComments, FaTrash } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const ConversationList = ({ onSelectConversation }) => {
     const { user } = useAuth();
@@ -21,6 +22,19 @@ const ConversationList = ({ onSelectConversation }) => {
             console.error('Failed to fetch conversations:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteConversation = async (conversationId, e) => {
+        e.stopPropagation(); // Prevent opening the conversation
+        if (!window.confirm('Delete this conversation? This only removes it from your view.')) return;
+
+        try {
+            await chatAPI.deleteConversation(conversationId);
+            setConversations(prev => prev.filter(c => c._id !== conversationId));
+            toast.success('Conversation deleted');
+        } catch (error) {
+            toast.error('Failed to delete conversation');
         }
     };
 
@@ -84,7 +98,7 @@ const ConversationList = ({ onSelectConversation }) => {
                         <motion.div
                             key={conversation._id}
                             whileHover={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
-                            className="px-4 py-3 cursor-pointer transition"
+                            className="px-4 py-3 cursor-pointer transition group"
                             onClick={() => onSelectConversation(conversation)}
                         >
                             <div className="flex items-start justify-between">
@@ -108,8 +122,17 @@ const ConversationList = ({ onSelectConversation }) => {
                                         </p>
                                     )}
                                 </div>
-                                <div className="text-xs text-dark-500 ml-2">
-                                    {formatTime(conversation.lastMessage?.createdAt || conversation.createdAt)}
+                                <div className="flex items-center gap-2 ml-2">
+                                    <span className="text-xs text-dark-500">
+                                        {formatTime(conversation.lastMessage?.createdAt || conversation.createdAt)}
+                                    </span>
+                                    <button
+                                        onClick={(e) => handleDeleteConversation(conversation._id, e)}
+                                        className="p-1.5 text-dark-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition opacity-0 group-hover:opacity-100"
+                                        title="Delete conversation"
+                                    >
+                                        <FaTrash size={12} />
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>

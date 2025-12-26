@@ -72,68 +72,80 @@ const PublicRoute = ({ children }) => {
 
 function App() {
     return (
-        <Routes>
-            {/* Public routes */}
-            <Route
-                path="/"
-                element={
-                    <PublicRoute>
-                        <Landing />
-                    </PublicRoute>
-                }
-            />
-            <Route
-                path="/login"
-                element={
-                    <PublicRoute>
-                        <Login />
-                    </PublicRoute>
-                }
-            />
-            <Route
-                path="/register"
-                element={
-                    <PublicRoute>
-                        <Register />
-                    </PublicRoute>
-                }
-            />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <>
+            {/* 3D Animated Background */}
+            <div className="floating-orbs">
+                <div className="floating-orb orb-1"></div>
+                <div className="floating-orb orb-2"></div>
+                <div className="floating-orb orb-3"></div>
+                <div className="floating-orb orb-4"></div>
+                <div className="floating-orb orb-5"></div>
+            </div>
+            <div className="grid-pattern"></div>
 
-            {/* Creator routes */}
-            <Route
-                path="/creator/dashboard"
-                element={
-                    <ProtectedRoute allowedRoles={['creator']}>
-                        <CreatorDashboard />
-                    </ProtectedRoute>
-                }
-            />
+            <Routes>
+                {/* Public routes */}
+                <Route
+                    path="/"
+                    element={
+                        <PublicRoute>
+                            <Landing />
+                        </PublicRoute>
+                    }
+                />
+                <Route
+                    path="/login"
+                    element={
+                        <PublicRoute>
+                            <Login />
+                        </PublicRoute>
+                    }
+                />
+                <Route
+                    path="/register"
+                    element={
+                        <PublicRoute>
+                            <Register />
+                        </PublicRoute>
+                    }
+                />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-            {/* Seller routes */}
-            <Route
-                path="/seller/dashboard"
-                element={
-                    <ProtectedRoute allowedRoles={['seller']}>
-                        <SellerDashboard />
-                    </ProtectedRoute>
-                }
-            />
+                {/* Creator routes */}
+                <Route
+                    path="/creator/dashboard"
+                    element={
+                        <ProtectedRoute allowedRoles={['creator']}>
+                            <CreatorDashboard />
+                        </ProtectedRoute>
+                    }
+                />
 
-            {/* Admin routes */}
-            <Route
-                path="/admin"
-                element={
-                    <ProtectedRoute allowedRoles={['admin']}>
-                        <AdminPanel />
-                    </ProtectedRoute>
-                }
-            />
+                {/* Seller routes */}
+                <Route
+                    path="/seller/dashboard"
+                    element={
+                        <ProtectedRoute allowedRoles={['seller']}>
+                            <SellerDashboard />
+                        </ProtectedRoute>
+                    }
+                />
 
-            {/* Catch all - redirect to landing */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+                {/* Admin routes */}
+                <Route
+                    path="/admin"
+                    element={
+                        <ProtectedRoute allowedRoles={['admin']}>
+                            <AdminPanel />
+                        </ProtectedRoute>
+                    }
+                />
+
+                {/* Catch all - redirect to landing */}
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </>
     );
 }
 
