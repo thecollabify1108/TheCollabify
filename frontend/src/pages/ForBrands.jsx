@@ -36,15 +36,8 @@ const ForBrands = () => {
             <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-950/80 backdrop-blur-xl border-b border-dark-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        <Link to={getLogoLink()} className="flex items-center space-x-2">
-                            <FaInstagram className="w-8 h-8 text-primary-500" />
-                            <div>
-                                <span className="text-xl font-bold gradient-text">The Collabify.ai</span>
-                                <span className="block text-xs text-dark-400">AI-powered influencer marketing platform</span>
-                            </div>
-                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary-500 text-white rounded-full">
-                                BETA
-                            </span>
+                        <Link to={getLogoLink()} className="flex items-center">
+                            <img src="/logo.png" alt="The Collabify" className="h-10 w-auto" />
                         </Link>
 
                         <div className="flex items-center space-x-8">
