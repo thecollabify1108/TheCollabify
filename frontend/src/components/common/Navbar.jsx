@@ -41,7 +41,7 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link to={getDashboardLink()} className="flex items-center space-x-3">
-                        <img src="/watermark.png" alt="" className="h-8 w-8 object-contain" />
+                        <img src="/star-logo.png" alt="" className="h-8 w-8 object-contain" />
                         <div className="flex flex-col">
                             <span className="text-lg font-bold text-dark-100">The Collabify.ai</span>
                             <span className="text-xs text-dark-400 -mt-1">AI-powered influencer marketing platform</span>
