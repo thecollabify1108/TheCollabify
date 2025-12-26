@@ -110,35 +110,20 @@ const ForBrands = () => {
                             </motion.button>
                         </motion.div>
 
-                        {/* Right Side - Image Placeholder */}
+                        {/* Right Side - Hero Image */}
                         <motion.div
                             className="relative"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-500/20 to-secondary-500/20 p-8">
-                                <div className="grid grid-cols-3 gap-3">
-                                    {[...Array(9)].map((_, i) => (
-                                        <div
-                                            key={i}
-                                            className="aspect-square rounded-xl bg-dark-800 border border-dark-700 flex items-center justify-center"
-                                        >
-                                            <FaInstagram className="w-8 h-8 text-dark-600" />
-                                        </div>
-                                    ))}
-                                </div>
-                                {/* Phone mockup overlay */}
-                                <div className="absolute top-1/2 right-0 transform translate-x-1/4 -translate-y-1/2 w-48 h-96 bg-dark-800 rounded-3xl border-4 border-dark-600 shadow-2xl">
-                                    <div className="w-full h-full rounded-2xl bg-gradient-to-b from-dark-700 to-dark-900 p-2">
-                                        <div className="w-12 h-1 bg-dark-600 rounded-full mx-auto mb-2" />
-                                        <div className="grid grid-cols-2 gap-1 p-1">
-                                            {[...Array(6)].map((_, i) => (
-                                                <div key={i} className="aspect-[9/16] bg-dark-600 rounded-lg" />
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
+                            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/10">
+                                <img
+                                    src="/brands-hero.png"
+                                    alt="Brand marketing with influencers"
+                                    className="w-full h-auto rounded-3xl"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-dark-950/60 to-transparent rounded-3xl" />
                             </div>
                         </motion.div>
                     </div>
