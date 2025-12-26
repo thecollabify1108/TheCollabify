@@ -2,9 +2,20 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaInstagram, FaUser, FaLock, FaHandshake, FaClock, FaCheck } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const ForCreators = () => {
     const navigate = useNavigate();
+    const { user, isAuthenticated } = useAuth();
+
+    const getLogoLink = () => {
+        if (isAuthenticated && user) {
+            if (user.role === 'creator') return '/creator/dashboard';
+            if (user.role === 'seller') return '/seller/dashboard';
+            if (user.role === 'admin') return '/admin';
+        }
+        return '/';
+    };
 
     const benefits = [
         'Connect with brands you love',
@@ -25,7 +36,7 @@ const ForCreators = () => {
             <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-950/80 backdrop-blur-xl border-b border-dark-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        <Link to="/" className="flex items-center space-x-2">
+                        <Link to={getLogoLink()} className="flex items-center space-x-2">
                             <FaInstagram className="w-8 h-8 text-primary-500" />
                             <div>
                                 <span className="text-xl font-bold gradient-text">The Collabify.ai</span>
