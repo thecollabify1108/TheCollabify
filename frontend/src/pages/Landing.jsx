@@ -88,6 +88,8 @@ const Landing = () => {
                         <div className="hidden md:flex items-center space-x-6">
                             <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition">For Brands</Link>
                             <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">For Influencer</Link>
+                            <a href="#how-it-works" className="text-dark-400 hover:text-dark-200 transition">How It Works</a>
+                            <a href="#features" className="text-dark-400 hover:text-dark-200 transition">Features</a>
                         </div>
 
                         <div className="flex items-center space-x-4">

@@ -110,26 +110,20 @@ const ForCreators = () => {
                             </motion.button>
                         </motion.div>
 
-                        {/* Right Side - Image Grid */}
+                        {/* Right Side - Hero Image */}
                         <motion.div
                             className="relative"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            <div className="grid grid-cols-3 gap-3">
-                                {[...Array(9)].map((_, i) => (
-                                    <motion.div
-                                        key={i}
-                                        className="aspect-square rounded-2xl bg-gradient-to-br from-primary-500/20 to-secondary-500/20 border border-dark-700 flex items-center justify-center overflow-hidden"
-                                        whileHover={{ scale: 1.05 }}
-                                        transition={{ duration: 0.3 }}
-                                    >
-                                        <div className="w-full h-full bg-dark-800 flex items-center justify-center">
-                                            <FaUser className="w-8 h-8 text-dark-600" />
-                                        </div>
-                                    </motion.div>
-                                ))}
+                            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/10">
+                                <img
+                                    src="/creators-hero.png"
+                                    alt="Influencer creators grid"
+                                    className="w-full h-auto rounded-3xl"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-dark-950/60 to-transparent rounded-3xl" />
                             </div>
                         </motion.div>
                     </div>
