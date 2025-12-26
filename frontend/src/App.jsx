@@ -86,6 +86,15 @@ function App() {
             </div>
             <div className="grid-pattern"></div>
 
+            {/* Centered Watermark */}
+            <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
+                <img
+                    src="/watermark.png"
+                    alt=""
+                    className="w-96 h-auto opacity-10"
+                />
+            </div>
+
             <ScrollToTop />
             <Routes>
                 {/* Public routes */}
