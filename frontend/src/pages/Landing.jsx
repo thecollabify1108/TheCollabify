@@ -86,8 +86,8 @@ const Landing = () => {
                         </Link>
 
                         <div className="hidden md:flex items-center space-x-6">
-                            <a href="#how-it-works" className="text-dark-400 hover:text-dark-200 transition">How It Works</a>
-                            <a href="#features" className="text-dark-400 hover:text-dark-200 transition">Features</a>
+                            <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition">For Brands</Link>
+                            <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">For Influencer</Link>
                         </div>
 
                         <div className="flex items-center space-x-4">
@@ -357,21 +357,63 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* Footer */}
-            <footer className="py-12 px-4 border-t border-dark-800">
+            {/* Footer - VRInfluence Style */}
+            <footer className="py-16 px-4 border-t border-dark-800">
                 <div className="max-w-7xl mx-auto">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-                        <div className="flex items-center space-x-2">
-                            <FaInstagram className="w-6 h-6 text-primary-500" />
-                            <span className="text-lg font-bold gradient-text">The Collabify.ai</span>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                        {/* Logo & Description */}
+                        <div>
+                            <div className="flex items-center space-x-2 mb-4">
+                                <FaInstagram className="w-8 h-8 text-primary-500" />
+                            </div>
+                            <p className="text-dark-400 text-sm leading-relaxed">
+                                The Collabify.ai is an AI-powered influencer marketing platform connecting brands
+                                with the right influencers to drive authentic engagement.
+                            </p>
                         </div>
-                        <div className="flex items-center gap-6 text-dark-400 text-sm">
-                            <a href="#" className="hover:text-dark-200 transition">Privacy Policy</a>
-                            <a href="#" className="hover:text-dark-200 transition">Terms of Service</a>
-                            <a href="#" className="hover:text-dark-200 transition">Contact</a>
+
+                        {/* Solutions */}
+                        <div>
+                            <h4 className="text-lg font-bold text-dark-100 mb-4">Solutions</h4>
+                            <ul className="space-y-3">
+                                <li>
+                                    <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition">
+                                        For Brands
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">
+                                        For Influencer
+                                    </Link>
+                                </li>
+                            </ul>
                         </div>
-                        <div className="text-dark-500 text-sm">
-                            © 2024 The Collabify.ai. All rights reserved.
+
+                        {/* Social & Contact */}
+                        <div>
+                            <div className="flex items-center gap-4 mb-6">
+                                <a href="#" className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-dark-400 hover:text-dark-200 hover:bg-dark-700 transition">
+                                    <FaInstagram className="w-5 h-5" />
+                                </a>
+                            </div>
+                            <a
+                                href="mailto:support@thecollabify.ai"
+                                className="inline-block px-4 py-2 rounded-lg bg-primary-500/20 text-primary-400 text-sm"
+                            >
+                                24X7 Customer Support support@thecollabify.ai
+                            </a>
+                            <ul className="mt-6 space-y-2">
+                                <li>
+                                    <a href="#" className="text-dark-400 hover:text-dark-200 transition text-sm">
+                                        Terms & Conditions
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" className="text-dark-400 hover:text-dark-200 transition text-sm">
+                                        Privacy Policy
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>

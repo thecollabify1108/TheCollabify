@@ -3,6 +3,8 @@ import { useAuth } from './context/AuthContext';
 
 // Pages
 import Landing from './pages/Landing';
+import ForBrands from './pages/ForBrands';
+import ForCreators from './pages/ForCreators';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -111,6 +113,8 @@ function App() {
                 />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/for-brands" element={<ForBrands />} />
+                <Route path="/for-creators" element={<ForCreators />} />
 
                 {/* Creator routes */}
                 <Route
