@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaInstagram,
@@ -45,6 +46,15 @@ const CreatorDashboard = () => {
     useEffect(() => {
         fetchData();
     }, []);
+
+    // Handle tab query parameter from navbar
+    const [searchParams] = useSearchParams();
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'edit') {
+            setActiveTab('profile');
+        }
+    }, [searchParams]);
 
     const fetchData = async () => {
         try {
