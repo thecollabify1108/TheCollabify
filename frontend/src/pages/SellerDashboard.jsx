@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaPlus,
@@ -9,7 +10,8 @@ import {
     FaTimes,
     FaEye,
     FaTrash,
-    FaComments
+    FaComments,
+    FaCog
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -37,6 +39,15 @@ const SellerDashboard = () => {
     useEffect(() => {
         fetchRequests();
     }, []);
+
+    // Handle tab query parameter from navbar
+    const [searchParams] = useSearchParams();
+    useEffect(() => {
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'edit') {
+            setActiveTab('edit');
+        }
+    }, [searchParams]);
 
     const fetchRequests = async () => {
         try {
@@ -139,7 +150,8 @@ const SellerDashboard = () => {
         { id: 'overview', label: 'Overview', icon: <FaChartLine /> },
         { id: 'requests', label: 'My Requests', icon: <FaBriefcase /> },
         { id: 'messages', label: 'Messages', icon: <FaComments /> },
-        { id: 'newrequest', label: 'New Request', icon: <FaPlus /> }
+        { id: 'newrequest', label: 'New Request', icon: <FaPlus /> },
+        { id: 'edit', label: 'Edit Profile', icon: <FaCog /> }
     ];
 
     if (loading) {
@@ -459,6 +471,44 @@ const SellerDashboard = () => {
                             exit={{ opacity: 0, y: -20 }}
                         >
                             <RequestForm onSubmit={handleCreateRequest} />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'edit' && (
+                        <motion.div
+                            key="edit"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                        >
+                            <div className="glass-card p-6">
+                                <h2 className="text-xl font-semibold text-dark-100 mb-6">Edit Profile</h2>
+                                <div className="space-y-4">
+                                    {/* Non-editable fields */}
+                                    <div>
+                                        <label className="block text-sm text-dark-400 mb-1">Name (cannot be changed)</label>
+                                        <input
+                                            type="text"
+                                            value={user?.name || ''}
+                                            disabled
+                                            className="input w-full bg-dark-700 cursor-not-allowed opacity-60"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm text-dark-400 mb-1">Email (cannot be changed)</label>
+                                        <input
+                                            type="email"
+                                            value={user?.email || ''}
+                                            disabled
+                                            className="input w-full bg-dark-700 cursor-not-allowed opacity-60"
+                                        />
+                                    </div>
+
+                                    <p className="text-dark-400 text-sm pt-4">
+                                        To edit your promotion preferences, create new promotion requests with your updated criteria.
+                                    </p>
+                                </div>
+                            </div>
                         </motion.div>
                     )}
                 </AnimatePresence>

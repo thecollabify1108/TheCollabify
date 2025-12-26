@@ -90,6 +90,14 @@ const Navbar = () => {
                                                 <FaUser className="mr-3" />
                                                 Dashboard
                                             </Link>
+                                            <Link
+                                                to={`${getDashboardLink()}?tab=edit`}
+                                                onClick={() => setShowUserMenu(false)}
+                                                className="flex items-center px-4 py-2 text-dark-300 hover:text-dark-100 hover:bg-dark-700 transition"
+                                            >
+                                                <FaCog className="mr-3" />
+                                                Edit Profile
+                                            </Link>
                                             <button
                                                 onClick={handleLogout}
                                                 className="w-full flex items-center px-4 py-2 text-red-400 hover:text-red-300 hover:bg-dark-700 transition"
