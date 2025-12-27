@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaLock, FaEye, FaEyeSlash, FaCheck } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import Footer from '../components/common/Footer';
 
 const ResetPassword = () => {
     const { token } = useParams();
@@ -162,6 +163,9 @@ const ResetPassword = () => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };

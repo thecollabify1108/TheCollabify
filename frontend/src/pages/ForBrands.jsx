@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaBuilding, FaLock, FaHandshake, FaClock, FaCheck } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Footer from '../components/common/Footer';
 
 const ForBrands = () => {
     const navigate = useNavigate();
@@ -142,73 +143,8 @@ const ForBrands = () => {
             </section>
 
             {/* Footer */}
-            <footer className="py-16 px-4 border-t border-dark-800 mt-20">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                        {/* Logo & Description */}
-                        <div>
-                            <div className="flex items-center space-x-2 mb-4">
-                                <img src="/star-logo.png" alt="" className="w-8 h-8 object-contain" />
-                            </div>
-                            <p className="text-dark-400 text-sm leading-relaxed">
-                                The Collabify.ai is an AI-powered influencer marketing platform connecting brands
-                                with the right influencers to drive authentic engagement.
-                            </p>
-                        </div>
-
-                        {/* Solutions */}
-                        <div>
-                            <h4 className="text-lg font-bold text-dark-100 mb-4">Solutions</h4>
-                            <ul className="space-y-3">
-                                <li>
-                                    <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition">
-                                        For Brands
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">
-                                        For Influencer
-                                    </Link>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Social & Contact */}
-                        <div>
-                            <div className="flex items-center gap-4 mb-6">
-                                <a href="#" className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center hover:bg-dark-700 transition">
-                                    <img src="/star-logo.png" alt="" className="w-5 h-5 object-contain" />
-                                </a>
-                            </div>
-                            <a
-                                href="mailto:support@thecollabify.ai"
-                                className="inline-block px-4 py-2 rounded-lg bg-primary-500/20 text-primary-400 text-sm"
-                            >
-                                24X7 Customer Support support@thecollabify.ai
-                            </a>
-                            <ul className="mt-6 space-y-2">
-                                <li>
-                                    <a href="#" className="text-dark-400 hover:text-dark-200 transition text-sm">
-                                        Terms & Conditions
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="text-dark-400 hover:text-dark-200 transition text-sm">
-                                        Privacy Policy
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    {/* Copyright */}
-                    <div className="border-t border-dark-800 mt-12 pt-8 text-center">
-                        <p className="text-dark-400 text-sm">
-                            © {new Date().getFullYear()} The Collabify. All rights reserved.
-                        </p>
-                    </div>
-                </div>
-            </footer>
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };

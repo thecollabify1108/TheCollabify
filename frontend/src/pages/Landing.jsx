@@ -457,12 +457,23 @@ const Landing = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                         {/* Logo & Description */}
                         <div>
-                            <div className="flex items-center space-x-2 mb-4">
+                            <Link to="/" className="flex items-center space-x-3 mb-4">
                                 <img src="/star-logo.png" alt="" className="w-8 h-8 object-contain" />
-                            </div>
+                                <div className="flex flex-col">
+                                    <div className="flex items-baseline">
+                                        <span className="text-lg italic text-dark-100 mr-1">The</span>
+                                        <span className="text-xl font-bold text-dark-100">Collabify</span>
+                                    </div>
+                                </div>
+                            </Link>
+                            <p className="text-dark-400 text-sm leading-relaxed mb-4">
+                                Empowering brands and creators to build authentic partnerships.
+                                Our AI-powered platform streamlines influencer discovery, campaign
+                                management, and performance tracking.
+                            </p>
                             <p className="text-dark-400 text-sm leading-relaxed">
-                                The Collabify.ai is an AI-powered influencer marketing platform connecting brands
-                                with the right influencers to drive authentic engagement.
+                                Join thousands of successful collaborations and grow your business
+                                with data-driven influencer marketing.
                             </p>
                         </div>
 
@@ -477,37 +488,46 @@ const Landing = () => {
                                 </li>
                                 <li>
                                     <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">
-                                        For Influencer
+                                        For Influencers
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/register" className="text-dark-400 hover:text-dark-200 transition">
+                                        Get Started
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link to="/login" className="text-dark-400 hover:text-dark-200 transition">
+                                        Sign In
                                     </Link>
                                 </li>
                             </ul>
                         </div>
 
-                        {/* Social & Contact */}
+                        {/* Legal & Contact */}
                         <div>
-                            <div className="flex items-center gap-4 mb-6">
-                                <a href="#" className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center hover:bg-dark-700 transition">
-                                    <img src="/star-logo.png" alt="" className="w-5 h-5 object-contain" />
-                                </a>
-                            </div>
-                            <a
-                                href="mailto:support@thecollabify.ai"
-                                className="inline-block px-4 py-2 rounded-lg bg-primary-500/20 text-primary-400 text-sm"
-                            >
-                                24X7 Customer Support support@thecollabify.ai
-                            </a>
-                            <ul className="mt-6 space-y-2">
+                            <h4 className="text-lg font-bold text-dark-100 mb-4">Legal</h4>
+                            <ul className="space-y-3">
                                 <li>
-                                    <a href="#" className="text-dark-400 hover:text-dark-200 transition text-sm">
+                                    <Link to="/terms" className="text-dark-400 hover:text-dark-200 transition text-sm">
                                         Terms & Conditions
-                                    </a>
+                                    </Link>
                                 </li>
                                 <li>
-                                    <a href="#" className="text-dark-400 hover:text-dark-200 transition text-sm">
+                                    <Link to="/privacy" className="text-dark-400 hover:text-dark-200 transition text-sm">
                                         Privacy Policy
-                                    </a>
+                                    </Link>
                                 </li>
                             </ul>
+                            <div className="mt-6">
+                                <h5 className="text-dark-200 font-medium mb-2 text-sm">Contact Us</h5>
+                                <a
+                                    href="mailto:support@thecollabify.ai"
+                                    className="text-primary-400 hover:text-primary-300 transition text-sm"
+                                >
+                                    support@thecollabify.ai
+                                </a>
+                            </div>
                         </div>
                     </div>
 
