@@ -39,12 +39,12 @@ const ForBrands = () => {
                         <Link to="/" className="flex items-center space-x-3">
                             <img src="/star-logo.png" alt="" className="h-8 w-8 object-contain" />
                             <div className="flex flex-col">
-                                <span className="text-lg font-bold text-dark-100">The Collabify.ai</span>
-                                <span className="text-xs text-dark-400 -mt-1">AI-powered influencer marketing platform</span>
+                                <div className="flex items-baseline">
+                                    <span className="text-lg italic text-dark-100 mr-1">The</span>
+                                    <span className="text-xl font-bold text-dark-100">Collabify</span>
+                                </div>
+                                <span className="text-xs text-dark-400 -mt-1 tracking-wide">Empowering Influencer Partnerships</span>
                             </div>
-                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary-500 text-white rounded-full">
-                                BETA
-                            </span>
                         </Link>
 
                         <div className="flex items-center space-x-8">
@@ -176,8 +176,8 @@ const ForBrands = () => {
                         {/* Social & Contact */}
                         <div>
                             <div className="flex items-center gap-4 mb-6">
-                                <a href="#" className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-dark-400 hover:text-dark-200 hover:bg-dark-700 transition">
-                                    <FaInstagram className="w-5 h-5" />
+                                <a href="#" className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center hover:bg-dark-700 transition">
+                                    <img src="/star-logo.png" alt="" className="w-5 h-5 object-contain" />
                                 </a>
                             </div>
                             <a
@@ -199,6 +199,13 @@ const ForBrands = () => {
                                 </li>
                             </ul>
                         </div>
+                    </div>
+
+                    {/* Copyright */}
+                    <div className="border-t border-dark-800 mt-12 pt-8 text-center">
+                        <p className="text-dark-400 text-sm">
+                            © {new Date().getFullYear()} The Collabify. All rights reserved.
+                        </p>
                     </div>
                 </div>
             </footer>

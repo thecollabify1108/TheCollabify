@@ -7,7 +7,7 @@ import { useNotifications } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 
 const NotificationBell = () => {
-    const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+    const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, clearAllNotifications } = useNotifications();
     const { user } = useAuth();
     const navigate = useNavigate();
     const [isOpen, setIsOpen] = useState(false);
@@ -122,14 +122,24 @@ const NotificationBell = () => {
                         {/* Header */}
                         <div className="px-4 py-3 border-b border-dark-700 flex items-center justify-between">
                             <h3 className="font-semibold text-dark-100">Notifications</h3>
-                            {unreadCount > 0 && (
-                                <button
-                                    onClick={markAllAsRead}
-                                    className="text-xs text-primary-400 hover:text-primary-300 transition"
-                                >
-                                    Mark all read
-                                </button>
-                            )}
+                            <div className="flex items-center gap-3">
+                                {notifications.length > 0 && (
+                                    <button
+                                        onClick={clearAllNotifications}
+                                        className="text-xs text-red-400 hover:text-red-300 transition"
+                                    >
+                                        Clear All
+                                    </button>
+                                )}
+                                {unreadCount > 0 && (
+                                    <button
+                                        onClick={markAllAsRead}
+                                        className="text-xs text-primary-400 hover:text-primary-300 transition"
+                                    >
+                                        Mark all read
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         {/* Notifications List */}
