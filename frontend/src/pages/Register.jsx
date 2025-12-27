@@ -241,9 +241,6 @@ const Register = () => {
                     </div>
                 </motion.div>
             </div>
-
-            {/* Footer */}
-            <Footer />
         </div>
     );
 };

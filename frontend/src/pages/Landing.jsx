@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -16,6 +17,19 @@ import { useAuth } from '../context/AuthContext';
 const Landing = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
+    const [showScrollTop, setShowScrollTop] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowScrollTop(window.scrollY > 400);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 
     const getLogoLink = () => {
         if (isAuthenticated && user) {
@@ -539,6 +553,17 @@ const Landing = () => {
                     </div>
                 </div>
             </footer>
+
+            {/* Scroll to Top Button */}
+            {showScrollTop && (
+                <button
+                    onClick={scrollToTop}
+                    className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 transition-all duration-300 flex items-center justify-center z-50 animate-bounce-slow"
+                    aria-label="Scroll to top"
+                >
+                    <span className="text-xl">↑</span>
+                </button>
+            )}
         </div>
     );
 };
