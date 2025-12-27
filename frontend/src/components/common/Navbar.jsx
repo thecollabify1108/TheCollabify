@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaInstagram, FaUser, FaSignOutAlt, FaCog } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import NotificationBell from './NotificationBell';
+import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -55,6 +56,9 @@ const Navbar = () => {
                     <div className="flex items-center space-x-4">
                         {/* Notifications */}
                         <NotificationBell />
+
+                        {/* Theme Toggle */}
+                        <ThemeToggle />
 
                         {/* User Menu */}
                         <div className="relative" ref={menuRef}>

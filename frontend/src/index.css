@@ -305,3 +305,169 @@
   pointer-events: none;
   z-index: 0;
 }
+
+/* ============================================
+   LIGHT THEME OVERRIDES
+   ============================================ */
+.light-theme {
+  /* Background colors */
+  --tw-bg-opacity: 1;
+}
+
+.light-theme body {
+  background-color: #f8fafc !important;
+  color: #1e293b !important;
+}
+
+/* Dark background elements -> Light */
+.light-theme .bg-dark-950 {
+  background-color: #f8fafc !important;
+}
+
+.light-theme .bg-dark-900 {
+  background-color: #f1f5f9 !important;
+}
+
+.light-theme .bg-dark-800 {
+  background-color: #e2e8f0 !important;
+}
+
+.light-theme .bg-dark-700 {
+  background-color: #cbd5e1 !important;
+}
+
+.light-theme .bg-dark-600 {
+  background-color: #94a3b8 !important;
+}
+
+/* Backdrop blur with light background */
+.light-theme .bg-dark-950\/80,
+.light-theme .bg-dark-900\/80,
+.light-theme .bg-dark-900\/95 {
+  background-color: rgba(248, 250, 252, 0.9) !important;
+}
+
+/* Text colors */
+.light-theme .text-dark-100 {
+  color: #1e293b !important;
+}
+
+.light-theme .text-dark-200 {
+  color: #334155 !important;
+}
+
+.light-theme .text-dark-300 {
+  color: #475569 !important;
+}
+
+.light-theme .text-dark-400 {
+  color: #64748b !important;
+}
+
+/* Border colors */
+.light-theme .border-dark-800,
+.light-theme .border-dark-700,
+.light-theme .border-dark-600 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Glass card in light mode */
+.light-theme .glass-card {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Input fields */
+.light-theme .input-field,
+.light-theme .select-field {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+.light-theme .input-field::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Buttons */
+.light-theme .btn-secondary {
+  background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+.light-theme .btn-secondary:hover {
+  background-color: #cbd5e1 !important;
+  border-color: #94a3b8 !important;
+}
+
+/* Scrollbar light theme */
+.light-theme ::-webkit-scrollbar-track {
+  background-color: #f1f5f9;
+}
+
+.light-theme ::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+}
+
+.light-theme ::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+
+/* Hover states */
+.light-theme .hover\:bg-dark-700:hover {
+  background-color: #cbd5e1 !important;
+}
+
+.light-theme .hover\:bg-dark-800:hover {
+  background-color: #e2e8f0 !important;
+}
+
+.light-theme .hover\:text-dark-200:hover {
+  color: #334155 !important;
+}
+
+.light-theme .hover\:text-dark-100:hover {
+  color: #1e293b !important;
+}
+
+/* Grid pattern for light theme */
+.light-theme .grid-pattern {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
+/* Floating orbs - reduce opacity in light mode */
+.light-theme .floating-orbs::before,
+.light-theme .floating-orbs::after {
+  opacity: 0.3;
+}
+
+/* Footer */
+.light-theme footer {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Cards and sections */
+.light-theme section {
+  background-color: transparent;
+}
+
+/* Fix for specific background utilities */
+.light-theme [class*="bg-dark-"] {
+  --tw-bg-opacity: 1;
+}
+
+/* Notification dropdown */
+.light-theme .bg-dark-900\/95 {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+}
+
+/* Shadow adjustments */
+.light-theme .shadow-lg,
+.light-theme .shadow-xl {
+  --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
