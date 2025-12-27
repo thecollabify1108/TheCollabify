@@ -123,6 +123,7 @@ const Landing = () => {
                             <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">For Influencer</Link>
                             <a href="#how-it-works" className="text-dark-400 hover:text-dark-200 transition">How It Works</a>
                             <a href="#features" className="text-dark-400 hover:text-dark-200 transition">Features</a>
+                            <a href="#about" className="text-dark-400 hover:text-dark-200 transition">About Us</a>
                         </div>
 
                         <div className="flex items-center space-x-4">
@@ -386,6 +387,64 @@ const Landing = () => {
                                 >
                                     Login
                                 </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* About Section */}
+            <section id="about" className="py-24 px-4 relative">
+                <div className="max-w-7xl mx-auto">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                        className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center"
+                    >
+                        {/* Image Side */}
+                        <div className="relative">
+                            <div className="relative rounded-2xl overflow-hidden">
+                                <img
+                                    src="/star-logo.png"
+                                    alt="About The Collabify"
+                                    className="w-full h-auto max-w-md mx-auto opacity-80"
+                                />
+                            </div>
+                            {/* Decorative Elements */}
+                            <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-full blur-xl"></div>
+                            <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-secondary-500/20 to-pink-500/20 rounded-full blur-xl"></div>
+                        </div>
+
+                        {/* Content Side */}
+                        <div>
+                            <span className="text-primary-400 text-sm font-medium tracking-wider uppercase mb-2 block">About</span>
+                            <h2 className="text-4xl md:text-5xl font-bold text-dark-100 mb-6">
+                                The Collabify
+                            </h2>
+                            <p className="text-dark-300 text-lg leading-relaxed mb-8">
+                                The Collabify is an AI-powered influencer marketing platform designed to connect brands
+                                with the right creators seamlessly. We simplify campaign management by automating
+                                influencer discovery, performance tracking, and payouts—all in one dashboard.
+                            </p>
+                            <p className="text-dark-400 text-lg leading-relaxed mb-8">
+                                With data-driven insights and transparent processes, we empower brands to maximize
+                                ROI and help influencers grow through genuine collaborations.
+                            </p>
+                            <div className="flex flex-wrap gap-6">
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-primary-400">500+</div>
+                                    <div className="text-dark-400 text-sm">Creators</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-secondary-400">100+</div>
+                                    <div className="text-dark-400 text-sm">Brands</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-pink-400">1000+</div>
+                                    <div className="text-dark-400 text-sm">Campaigns</div>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
