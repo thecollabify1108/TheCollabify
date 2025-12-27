@@ -148,7 +148,7 @@ const ForBrands = () => {
                         {/* Logo & Description */}
                         <div>
                             <div className="flex items-center space-x-2 mb-4">
-                                <FaInstagram className="w-8 h-8 text-primary-500" />
+                                <img src="/star-logo.png" alt="" className="w-8 h-8 object-contain" />
                             </div>
                             <p className="text-dark-400 text-sm leading-relaxed">
                                 The Collabify.ai is an AI-powered influencer marketing platform connecting brands

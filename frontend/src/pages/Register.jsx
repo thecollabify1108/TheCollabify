@@ -82,7 +82,7 @@ const Register = () => {
                     {/* Header */}
                     <div className="text-center mb-8">
                         <Link to="/" className="inline-flex items-center space-x-2 mb-6">
-                            <FaInstagram className="w-10 h-10 text-primary-500" />
+                            <img src="/star-logo.png" alt="" className="w-10 h-10 object-contain" />
                             <span className="text-2xl font-bold gradient-text">The Collabify.ai</span>
                         </Link>
                         <h1 className="text-3xl font-bold text-dark-100 mb-2">Create Account</h1>

@@ -84,6 +84,25 @@ const Landing = () => {
 
     return (
         <div className="min-h-screen bg-dark-950 overflow-hidden relative">
+            {/* 3D Animated Background */}
+            <div className="floating-orbs">
+                <div className="floating-orb orb-1"></div>
+                <div className="floating-orb orb-2"></div>
+                <div className="floating-orb orb-3"></div>
+                <div className="floating-orb orb-4"></div>
+                <div className="floating-orb orb-5"></div>
+            </div>
+            <div className="grid-pattern"></div>
+
+            {/* Centered Watermark */}
+            <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
+                <img
+                    src="/star-logo.png"
+                    alt=""
+                    className="w-96 h-auto opacity-10"
+                />
+            </div>
+
             {/* Navbar */}
             <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-950/80 backdrop-blur-xl border-b border-dark-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -380,7 +399,7 @@ const Landing = () => {
                         {/* Logo & Description */}
                         <div>
                             <div className="flex items-center space-x-2 mb-4">
-                                <FaInstagram className="w-8 h-8 text-primary-500" />
+                                <img src="/star-logo.png" alt="" className="w-8 h-8 object-contain" />
                             </div>
                             <p className="text-dark-400 text-sm leading-relaxed">
                                 The Collabify.ai is an AI-powered influencer marketing platform connecting brands
