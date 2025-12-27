@@ -43,12 +43,12 @@ const Navbar = () => {
                     <Link to="/" className="flex items-center space-x-3">
                         <img src="/star-logo.png" alt="" className="h-8 w-8 object-contain" />
                         <div className="flex flex-col">
-                            <span className="text-lg font-bold text-dark-100">The Collabify.ai</span>
-                            <span className="text-xs text-dark-400 -mt-1">AI-powered influencer marketing platform</span>
+                            <div className="flex items-baseline">
+                                <span className="text-lg italic text-dark-100 mr-1">The</span>
+                                <span className="text-xl font-bold text-dark-100">Collabify</span>
+                            </div>
+                            <span className="text-xs text-dark-400 -mt-1 tracking-wide">Empowering Influencer Partnerships</span>
                         </div>
-                        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-primary-500 text-white rounded-full">
-                            BETA
-                        </span>
                     </Link>
 
                     {/* Right side */}
@@ -96,14 +96,16 @@ const Navbar = () => {
                                                 <FaUser className="mr-3" />
                                                 Dashboard
                                             </Link>
-                                            <Link
-                                                to={`${getDashboardLink()}?tab=edit`}
-                                                onClick={() => setShowUserMenu(false)}
-                                                className="flex items-center px-4 py-2 text-dark-300 hover:text-dark-100 hover:bg-dark-700 transition"
-                                            >
-                                                <FaCog className="mr-3" />
-                                                Edit Profile
-                                            </Link>
+                                            {user?.role === 'creator' && (
+                                                <Link
+                                                    to={`${getDashboardLink()}?tab=edit`}
+                                                    onClick={() => setShowUserMenu(false)}
+                                                    className="flex items-center px-4 py-2 text-dark-300 hover:text-dark-100 hover:bg-dark-700 transition"
+                                                >
+                                                    <FaCog className="mr-3" />
+                                                    Edit Profile
+                                                </Link>
+                                            )}
                                             <button
                                                 onClick={handleLogout}
                                                 className="w-full flex items-center px-4 py-2 text-red-400 hover:text-red-300 hover:bg-dark-700 transition"

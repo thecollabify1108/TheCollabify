@@ -110,6 +110,28 @@ router.put('/read-all', auth, async (req, res) => {
 });
 
 /**
+ * @route   DELETE /api/notifications/clear-all
+ * @desc    Delete all notifications for current user
+ * @access  Private
+ */
+router.delete('/clear-all', auth, async (req, res) => {
+    try {
+        await Notification.deleteMany({ userId: req.userId });
+
+        res.json({
+            success: true,
+            message: 'All notifications cleared'
+        });
+    } catch (error) {
+        console.error('Clear all notifications error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to clear notifications'
+        });
+    }
+});
+
+/**
  * @route   DELETE /api/notifications/:id
  * @desc    Delete a notification
  * @access  Private
