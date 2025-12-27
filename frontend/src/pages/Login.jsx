@@ -160,6 +160,16 @@ const Login = () => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Back to Home Button */}
+            <div className="py-8 text-center">
+                <Link
+                    to="/"
+                    className="inline-flex items-center gap-2 text-dark-400 hover:text-dark-200 transition"
+                >
+                    <span>←</span> Back to Home
+                </Link>
+            </div>
         </div>
     );
 };
