@@ -19,6 +19,7 @@ const Landing = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated } = useAuth();
     const [showScrollTop, setShowScrollTop] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -122,6 +123,7 @@ const Landing = () => {
             <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-950/80 backdrop-blur-xl border-b border-dark-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
+                        {/* Logo */}
                         <Link to="/" className="flex items-center space-x-3">
                             <img src="/star-logo.png" alt="" className="h-8 w-8 object-contain" />
                             <div className="flex flex-col">
@@ -129,10 +131,11 @@ const Landing = () => {
                                     <span className="text-lg italic text-dark-100 mr-1">The</span>
                                     <span className="text-xl font-bold text-dark-100">Collabify</span>
                                 </div>
-                                <span className="text-xs text-dark-400 -mt-1 tracking-wide">Empowering Influencer Partnerships</span>
+                                <span className="text-xs text-dark-400 -mt-1 tracking-wide hidden sm:block">Empowering Influencer Partnerships</span>
                             </div>
                         </Link>
 
+                        {/* Desktop Navigation */}
                         <div className="hidden md:flex items-center space-x-6">
                             <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition">For Brands</Link>
                             <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">For Influencer</Link>
@@ -141,7 +144,8 @@ const Landing = () => {
                             <a href="#about" className="text-dark-400 hover:text-dark-200 transition">About Us</a>
                         </div>
 
-                        <div className="flex items-center space-x-4">
+                        {/* Desktop Right Side */}
+                        <div className="hidden md:flex items-center space-x-4">
                             <ThemeToggle />
                             <button
                                 onClick={() => navigate('/login')}
@@ -156,8 +160,88 @@ const Landing = () => {
                                 Get Started
                             </button>
                         </div>
+
+                        {/* Mobile Right Side */}
+                        <div className="flex md:hidden items-center space-x-3">
+                            <ThemeToggle />
+                            {/* Hamburger Menu Button */}
+                            <button
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                className="w-10 h-10 rounded-lg flex items-center justify-center bg-dark-800 hover:bg-dark-700 transition"
+                                aria-label="Toggle menu"
+                            >
+                                {mobileMenuOpen ? (
+                                    <svg className="w-6 h-6 text-dark-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                ) : (
+                                    <svg className="w-6 h-6 text-dark-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 </div>
+
+                {/* Mobile Menu Dropdown */}
+                {mobileMenuOpen && (
+                    <div className="md:hidden bg-dark-900/95 backdrop-blur-xl border-t border-dark-800">
+                        <div className="px-4 py-4 space-y-3">
+                            {/* Login & Signup at top */}
+                            <div className="flex gap-3 pb-3 border-b border-dark-800">
+                                <button
+                                    onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+                                    className="flex-1 py-3 rounded-xl bg-dark-800 text-dark-100 font-medium hover:bg-dark-700 transition"
+                                >
+                                    Login
+                                </button>
+                                <button
+                                    onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}
+                                    className="flex-1 py-3 rounded-xl btn-3d text-sm"
+                                >
+                                    Get Started
+                                </button>
+                            </div>
+                            {/* Navigation Links */}
+                            <Link
+                                to="/for-brands"
+                                className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                For Brands
+                            </Link>
+                            <Link
+                                to="/for-creators"
+                                className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                For Influencer
+                            </Link>
+                            <a
+                                href="#how-it-works"
+                                className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                How It Works
+                            </a>
+                            <a
+                                href="#features"
+                                className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Features
+                            </a>
+                            <a
+                                href="#about"
+                                className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                About Us
+                            </a>
+                        </div>
+                    </div>
+                )}
             </nav>
 
             {/* Hero Section - VRInfluence Style */}
