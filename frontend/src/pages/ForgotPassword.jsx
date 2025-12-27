@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaEnvelope, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import Footer from '../components/common/Footer';
 
 const ForgotPassword = () => {
     const { forgotPassword } = useAuth();
@@ -121,6 +122,9 @@ const ForgotPassword = () => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaStore, FaCamera } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import Footer from '../components/common/Footer';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -240,6 +241,9 @@ const Register = () => {
                     </div>
                 </motion.div>
             </div>
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 };

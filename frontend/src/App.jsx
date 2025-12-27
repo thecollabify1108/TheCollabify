@@ -12,6 +12,8 @@ import ResetPassword from './pages/ResetPassword';
 import CreatorDashboard from './pages/CreatorDashboard';
 import SellerDashboard from './pages/SellerDashboard';
 import AdminPanel from './pages/AdminPanel';
+import TermsConditions from './pages/TermsConditions';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import ScrollToTop from './components/common/ScrollToTop';
 
 // Loading spinner component
@@ -126,6 +128,8 @@ function App() {
                 <Route path="/reset-password/:token" element={<ResetPassword />} />
                 <Route path="/for-brands" element={<ForBrands />} />
                 <Route path="/for-creators" element={<ForCreators />} />
+                <Route path="/terms" element={<TermsConditions />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
 
                 {/* Creator routes */}
                 <Route
