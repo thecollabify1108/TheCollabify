@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -14,6 +14,9 @@ import {
 import { FaInstagram, FaBuilding, FaUserAlt, FaHandshake, FaChartLine, FaLock, FaWallet } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/common/ThemeToggle';
+import AnimatedCounter from '../components/common/AnimatedCounter';
+import TestimonialsCarousel from '../components/common/TestimonialsCarousel';
+import FAQAccordion from '../components/common/FAQAccordion';
 
 const Landing = () => {
     const navigate = useNavigate();
@@ -28,6 +31,37 @@ const Landing = () => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // Typing animation effect
+    const phrases = ['Perfect Creators', 'Ideal Influencers', 'Amazing Partners', 'Top Talent'];
+    const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
+    const [displayText, setDisplayText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    useEffect(() => {
+        const currentPhrase = phrases[currentPhraseIndex];
+        const typingSpeed = isDeleting ? 50 : 100;
+        const pauseTime = 2000;
+
+        const timer = setTimeout(() => {
+            if (!isDeleting) {
+                if (displayText.length < currentPhrase.length) {
+                    setDisplayText(currentPhrase.slice(0, displayText.length + 1));
+                } else {
+                    setTimeout(() => setIsDeleting(true), pauseTime);
+                }
+            } else {
+                if (displayText.length > 0) {
+                    setDisplayText(currentPhrase.slice(0, displayText.length - 1));
+                } else {
+                    setIsDeleting(false);
+                    setCurrentPhraseIndex((prev) => (prev + 1) % phrases.length);
+                }
+            }
+        }, typingSpeed);
+
+        return () => clearTimeout(timer);
+    }, [displayText, isDeleting, currentPhraseIndex]);
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -268,7 +302,8 @@ const Landing = () => {
                         <span className="gradient-text">Brands</span>
                         <span className="text-dark-100"> with</span>
                         <br />
-                        <span className="gradient-text">Perfect Creators</span>
+                        <span className="gradient-text">{displayText}</span>
+                        <span className="typing-cursor"></span>
                     </motion.h1>
 
                     <motion.p
@@ -324,10 +359,10 @@ const Landing = () => {
                     transition={{ duration: 0.6, delay: 0.5 }}
                 >
                     {[
-                        { value: '10K+', label: 'Creators', icon: <HiUserGroup className="w-5 h-5" /> },
-                        { value: '5K+', label: 'Brands', icon: <FaBuilding className="w-4 h-4" /> },
-                        { value: '50K+', label: 'Campaigns', icon: <FaChartLine className="w-4 h-4" /> },
-                        { value: '98%', label: 'Success Rate', icon: <HiBadgeCheck className="w-5 h-5" /> }
+                        { end: 10, suffix: 'K+', label: 'Creators', icon: <HiUserGroup className="w-5 h-5" /> },
+                        { end: 5, suffix: 'K+', label: 'Brands', icon: <FaBuilding className="w-4 h-4" /> },
+                        { end: 50, suffix: 'K+', label: 'Campaigns', icon: <FaChartLine className="w-4 h-4" /> },
+                        { end: 98, suffix: '%', label: 'Success Rate', icon: <HiBadgeCheck className="w-5 h-5" /> }
                     ].map((stat, index) => (
                         <motion.div
                             key={index}
@@ -337,7 +372,9 @@ const Landing = () => {
                             <div className="flex items-center justify-center gap-2 text-primary-400 mb-2">
                                 {stat.icon}
                             </div>
-                            <div className="text-3xl md:text-4xl font-bold gradient-text mb-1">{stat.value}</div>
+                            <div className="text-3xl md:text-4xl font-bold gradient-text mb-1">
+                                <AnimatedCounter end={stat.end} suffix={stat.suffix} duration={2000} />
+                            </div>
                             <div className="text-dark-400 text-sm">{stat.label}</div>
                         </motion.div>
                     ))}
@@ -455,6 +492,12 @@ const Landing = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Testimonials Carousel */}
+            <TestimonialsCarousel />
+
+            {/* FAQ Accordion */}
+            <FAQAccordion />
 
             {/* Final CTA Section */}
             <section className="py-24 px-4 relative">

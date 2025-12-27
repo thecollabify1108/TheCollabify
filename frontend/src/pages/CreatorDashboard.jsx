@@ -32,6 +32,7 @@ import ProfileForm from '../components/creator/ProfileForm';
 import PromotionList from '../components/creator/PromotionList';
 import ChatBox from '../components/common/ChatBox';
 import ConversationList from '../components/common/ConversationList';
+import SkeletonLoader from '../components/common/SkeletonLoader';
 
 const CreatorDashboard = () => {
     const { user, logout } = useAuth();
@@ -127,10 +128,43 @@ const CreatorDashboard = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-dark-950 flex items-center justify-center">
-                <div className="relative">
-                    <div className="w-16 h-16 border-4 border-primary-500/30 rounded-full"></div>
-                    <div className="absolute top-0 left-0 w-16 h-16 border-4 border-primary-500 rounded-full border-t-transparent animate-spin"></div>
+            <div className="min-h-screen bg-dark-950">
+                <Navbar />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Header Skeleton */}
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+                        <div className="space-y-3">
+                            <div className="h-8 bg-dark-700 rounded-lg w-64 animate-pulse shimmer"></div>
+                            <div className="h-4 bg-dark-700 rounded w-96 animate-pulse shimmer"></div>
+                        </div>
+                        <div className="h-10 bg-dark-700 rounded-xl w-40 mt-4 md:mt-0 animate-pulse shimmer"></div>
+                    </div>
+
+                    {/* Tabs Skeleton */}
+                    <div className="flex space-x-2 bg-dark-800/50 p-1 rounded-xl mb-8 w-fit">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="h-10 bg-dark-700 rounded-lg w-28 animate-pulse shimmer"></div>
+                        ))}
+                    </div>
+
+                    {/* Stats Grid Skeleton */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="glass-card p-6 animate-pulse">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="h-4 bg-dark-700 rounded w-20 shimmer"></div>
+                                    <div className="w-6 h-6 bg-dark-700 rounded shimmer"></div>
+                                </div>
+                                <div className="h-8 bg-dark-700 rounded w-24 mb-2 shimmer"></div>
+                                <div className="h-3 bg-dark-700 rounded w-16 shimmer"></div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Content Skeleton */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <SkeletonLoader type="card" count={2} />
+                    </div>
                 </div>
             </div>
         );

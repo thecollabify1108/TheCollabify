@@ -1,4 +1,5 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 
 // Pages
@@ -15,6 +16,7 @@ import AdminPanel from './pages/AdminPanel';
 import TermsConditions from './pages/TermsConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ScrollToTop from './components/common/ScrollToTop';
+import PageTransition from './components/common/PageTransition';
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -76,6 +78,8 @@ const PublicRoute = ({ children }) => {
 };
 
 function App() {
+    const location = useLocation();
+
     return (
         <>
             {/* 3D Animated Background */}
@@ -98,72 +102,86 @@ function App() {
             </div>
 
             <ScrollToTop />
-            <Routes>
-                {/* Public routes */}
-                <Route
-                    path="/"
-                    element={
-                        <PublicRoute>
-                            <Landing />
-                        </PublicRoute>
-                    }
-                />
-                <Route
-                    path="/login"
-                    element={
-                        <PublicRoute>
-                            <Login />
-                        </PublicRoute>
-                    }
-                />
-                <Route
-                    path="/register"
-                    element={
-                        <PublicRoute>
-                            <Register />
-                        </PublicRoute>
-                    }
-                />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password/:token" element={<ResetPassword />} />
-                <Route path="/for-brands" element={<ForBrands />} />
-                <Route path="/for-creators" element={<ForCreators />} />
-                <Route path="/terms" element={<TermsConditions />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
+            <AnimatePresence mode="wait">
+                <Routes location={location} key={location.pathname}>
+                    {/* Public routes */}
+                    <Route
+                        path="/"
+                        element={
+                            <PublicRoute>
+                                <PageTransition>
+                                    <Landing />
+                                </PageTransition>
+                            </PublicRoute>
+                        }
+                    />
+                    <Route
+                        path="/login"
+                        element={
+                            <PublicRoute>
+                                <PageTransition>
+                                    <Login />
+                                </PageTransition>
+                            </PublicRoute>
+                        }
+                    />
+                    <Route
+                        path="/register"
+                        element={
+                            <PublicRoute>
+                                <PageTransition>
+                                    <Register />
+                                </PageTransition>
+                            </PublicRoute>
+                        }
+                    />
+                    <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+                    <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
+                    <Route path="/for-brands" element={<PageTransition><ForBrands /></PageTransition>} />
+                    <Route path="/for-creators" element={<PageTransition><ForCreators /></PageTransition>} />
+                    <Route path="/terms" element={<PageTransition><TermsConditions /></PageTransition>} />
+                    <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
 
-                {/* Creator routes */}
-                <Route
-                    path="/creator/dashboard"
-                    element={
-                        <ProtectedRoute allowedRoles={['creator']}>
-                            <CreatorDashboard />
-                        </ProtectedRoute>
-                    }
-                />
+                    {/* Creator routes */}
+                    <Route
+                        path="/creator/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={['creator']}>
+                                <PageTransition>
+                                    <CreatorDashboard />
+                                </PageTransition>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                {/* Seller routes */}
-                <Route
-                    path="/seller/dashboard"
-                    element={
-                        <ProtectedRoute allowedRoles={['seller']}>
-                            <SellerDashboard />
-                        </ProtectedRoute>
-                    }
-                />
+                    {/* Seller routes */}
+                    <Route
+                        path="/seller/dashboard"
+                        element={
+                            <ProtectedRoute allowedRoles={['seller']}>
+                                <PageTransition>
+                                    <SellerDashboard />
+                                </PageTransition>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                {/* Admin routes */}
-                <Route
-                    path="/admin"
-                    element={
-                        <ProtectedRoute allowedRoles={['admin']}>
-                            <AdminPanel />
-                        </ProtectedRoute>
-                    }
-                />
+                    {/* Admin routes */}
+                    <Route
+                        path="/admin"
+                        element={
+                            <ProtectedRoute allowedRoles={['admin']}>
+                                <PageTransition>
+                                    <AdminPanel />
+                                </PageTransition>
+                            </ProtectedRoute>
+                        }
+                    />
 
-                {/* Catch all - redirect to landing */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+                    {/* Catch all - redirect to landing */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
+            </AnimatePresence>
         </>
     );
 }
