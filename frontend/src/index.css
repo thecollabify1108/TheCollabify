@@ -487,3 +487,256 @@
 .light-theme .shadow-xl {
   --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
+
+/* ============================================
+   TYPING ANIMATION
+   ============================================ */
+.typing-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 1em;
+  background: linear-gradient(to bottom, var(--tw-gradient-from, #8b5cf6), var(--tw-gradient-to, #ec4899));
+  margin-left: 4px;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+@keyframes cursor-blink {
+
+  0%,
+  50% {
+    opacity: 1;
+  }
+
+  51%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes typing-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.typing-text-enter {
+  animation: typing-fade-in 0.3s ease-out forwards;
+}
+
+/* ============================================
+   BUTTON RIPPLE EFFECT
+   ============================================ */
+.btn-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-ripple .ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(0);
+  animation: ripple-effect 0.6s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes ripple-effect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   CARD HOVER GLOW EFFECT
+   ============================================ */
+.card-glow {
+  @apply transition-all duration-300;
+  position: relative;
+}
+
+.card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0), rgba(236, 72, 153, 0));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.card-glow:hover::before {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
+  opacity: 1;
+  filter: blur(8px);
+}
+
+.card-glow:hover {
+  @apply shadow-2xl;
+  transform: translateY(-8px);
+  box-shadow:
+    0 20px 40px -10px rgba(139, 92, 246, 0.3),
+    0 10px 20px -5px rgba(236, 72, 153, 0.2);
+}
+
+/* ============================================
+   INPUT FOCUS ANIMATIONS
+   ============================================ */
+.input-animated {
+  @apply relative transition-all duration-300;
+  background-size: 0% 2px;
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-image: linear-gradient(to right, #8b5cf6, #ec4899);
+}
+
+.input-animated:focus {
+  background-size: 100% 2px;
+  @apply shadow-lg;
+  box-shadow:
+    0 0 0 3px rgba(139, 92, 246, 0.1),
+    0 4px 12px rgba(139, 92, 246, 0.15);
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-wrapper .input-label-float {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: all 0.2s ease;
+  pointer-events: none;
+  color: #64748b;
+}
+
+.input-wrapper input:focus~.input-label-float,
+.input-wrapper input:not(:placeholder-shown)~.input-label-float {
+  top: -8px;
+  left: 12px;
+  font-size: 0.75rem;
+  background: var(--bg-color, #0f172a);
+  padding: 0 4px;
+  color: #8b5cf6;
+}
+
+/* ============================================
+   CONFETTI ANIMATION
+   ============================================ */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+.confetti-piece {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  top: 0;
+  animation: confetti-fall 3s ease-in-out forwards;
+  z-index: 9999;
+}
+
+/* ============================================
+   ANIMATED NUMBER COUNTER
+   ============================================ */
+.counter-value {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================
+   ACCORDION ANIMATION
+   ============================================ */
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+}
+
+.accordion-content.open {
+  max-height: 500px;
+  transition: max-height 0.5s ease-in;
+}
+
+.accordion-chevron {
+  transition: transform 0.3s ease;
+}
+
+.accordion-chevron.open {
+  transform: rotate(180deg);
+}
+
+/* ============================================
+   TESTIMONIALS CAROUSEL
+   ============================================ */
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+}
+
+.carousel-slide {
+  flex: 0 0 100%;
+  min-width: 100%;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.carousel-dot.active {
+  background: linear-gradient(to right, #8b5cf6, #ec4899);
+  width: 24px;
+  border-radius: 5px;
+}
+
+/* ============================================
+   PAGE TRANSITIONS
+   ============================================ */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}

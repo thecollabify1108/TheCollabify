@@ -5,6 +5,7 @@ import { FaInstagram, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaStore, Fa
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Footer from '../components/common/Footer';
+import Confetti from '../components/common/Confetti';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -20,6 +21,7 @@ const Register = () => {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [showConfetti, setShowConfetti] = useState(false);
 
     useEffect(() => {
         const roleFromUrl = searchParams.get('role');
@@ -53,14 +55,18 @@ const Register = () => {
 
         try {
             const user = await register(formData.name, formData.email, formData.password, formData.role);
+            setShowConfetti(true);
             toast.success('Registration successful!');
 
-            // Redirect based on role
-            if (user.role === 'creator') {
-                navigate('/creator/dashboard');
-            } else if (user.role === 'seller') {
-                navigate('/seller/dashboard');
-            }
+            // Wait a bit for confetti then redirect
+            setTimeout(() => {
+                // Redirect based on role
+                if (user.role === 'creator') {
+                    navigate('/creator/dashboard');
+                } else if (user.role === 'seller') {
+                    navigate('/seller/dashboard');
+                }
+            }, 1000);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Registration failed');
         } finally {
@@ -70,6 +76,9 @@ const Register = () => {
 
     return (
         <div className="min-h-screen bg-dark-950 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+            {/* Confetti celebration on success */}
+            <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
+
             {/* Background orbs */}
             <div className="floating-orb w-96 h-96 -top-48 -right-48 from-secondary-500 to-pink-500" />
             <div className="floating-orb w-72 h-72 bottom-1/4 -left-36" style={{ animationDelay: '-2s' }} />

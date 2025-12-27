@@ -5,6 +5,7 @@ import { FaInstagram, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Footer from '../components/common/Footer';
+import Confetti from '../components/common/Confetti';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -16,6 +17,7 @@ const Login = () => {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [showConfetti, setShowConfetti] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,16 +29,20 @@ const Login = () => {
 
         try {
             const user = await login(formData.email, formData.password);
+            setShowConfetti(true);
             toast.success('Login successful!');
 
-            // Redirect based on role
-            if (user.role === 'creator') {
-                navigate('/creator/dashboard');
-            } else if (user.role === 'seller') {
-                navigate('/seller/dashboard');
-            } else if (user.role === 'admin') {
-                navigate('/admin');
-            }
+            // Wait a bit for confetti then redirect
+            setTimeout(() => {
+                // Redirect based on role
+                if (user.role === 'creator') {
+                    navigate('/creator/dashboard');
+                } else if (user.role === 'seller') {
+                    navigate('/seller/dashboard');
+                } else if (user.role === 'admin') {
+                    navigate('/admin');
+                }
+            }, 1000);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Login failed');
         } finally {
@@ -46,6 +52,9 @@ const Login = () => {
 
     return (
         <div className="min-h-screen bg-dark-950 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+            {/* Confetti celebration on success */}
+            <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
+
             {/* Background orbs */}
             <div className="floating-orb w-96 h-96 -top-48 -left-48" />
             <div className="floating-orb w-72 h-72 bottom-1/4 -right-36 from-secondary-500 to-pink-500" style={{ animationDelay: '-2s' }} />
