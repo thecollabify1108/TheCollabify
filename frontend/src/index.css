@@ -347,21 +347,37 @@
   background-color: rgba(248, 250, 252, 0.9) !important;
 }
 
-/* Text colors */
+/* Text colors - Made darker and bolder for light theme */
 .light-theme .text-dark-100 {
-  color: #1e293b !important;
+  color: #0f172a !important;
+  font-weight: 600;
 }
 
 .light-theme .text-dark-200 {
-  color: #334155 !important;
+  color: #1e293b !important;
+  font-weight: 500;
 }
 
 .light-theme .text-dark-300 {
-  color: #475569 !important;
+  color: #334155 !important;
+  font-weight: 500;
 }
 
 .light-theme .text-dark-400 {
-  color: #64748b !important;
+  color: #475569 !important;
+  font-weight: 500;
+}
+
+/* Headings and important text bolder in light theme */
+.light-theme h1,
+.light-theme h2,
+.light-theme h3,
+.light-theme h4 {
+  font-weight: 700 !important;
+}
+
+.light-theme p {
+  color: #334155 !important;
 }
 
 /* Border colors */
