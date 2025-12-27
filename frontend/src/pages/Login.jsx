@@ -160,9 +160,6 @@ const Login = () => {
                     </div>
                 </motion.div>
             </div>
-
-            {/* Footer */}
-            <Footer />
         </div>
     );
 };

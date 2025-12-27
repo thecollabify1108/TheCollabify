@@ -50,6 +50,12 @@ const ForBrands = () => {
 
                         <div className="flex items-center space-x-8">
                             <Link
+                                to="/"
+                                className="text-dark-400 hover:text-dark-200 transition flex items-center gap-2"
+                            >
+                                <span>←</span> Back to Home
+                            </Link>
+                            <Link
                                 to="/for-brands"
                                 className="text-dark-100 font-medium border-b-2 border-primary-500 pb-1"
                             >
