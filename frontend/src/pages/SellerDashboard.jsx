@@ -151,8 +151,7 @@ const SellerDashboard = () => {
         { id: 'overview', label: 'Overview', icon: <FaChartLine /> },
         { id: 'requests', label: 'My Requests', icon: <FaBriefcase /> },
         { id: 'messages', label: 'Messages', icon: <FaComments /> },
-        { id: 'newrequest', label: 'New Request', icon: <FaPlus /> },
-        { id: 'edit', label: 'Edit Profile', icon: <FaCog /> }
+        { id: 'newrequest', label: 'New Request', icon: <FaPlus /> }
     ];
 
     if (loading) {
