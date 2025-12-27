@@ -5,6 +5,7 @@ import { FaInstagram, FaBuilding, FaLock, FaHandshake, FaClock, FaCheck } from '
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Footer from '../components/common/Footer';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const ForBrands = () => {
     const navigate = useNavigate();
@@ -75,6 +76,7 @@ const ForBrands = () => {
                             >
                                 For Influencer
                             </Link>
+                            <ThemeToggle />
                         </div>
                     </div>
                 </div>

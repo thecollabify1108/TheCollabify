@@ -13,6 +13,7 @@ import {
 } from 'react-icons/hi';
 import { FaInstagram, FaBuilding, FaUserAlt, FaHandshake, FaChartLine, FaLock, FaWallet } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const Landing = () => {
     const navigate = useNavigate();
@@ -141,6 +142,7 @@ const Landing = () => {
                         </div>
 
                         <div className="flex items-center space-x-4">
+                            <ThemeToggle />
                             <button
                                 onClick={() => navigate('/login')}
                                 className="text-dark-300 hover:text-dark-100 transition font-medium"
