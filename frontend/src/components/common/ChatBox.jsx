@@ -164,7 +164,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose }) => 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-4 right-4 w-96 h-[500px] glass-card shadow-2xl flex flex-col overflow-hidden z-50"
+            className="fixed inset-4 md:inset-auto md:bottom-4 md:right-4 md:w-96 md:h-[500px] glass-card shadow-2xl flex flex-col overflow-hidden z-50"
         >
             {/* Header */}
             <div className="px-4 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-between">

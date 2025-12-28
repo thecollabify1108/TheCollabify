@@ -77,7 +77,7 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
     ) || [];
 
     return (
-        <div className="glass-card overflow-hidden h-[600px] flex">
+        <div className="glass-card overflow-hidden h-[calc(100vh-200px)] md:h-[600px] flex flex-col md:flex-row w-full">
             {/* Conversation List */}
             <motion.div
                 className={`w-full md:w-80 border-r border-dark-700 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'
@@ -190,8 +190,8 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                                     >
                                         <div
                                             className={`max-w-[70%] p-3 rounded-2xl ${msg.senderRole === 'seller'
-                                                    ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-md'
-                                                    : 'bg-dark-800 text-dark-200 rounded-bl-md'
+                                                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-md'
+                                                : 'bg-dark-800 text-dark-200 rounded-bl-md'
                                                 }`}
                                         >
                                             <p className="text-sm">{msg.content}</p>
