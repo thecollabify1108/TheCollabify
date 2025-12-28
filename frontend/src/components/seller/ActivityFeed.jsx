@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { FaUser, FaCheck, FaBell, FaComments, FaRocket, FaClock } from 'react-icons/fa';
+import { FaUser, FaCheck, FaBell, FaComments, FaRocket, FaClock, FaFire, FaHeart } from 'react-icons/fa';
+import { HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import { formatDistanceToNow } from 'date-fns';
 
 const ActivityFeed = ({ requests }) => {
@@ -12,11 +13,12 @@ const ActivityFeed = ({ requests }) => {
             activities.push({
                 id: `${request._id}-created`,
                 type: 'created',
-                title: `Campaign "${request.title}" created`,
+                title: 'Campaign launched',
+                subtitle: request.title,
                 time: new Date(request.createdAt),
                 icon: <FaRocket />,
-                color: 'text-primary-400',
-                bgColor: 'bg-primary-500/10'
+                gradient: 'from-violet-500 to-purple-500',
+                bgColor: 'bg-violet-500/10'
             });
 
             // Add matched creator activities
@@ -25,10 +27,11 @@ const ActivityFeed = ({ requests }) => {
                     activities.push({
                         id: `${request._id}-${creator.creatorId}-applied`,
                         type: 'applied',
-                        title: `Creator applied to "${request.title}"`,
+                        title: 'New application',
+                        subtitle: `${creator.creatorName} applied`,
                         time: new Date(creator.appliedAt || request.createdAt),
-                        icon: <FaUser />,
-                        color: 'text-amber-400',
+                        icon: <FaFire />,
+                        gradient: 'from-amber-500 to-orange-500',
                         bgColor: 'bg-amber-500/10'
                     });
                 }
@@ -36,30 +39,30 @@ const ActivityFeed = ({ requests }) => {
                     activities.push({
                         id: `${request._id}-${creator.creatorId}-accepted`,
                         type: 'accepted',
-                        title: `Creator accepted for "${request.title}"`,
+                        title: 'Creator accepted',
+                        subtitle: `${creator.creatorName} is working`,
                         time: new Date(creator.acceptedAt || request.createdAt),
-                        icon: <FaCheck />,
-                        color: 'text-emerald-400',
-                        bgColor: 'bg-emerald-500/10'
+                        icon: <FaHeart />,
+                        gradient: 'from-pink-500 to-rose-500',
+                        bgColor: 'bg-pink-500/10'
                     });
                 }
             });
 
-            // Add completion activity
             if (request.status === 'Completed') {
                 activities.push({
                     id: `${request._id}-completed`,
                     type: 'completed',
-                    title: `Campaign "${request.title}" completed`,
+                    title: 'Campaign completed',
+                    subtitle: request.title,
                     time: new Date(request.updatedAt),
                     icon: <FaCheck />,
-                    color: 'text-emerald-400',
+                    gradient: 'from-emerald-500 to-teal-500',
                     bgColor: 'bg-emerald-500/10'
                 });
             }
         });
 
-        // Sort by time, most recent first
         return activities.sort((a, b) => b.time - a.time).slice(0, 8);
     };
 
@@ -74,40 +77,70 @@ const ActivityFeed = ({ requests }) => {
     };
 
     return (
-        <div className="glass-card p-6">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-dark-100">Recent Activity</h3>
-                <FaBell className="text-dark-400" />
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-dark-800/60 to-dark-900/60 backdrop-blur-xl border border-dark-700/50 h-full"
+        >
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl"></div>
+
+            {/* Header */}
+            <div className="relative p-5 border-b border-dark-700/50">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
+                            <HiLightningBolt className="text-lg text-blue-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-bold text-dark-100">Activity</h3>
+                            <p className="text-xs text-dark-400">Recent updates</p>
+                        </div>
+                    </div>
+                    {activities.length > 0 && (
+                        <motion.div
+                            animate={{ scale: [1, 1.1, 1] }}
+                            transition={{ repeat: Infinity, duration: 2 }}
+                            className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/50"
+                        />
+                    )}
+                </div>
             </div>
 
-            {activities.length === 0 ? (
-                <div className="text-center py-8">
-                    <FaClock className="text-4xl text-dark-600 mx-auto mb-3" />
-                    <p className="text-dark-400">No recent activity</p>
-                    <p className="text-sm text-dark-500">Create your first campaign to get started</p>
-                </div>
-            ) : (
-                <div className="space-y-4 max-h-80 overflow-y-auto scrollbar-thin pr-2">
-                    {activities.map((activity, index) => (
-                        <motion.div
-                            key={activity.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="flex items-start gap-3"
-                        >
-                            <div className={`p-2 rounded-lg ${activity.bgColor} ${activity.color}`}>
-                                {activity.icon}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="text-sm text-dark-200 truncate">{activity.title}</p>
-                                <p className="text-xs text-dark-500">{formatTime(activity.time)}</p>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            )}
-        </div>
+            {/* Activity List */}
+            <div className="p-4 overflow-y-auto max-h-80 scrollbar-thin">
+                {activities.length === 0 ? (
+                    <div className="text-center py-8">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-dark-800/50 flex items-center justify-center">
+                            <FaClock className="text-2xl text-dark-500" />
+                        </div>
+                        <p className="text-dark-400 font-medium">No activity yet</p>
+                        <p className="text-sm text-dark-500">Create a campaign to see updates</p>
+                    </div>
+                ) : (
+                    <div className="space-y-3">
+                        {activities.map((activity, index) => (
+                            <motion.div
+                                key={activity.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                className="group flex items-start gap-3 p-3 rounded-xl hover:bg-dark-800/50 transition-all cursor-pointer"
+                            >
+                                <div className={`p-2 rounded-lg bg-gradient-to-br ${activity.gradient} shadow-lg flex-shrink-0`}>
+                                    <span className="text-white text-xs">{activity.icon}</span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-semibold text-dark-100">{activity.title}</p>
+                                    <p className="text-xs text-dark-400 truncate">{activity.subtitle}</p>
+                                    <p className="text-xs text-dark-500 mt-1">{formatTime(activity.time)}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        </motion.div>
     );
 };
 
