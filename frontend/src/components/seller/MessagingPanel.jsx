@@ -9,7 +9,8 @@ import {
     FaCheckDouble,
     FaEllipsisV,
     FaImage,
-    FaSmile
+    FaSmile,
+    FaComments
 } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { format, isToday, isYesterday } from 'date-fns';
