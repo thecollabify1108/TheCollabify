@@ -17,23 +17,15 @@ import TermsConditions from './pages/TermsConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ScrollToTop from './components/common/ScrollToTop';
 import PageTransition from './components/common/PageTransition';
+import AppLoader from './components/common/AppLoader';
 
-// Loading spinner component
-const LoadingSpinner = () => (
-    <div className="min-h-screen flex items-center justify-center bg-dark-950">
-        <div className="relative">
-            <div className="w-16 h-16 border-4 border-primary-500/30 rounded-full"></div>
-            <div className="absolute top-0 left-0 w-16 h-16 border-4 border-primary-500 rounded-full border-t-transparent animate-spin"></div>
-        </div>
-    </div>
-);
 
 // Protected route wrapper
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, loading, isAuthenticated } = useAuth();
 
     if (loading) {
-        return <LoadingSpinner />;
+        return <AppLoader message="Authenticating..." subMessage="Please wait while we verify your session" />;
     }
 
     if (!isAuthenticated) {
@@ -60,7 +52,7 @@ const PublicRoute = ({ children }) => {
     const { user, loading, isAuthenticated } = useAuth();
 
     if (loading) {
-        return <LoadingSpinner />;
+        return <AppLoader message="Loading..." subMessage="Preparing your experience" />;
     }
 
     if (isAuthenticated) {
