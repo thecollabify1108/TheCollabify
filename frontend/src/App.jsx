@@ -18,6 +18,8 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import ScrollToTop from './components/common/ScrollToTop';
 import PageTransition from './components/common/PageTransition';
 import AppLoader from './components/common/AppLoader';
+import NotFound from './pages/NotFound';
+import ServerError from './pages/ServerError';
 
 
 // Protected route wrapper
@@ -170,8 +172,11 @@ function App() {
                         }
                     />
 
-                    {/* Catch all - redirect to landing */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
+                    {/* Error Pages */}
+                    <Route path="/500" element={<ServerError />} />
+
+                    {/* 404 - Not Found */}
+                    <Route path="*" element={<NotFound />} />
                 </Routes>
             </AnimatePresence>
         </>
