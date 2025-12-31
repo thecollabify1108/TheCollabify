@@ -3,10 +3,12 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const CreatorProfile = require('../models/CreatorProfile');
 const PromotionRequest = require('../models/PromotionRequest');
+const User = require('../models/User');
 const { auth } = require('../middleware/auth');
 const { isCreator } = require('../middleware/roleCheck');
 const { generateInsights } = require('../services/aiInsights');
 const { notifyProfileInsights, notifySellerCreatorApplied } = require('../services/notificationService');
+const { sendCreatorAppliedEmail } = require('../utils/emailService');
 
 /**
  * Validation middleware
@@ -327,13 +329,27 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
 
         await promotion.save();
 
-        // Notify seller
+        // Notify seller (in-app + email)
         try {
+            // Get seller details for email
+            const seller = await User.findById(promotion.sellerId);
+
+            // In-app notification
             await notifySellerCreatorApplied(
                 promotion.sellerId,
                 profile.userId.name,
                 promotion
             );
+
+            // Email notification
+            if (seller) {
+                await sendCreatorAppliedEmail(
+                    seller.email,
+                    seller.name,
+                    profile.userId.name,
+                    promotion.title
+                );
+            }
         } catch (err) {
             console.error('Failed to notify seller:', err);
         }
