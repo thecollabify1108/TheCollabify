@@ -33,6 +33,7 @@ import PromotionList from '../components/creator/PromotionList';
 import ChatBox from '../components/common/ChatBox';
 import ConversationList from '../components/common/ConversationList';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import OnboardingTour from '../components/common/OnboardingTour';
 import CreatorAnalytics from '../components/creator/CreatorAnalytics';
 import AIOpportunitySuggestions from '../components/creator/AIOpportunitySuggestions';
 import ProfileProgress from '../components/creator/ProfileProgress';
@@ -176,6 +177,9 @@ const CreatorDashboard = () => {
     return (
         <div className="min-h-screen bg-dark-950">
             <Navbar />
+
+            {/* Onboarding Tour for new users */}
+            <OnboardingTour role="creator" />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Header */}

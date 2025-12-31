@@ -25,6 +25,7 @@ import CampaignTracker from '../components/seller/CampaignTracker';
 import MessagingPanel from '../components/seller/MessagingPanel';
 import CampaignAnalytics from '../components/seller/CampaignAnalytics';
 import AICampaignSuggestions from '../components/seller/AICampaignSuggestions';
+import OnboardingTour from '../components/common/OnboardingTour';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -191,6 +192,9 @@ const SellerDashboard = () => {
     return (
         <div className="min-h-screen bg-dark-950 pb-20">
             <Navbar />
+
+            {/* Onboarding Tour for new users */}
+            <OnboardingTour role="seller" />
 
             {/* Campaign Stories */}
             <CampaignStories
