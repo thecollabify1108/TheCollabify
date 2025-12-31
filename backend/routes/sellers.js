@@ -14,6 +14,8 @@ const {
     notifyRequestUpdate,
     notifyRequestDeleted
 } = require('../services/notificationService');
+const { sendCreatorAcceptedEmail, sendNewMatchEmail } = require('../utils/emailService');
+const User = require('../models/User');
 
 /**
  * Validation middleware
@@ -139,9 +141,19 @@ router.post('/requests', auth, isSeller, [
         // Notify matched creators
         for (const match of matchedCreators.slice(0, 10)) { // Notify top 10
             try {
-                const creator = await CreatorProfile.findById(match.creatorId);
-                if (creator) {
-                    await notifyCreatorNewMatch(creator.userId, request, match.matchScore);
+                const creator = await CreatorProfile.findById(match.creatorId).populate('userId', 'name email');
+                if (creator && creator.userId) {
+                    // In-app notification
+                    await notifyCreatorNewMatch(creator.userId._id, request, match.matchScore);
+
+                    // Email notification
+                    await sendNewMatchEmail(
+                        creator.userId.email,
+                        creator.userId.name,
+                        request.title,
+                        match.matchScore,
+                        request.targetCategory
+                    );
                 }
             } catch (err) {
                 console.error('Failed to notify creator:', err);
@@ -318,13 +330,23 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
 
         await request.save();
 
-        // Get creator profile to find user ID
-        const creatorProfile = await CreatorProfile.findById(req.params.creatorId);
+        // Get creator profile and seller info to find user details
+        const creatorProfile = await CreatorProfile.findById(req.params.creatorId).populate('userId', 'name email');
+        const seller = await User.findById(req.userId);
 
-        // Notify creator
-        if (creatorProfile) {
+        // Notify creator (in-app + email)
+        if (creatorProfile && creatorProfile.userId) {
             try {
-                await notifyCreatorAccepted(creatorProfile.userId, request);
+                // In-app notification
+                await notifyCreatorAccepted(creatorProfile.userId._id, request);
+
+                // Email notification
+                await sendCreatorAcceptedEmail(
+                    creatorProfile.userId.email,
+                    creatorProfile.userId.name,
+                    request.title,
+                    seller?.name || 'A brand'
+                );
             } catch (err) {
                 console.error('Failed to notify creator:', err);
             }
@@ -332,11 +354,11 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
             // Create a conversation for chat
             try {
                 await Conversation.findOneAndUpdate(
-                    { promotionId: request._id, creatorUserId: creatorProfile.userId },
+                    { promotionId: request._id, creatorUserId: creatorProfile.userId._id },
                     {
                         promotionId: request._id,
                         sellerId: req.userId,
-                        creatorUserId: creatorProfile.userId,
+                        creatorUserId: creatorProfile.userId._id,
                         creatorProfileId: creatorProfile._id,
                         status: 'active'
                     },
