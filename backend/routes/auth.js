@@ -461,4 +461,45 @@ router.post('/google', async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/auth/newsletter
+ * @desc    Subscribe to newsletter
+ * @access  Public
+ */
+router.post('/newsletter', [
+    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { email } = req.body;
+        const Subscriber = require('../models/Subscriber');
+
+        // Check if already subscribed
+        let subscriber = await Subscriber.findOne({ email });
+
+        if (subscriber) {
+            if (!subscriber.isActive) {
+                subscriber.isActive = true;
+                await subscriber.save();
+                return res.json({ success: true, message: 'Welcome back! You have been resubscribed.' });
+            }
+            return res.json({ success: true, message: 'You are already subscribed to our newsletter.' });
+        }
+
+        // Create new subscriber
+        await Subscriber.create({ email });
+
+        res.status(201).json({
+            success: true,
+            message: 'Successfully subscribed to newsletter!'
+        });
+    } catch (error) {
+        console.error('Newsletter subscription error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to subscribe. Please try again.'
+        });
+    }
+});
+
 module.exports = router;

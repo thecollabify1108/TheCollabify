@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
+import NewsletterSignup from './NewsletterSignup';
 
 const Footer = () => {
     return (
         <footer className="py-16 px-4 border-t border-dark-800 bg-dark-950">
             <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {/* Logo & Description */}
                     <div>
                         <Link to="/" className="flex items-center space-x-3 mb-4">
@@ -77,7 +78,13 @@ const Footer = () => {
                             >
                                 support@thecollabify.ai
                             </a>
+                            {/* Newsletter */}
                         </div>
+                    </div>
+
+                    {/* Newsletter Column */}
+                    <div className="md:col-span-1">
+                        <NewsletterSignup />
                     </div>
                 </div>
 

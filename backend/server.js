@@ -70,6 +70,9 @@ app.use('/api/sellers', require('./routes/sellers'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/chat', require('./routes/chat'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/search', require('./routes/search'));
+app.use('/api/leaderboard', require('./routes/leaderboard'));
+app.use('/api/achievements', require('./routes/achievements'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

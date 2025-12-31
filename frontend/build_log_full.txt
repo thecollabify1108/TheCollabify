@@ -1,0 +1,132 @@
+﻿
+> creator-seller-marketplace-frontend@1.0.0 build
+> node node_modules/vite/bin/vite.js build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 745 modules transformed.
+node.exe : 
+[31mx[39m Build 
+failed in 3.28s
+At line:1 char:1
++ & "C:\Program Files\
+nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ([31mx[39   
+ m Build failed in    
+ 3.28s:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+[31merror during 
+build:
+[31msrc/components/cr
+eator/BadgeShowcase.js
+x (4:35): "HiTrophy" 
+is not exported by "no
+de_modules/react-icons
+/hi/index.esm.js", 
+imported by "src/compo
+nents/creator/BadgeSho
+wcase.jsx".[31m
+file: [36mC:/Users/su
+khv/project 2/frontend
+/src/components/creato
+r/BadgeShowcase.jsx:4:
+35[31m
+[33m
+2: import { motion } 
+from 'framer-motion';
+3: import { 
+creatorAPI } from 
+'../../services/api';
+4: import { 
+HiSparkles, 
+HiTrendingUp, 
+HiTrophy, HiHeart, 
+HiVideoCamera, 
+HiCheckCircle } from 
+'react-icons/hi';
+                      
+                ^
+5: import { FaCrown, 
+FaLock } from 
+'react-icons/fa';
+[31m
+    at getRollupError 
+(file:///C:/Users/sukh
+v/project%202/frontend
+/node_modules/rollup/d
+ist/es/shared/parseAst
+.js:401:41)
+    at error (file:///
+C:/Users/sukhv/project
+%202/frontend/node_mod
+ules/rollup/dist/es/sh
+ared/parseAst.js:397:4
+2)
+    at Module.error (f
+ile:///C:/Users/sukhv/
+project%202/frontend/n
+ode_modules/rollup/dis
+t/es/shared/node-entry
+.js:17022:16)
+    at 
+Module.traceVariable (
+file:///C:/Users/sukhv
+/project%202/frontend/
+node_modules/rollup/di
+st/es/shared/node-entr
+y.js:17478:29)
+    at ModuleScope.fin
+dVariable (file:///C:/
+Users/sukhv/project%20
+2/frontend/node_module
+s/rollup/dist/es/share
+d/node-entry.js:15141:
+39)
+    at ReturnValueScop
+e.findVariable (file:/
+//C:/Users/sukhv/proje
+ct%202/frontend/node_m
+odules/rollup/dist/es/
+shared/node-entry.js:5
+688:38)
+    at FunctionBodySco
+pe.findVariable (file:
+///C:/Users/sukhv/proj
+ect%202/frontend/node_
+modules/rollup/dist/es
+/shared/node-entry.js:
+5688:38)
+    at ReturnValueScop
+e.findVariable (file:/
+//C:/Users/sukhv/proje
+ct%202/frontend/node_m
+odules/rollup/dist/es/
+shared/node-entry.js:5
+688:38)
+    at FunctionBodySco
+pe.findVariable (file:
+///C:/Users/sukhv/proj
+ect%202/frontend/node_
+modules/rollup/dist/es
+/shared/node-entry.js:
+5688:38)
+    at BlockScope.find
+Variable (file:///C:/U
+sers/sukhv/project%202
+/frontend/node_modules
+/rollup/dist/es/shared
+/node-entry.js:5688:38
+)[39m

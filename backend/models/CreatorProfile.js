@@ -117,7 +117,26 @@ const creatorProfileSchema = new mongoose.Schema({
         min: 0,
         max: 5,
         default: 0
-    }
+    },
+    leaderboardScore: {
+        type: Number,
+        default: 0,
+        index: -1
+    },
+    lastScoreUpdate: {
+        type: Date,
+        default: Date.now
+    },
+    achievements: [{
+        badgeId: {
+            type: String,
+            required: true
+        },
+        earnedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }]
 }, {
     timestamps: true
 });

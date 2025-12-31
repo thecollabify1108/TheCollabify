@@ -21,6 +21,7 @@ import AppLoader from './components/common/AppLoader';
 import NotFound from './pages/NotFound';
 import ServerError from './pages/ServerError';
 import NotificationPrompt from './components/common/NotificationPrompt';
+import InstallPrompt from './components/common/InstallPrompt';
 
 
 // Protected route wrapper
@@ -89,6 +90,9 @@ function App() {
 
             {/* Push Notification Permission Prompt */}
             <NotificationPrompt />
+
+            {/* PWA Install Prompt */}
+            <InstallPrompt />
 
             {/* Centered Watermark */}
             <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">

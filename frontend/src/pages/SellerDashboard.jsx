@@ -26,6 +26,8 @@ import MessagingPanel from '../components/seller/MessagingPanel';
 import CampaignAnalytics from '../components/seller/CampaignAnalytics';
 import AICampaignSuggestions from '../components/seller/AICampaignSuggestions';
 import OnboardingTour from '../components/common/OnboardingTour';
+import CreatorSearch from '../components/seller/CreatorSearch';
+import { FaSearch } from 'react-icons/fa';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -168,7 +170,8 @@ const SellerDashboard = () => {
     // Bottom navigation tabs
     const tabs = [
         { id: 'feed', label: 'Feed', icon: <HiHome /> },
-        { id: 'discover', label: 'Discover', icon: <HiUserGroup /> },
+        { id: 'search', label: 'Find', icon: <FaSearch /> }, // New Search Tab
+        { id: 'discover', label: 'Matches', icon: <HiUserGroup /> }, // Renamed from Discover to Matches to avoid confusion
         { id: 'campaigns', label: 'Campaigns', icon: <HiViewGrid /> },
         { id: 'messages', label: 'Messages', icon: <HiChat />, badge: conversations.filter(c => c.unreadCount > 0).length }
     ];
@@ -229,6 +232,19 @@ const SellerDashboard = () => {
                                     if (campaign) setSelectedRequest(campaign);
                                 }}
                             />
+                        </motion.div>
+                    )}
+
+                    {/* Search Tab - Creator Discovery */}
+                    {activeTab === 'search' && (
+                        <motion.div
+                            key="search"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="p-4"
+                        >
+                            <CreatorSearch />
                         </motion.div>
                     )}
 

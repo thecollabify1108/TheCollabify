@@ -50,7 +50,9 @@ export const authAPI = {
     updateProfile: (data) => api.put('/auth/update', data),
     forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
     resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
-    changePassword: (data) => api.post('/auth/change-password', data)
+    resetPassword: (token, password) => api.post(`/auth/reset-password/${token}`, { password }),
+    changePassword: (data) => api.post('/auth/change-password', data),
+    subscribeNewsletter: (email) => api.post('/auth/newsletter', { email })
 };
 
 // Creator API
@@ -60,7 +62,11 @@ export const creatorAPI = {
     updateProfile: (data) => api.put('/creators/profile', data),
     getPromotions: () => api.get('/creators/promotions'),
     applyToPromotion: (promotionId) => api.post(`/creators/promotions/${promotionId}/apply`),
-    getApplications: () => api.get('/creators/applications')
+    getPromotions: () => api.get('/creators/promotions'),
+    applyToPromotion: (promotionId) => api.post(`/creators/promotions/${promotionId}/apply`),
+    getApplications: () => api.get('/creators/applications'),
+    getAchievements: () => api.get('/achievements'),
+    checkAchievements: () => api.post('/achievements/check')
 };
 
 // Seller API
@@ -73,7 +79,9 @@ export const sellerAPI = {
     acceptCreator: (requestId, creatorId) => api.post(`/sellers/requests/${requestId}/accept/${creatorId}`),
     rejectCreator: (requestId, creatorId) => api.post(`/sellers/requests/${requestId}/reject/${creatorId}`),
     updateStatus: (requestId, status) => api.put(`/sellers/requests/${requestId}/status`, { status }),
-    getMatchDetails: (requestId, creatorId) => api.get(`/sellers/requests/${requestId}/match-details/${creatorId}`)
+    updateStatus: (requestId, status) => api.put(`/sellers/requests/${requestId}/status`, { status }),
+    getMatchDetails: (requestId, creatorId) => api.get(`/sellers/requests/${requestId}/match-details/${creatorId}`),
+    searchCreators: (params) => api.get('/search/creators', { params })
 };
 
 // Notification API
@@ -107,6 +115,11 @@ export const adminAPI = {
     deleteUser: (id) => api.delete(`/admin/users/${id}`),
     getRequests: (params) => api.get('/admin/requests', { params }),
     deleteRequest: (id) => api.delete(`/admin/requests/${id}`)
+};
+
+// Public API
+export const publicAPI = {
+    getLeaderboard: (params) => api.get('/leaderboard', { params })
 };
 
 export default api;
