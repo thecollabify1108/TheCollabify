@@ -64,6 +64,14 @@ router.post('/register', [
             console.error('Failed to send welcome notification:', err);
         }
 
+        // Set HTTPOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
         res.status(201).json({
             success: true,
             message: 'Registration successful',
@@ -74,7 +82,7 @@ router.post('/register', [
                     name: user.name,
                     role: user.role
                 },
-                token
+                token // Still send token for backward compatibility during transition
             }
         });
     } catch (error) {
@@ -134,6 +142,14 @@ router.post('/login', [
         // Generate token
         const token = generateToken(user._id);
 
+        // Set HTTPOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
         res.json({
             success: true,
             message: 'Login successful',
@@ -145,7 +161,7 @@ router.post('/login', [
                     role: user.role,
                     avatar: user.avatar
                 },
-                token
+                token // Still send token for backward compatibility during transition
             }
         });
     } catch (error) {
@@ -316,11 +332,19 @@ router.post('/reset-password/:token', [
         // Generate new token for auto-login
         const authToken = generateToken(user._id);
 
+        // Set HTTPOnly cookie
+        res.cookie('token', authToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
         res.json({
             success: true,
             message: 'Password reset successful',
             data: {
-                token: authToken
+                token: authToken // Still send token for backward compatibility
             }
         });
     } catch (error) {
@@ -438,6 +462,14 @@ router.post('/google', async (req, res) => {
         // Generate token
         const token = generateToken(user._id);
 
+        // Set HTTPOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
         res.json({
             success: true,
             message: user.createdAt === user.updatedAt ? 'Registration successful' : 'Login successful',
@@ -449,7 +481,7 @@ router.post('/google', async (req, res) => {
                     role: user.role,
                     avatar: user.avatar
                 },
-                token
+                token // Still send token for backward compatibility
             }
         });
     } catch (error) {
@@ -457,6 +489,33 @@ router.post('/google', async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Google authentication failed. Please try again.'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/auth/logout
+ * @desc    Logout user (clear HTTPOnly cookie)
+ * @access  Public
+ */
+router.post('/logout', (req, res) => {
+    try {
+        // Clear the HTTPOnly cookie
+        res.clearCookie('token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        });
+
+        res.json({
+            success: true,
+            message: 'Logged out successfully'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Logout failed'
         });
     }
 });

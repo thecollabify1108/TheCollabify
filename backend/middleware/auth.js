@@ -7,17 +7,32 @@ const User = require('../models/User');
  */
 const auth = async (req, res, next) => {
     try {
-        // Get token from header
-        const authHeader = req.header('Authorization');
+        let token;
 
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        // Try to get token from cookie first (HTTPOnly secure method)
+        if (req.cookies && req.cookies.token) {
+            token = req.cookies.token;
+        }
+        // Fallback to Authorization header (for backward compatibility and API clients)
+        else {
+            const authHeader = req.header('Authorization');
+
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'No token provided. Authorization denied.'
+                });
+            }
+
+            token = authHeader.replace('Bearer ', '');
+        }
+
+        if (!token) {
             return res.status(401).json({
                 success: false,
                 message: 'No token provided. Authorization denied.'
             });
         }
-
-        const token = authHeader.replace('Bearer ', '');
 
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);

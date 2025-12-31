@@ -6,16 +6,19 @@ const api = axios.create({
     baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json'
-    }
+    },
+    withCredentials: true // Enable sending cookies with requests
 });
 
-// Request interceptor to add auth token
+// Request interceptor to add auth token (for backward compatibility with localStorage)
+// Cookies are sent automatically when withCredentials is true
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
+        // If no localStorage token, cookies will be used automatically
         return config;
     },
     (error) => {
@@ -46,6 +49,7 @@ api.interceptors.response.use(
 export const authAPI = {
     login: (data) => api.post('/auth/login', data),
     register: (data) => api.post('/auth/register', data),
+    logout: () => api.post('/auth/logout'),
     getMe: () => api.get('/auth/me'),
     updateProfile: (data) => api.put('/auth/update', data),
     forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
