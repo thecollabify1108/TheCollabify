@@ -23,6 +23,7 @@ import QuickStatsBar from '../components/seller/QuickStatsBar';
 import RequestWizard from '../components/seller/RequestWizard';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import MessagingPanel from '../components/seller/MessagingPanel';
+import CampaignAnalytics from '../components/seller/CampaignAnalytics';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -210,7 +211,12 @@ const SellerDashboard = () => {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
+                            className="space-y-6 p-4"
                         >
+                            {/* Campaign Analytics */}
+                            <CampaignAnalytics requests={requests} />
+
+                            {/* Activity Feed */}
                             <SocialActivityFeed
                                 requests={requests}
                                 onViewCampaign={(id) => {
@@ -278,8 +284,8 @@ const SellerDashboard = () => {
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-3">
                                                     <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                            request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
-                                                                'bg-blue-500/20 text-blue-400'
+                                                        request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
+                                                            'bg-blue-500/20 text-blue-400'
                                                         }`}>
                                                         {request.title?.charAt(0).toUpperCase()}
                                                     </div>
@@ -332,8 +338,8 @@ const SellerDashboard = () => {
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setActiveTab(tab.id)}
                             className={`relative flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all ${activeTab === tab.id
-                                    ? 'text-primary-400'
-                                    : 'text-dark-400 hover:text-dark-200'
+                                ? 'text-primary-400'
+                                : 'text-dark-400 hover:text-dark-200'
                                 }`}
                         >
                             <span className="text-xl">{tab.icon}</span>
