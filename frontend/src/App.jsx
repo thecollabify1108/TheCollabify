@@ -20,6 +20,7 @@ import PageTransition from './components/common/PageTransition';
 import AppLoader from './components/common/AppLoader';
 import NotFound from './pages/NotFound';
 import ServerError from './pages/ServerError';
+import NotificationPrompt from './components/common/NotificationPrompt';
 
 
 // Protected route wrapper
@@ -85,6 +86,9 @@ function App() {
                 <div className="floating-orb orb-5"></div>
             </div>
             <div className="grid-pattern"></div>
+
+            {/* Push Notification Permission Prompt */}
+            <NotificationPrompt />
 
             {/* Centered Watermark */}
             <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
