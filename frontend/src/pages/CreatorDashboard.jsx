@@ -33,6 +33,8 @@ import PromotionList from '../components/creator/PromotionList';
 import ChatBox from '../components/common/ChatBox';
 import ConversationList from '../components/common/ConversationList';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import CreatorAnalytics from '../components/creator/CreatorAnalytics';
+import AIOpportunitySuggestions from '../components/creator/AIOpportunitySuggestions';
 
 const CreatorDashboard = () => {
     const { user, logout } = useAuth();
@@ -249,8 +251,8 @@ const CreatorDashboard = () => {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -20 }}
+                                    className="space-y-8"
                                 >
-                                    {/* Stats Grid */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                                         <div className="glass-card p-6">
                                             <div className="flex items-center justify-between mb-4">
@@ -329,6 +331,25 @@ const CreatorDashboard = () => {
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* Creator Analytics */}
+                                    <CreatorAnalytics
+                                        profile={profile}
+                                        applications={applications}
+                                    />
+
+                                    {/* AI Opportunity Suggestions */}
+                                    <AIOpportunitySuggestions
+                                        profile={profile}
+                                        promotions={promotions}
+                                        onApplySuggestion={(suggestion) => {
+                                            if (suggestion.type === 'opportunity') {
+                                                setActiveTab('promotions');
+                                            } else if (suggestion.type === 'category' || suggestion.type === 'content' || suggestion.type === 'pricing') {
+                                                setActiveTab('profile');
+                                            }
+                                        }}
+                                    />
                                 </motion.div>
                             )}
 
