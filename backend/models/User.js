@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    googleId: {
+        type: String,
+        default: null
+    },
     isActive: {
         type: Boolean,
         default: true
