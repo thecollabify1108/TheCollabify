@@ -206,7 +206,7 @@ router.put('/users/:id/status', auth, isAdmin, [
 
 /**
  * @route   DELETE /api/admin/users/:id
- * @desc    Delete user (spam profiles)
+ * @desc    Delete user with comprehensive data cleanup (production-ready)
  * @access  Private (Admin)
  */
 router.delete('/users/:id', auth, isAdmin, async (req, res) => {
@@ -228,24 +228,81 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
             });
         }
 
-        // Delete associated data
+        console.log(`Starting comprehensive deletion for user: ${user.email} (${user.role})`);
+
+        // Import required models
+        const Notification = require('../models/Notification');
+        const Conversation = require('../models/Conversation');
+        const Message = require('../models/Message');
+
+        // 1. Delete role-specific data
         if (user.role === 'creator') {
+            // Delete creator profile
             await CreatorProfile.deleteOne({ userId: user._id });
+            console.log('✓ Deleted creator profile');
+
+            // Delete all applications by this creator
+            const Application = require('../models/PromotionRequest');
+            await Application.updateMany(
+                { 'applications.creatorId': user._id },
+                { $pull: { applications: { creatorId: user._id } } }
+            );
+            console.log('✓ Removed creator applications from promotions');
+
         } else if (user.role === 'seller') {
-            await PromotionRequest.deleteMany({ sellerId: user._id });
+            // Delete all promotions created by this seller
+            const deletedPromotions = await PromotionRequest.deleteMany({ sellerId: user._id });
+            console.log(`✓ Deleted ${deletedPromotions.deletedCount} promotions`);
         }
 
+        // 2. Delete all notifications for this user
+        const deletedNotifications = await Notification.deleteMany({ userId: user._id });
+        console.log(`✓ Deleted ${deletedNotifications.deletedCount} notifications`);
+
+        // 3. Delete all conversations involving this user
+        const conversations = await Conversation.find({
+            $or: [
+                { creatorId: user._id },
+                { sellerId: user._id }
+            ]
+        });
+
+        if (conversations.length > 0) {
+            // Delete all messages in these conversations
+            const conversationIds = conversations.map(c => c._id);
+            const deletedMessages = await Message.deleteMany({ conversationId: { $in: conversationIds } });
+            console.log(`✓ Deleted ${deletedMessages.deletedCount} messages`);
+
+            // Delete the conversations
+            const deletedConversations = await Conversation.deleteMany({
+                $or: [
+                    { creatorId: user._id },
+                    { sellerId: user._id }
+                ]
+            });
+            console.log(`✓ Deleted ${deletedConversations.deletedCount} conversations`);
+        }
+
+        // 4. Delete user account
         await User.deleteOne({ _id: user._id });
+        console.log('✓ Deleted user account');
 
         res.json({
             success: true,
-            message: 'User and associated data deleted successfully'
+            message: 'User and all associated data deleted successfully',
+            details: {
+                userId: user._id,
+                email: user.email,
+                role: user.role,
+                deletedAt: new Date().toISOString()
+            }
         });
     } catch (error) {
         console.error('Delete user error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to delete user'
+            message: 'Failed to delete user',
+            error: error.message
         });
     }
 });
