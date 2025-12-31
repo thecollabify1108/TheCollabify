@@ -33,10 +33,9 @@ const AppLoader = ({ message = "Loading...", subMessage = "" }) => {
                         }}
                     />
 
-                    {/* Inner Circle with Logo */}
-                    {/* Inner Circle with Logo */}
+                    {/* Inner Circle with Star Logo */}
                     <div className="absolute inset-2 rounded-full bg-dark-900 flex items-center justify-center shadow-lg p-3">
-                        <img src="/star-logo.png" alt="Logo" className="w-full h-full object-contain" />
+                        <img src="/star-logo.png?v=2" alt="TheCollabify Logo" className="w-full h-full object-contain" />
                     </div>
                 </div>
 
