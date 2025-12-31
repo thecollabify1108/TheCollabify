@@ -24,6 +24,7 @@ import RequestWizard from '../components/seller/RequestWizard';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import MessagingPanel from '../components/seller/MessagingPanel';
 import CampaignAnalytics from '../components/seller/CampaignAnalytics';
+import AICampaignSuggestions from '../components/seller/AICampaignSuggestions';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -234,7 +235,19 @@ const SellerDashboard = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
+                            className="p-4 space-y-6"
                         >
+                            {/* AI Suggestions */}
+                            <AICampaignSuggestions
+                                requests={requests}
+                                onApplySuggestion={(suggestion) => {
+                                    if (suggestion.type === 'quickstart' || suggestion.type === 'category') {
+                                        setShowRequestWizard(true);
+                                    }
+                                }}
+                            />
+
+                            {/* Swipeable Creator Cards */}
                             <SwipeableCreatorCard
                                 creators={pendingCreators}
                                 onAccept={handleAcceptCreator}
