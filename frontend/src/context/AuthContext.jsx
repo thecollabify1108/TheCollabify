@@ -87,6 +87,18 @@ export const AuthProvider = ({ children }) => {
         return response.data;
     };
 
+    // Google OAuth Login
+    const googleLogin = async (googleData) => {
+        const response = await api.post('/auth/google', googleData);
+        const { token: newToken, user: userData } = response.data.data;
+
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+        setUser(userData);
+
+        return userData;
+    };
+
     const value = {
         user,
         token,
@@ -98,7 +110,8 @@ export const AuthProvider = ({ children }) => {
         updateProfile,
         forgotPassword,
         resetPassword,
-        changePassword
+        changePassword,
+        googleLogin
     };
 
     return (

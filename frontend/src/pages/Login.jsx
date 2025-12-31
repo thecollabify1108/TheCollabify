@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaInstagram, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaInstagram, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Footer from '../components/common/Footer';
@@ -9,7 +10,8 @@ import Confetti from '../components/common/Confetti';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, googleLogin } = useAuth();
+    const [googleLoading, setGoogleLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         email: '',
@@ -49,6 +51,48 @@ const Login = () => {
             setLoading(false);
         }
     };
+
+    // Google Login handler
+    const handleGoogleSuccess = async (tokenResponse) => {
+        setGoogleLoading(true);
+        try {
+            // Get user info from Google
+            const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+            });
+            const googleUser = await response.json();
+
+            // Login with Google
+            const user = await googleLogin({
+                email: googleUser.email,
+                name: googleUser.name,
+                googleId: googleUser.sub,
+                avatar: googleUser.picture
+            });
+
+            setShowConfetti(true);
+            toast.success('Login successful!');
+
+            setTimeout(() => {
+                if (user.role === 'creator') {
+                    navigate('/creator/dashboard');
+                } else if (user.role === 'seller') {
+                    navigate('/seller/dashboard');
+                } else if (user.role === 'admin') {
+                    navigate('/admin');
+                }
+            }, 1000);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Google login failed');
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
+
+    const googleLoginHook = useGoogleLogin({
+        onSuccess: handleGoogleSuccess,
+        onError: () => toast.error('Google login failed')
+    });
 
     return (
         <div className="min-h-screen bg-dark-950 flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -150,7 +194,35 @@ const Login = () => {
                         </form>
 
                         {/* Divider */}
-                        <div className="relative my-8">
+                        <div className="relative my-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-dark-700"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-4 bg-dark-800 text-dark-400">or continue with</span>
+                            </div>
+                        </div>
+
+                        {/* Google Sign-In Button */}
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => googleLoginHook()}
+                            disabled={googleLoading}
+                            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white text-gray-800 font-medium hover:bg-gray-100 transition-colors disabled:opacity-50"
+                        >
+                            {googleLoading ? (
+                                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <FaGoogle className="text-lg" style={{ color: '#4285F4' }} />
+                                    <span>Continue with Google</span>
+                                </>
+                            )}
+                        </motion.button>
+
+                        {/* Divider */}
+                        <div className="relative my-6">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-dark-700"></div>
                             </div>

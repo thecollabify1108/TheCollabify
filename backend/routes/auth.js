@@ -374,4 +374,91 @@ router.post('/change-password', auth, [
     }
 });
 
+/**
+ * @route   POST /api/auth/google
+ * @desc    Login or Register with Google OAuth
+ * @access  Public
+ */
+router.post('/google', async (req, res) => {
+    try {
+        const { email, name, googleId, avatar } = req.body;
+
+        if (!email || !googleId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email and Google ID are required'
+            });
+        }
+
+        // Check if user exists with this email
+        let user = await User.findOne({ email });
+
+        if (user) {
+            // User exists - update Google ID if not set
+            if (!user.googleId) {
+                user.googleId = googleId;
+                if (avatar && !user.avatar) {
+                    user.avatar = avatar;
+                }
+                await user.save();
+            }
+
+            // Check if account is active
+            if (!user.isActive) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Account has been deactivated. Please contact support.'
+                });
+            }
+        } else {
+            // New user - need to ask for role
+            // For now, default to 'creator' - can be changed later
+            // In production, you might want to redirect to a role selection page
+            user = await User.create({
+                email,
+                name,
+                googleId,
+                avatar,
+                role: 'creator', // Default role for Google sign-ups
+                password: crypto.randomBytes(32).toString('hex') // Random password for Google users
+            });
+
+            // Send welcome notification
+            try {
+                await notifyWelcome(user._id, user.role);
+            } catch (err) {
+                console.error('Failed to send welcome notification:', err);
+            }
+        }
+
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
+
+        // Generate token
+        const token = generateToken(user._id);
+
+        res.json({
+            success: true,
+            message: user.createdAt === user.updatedAt ? 'Registration successful' : 'Login successful',
+            data: {
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    avatar: user.avatar
+                },
+                token
+            }
+        });
+    } catch (error) {
+        console.error('Google auth error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Google authentication failed. Please try again.'
+        });
+    }
+});
+
 module.exports = router;
