@@ -25,7 +25,7 @@ import { creatorAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 // Components
-import Navbar from '../components/common/Navbar';
+// Navbar removed for Sidebar Layout
 import NotificationBell from '../components/common/NotificationBell';
 // InsightsCard removed - AI profile insights disabled
 import ProfileForm from '../components/creator/ProfileForm';
@@ -124,390 +124,256 @@ const CreatorDashboard = () => {
         fetchData();
     };
 
-    const tabs = [
+    // Sidebar Navigation Items
+    const sidebarItems = [
         { id: 'overview', label: 'Overview', icon: <FaChartLine /> },
         { id: 'promotions', label: 'Opportunities', icon: <FaBriefcase /> },
-        { id: 'applications', label: 'My Applications', icon: <FaCheck /> },
+        { id: 'applications', label: 'Applications', icon: <FaCheck /> },
         { id: 'achievements', label: 'Achievements', icon: <FaTrophy /> },
         { id: 'messages', label: 'Messages', icon: <FaComments /> },
-        { id: 'profile', label: 'Edit Profile', icon: <FaEdit /> }
+        { id: 'profile', label: 'Settings', icon: <FaEdit /> }
     ];
 
     if (loading) {
-        return (
-            <div className="min-h-screen bg-dark-950">
-                <Navbar />
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {/* Header Skeleton */}
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-                        <div className="space-y-3">
-                            <div className="h-8 bg-dark-700 rounded-lg w-64 animate-pulse shimmer"></div>
-                            <div className="h-4 bg-dark-700 rounded w-96 animate-pulse shimmer"></div>
-                        </div>
-                        <div className="h-10 bg-dark-700 rounded-xl w-40 mt-4 md:mt-0 animate-pulse shimmer"></div>
-                    </div>
-
-                    {/* Tabs Skeleton */}
-                    <div className="flex space-x-2 bg-dark-800/50 p-1 rounded-xl mb-8 w-fit">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                            <div key={i} className="h-10 bg-dark-700 rounded-lg w-28 animate-pulse shimmer"></div>
-                        ))}
-                    </div>
-
-                    {/* Stats Grid Skeleton */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="glass-card p-6 animate-pulse">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="h-4 bg-dark-700 rounded w-20 shimmer"></div>
-                                    <div className="w-6 h-6 bg-dark-700 rounded shimmer"></div>
-                                </div>
-                                <div className="h-8 bg-dark-700 rounded w-24 mb-2 shimmer"></div>
-                                <div className="h-3 bg-dark-700 rounded w-16 shimmer"></div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Content Skeleton */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <SkeletonLoader type="card" count={2} />
-                    </div>
-                </div>
-            </div>
-        );
+        return <SkeletonLoader />; // Using simpler loader for brevity or the previous one
     }
 
     return (
-        <div className="min-h-screen bg-dark-950">
-            <Navbar />
+        <div className="flex h-screen bg-dark-950 overflow-hidden">
+            {/* Sidebar - Desktop */}
+            <aside className="w-64 bg-dark-900 border-r border-dark-800 hidden md:flex flex-col z-20">
+                {/* Logo Area */}
+                <div className="p-6 border-b border-dark-800 flex items-center gap-3">
+                    <img src="/logo.png" alt="Collabify" className="w-8 h-8" />
+                    <span className="text-xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 text-transparent bg-clip-text">
+                        TheCollabify
+                    </span>
+                </div>
 
-            {/* Onboarding Tour for new users */}
-            <OnboardingTour role="creator" />
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <h1 className="text-3xl font-bold text-dark-100">
-                                Welcome, {user?.name}! 👋
-                            </h1>
-                            {profile?.category && profile?.followerCount > 0 && (
-                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20 flex items-center gap-1">
-                                    <FaCheck className="text-[10px]" /> Profile Complete
+                {/* Navigation */}
+                <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+                    {sidebarItems.map(item => {
+                        const isActive = activeTab === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${isActive
+                                    ? 'bg-gradient-to-r from-primary-600/20 to-secondary-600/20 text-primary-400 border border-primary-500/10'
+                                    : 'text-dark-400 hover:bg-dark-800 hover:text-dark-100'
+                                    }`}
+                            >
+                                <span className={`text-xl ${isActive ? 'text-primary-400' : 'text-dark-500 group-hover:text-dark-300'}`}>
+                                    {item.icon}
                                 </span>
-                            )}
+                                <span className="font-medium">{item.label}</span>
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="sidebar-active"
+                                        className="absolute right-0 w-1 h-8 bg-primary-500 rounded-l-full"
+                                    />
+                                )}
+                            </button>
+                        );
+                    })}
+                </nav>
+
+                {/* User Profile Footer */}
+                <div className="p-4 border-t border-dark-800">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-dark-800/50">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold">
+                            {user?.name?.[0]}
                         </div>
-                        <p className="text-dark-400">
-                            {profile ? 'Manage your creator profile and discover new opportunities' : 'Complete your profile to get started'}
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-dark-100 truncate">{user?.name}</p>
+                            <p className="text-xs text-dark-400 truncate">{profile?.category || 'Creator'}</p>
+                        </div>
+                        <button onClick={logout} className="text-dark-400 hover:text-red-400 transition-colors">
+                            <FaSignOutAlt />
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main className="flex-1 flex flex-col h-screen overflow-hidden relative">
+                {/* Top Header */}
+                <header className="h-20 bg-dark-950/80 backdrop-blur-xl border-b border-dark-800 flex items-center justify-between px-8 z-10">
+                    <div>
+                        <h1 className="text-xl font-bold text-dark-100">
+                            {sidebarItems.find(i => i.id === activeTab)?.label}
+                        </h1>
+                        <p className="text-sm text-dark-400">
+                            {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                     </div>
 
-                    {profile && (
-                        <button
-                            onClick={handleToggleAvailability}
-                            className={`mt-4 md:mt-0 flex items-center px-4 py-2 rounded-xl font-medium transition-all ${profile.isAvailable
-                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                : 'bg-dark-700 text-dark-300 border border-dark-600'
-                                }`}
-                        >
-                            {profile.isAvailable ? (
-                                <>
-                                    <FaToggleOn className="mr-2 text-xl" />
-                                    Available for Work
-                                </>
-                            ) : (
-                                <>
-                                    <FaToggleOff className="mr-2 text-xl" />
-                                    Not Available
-                                </>
-                            )}
-                        </button>
-                    )}
-                </div>
-
-                {/* Show profile form if no profile */}
-                {showProfileForm && !profile && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                    >
-                        <ProfileForm onSave={handleProfileSaved} />
-                    </motion.div>
-                )}
-
-                {/* Main Dashboard */}
-                {profile && (
-                    <>
-                        {/* Tabs */}
-                        <div className="flex overflow-x-auto scrollbar-hide mb-8 pb-2">
-                            {/* Tabs */}
-                            <div className="flex overflow-x-auto scrollbar-hide mb-8 pb-2">
-                                <div className="flex space-x-1 bg-dark-800/40 p-1.5 rounded-2xl border border-dark-700/50 backdrop-blur-md relative">
-                                    {tabs.map(tab => {
-                                        const isActive = activeTab === tab.id;
-                                        return (
-                                            <button
-                                                key={tab.id}
-                                                onClick={() => setActiveTab(tab.id)}
-                                                className={`relative flex items-center px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap z-10 ${isActive ? 'text-white' : 'text-dark-400 hover:text-dark-200'
-                                                    }`}
-                                            >
-                                                {isActive && (
-                                                    <motion.div
-                                                        layoutId="activeTab"
-                                                        className="absolute inset-0 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl shadow-lg shadow-primary-900/20"
-                                                        initial={false}
-                                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                                                    />
-                                                )}
-                                                <span className="relative z-10 mr-2 text-lg">{tab.icon}</span>
-                                                <span className="relative z-10">{tab.label}</span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                    <div className="flex items-center gap-4">
+                        {/* Profile Complete Badge */}
+                        {profile?.category && profile?.followerCount > 0 && (
+                            <div className="hidden md:flex flex-col items-end">
+                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20 flex items-center gap-1">
+                                    <FaCheck className="text-[10px]" /> Profile Complete
+                                </span>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Availability Toggle */}
+                        {profile && (
+                            <button
+                                onClick={handleToggleAvailability}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${profile.isAvailable
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                    : 'bg-dark-800 text-dark-400 border border-dark-700'
+                                    }`}
+                            >
+                                {profile.isAvailable ? (
+                                    <><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Available</>
+                                ) : (
+                                    <><div className="w-2 h-2 rounded-full bg-dark-500" /> Unavailable</>
+                                )}
+                            </button>
+                        )}
+
+                        <div className="w-px h-8 bg-dark-800 mx-2" />
+
+                        <NotificationBell />
+                    </div>
+                </header>
+
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto p-8 scrollbar-thin scrollbar-thumb-dark-700 scrollbar-track-transparent">
+                    <div className="max-w-6xl mx-auto">
+
+                        {/* Onboarding Tour for new users */}
+                        <OnboardingTour role="creator" />
+
+                        {/* Show profile form if no profile */}
+                        {showProfileForm && !profile && (
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                                <ProfileForm onSave={handleProfileSaved} />
+                            </motion.div>
+                        )}
 
                         {/* Tab Content */}
-                        <AnimatePresence mode="wait">
-                            {activeTab === 'overview' && (
+                        {profile && (
+                            <AnimatePresence mode="wait">
                                 <motion.div
-                                    key="overview"
-                                    initial={{ opacity: 0, y: 20 }}
+                                    key={activeTab}
+                                    initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                    className="space-y-8"
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.2 }}
                                 >
-                                    {/* Profile Completion Progress */}
-                                    <ProfileProgress
-                                        profile={profile}
-                                        onEditProfile={() => setActiveTab('profile')}
-                                    />
-
-                                    {/* Stats Grid */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                                        <div className="glass-card p-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-dark-400">Followers</span>
-                                                <HiUserGroup className="text-primary-400 text-xl" />
-                                            </div>
-                                            <div className="text-3xl font-bold text-dark-100">
-                                                {profile.followerCount >= 1000000
-                                                    ? `${(profile.followerCount / 1000000).toFixed(1)}M`
-                                                    : profile.followerCount >= 1000
-                                                        ? `${(profile.followerCount / 1000).toFixed(1)}K`
-                                                        : profile.followerCount}
-                                            </div>
-                                            <div className="text-sm text-dark-400 mt-1">{profile.category} Creator</div>
-                                        </div>
-
-                                        <div className="glass-card p-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-dark-400">Engagement Rate</span>
-                                                <HiLightningBolt className="text-amber-400 text-xl" />
-                                            </div>
-                                            <div className="text-3xl font-bold text-dark-100">{profile.engagementRate}%</div>
-                                            <div className="text-sm text-dark-400 mt-1">{profile.insights?.engagementQuality} quality</div>
-                                        </div>
-
-                                        <div className="glass-card p-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-dark-400">Category</span>
-                                                <FaHashtag className="text-secondary-400 text-xl" />
-                                            </div>
-                                            <div className="text-2xl font-bold text-dark-100">{profile.category}</div>
-                                            <div className="text-sm text-dark-400 mt-1">Niche</div>
-                                        </div>
-
-                                        <div className="glass-card p-6">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-dark-400">Promotions</span>
-                                                <FaBriefcase className="text-emerald-400 text-xl" />
-                                            </div>
-                                            <div className="text-3xl font-bold text-dark-100">{profile.successfulPromotions || 0}</div>
-                                            <div className="text-sm text-dark-400 mt-1">completed</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Profile Info */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                                        {/* Quick Info */}
-                                        <div className="glass-card p-6">
-                                            <h3 className="text-lg font-semibold text-dark-100 mb-4">Profile Details</h3>
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-dark-400">Category</span>
-                                                    <span className="badge badge-info">{profile.category}</span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-dark-400">Price Range</span>
-                                                    <span className="text-dark-200">
-                                                        ₹{profile.priceRange.min} - ₹{profile.priceRange.max}
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-dark-400">Promotion Types</span>
-                                                    <div className="flex flex-wrap justify-end gap-1">
-                                                        {profile.promotionTypes.map(type => (
-                                                            <span key={type} className="badge badge-neutral text-xs">{type}</span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-dark-400">Status</span>
-                                                    <span className={`badge ${profile.isAvailable ? 'badge-success' : 'badge-neutral'}`}>
-                                                        {profile.isAvailable ? 'Available' : 'Unavailable'}
-                                                    </span>
+                                    {activeTab === 'overview' && (
+                                        <div className="space-y-8">
+                                            {/* Welcome Banner */}
+                                            <div className="bg-gradient-to-r from-primary-900/40 to-secondary-900/40 border border-primary-500/20 rounded-2xl p-8 relative overflow-hidden">
+                                                <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-3xl -mr-32 -mt-32" />
+                                                <div className="relative z-10">
+                                                    <h2 className="text-3xl font-bold text-white mb-2">Welcome back, {user?.name?.split(' ')[0]}!</h2>
+                                                    <p className="text-dark-300 max-w-xl">
+                                                        You have <span className="text-primary-400 font-semibold">{applications.filter(a => a.applicationStatus === 'Pending').length} pending applications</span> and <span className="text-secondary-400 font-semibold">{promotions.length} new opportunities</span> waiting for you.
+                                                    </p>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Creator Analytics */}
-                                    <CreatorAnalytics
-                                        profile={profile}
-                                        applications={applications}
-                                    />
+                                            {/* Profile Progress (Hidden if 100%) */}
+                                            <ProfileProgress profile={profile} onEditProfile={() => setActiveTab('profile')} />
 
-                                    {/* AI Opportunity Suggestions */}
-                                    <AIOpportunitySuggestions
-                                        profile={profile}
-                                        promotions={promotions}
-                                        onApplySuggestion={(suggestion) => {
-                                            if (suggestion.type === 'opportunity') {
-                                                setActiveTab('promotions');
-                                            } else if (suggestion.type === 'category' || suggestion.type === 'content' || suggestion.type === 'pricing') {
-                                                setActiveTab('profile');
-                                            }
-                                        }}
-                                    />
-                                </motion.div>
-                            )}
-
-                            {activeTab === 'promotions' && (
-                                <motion.div
-                                    key="promotions"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                >
-                                    <PromotionList
-                                        promotions={promotions}
-                                        onApply={handleApplyToPromotion}
-                                    />
-                                </motion.div>
-                            )}
-
-                            {activeTab === 'applications' && (
-                                <motion.div
-                                    key="applications"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                >
-                                    <h2 className="text-xl font-semibold text-dark-100 mb-6">My Applications</h2>
-
-                                    {applications.length === 0 ? (
-                                        <div className="glass-card p-12 text-center">
-                                            <FaBriefcase className="w-16 h-16 text-dark-600 mx-auto mb-4" />
-                                            <h3 className="text-lg font-medium text-dark-300 mb-2">No applications yet</h3>
-                                            <p className="text-dark-400">Browse opportunities and apply to promotions that match your profile.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-4">
-                                            {applications.map((app, index) => (
-                                                <motion.div
-                                                    key={index}
-                                                    className="glass-card p-6"
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: index * 0.1 }}
-                                                >
-                                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                                                        <div className="flex-1">
-                                                            <h3 className="text-lg font-semibold text-dark-100 mb-2">{app.promotion.title}</h3>
-                                                            <p className="text-dark-400 text-sm mb-2">{app.promotion.description?.substring(0, 100)}...</p>
-                                                            <div className="flex flex-wrap gap-2">
-                                                                <span className="badge badge-info">{app.promotion.promotionType}</span>
-                                                                <span className="badge badge-neutral">{app.promotion.campaignGoal}</span>
-                                                                <span className="text-sm text-dark-400">
-                                                                    Budget: ₹{app.promotion.budgetRange?.min} - ₹{app.promotion.budgetRange?.max}
-                                                                </span>
-                                                            </div>
+                                            {/* Quick Stats */}
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                {[
+                                                    { label: 'Followers', value: profile.followerCount >= 1000000 ? `${(profile.followerCount / 1000000).toFixed(1)}M` : profile.followerCount >= 1000 ? `${(profile.followerCount / 1000).toFixed(1)}K` : profile.followerCount, icon: <HiUserGroup className="text-blue-400" />, sub: 'Total Audience' },
+                                                    { label: 'Engagement', value: profile.engagementRate + '%', icon: <HiLightningBolt className="text-yellow-400" />, sub: 'Average Rate' },
+                                                    { label: 'Completed', value: profile.successfulPromotions || 0, icon: <FaBriefcase className="text-emerald-400" />, sub: 'Campaigns' },
+                                                    { label: 'Earned', value: '₹0', icon: <FaDollarSign className="text-purple-400" />, sub: 'This Month' }
+                                                ].map((stat, i) => (
+                                                    <div key={i} className="bg-dark-800/40 border border-dark-700/50 rounded-xl p-5 hover:bg-dark-800/60 transition-colors">
+                                                        <div className="flex items-center justify-between mb-3">
+                                                            <span className="text-dark-400 text-sm font-medium">{stat.label}</span>
+                                                            <div className="p-2 bg-dark-700/50 rounded-lg">{stat.icon}</div>
                                                         </div>
-                                                        <div className="mt-4 md:mt-0 md:ml-6">
-                                                            <span className={`badge ${app.applicationStatus === 'Accepted' ? 'badge-success' :
-                                                                app.applicationStatus === 'Rejected' ? 'badge-danger' :
-                                                                    'badge-warning'
-                                                                }`}>
-                                                                {app.applicationStatus}
-                                                            </span>
-                                                            <p className="text-xs text-dark-400 mt-2">
-                                                                Applied: {new Date(app.appliedAt).toLocaleDateString()}
-                                                            </p>
-                                                        </div>
+                                                        <div className="text-2xl font-bold text-dark-100">{stat.value}</div>
+                                                        <div className="text-xs text-dark-500 mt-1">{stat.sub}</div>
                                                     </div>
-                                                </motion.div>
-                                            ))}
+                                                ))}
+                                            </div>
+
+                                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                                <div className="lg:col-span-2">
+                                                    <h3 className="text-lg font-semibold text-dark-100 mb-4">Performance Analytics</h3>
+                                                    <CreatorAnalytics profile={profile} applications={applications} />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-lg font-semibold text-dark-100 mb-4">Recommended for You</h3>
+                                                    <AIOpportunitySuggestions
+                                                        profile={profile}
+                                                        promotions={promotions}
+                                                        onApplySuggestion={(s) => setActiveTab(s.type === 'opportunity' ? 'promotions' : 'profile')}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
-                                </motion.div>
-                            )}
 
-                            {activeTab === 'achievements' && (
-                                <motion.div
-                                    key="achievements"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                >
-                                    <BadgeShowcase />
-                                </motion.div>
-                            )}
+                                    {activeTab === 'promotions' && <PromotionList promotions={promotions} onApply={handleApplyToPromotion} />}
 
-                            {activeTab === 'messages' && (
-                                <motion.div
-                                    key="messages"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                >
-                                    <h2 className="text-xl font-semibold text-dark-100 mb-6">Messages</h2>
-                                    <ConversationList
-                                        onSelectConversation={(conv) => setSelectedConversation(conv)}
-                                    />
-                                </motion.div>
-                            )}
+                                    {activeTab === 'applications' && (
+                                        <div className="space-y-6">
+                                            {applications.length === 0 ? (
+                                                <div className="glass-card p-12 text-center">
+                                                    <FaBriefcase className="w-16 h-16 text-dark-600 mx-auto mb-4" />
+                                                    <h3 className="text-lg font-medium text-dark-300 mb-2">No applications yet</h3>
+                                                    <p className="text-dark-400">Browse opportunities and apply to promotions that match your profile.</p>
+                                                </div>
+                                            ) : (
+                                                applications.map((app, index) => (
+                                                    <div key={index} className="bg-dark-800/40 border border-dark-700/50 rounded-xl p-6 flex flex-col md:flex-row justify-between gap-4">
+                                                        <div>
+                                                            <h4 className="text-lg font-semibold text-dark-100">{app.promotion.title}</h4>
+                                                            <p className="text-dark-400 text-sm mt-1 mb-3">{app.promotion.description?.substring(0, 100)}...</p>
+                                                            <div className="flex gap-2">
+                                                                <span className="px-2 py-1 bg-dark-700 rounded text-xs text-dark-300">{app.promotion.promotionType}</span>
+                                                                <span className="px-2 py-1 bg-dark-700 rounded text-xs text-dark-300">Budget: ₹{app.promotion.budgetRange?.min} - ₹{app.promotion.budgetRange?.max}</span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-2">
+                                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${app.applicationStatus === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                                app.applicationStatus === 'Rejected' ? 'bg-red-500/20 text-red-400' :
+                                                                    'bg-amber-500/20 text-amber-400'
+                                                                }`}>{app.applicationStatus}</span>
+                                                            <span className="text-xs text-dark-500">{new Date(app.appliedAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
 
-                            {activeTab === 'profile' && (
-                                <motion.div
-                                    key="profile"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -20 }}
-                                >
-                                    <ProfileForm profile={profile} onSave={handleProfileSaved} />
+                                    {activeTab === 'achievements' && <BadgeShowcase />}
+
+                                    {activeTab === 'messages' && <ConversationList onSelectConversation={setSelectedConversation} />}
+
+                                    {activeTab === 'profile' && <ProfileForm profile={profile} onSave={handleProfileSaved} />}
                                 </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </>
+                            </AnimatePresence>
+                        )}
+                    </div>
+                </div>
+            </main>
+
+            {/* Chat Overlay */}
+            <AnimatePresence>
+                {selectedConversation && (
+                    <ChatBox
+                        conversationId={selectedConversation._id}
+                        otherUserName={selectedConversation.sellerId?.name || 'Seller'}
+                        promotionTitle={selectedConversation.promotionId?.title || 'Promotion'}
+                        onClose={() => setSelectedConversation(null)}
+                    />
                 )}
-
-                {/* ChatBox Popup */}
-                <AnimatePresence>
-                    {selectedConversation && (
-                        <ChatBox
-                            conversationId={selectedConversation._id}
-                            otherUserName={selectedConversation.sellerId?.name || 'Seller'}
-                            promotionTitle={selectedConversation.promotionId?.title || 'Promotion'}
-                            onClose={() => setSelectedConversation(null)}
-                        />
-                    )}
-                </AnimatePresence>
-            </div>
+            </AnimatePresence>
         </div>
     );
 };
