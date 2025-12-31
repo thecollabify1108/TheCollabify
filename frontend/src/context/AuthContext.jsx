@@ -56,7 +56,16 @@ export const AuthProvider = ({ children }) => {
         return userData;
     };
 
-    const logout = () => {
+    const logout = async () => {
+        try {
+            // Call backend to clear HTTPOnly cookie
+            await api.post('/auth/logout');
+        } catch (error) {
+            console.error('Logout API error:', error);
+            // Continue with local cleanup even if API call fails
+        }
+
+        // Clear localStorage (for backward compatibility)
         localStorage.removeItem('token');
         setToken(null);
         setUser(null);
