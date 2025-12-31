@@ -148,7 +148,7 @@ const Landing = () => {
             {/* Centered Watermark */}
             <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
                 <img
-                    src="/star-logo.png"
+                    src="/new-logo.png"
                     alt=""
                     className="w-96 h-auto opacity-10"
                 />
@@ -160,7 +160,7 @@ const Landing = () => {
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
                         <Link to="/" className="flex items-center space-x-3">
-                            <img src="/star-logo.png" alt="" className="h-8 w-8 object-contain" />
+                            <img src="/new-logo.png" alt="" className="h-8 w-8 object-contain" />
                             <div className="flex flex-col">
                                 <div className="flex items-baseline">
                                     <span className="text-lg italic text-dark-100 mr-1">The</span>
@@ -554,7 +554,7 @@ const Landing = () => {
                         <div className="relative">
                             <div className="relative rounded-2xl overflow-hidden">
                                 <img
-                                    src="/star-logo.png"
+                                    src="/new-logo.png"
                                     alt="About The Collabify"
                                     className="w-full h-auto max-w-md mx-auto opacity-80"
                                 />
@@ -605,7 +605,7 @@ const Landing = () => {
                         {/* Logo & Description */}
                         <div>
                             <Link to="/" className="flex items-center space-x-3 mb-4">
-                                <img src="/star-logo.png" alt="" className="w-8 h-8 object-contain" />
+                                <img src="/new-logo.png" alt="" className="w-8 h-8 object-contain" />
                                 <div className="flex flex-col">
                                     <div className="flex items-baseline">
                                         <span className="text-lg italic text-dark-100 mr-1">The</span>

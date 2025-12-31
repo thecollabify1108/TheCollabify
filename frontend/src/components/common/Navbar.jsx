@@ -42,7 +42,7 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link to="/" className="flex items-center space-x-3">
-                        <img src="/star-logo.png" alt="" className="h-8 w-8 object-contain" />
+                        <img src="/new-logo.png" alt="" className="h-8 w-8 object-contain" />
                         <div className="flex flex-col">
                             <div className="flex items-baseline">
                                 <span className="text-lg italic text-dark-100 mr-1">The</span>

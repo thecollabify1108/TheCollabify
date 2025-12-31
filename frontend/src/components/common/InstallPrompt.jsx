@@ -59,7 +59,7 @@ const InstallPrompt = () => {
                     </button>
                     <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center text-primary-400 flex-shrink-0">
-                            <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
+                            <img src="/favicon.png" alt="" className="w-8 h-8 object-contain" />
                         </div>
                         <div>
                             <h4 className="font-bold text-dark-100">Install App</h4>
