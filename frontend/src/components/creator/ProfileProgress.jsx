@@ -28,25 +28,8 @@ const ProfileProgress = ({ profile, onEditProfile }) => {
     const incompleteFields = fields.filter(f => !f.filled);
 
     // Don't show if profile is complete
-    if (percentage === 100) {
-        return (
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30 rounded-xl p-4 mb-6"
-            >
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center">
-                        <FaCheck className="text-white" />
-                    </div>
-                    <div>
-                        <p className="text-green-400 font-semibold">Profile Complete! 🎉</p>
-                        <p className="text-green-400/70 text-sm">You're ready to attract brands</p>
-                    </div>
-                </div>
-            </motion.div>
-        );
-    }
+    // Don't show if profile is complete
+    if (percentage === 100) return null;
 
     return (
         <motion.div
