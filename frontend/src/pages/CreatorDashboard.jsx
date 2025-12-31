@@ -136,7 +136,7 @@ const CreatorDashboard = () => {
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
                         <div className="flex items-center gap-3">
-                            <img src="/star-logo.png" alt="Logo" className="w-8 h-8" />
+                            <img src="/new-logo.png" alt="Logo" className="w-8 h-8" />
                             <span className="text-xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 text-transparent bg-clip-text">
                                 TheCollabify
                             </span>
@@ -149,8 +149,8 @@ const CreatorDashboard = () => {
                                 <button
                                     onClick={handleToggleAvailability}
                                     className={`hidden md:flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${profile.isAvailable
-                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
-                                            : 'bg-dark-800 text-dark-400 border border-dark-700 hover:bg-dark-700'
+                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+                                        : 'bg-dark-800 text-dark-400 border border-dark-700 hover:bg-dark-700'
                                         }`}
                                 >
                                     <div className={`w-2 h-2 rounded-full ${profile.isAvailable ? 'bg-emerald-500 animate-pulse' : 'bg-dark-500'}`} />
@@ -202,8 +202,8 @@ const CreatorDashboard = () => {
                                     key={item.id}
                                     onClick={() => setActiveTab(item.id)}
                                     className={`relative flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === item.id
-                                            ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg'
-                                            : 'bg-dark-800/50 text-dark-400 hover:bg-dark-800 hover:text-dark-200'
+                                        ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white shadow-lg'
+                                        : 'bg-dark-800/50 text-dark-400 hover:bg-dark-800 hover:text-dark-200'
                                         }`}
                                 >
                                     <span className="text-lg">{item.icon}</span>
@@ -395,10 +395,10 @@ const ApplicationsView = ({ applications }) => {
                         <div className="flex flex-col items-end gap-2">
                             <span
                                 className={`px-3 py-1.5 rounded-full text-xs font-semibold ${app.applicationStatus === 'Accepted'
-                                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                        : app.applicationStatus === 'Rejected'
-                                            ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                                            : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                    : app.applicationStatus === 'Rejected'
+                                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                        : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                                     }`}
                             >
                                 {app.applicationStatus}

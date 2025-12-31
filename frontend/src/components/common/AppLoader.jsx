@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-const AppLoader = ({ message = "Loading...", subMessage = "" }) => {
+const AppLoader = ({ message = "Preparing your experience", subMessage = "" }) => {
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -34,8 +34,8 @@ const AppLoader = ({ message = "Loading...", subMessage = "" }) => {
                     />
 
                     {/* Inner Circle with Star Logo */}
-                    <div className="absolute inset-2 rounded-full bg-dark-900 flex items-center justify-center shadow-lg p-3">
-                        <img src="/star-logo.png?v=2" alt="TheCollabify Logo" className="w-full h-full object-contain" />
+                    <div className="absolute inset-2 rounded-full bg-white/5 backdrop-blur-sm flex items-center justify-center shadow-lg p-4">
+                        <img src="/favicon.png" alt="TheCollabify Logo" className="w-full h-full object-contain drop-shadow-2xl" />
                     </div>
                 </div>
 
