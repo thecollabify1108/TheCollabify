@@ -34,8 +34,9 @@ const AppLoader = ({ message = "Loading...", subMessage = "" }) => {
                     />
 
                     {/* Inner Circle with Logo */}
-                    <div className="absolute inset-2 rounded-full bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center shadow-lg">
-                        <span className="text-3xl font-black text-white">C</span>
+                    {/* Inner Circle with Logo */}
+                    <div className="absolute inset-2 rounded-full bg-gradient-to-br from-primary-600 to-secondary-600 flex items-center justify-center shadow-lg p-3">
+                        <img src="/star-logo.png" alt="Logo" className="w-full h-full object-contain brightness-0 invert" />
                     </div>
                 </div>
 
