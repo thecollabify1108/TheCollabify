@@ -17,6 +17,7 @@ import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedCounter from '../components/common/AnimatedCounter';
 import TestimonialsCarousel from '../components/common/TestimonialsCarousel';
 import FAQAccordion from '../components/common/FAQAccordion';
+import Leaderboard from '../components/common/Leaderboard';
 
 const Landing = () => {
     const navigate = useNavigate();
@@ -492,6 +493,9 @@ const Landing = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Leaderboard Section */}
+            <Leaderboard />
 
             {/* Testimonials Carousel */}
             <TestimonialsCarousel />

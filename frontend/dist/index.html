@@ -3,22 +3,78 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
+
+  <!-- Primary Meta Tags -->
+  <title>TheCollabify - Connect Brands with Instagram Creators</title>
+  <meta name="title" content="TheCollabify - Connect Brands with Instagram Creators" />
   <meta name="description"
-    content="Connect Instagram creators with brands for paid promotions. AI-powered matching for the perfect collaboration." />
-  <meta name="keywords" content="instagram, influencer, creator, promotions, marketing, brands" />
+    content="India's #1 influencer marketing platform. Connect Instagram creators with brands for paid promotions. AI-powered matching for perfect collaborations. Join 10K+ creators and 5K+ brands." />
+  <meta name="keywords"
+    content="instagram influencer, creator marketing, brand promotions, influencer platform, paid promotions, instagram marketing, creator economy, brand collaborations, india" />
+  <meta name="author" content="TheCollabify" />
+  <meta name="robots" content="index, follow" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://the-collabify-dia8.vercel.app/" />
+  <meta property="og:title" content="TheCollabify - Connect Brands with Instagram Creators" />
+  <meta property="og:description"
+    content="India's #1 influencer marketing platform. AI-powered matching for perfect brand-creator collaborations." />
+  <meta property="og:image" content="/favicon.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://the-collabify-dia8.vercel.app/" />
+  <meta property="twitter:title" content="TheCollabify - Connect Brands with Instagram Creators" />
+  <meta property="twitter:description"
+    content="India's #1 influencer marketing platform. AI-powered matching for perfect brand-creator collaborations." />
+  <meta property="twitter:image" content="/favicon.png" />
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#8b5cf6" />
+  <meta name="msapplication-TileColor" content="#8b5cf6" />
+
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <title>The Collabify.ai - Connect Brands with Creators</title>
-  <script type="module" crossorigin src="/assets/index-DvcdEKVB.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DqlaL3WR.css">
+
+  <!-- Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-QC608XJKBS"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-QC608XJKBS');
+  </script>
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
+
+  <script type="module" crossorigin src="/assets/index--2mOmeYW.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Cp23aE9z.css">
 </head>
 
 <body>
   <div id="root"></div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(registration => {
+            console.log('SW registered: ', registration);
+          })
+          .catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+  </script>
 </body>
 
 </html>

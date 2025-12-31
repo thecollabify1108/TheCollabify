@@ -37,6 +37,8 @@ import OnboardingTour from '../components/common/OnboardingTour';
 import CreatorAnalytics from '../components/creator/CreatorAnalytics';
 import AIOpportunitySuggestions from '../components/creator/AIOpportunitySuggestions';
 import ProfileProgress from '../components/creator/ProfileProgress';
+import BadgeShowcase from '../components/creator/BadgeShowcase';
+import { FaTrophy } from 'react-icons/fa';
 
 const CreatorDashboard = () => {
     const { user, logout } = useAuth();
@@ -126,6 +128,7 @@ const CreatorDashboard = () => {
         { id: 'overview', label: 'Overview', icon: <FaChartLine /> },
         { id: 'promotions', label: 'Opportunities', icon: <FaBriefcase /> },
         { id: 'applications', label: 'My Applications', icon: <FaCheck /> },
+        { id: 'achievements', label: 'Achievements', icon: <FaTrophy /> },
         { id: 'messages', label: 'Messages', icon: <FaComments /> },
         { id: 'profile', label: 'Edit Profile', icon: <FaEdit /> }
     ];
@@ -432,6 +435,17 @@ const CreatorDashboard = () => {
                                             ))}
                                         </div>
                                     )}
+                                </motion.div>
+                            )}
+
+                            {activeTab === 'achievements' && (
+                                <motion.div
+                                    key="achievements"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                >
+                                    <BadgeShowcase />
                                 </motion.div>
                             )}
 

@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
 
-const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage }) => {
+const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage, viewMode, onViewProfile }) => {
     const profile = creator.creatorId || creator;
     const user = profile.userId || {};
 
@@ -142,6 +142,14 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                     <FaTimes className="mr-2" />
                     Rejected
                 </div>
+            ) : viewMode === 'discovery' ? (
+                <button
+                    onClick={onViewProfile}
+                    className="w-full btn-3d py-3 flex items-center justify-center group"
+                >
+                    <HiUserGroup className="mr-2 group-hover:scale-110 transition-transform" />
+                    View Profile
+                </button>
             ) : (
                 <div className="badge badge-neutral w-full justify-center py-3">
                     Awaiting Application
