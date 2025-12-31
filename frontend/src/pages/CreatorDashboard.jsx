@@ -188,9 +188,16 @@ const CreatorDashboard = () => {
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-dark-100 mb-2">
-                            Welcome, {user?.name}! 👋
-                        </h1>
+                        <div className="flex items-center gap-3 mb-2">
+                            <h1 className="text-3xl font-bold text-dark-100">
+                                Welcome, {user?.name}! 👋
+                            </h1>
+                            {profile?.category && profile?.followerCount > 0 && (
+                                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-semibold border border-emerald-500/20 flex items-center gap-1">
+                                    <FaCheck className="text-[10px]" /> Profile Complete
+                                </span>
+                            )}
+                        </div>
                         <p className="text-dark-400">
                             {profile ? 'Manage your creator profile and discover new opportunities' : 'Complete your profile to get started'}
                         </p>
@@ -234,20 +241,32 @@ const CreatorDashboard = () => {
                     <>
                         {/* Tabs */}
                         <div className="flex overflow-x-auto scrollbar-hide mb-8 pb-2">
-                            <div className="flex space-x-2 bg-dark-800/50 p-1 rounded-xl">
-                                {tabs.map(tab => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                                            ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
-                                            : 'text-dark-400 hover:text-dark-200 hover:bg-dark-700'
-                                            }`}
-                                    >
-                                        <span className="mr-2">{tab.icon}</span>
-                                        {tab.label}
-                                    </button>
-                                ))}
+                            {/* Tabs */}
+                            <div className="flex overflow-x-auto scrollbar-hide mb-8 pb-2">
+                                <div className="flex space-x-1 bg-dark-800/40 p-1.5 rounded-2xl border border-dark-700/50 backdrop-blur-md relative">
+                                    {tabs.map(tab => {
+                                        const isActive = activeTab === tab.id;
+                                        return (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveTab(tab.id)}
+                                                className={`relative flex items-center px-5 py-2.5 rounded-xl font-medium transition-colors whitespace-nowrap z-10 ${isActive ? 'text-white' : 'text-dark-400 hover:text-dark-200'
+                                                    }`}
+                                            >
+                                                {isActive && (
+                                                    <motion.div
+                                                        layoutId="activeTab"
+                                                        className="absolute inset-0 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl shadow-lg shadow-primary-900/20"
+                                                        initial={false}
+                                                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                    />
+                                                )}
+                                                <span className="relative z-10 mr-2 text-lg">{tab.icon}</span>
+                                                <span className="relative z-10">{tab.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
 
