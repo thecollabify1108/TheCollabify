@@ -11,7 +11,7 @@ import Confetti from '../components/common/Confetti';
 const Register = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { register } = useAuth();
+    const { register, googleLogin } = useAuth();
 
     const [formData, setFormData] = useState({
         name: '',
@@ -22,6 +22,7 @@ const Register = () => {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [googleLoading, setGoogleLoading] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
 
     useEffect(() => {
@@ -74,6 +75,52 @@ const Register = () => {
             setLoading(false);
         }
     };
+
+    // Google Sign Up handler
+    const handleGoogleSuccess = async (tokenResponse) => {
+        if (!formData.role) {
+            toast.error('Please select your role first (Brand/Seller or Creator)');
+            return;
+        }
+
+        setGoogleLoading(true);
+        try {
+            // Get user info from Google
+            const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
+            });
+            const googleUser = await response.json();
+
+            // Register with Google
+            const user = await googleLogin({
+                email: googleUser.email,
+                name: googleUser.name,
+                googleId: googleUser.sub,
+                avatar: googleUser.picture,
+                role: formData.role
+            });
+
+            setShowConfetti(true);
+            toast.success('Registration successful!');
+
+            setTimeout(() => {
+                if (user.role === 'creator') {
+                    navigate('/creator/dashboard');
+                } else if (user.role === 'seller') {
+                    navigate('/seller/dashboard');
+                }
+            }, 1000);
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Google registration failed');
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
+
+    const googleSignupHook = useGoogleLogin({
+        onSuccess: handleGoogleSuccess,
+        onError: () => toast.error('Google signup failed')
+    });
 
     return (
         <div className="min-h-screen bg-dark-950 flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -232,6 +279,40 @@ const Register = () => {
                         </form>
 
                         {/* Divider */}
+                        <div className="relative my-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-dark-700"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-4 bg-dark-800 text-dark-400">or continue with</span>
+                            </div>
+                        </div>
+
+                        {/* Google Sign-Up Button */}
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => googleSignupHook()}
+                            disabled={googleLoading || !formData.role}
+                            className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white text-gray-800 font-medium hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {googleLoading ? (
+                                <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin" />
+                            ) : (
+                                <>
+                                    <FaGoogle className="text-lg" style={{ color: '#4285F4' }} />
+                                    <span>Sign up with Google</span>
+                                </>
+                            )}
+                        </motion.button>
+
+                        {!formData.role && (
+                            <p className="text-xs text-center text-dark-400 mt-2">
+                                Please select your role first to sign up with Google
+                            </p>
+                        )}
+
+                        {/* Divider */}
                         <div className="relative my-8">
                             <div className="absolute inset-0 flex items-center">
                                 <div className="w-full border-t border-dark-700"></div>
@@ -250,8 +331,8 @@ const Register = () => {
                         </Link>
                     </div>
                 </motion.div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

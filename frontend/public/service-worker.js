@@ -1,11 +1,8 @@
-const CACHE_NAME = 'collabify-v1';
+const CACHE_NAME = 'collabify-v2-2026';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
     '/manifest.json',
-    '/logo.png',
-    '/logo-full.png',
-    '/star-logo.png',
     '/favicon.png'
 ];
 
