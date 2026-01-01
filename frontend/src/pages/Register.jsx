@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaInstagram, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaStore, FaCamera } from 'react-icons/fa';
+import { FaInstagram, FaEnvelope, FaLock, FaUser, FaEye, FaEyeSlash, FaStore, FaCamera, FaGoogle } from 'react-icons/fa';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Footer from '../components/common/Footer';
