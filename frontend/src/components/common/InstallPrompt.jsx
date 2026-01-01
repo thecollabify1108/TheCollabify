@@ -58,20 +58,37 @@ const InstallPrompt = () => {
                         <FaTimes />
                     </button>
                     <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-xl bg-primary-500/20 flex items-center justify-center text-primary-400 flex-shrink-0">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0">
                             <img src="/favicon.png" alt="" className="w-8 h-8 object-contain" />
                         </div>
-                        <div>
-                            <h4 className="font-bold text-dark-100">Install App</h4>
-                            <p className="text-sm text-dark-400 mb-3">
-                                Install TheCollabify for a better experience and quick access.
+                        <div className="flex-1">
+                            <h4 className="font-bold text-dark-100 mb-1">Install TheCollabify App</h4>
+                            <p className="text-sm text-dark-300 mb-3">
+                                Get instant alerts for your campaigns & never miss opportunities!
                             </p>
+
+                            {/* Benefits List */}
+                            <div className="space-y-1.5 mb-4">
+                                <div className="flex items-center gap-2 text-xs text-dark-300">
+                                    <span className="text-emerald-400">📬</span>
+                                    <span>Real-time notifications for campaign updates</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-dark-300">
+                                    <span className="text-blue-400">⚡</span>
+                                    <span>Instant alerts when applications are accepted</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-dark-300">
+                                    <span className="text-purple-400">🔔</span>
+                                    <span>Never miss important messages</span>
+                                </div>
+                            </div>
+
                             <button
                                 onClick={handleInstallClick}
                                 className="btn-3d text-sm px-4 py-2 w-full flex items-center justify-center gap-2"
                             >
                                 <FaDownload />
-                                Install Now
+                                Install Now & Enable Notifications
                             </button>
                         </div>
                     </div>

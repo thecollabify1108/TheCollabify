@@ -340,6 +340,13 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
                 // In-app notification
                 await notifyCreatorAccepted(creatorProfile.userId._id, request);
 
+                // Push notification
+                const pushService = require('../services/pushNotificationService');
+                await pushService.sendToUser(
+                    creatorProfile.userId._id,
+                    pushService.notifyCampaignAccepted(request.title, request._id)
+                );
+
                 // Email notification
                 await sendCreatorAcceptedEmail(
                     creatorProfile.userId.email,

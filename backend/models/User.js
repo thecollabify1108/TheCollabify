@@ -45,6 +45,13 @@ const userSchema = new mongoose.Schema({
         enum: ['local', 'google'],
         default: 'local'
     },
+    pushSubscription: {
+        endpoint: String,
+        keys: {
+            p256dh: String,
+            auth: String
+        }
+    },
     isActive: {
         type: Boolean,
         default: true
