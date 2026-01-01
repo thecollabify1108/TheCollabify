@@ -10,7 +10,7 @@ import { ThemeProvider } from './context/ThemeContext.jsx'
 import './index.css'
 
 // Google OAuth Client ID
-const GOOGLE_CLIENT_ID = '420562433708-n0d7a1vqim121ft72g8igghu2b8p9m6g.apps.googleusercontent.com';
+const GOOGLE_CLIENT_ID = '223460533138-nkmmomsvj3nvjd8geg77gdp2rqho3o22.apps.googleusercontent.com';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
