@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaBell, FaTimes } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
+import toast from 'react-hot-toast';
 import usePushNotifications from '../../hooks/usePushNotifications';
 
 /**
@@ -32,7 +33,19 @@ const NotificationPrompt = () => {
     }, [isSupported, permission]);
 
     const handleEnable = async () => {
-        await requestPermission();
+        const result = await requestPermission();
+
+        if (result === 'granted') {
+            toast.success('🔔 Notifications enabled! You\'ll be notified about campaign updates, messages, and more.', {
+                duration: 5000,
+                icon: '✅'
+            });
+        } else if (result === 'denied') {
+            toast.error('Please enable notifications in your browser settings to receive updates.', {
+                duration: 6000
+            });
+        }
+
         setIsVisible(false);
         localStorage.setItem('notificationPromptSeen', 'true');
     };
@@ -83,8 +96,12 @@ const NotificationPrompt = () => {
                         </div>
 
                         {/* Description */}
-                        <p className="text-dark-300 text-sm mb-4">
+                        <p className="text-dark-300 text-sm mb-2">
                             Get instant notifications when creators apply, campaigns are accepted, or you receive new messages.
+                        </p>
+                        <p className="text-dark-400 text-xs mb-4 flex items-center gap-1">
+                            <span>💡</span>
+                            <span>Make sure browser notifications are enabled in your device settings</span>
                         </p>
 
                         {/* Buttons */}
