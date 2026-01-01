@@ -48,7 +48,7 @@ const Navbar = () => {
                                 <span className="text-lg italic text-dark-100 mr-1">The</span>
                                 <span className="text-xl font-bold text-dark-100">Collabify</span>
                             </div>
-                            <span className="text-xs text-dark-400 -mt-1 tracking-wide">Empowering Influencer Partnerships</span>
+                            <span className="text-xs text-dark-400 -mt-1 tracking-wide hidden md:block">Empowering Influencer Partnerships</span>
                         </div>
                     </Link>
 
