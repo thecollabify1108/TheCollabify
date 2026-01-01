@@ -117,6 +117,7 @@ export const adminAPI = {
     getUser: (id) => api.get(`/admin/users/${id}`),
     updateUserStatus: (id, isActive) => api.put(`/admin/users/${id}/status`, { isActive }),
     deleteUser: (id) => api.delete(`/admin/users/${id}`),
+    bulkDeleteUsers: (userIds) => api.post('/admin/bulk-delete', { userIds }),
     getRequests: (params) => api.get('/admin/requests', { params }),
     deleteRequest: (id) => api.delete(`/admin/requests/${id}`)
 };
