@@ -97,7 +97,7 @@ function App() {
             {/* Centered Watermark */}
             <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
                 <img
-                    src="/new-logo.png"
+                    src="/favicon.png"
                     alt=""
                     className="w-96 h-auto opacity-10"
                 />
