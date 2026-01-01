@@ -45,10 +45,26 @@ const RequestWizard = ({ isOpen, onClose, onSubmit }) => {
     };
 
     const handleSubmit = () => {
-        onSubmit({
-            ...formData,
-            targetNiche: formData.targetNiche.join(', ')
-        });
+        // Transform data to match backend expectations
+        const payload = {
+            title: formData.title,
+            description: formData.description,
+            promotionType: formData.promotionType === 'Story' ? 'Stories' :
+                formData.promotionType === 'Reel' ? 'Reels' : 'Posts',
+            targetCategory: formData.targetNiche.join(', '),
+            budgetRange: {
+                min: Number(formData.budget) * 0.8, // 80% of budget as min
+                max: Number(formData.budget)
+            },
+            followerRange: {
+                min: Number(formData.minFollowers),
+                max: Number(formData.maxFollowers)
+            },
+            campaignGoal: 'Reach', // Default goal
+            requirements: formData.requirements || undefined
+        };
+
+        onSubmit(payload);
         onClose();
         resetForm();
     };
@@ -167,8 +183,8 @@ const RequestWizard = ({ isOpen, onClose, onSubmit }) => {
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, promotionType: type.id })}
                                                     className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center ${formData.promotionType === type.id
-                                                            ? 'border-primary-500 bg-primary-500/10'
-                                                            : 'border-dark-700 hover:border-dark-600'
+                                                        ? 'border-primary-500 bg-primary-500/10'
+                                                        : 'border-dark-700 hover:border-dark-600'
                                                         }`}
                                                     whileHover={{ scale: 1.02 }}
                                                     whileTap={{ scale: 0.98 }}
@@ -219,8 +235,8 @@ const RequestWizard = ({ isOpen, onClose, onSubmit }) => {
                                                     type="button"
                                                     onClick={() => toggleNiche(niche)}
                                                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${formData.targetNiche.includes(niche)
-                                                            ? 'bg-primary-500 text-white'
-                                                            : 'bg-dark-800 text-dark-400 hover:bg-dark-700'
+                                                        ? 'bg-primary-500 text-white'
+                                                        : 'bg-dark-800 text-dark-400 hover:bg-dark-700'
                                                         }`}
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
