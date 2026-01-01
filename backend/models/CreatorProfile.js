@@ -12,6 +12,25 @@ const creatorProfileSchema = new mongoose.Schema({
         trim: true,
         default: ''
     },
+    instagramProfileUrl: {
+        type: String,
+        trim: true,
+        default: '',
+        validate: {
+            validator: function (v) {
+                if (!v) return true; // Allow empty
+                return /^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9._]+\/?$/.test(v);
+            },
+            message: 'Please provide a valid Instagram profile URL'
+        }
+    },
+    instagramVerified: {
+        type: Boolean,
+        default: false
+    },
+    lastVerifiedAt: {
+        type: Date
+    },
     followerCount: {
         type: Number,
         required: [true, 'Follower count is required'],
