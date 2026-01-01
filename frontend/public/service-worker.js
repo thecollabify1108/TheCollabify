@@ -78,3 +78,55 @@ self.addEventListener('fetch', (event) => {
         })
     );
 });
+
+// Push Notification Handler
+self.addEventListener('push', (event) => {
+    if (!event.data) return;
+
+    try {
+        const data = event.data.json();
+
+        const options = {
+            body: data.body,
+            icon: data.icon || '/favicon.png',
+            badge: data.badge || '/favicon.png',
+            vibrate: [200, 100, 200],
+            data: data.data || {},
+            tag: data.tag || 'thecollabify',
+            requireInteraction: data.requireInteraction || false,
+            actions: data.actions || []
+        };
+
+        event.waitUntil(
+            self.registration.showNotification(data.title, options)
+        );
+    } catch (error) {
+        console.error('Error handling push event:', error);
+    }
+});
+
+// Notification Click Handler
+self.addEventListener('notificationclick', (event) => {
+    event.notification.close();
+
+    const urlToOpen = event.notification.data?.url || '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true })
+            .then((clientList) => {
+                // Check if there's already a window open
+                for (const client of clientList) {
+                    if (client.url.includes(self.location.origin) && 'focus' in client) {
+                        return client.focus().then(() => {
+                            // Navigate to the URL
+                            return client.navigate(urlToOpen);
+                        });
+                    }
+                }
+                // No window open, open a new one
+                if (clients.openWindow) {
+                    return clients.openWindow(urlToOpen);
+                }
+            })
+    );
+});
