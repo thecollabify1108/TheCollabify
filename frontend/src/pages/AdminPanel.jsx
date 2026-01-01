@@ -8,7 +8,9 @@ import {
     FaToggleOn,
     FaToggleOff,
     FaSearch,
-    FaUserShield
+    FaUserShield,
+    FaCheckSquare,
+    FaSquare
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { adminAPI } from '../services/api';
@@ -24,6 +26,7 @@ const AdminPanel = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
     const [pagination, setPagination] = useState({ page: 1, pages: 1 });
+    const [selectedUsers, setSelectedUsers] = useState([]);
 
     useEffect(() => {
         fetchData();
@@ -74,6 +77,24 @@ const AdminPanel = () => {
         }
     };
 
+    const handleBulkDelete = async () => {
+        if (selectedUsers.length === 0) {
+            toast.error('No users selected');
+            return;
+        }
+
+        if (!window.confirm(`Are you sure you want to delete ${selectedUsers.length} user(s)? This action cannot be undone.`)) return;
+
+        try {
+            await adminAPI.bulkDeleteUsers(selectedUsers);
+            toast.success(`${selectedUsers.length} user(s) deleted successfully`);
+            setSelectedUsers([]);
+            fetchData();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to delete users');
+        }
+    };
+
     const handleDeleteRequest = async (requestId) => {
         if (!window.confirm('Are you sure you want to delete this request?')) return;
 
@@ -83,6 +104,28 @@ const AdminPanel = () => {
             fetchData();
         } catch (error) {
             toast.error('Failed to delete request');
+        }
+    };
+
+    const toggleSelectUser = (userId) => {
+        setSelectedUsers(prev =>
+            prev.includes(userId)
+                ? prev.filter(id => id !== userId)
+                : [...prev, userId]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        const filteredUsers = users.filter(user =>
+            (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                user.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            user.role !== 'admin'
+        );
+
+        if (selectedUsers.length === filteredUsers.length) {
+            setSelectedUsers([]);
+        } else {
+            setSelectedUsers(filteredUsers.map(u => u._id));
         }
     };
 
@@ -114,8 +157,8 @@ const AdminPanel = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`flex items-center px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                                        ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
-                                        : 'text-dark-400 hover:text-dark-200 hover:bg-dark-700'
+                                    ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white'
+                                    : 'text-dark-400 hover:text-dark-200 hover:bg-dark-700'
                                     }`}
                             >
                                 <span className="mr-2">{tab.icon}</span>
@@ -210,12 +253,39 @@ const AdminPanel = () => {
                                     </select>
                                 </div>
 
+                                {/* Bulk Actions */}
+                                {selectedUsers.length > 0 && (
+                                    <div className="mb-4 p-4 rounded-xl bg-primary-500/10 border border-primary-500/30 flex items-center justify-between">
+                                        <span className="text-dark-200 font-medium">
+                                            {selectedUsers.length} user(s) selected
+                                        </span>
+                                        <button
+                                            onClick={handleBulkDelete}
+                                            className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium flex items-center gap-2 transition"
+                                        >
+                                            <FaTrash />
+                                            Delete Selected
+                                        </button>
+                                    </div>
+                                )}
+
                                 {/* Users Table */}
                                 <div className="glass-card overflow-hidden">
                                     <div className="overflow-x-auto">
                                         <table className="w-full">
                                             <thead className="bg-dark-800">
                                                 <tr>
+                                                    <th className="px-6 py-4 text-center text-sm font-medium text-dark-300">
+                                                        <button
+                                                            onClick={toggleSelectAll}
+                                                            className="text-dark-300 hover:text-dark-100 transition"
+                                                        >
+                                                            {selectedUsers.length > 0 && selectedUsers.length === users.filter(u => u.role !== 'admin').length ?
+                                                                <FaCheckSquare className="text-xl" /> :
+                                                                <FaSquare className="text-xl" />
+                                                            }
+                                                        </button>
+                                                    </th>
                                                     <th className="px-6 py-4 text-left text-sm font-medium text-dark-300">User</th>
                                                     <th className="px-6 py-4 text-left text-sm font-medium text-dark-300">Role</th>
                                                     <th className="px-6 py-4 text-left text-sm font-medium text-dark-300">Status</th>
@@ -231,6 +301,19 @@ const AdminPanel = () => {
                                                     )
                                                     .map((user) => (
                                                         <tr key={user._id} className="hover:bg-dark-800/50 transition">
+                                                            <td className="px-6 py-4 text-center">
+                                                                {user.role !== 'admin' && (
+                                                                    <button
+                                                                        onClick={() => toggleSelectUser(user._id)}
+                                                                        className="text-dark-400 hover:text-primary-400 transition"
+                                                                    >
+                                                                        {selectedUsers.includes(user._id) ?
+                                                                            <FaCheckSquare className="text-xl" /> :
+                                                                            <FaSquare className="text-xl" />
+                                                                        }
+                                                                    </button>
+                                                                )}
+                                                            </td>
                                                             <td className="px-6 py-4">
                                                                 <div>
                                                                     <div className="text-dark-100 font-medium">{user.name}</div>
@@ -239,7 +322,7 @@ const AdminPanel = () => {
                                                             </td>
                                                             <td className="px-6 py-4">
                                                                 <span className={`badge ${user.role === 'admin' ? 'badge-danger' :
-                                                                        user.role === 'creator' ? 'badge-info' : 'badge-neutral'
+                                                                    user.role === 'creator' ? 'badge-info' : 'badge-neutral'
                                                                     }`}>
                                                                     {user.role}
                                                                 </span>
@@ -314,7 +397,7 @@ const AdminPanel = () => {
                                                         </td>
                                                         <td className="px-6 py-4">
                                                             <span className={`badge ${request.status === 'Completed' ? 'badge-success' :
-                                                                    request.status === 'Cancelled' ? 'badge-danger' : 'badge-neutral'
+                                                                request.status === 'Cancelled' ? 'badge-danger' : 'badge-neutral'
                                                                 }`}>
                                                                 {request.status}
                                                             </span>

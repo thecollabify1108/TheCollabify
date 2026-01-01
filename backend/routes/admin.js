@@ -308,6 +308,127 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
 });
 
 /**
+ * @route   POST /api/admin/bulk-delete
+ * @desc    Bulk delete users with comprehensive data cleanup
+ * @access  Private (Admin)
+ */
+router.post('/bulk-delete', auth, isAdmin, [
+    body('userIds').isArray({ min: 1 }).withMessage('userIds must be a non-empty array'),
+    body('userIds.*').isMongoId().withMessage('Invalid user ID format'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { userIds } = req.body;
+
+        // Fetch all users to be deleted
+        const users = await User.find({ _id: { $in: userIds } });
+
+        if (users.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'No users found for deletion'
+            });
+        }
+
+        // Prevent deleting admin accounts
+        const adminUsers = users.filter(u => u.role === 'admin');
+        if (adminUsers.length > 0) {
+            return res.status(403).json({
+                success: false,
+                message: 'Cannot delete admin accounts',
+                adminEmails: adminUsers.map(u => u.email)
+            });
+        }
+
+        console.log(`Starting bulk deletion for ${users.length} users`);
+
+        // Import required models
+        const Notification = require('../models/Notification');
+        const Conversation = require('../models/Conversation');
+        const Message = require('../models/Message');
+
+        let deletedCount = {
+            users: 0,
+            creatorProfiles: 0,
+            promotions: 0,
+            notifications: 0,
+            conversations: 0,
+            messages: 0
+        };
+
+        // Process each user
+        for (const user of users) {
+            try {
+                // 1. Delete role-specific data
+                if (user.role === 'creator') {
+                    const profileResult = await CreatorProfile.deleteOne({ userId: user._id });
+                    deletedCount.creatorProfiles += profileResult.deletedCount || 0;
+
+                    // Remove creator applications from promotions
+                    await PromotionRequest.updateMany(
+                        { 'applications.creatorId': user._id },
+                        { $pull: { applications: { creatorId: user._id } } }
+                    );
+
+                } else if (user.role === 'seller') {
+                    const promoResult = await PromotionRequest.deleteMany({ sellerId: user._id });
+                    deletedCount.promotions += promoResult.deletedCount || 0;
+                }
+
+                // 2. Delete notifications
+                const notifResult = await Notification.deleteMany({ userId: user._id });
+                deletedCount.notifications += notifResult.deletedCount || 0;
+
+                // 3. Delete conversations and messages
+                const conversations = await Conversation.find({
+                    $or: [
+                        { creatorId: user._id },
+                        { sellerId: user._id }
+                    ]
+                });
+
+                if (conversations.length > 0) {
+                    const conversationIds = conversations.map(c => c._id);
+                    const msgResult = await Message.deleteMany({ conversationId: { $in: conversationIds } });
+                    deletedCount.messages += msgResult.deletedCount || 0;
+
+                    const convResult = await Conversation.deleteMany({
+                        $or: [
+                            { creatorId: user._id },
+                            { sellerId: user._id }
+                        ]
+                    });
+                    deletedCount.conversations += convResult.deletedCount || 0;
+                }
+
+                // 4. Delete user account
+                await User.deleteOne({ _id: user._id });
+                deletedCount.users++;
+
+                console.log(`✓ Deleted user: ${user.email}`);
+            } catch (userError) {
+                console.error(`Error deleting user ${user.email}:`, userError);
+            }
+        }
+
+        console.log('Bulk deletion completed:', deletedCount);
+
+        res.json({
+            success: true,
+            message: `Successfully deleted ${deletedCount.users} user(s)`,
+            details: deletedCount
+        });
+    } catch (error) {
+        console.error('Bulk delete error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to bulk delete users',
+            error: error.message
+        });
+    }
+});
+
+/**
  * @route   GET /api/admin/requests
  * @desc    List all promotion requests
  * @access  Private (Admin)
