@@ -64,7 +64,7 @@ const InstallPrompt = () => {
                         <div className="flex-1">
                             <h4 className="font-bold text-dark-100 mb-1">Install TheCollabify App</h4>
                             <p className="text-sm text-dark-300 mb-3">
-                                Get instant alerts for your campaigns & never miss opportunities!
+                                After installing the app, you will be able to get real-time notifications for your campaigns and applications!
                             </p>
 
                             {/* Benefits List */}
