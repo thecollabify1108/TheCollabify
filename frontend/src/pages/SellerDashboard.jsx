@@ -27,6 +27,7 @@ import CampaignAnalytics from '../components/seller/CampaignAnalytics';
 import AICampaignSuggestions from '../components/seller/AICampaignSuggestions';
 import OnboardingTour from '../components/common/OnboardingTour';
 import CreatorSearch from '../components/seller/CreatorSearch';
+import StartupTips from '../components/seller/StartupTips';
 import { FaSearch } from 'react-icons/fa';
 
 const SellerDashboard = () => {
@@ -169,11 +170,12 @@ const SellerDashboard = () => {
 
     // Bottom navigation tabs
     const tabs = [
-        { id: 'feed', label: 'Feed', icon: <HiHome /> },
-        { id: 'search', label: 'Find', icon: <FaSearch /> }, // New Search Tab
-        { id: 'discover', label: 'Matches', icon: <HiUserGroup /> }, // Renamed from Discover to Matches to avoid confusion
+        { id: 'feed', label: 'Profile', icon: <HiHome /> },
+        { id: 'search', label: 'Find', icon: <FaSearch /> },
+        { id: 'discover', label: 'Matches', icon: <HiUserGroup /> },
         { id: 'campaigns', label: 'Campaigns', icon: <HiViewGrid /> },
-        { id: 'messages', label: 'Messages', icon: <HiChat />, badge: conversations.filter(c => c.unreadCount > 0).length }
+        { id: 'messages', label: 'Messages', icon: <HiChat />, badge: conversations.filter(c => c.unreadCount > 0).length },
+        { id: 'ai', label: 'AI', icon: <HiSparkles /> }
     ];
 
     if (loading) {
@@ -212,7 +214,7 @@ const SellerDashboard = () => {
             {/* Main Content Area */}
             <main className="max-w-lg mx-auto">
                 <AnimatePresence mode="wait">
-                    {/* Feed Tab - Activity */}
+                    {/* Profile/Feed Tab - Startup Tips */}
                     {activeTab === 'feed' && (
                         <motion.div
                             key="feed"
@@ -221,17 +223,8 @@ const SellerDashboard = () => {
                             exit={{ opacity: 0, x: 20 }}
                             className="space-y-6 p-4"
                         >
-                            {/* Campaign Analytics */}
-                            <CampaignAnalytics requests={requests} />
-
-                            {/* Activity Feed */}
-                            <SocialActivityFeed
-                                requests={requests}
-                                onViewCampaign={(id) => {
-                                    const campaign = requests.find(r => r._id === id);
-                                    if (campaign) setSelectedRequest(campaign);
-                                }}
-                            />
+                            {/* Startup Tips & Business Insights */}
+                            <StartupTips />
                         </motion.div>
                     )}
 
@@ -248,25 +241,15 @@ const SellerDashboard = () => {
                         </motion.div>
                     )}
 
-                    {/* Discover Tab - Swipe Cards */}
+                    {/* Discover Tab - Swipe Cards Only */}
                     {activeTab === 'discover' && (
                         <motion.div
                             key="discover"
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="p-4 space-y-6"
+                            className="p-4"
                         >
-                            {/* AI Suggestions */}
-                            <AICampaignSuggestions
-                                requests={requests}
-                                onApplySuggestion={(suggestion) => {
-                                    if (suggestion.type === 'quickstart' || suggestion.type === 'category') {
-                                        setShowRequestWizard(true);
-                                    }
-                                }}
-                            />
-
                             {/* Swipeable Creator Cards */}
                             <SwipeableCreatorCard
                                 creators={pendingCreators}
@@ -353,6 +336,27 @@ const SellerDashboard = () => {
                                 selectedConversation={selectedConversation}
                                 onSelectConversation={(conv) => setSelectedConversation(conv)}
                                 onBack={() => setSelectedConversation(null)}
+                            />
+                        </motion.div>
+                    )}
+
+                    {/* AI Suggestions Tab */}
+                    {activeTab === 'ai' && (
+                        <motion.div
+                            key="ai"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="p-4 space-y-6"
+                        >
+                            {/* AI Campaign Suggestions */}
+                            <AICampaignSuggestions
+                                requests={requests}
+                                onApplySuggestion={(suggestion) => {
+                                    if (suggestion.type === 'quickstart' || suggestion.type === 'category') {
+                                        setShowRequestWizard(true);
+                                    }
+                                }}
                             />
                         </motion.div>
                     )}
