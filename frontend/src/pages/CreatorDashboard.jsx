@@ -136,7 +136,7 @@ const CreatorDashboard = () => {
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
                         <div className="flex items-center gap-3">
-                            <img src="/new-logo.png" alt="Logo" className="w-8 h-8" />
+                            <img src="/favicon.png" alt="Logo" className="w-8 h-8" />
                             <span className="text-xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 text-transparent bg-clip-text">
                                 TheCollabify
                             </span>
