@@ -24,6 +24,7 @@ const ProfileForm = ({ profile, onSave }) => {
             max: profile?.priceRange?.max || ''
         },
         bio: profile?.bio || '',
+        instagramProfileUrl: profile?.instagramProfileUrl || '',
         isAvailable: profile?.isAvailable !== false
     });
 
@@ -238,6 +239,23 @@ const ProfileForm = ({ profile, onSave }) => {
                         maxLength={500}
                     />
                     <p className="text-xs text-dark-400 mt-1">{formData.bio.length}/500 characters</p>
+                </div>
+
+                {/* Instagram Profile URL */}
+                <div>
+                    <label className="input-label">Instagram Profile URL (Optional)</label>
+                    <input
+                        type="url"
+                        name="instagramProfileUrl"
+                        value={formData.instagramProfileUrl}
+                        onChange={handleChange}
+                        placeholder="https://instagram.com/your_username"
+                        className="input-field"
+                        pattern="https?://(www\.)?instagram\.com/[a-zA-Z0-9._]+/?"
+                    />
+                    <p className="text-xs text-dark-400 mt-1">
+                        Add your Instagram profile link for verification
+                    </p>
                 </div>
 
                 {/* Availability Toggle */}
