@@ -4,6 +4,7 @@ import { FaSearch, FaFilter, FaRedo, FaTimes, FaChevronDown, FaChevronUp } from 
 import { HiSparkles, HiUsers, HiTrendingUp, HiCash } from 'react-icons/hi';
 import { sellerAPI } from '../../services/api';
 import CreatorCard from './CreatorCard';
+import CreatorProfileModal from './CreatorProfileModal';
 
 const CreatorSearch = () => {
     const [loading, setLoading] = useState(false);
@@ -27,6 +28,10 @@ const CreatorSearch = () => {
         maxPrice: '',
         sortBy: 'matchScore'
     });
+
+    // Modal state
+    const [selectedCreator, setSelectedCreator] = useState(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const categories = [
         'All', 'Fashion', 'Tech', 'Fitness', 'Food', 'Travel', 'Lifestyle',
@@ -98,6 +103,29 @@ const CreatorSearch = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const handleViewProfile = (creator) => {
+        setSelectedCreator(creator);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setTimeout(() => setSelectedCreator(null), 300); // Wait for animation
+    };
+
+    const handleMessage = (creator) => {
+        // TODO: Navigate to messages or open chat
+        console.log('Message creator:', creator);
+        handleCloseModal();
+    };
+
+    const handleInvite = (creator) => {
+        // TODO: Open campaign invitation modal
+        console.log('Invite creator:', creator);
+        handleCloseModal();
+    };
+
+
     // Count active filters
     const activeFiltersCount = Object.values(filters).filter(
         (val, idx) => val !== '' && val !== 'All' && val !== 'matchScore'
@@ -126,8 +154,8 @@ const CreatorSearch = () => {
                     <button
                         onClick={() => setShowFilters(!showFilters)}
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition ${showFilters || activeFiltersCount > 0
-                                ? 'bg-primary-500/10 border-primary-500/30 text-primary-400'
-                                : 'bg-dark-800/50 border-dark-700/50 text-dark-300 hover:border-dark-600'
+                            ? 'bg-primary-500/10 border-primary-500/30 text-primary-400'
+                            : 'bg-dark-800/50 border-dark-700/50 text-dark-300 hover:border-dark-600'
                             }`}
                     >
                         <FaFilter className="text-sm" />
@@ -187,8 +215,8 @@ const CreatorSearch = () => {
                                             key={cat}
                                             onClick={() => setFilters(prev => ({ ...prev, category: cat }))}
                                             className={`px-3 py-2 rounded-lg text-sm font-medium transition ${filters.category === cat
-                                                    ? 'bg-primary-500 text-white'
-                                                    : 'bg-dark-700/50 text-dark-300 hover:bg-dark-700'
+                                                ? 'bg-primary-500 text-white'
+                                                : 'bg-dark-700/50 text-dark-300 hover:bg-dark-700'
                                                 }`}
                                         >
                                             {cat}
@@ -322,7 +350,7 @@ const CreatorSearch = () => {
                                 creator={creator}
                                 matchScore={creator.insights?.score || 50}
                                 viewMode="discovery"
-                                onViewProfile={() => console.log('View profile', creator._id)}
+                                onViewProfile={() => handleViewProfile(creator)}
                             />
                         ))}
                     </div>
@@ -345,8 +373,8 @@ const CreatorSearch = () => {
                                             key={pageNum}
                                             onClick={() => handlePageChange(pageNum)}
                                             className={`w-10 h-10 rounded-lg font-medium transition ${pagination.page === pageNum
-                                                    ? 'bg-primary-500 text-white'
-                                                    : 'bg-dark-800/50 border border-dark-700/50 text-dark-300 hover:bg-dark-700'
+                                                ? 'bg-primary-500 text-white'
+                                                : 'bg-dark-800/50 border border-dark-700/50 text-dark-300 hover:bg-dark-700'
                                                 }`}
                                         >
                                             {pageNum}
@@ -365,8 +393,19 @@ const CreatorSearch = () => {
                     )}
                 </>
             )}
+
+            {/* Creator Profile Modal */}
+            <CreatorProfileModal
+                creator={selectedCreator}
+                matchScore={selectedCreator?.insights?.score || 50}
+                isOpen={isModalOpen}
+                onClose={handleCloseModal}
+                onMessage={handleMessage}
+                onInvite={handleInvite}
+            />
         </div>
     );
 };
 
 export default CreatorSearch;
+```
