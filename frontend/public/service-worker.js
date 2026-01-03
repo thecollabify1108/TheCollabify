@@ -1,4 +1,4 @@
-const CACHE_NAME = 'collabify-v3-20260102';
+const CACHE_NAME = 'collabify-v4-20260103-otp';
 const STATIC_ASSETS = [
     '/',
     '/index.html',
