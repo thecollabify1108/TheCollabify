@@ -6,6 +6,7 @@ const User = require('../models/User');
 const { auth, generateToken } = require('../middleware/auth');
 const { sendPasswordResetEmail } = require('../utils/emailService');
 const { notifyWelcome } = require('../services/notificationService');
+const { createAndSendOTP, verifyOTP } = require('../services/otpService');
 
 /**
  * Validation middleware
@@ -21,6 +22,195 @@ const handleValidation = (req, res, next) => {
     }
     next();
 };
+
+/**
+ * @route   POST /api/auth/register/send-otp
+ * @desc    Send OTP for email verification during registration
+ * @access  Public
+ */
+router.post('/register/send-otp', [
+    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+    body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('role').isIn(['creator', 'seller']).withMessage('Role must be either creator or seller'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { email, name, password, role } = req.body;
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'User with this email already exists'
+            });
+        }
+
+        // Generate and send OTP
+        const result = await createAndSendOTP(email, name, 'registration');
+
+        // Store user data temporarily (in production, use Redis or session)
+        // For now, we'll send it back encrypted or use session storage
+        const tempData = Buffer.from(JSON.stringify({ email, name, password, role })).toString('base64');
+
+        res.json({
+            success: true,
+            message: 'OTP sent to your email. Please check your inbox.',
+            data: {
+                tempUserId: tempData,
+                expiresIn: result.expiresIn
+            }
+        });
+    } catch (error) {
+        console.error('Send OTP error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to send OTP. Please try again.'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/auth/register/verify-otp
+ * @desc    Verify OTP and complete registration
+ * @access  Public
+ */
+router.post('/register/verify-otp', [
+    body('tempUserId').notEmpty().withMessage('User data is required'),
+    body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { tempUserId, otp } = req.body;
+
+        // Decode temporary user data
+        let userData;
+        try {
+            const decoded = Buffer.from(tempUserId, 'base64').toString('utf-8');
+            userData = JSON.parse(decoded);
+        } catch (err) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user data'
+            });
+        }
+
+        const { email, name, password, role } = userData;
+
+        // Verify OTP
+        const otpResult = await verifyOTP(email, otp, 'registration');
+
+        if (!otpResult.success) {
+            return res.status(400).json({
+                success: false,
+                message: otpResult.message
+            });
+        }
+
+        // Check if user already exists (double-check)
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: 'User with this email already exists'
+            });
+        }
+
+        // Create user with email verified
+        const user = await User.create({
+            email,
+            password,
+            name,
+            role,
+            emailVerified: true
+        });
+
+        // Generate token
+        const token = generateToken(user._id);
+
+        // Send welcome notification
+        try {
+            await notifyWelcome(user._id, role);
+        } catch (err) {
+            console.error('Failed to send welcome notification:', err);
+        }
+
+        // Set HTTPOnly cookie
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'Email verified! Registration successful',
+            data: {
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role,
+                    emailVerified: user.emailVerified
+                },
+                token
+            }
+        });
+    } catch (error) {
+        console.error('Verify OTP error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'OTP verification failed. Please try again.'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/auth/register/resend-otp
+ * @desc    Resend OTP for registration
+ * @access  Public
+ */
+router.post('/register/resend-otp', [
+    body('tempUserId').notEmpty().withMessage('User data is required'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { tempUserId } = req.body;
+
+        // Decode temporary user data
+        let userData;
+        try {
+            const decoded = Buffer.from(tempUserId, 'base64').toString('utf-8');
+            userData = JSON.parse(decoded);
+        } catch (err) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user data'
+            });
+        }
+
+        const { email, name } = userData;
+
+        // Generate and send new OTP
+        const result = await createAndSendOTP(email, name, 'registration');
+
+        res.json({
+            success: true,
+            message: 'New OTP sent to your email',
+            data: {
+                expiresIn: result.expiresIn
+            }
+        });
+    } catch (error) {
+        console.error('Resend OTP error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to resend OTP. Please try again.'
+        });
+    }
+});
 
 /**
  * @route   POST /api/auth/register
