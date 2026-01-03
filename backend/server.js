@@ -87,6 +87,7 @@ if (process.env.NODE_ENV === 'development') {
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth/password-reset', require('./routes/passwordReset'));
 app.use('/api/oauth', require('./routes/oauth'));
 app.use('/api/creators', require('./routes/creators'));
 app.use('/api/sellers', require('./routes/sellers'));

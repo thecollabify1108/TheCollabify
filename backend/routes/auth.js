@@ -441,7 +441,7 @@ router.put('/update', auth, [
 
 /**
  * @route   POST /api/auth/forgot-password
- * @desc    Send password reset email
+ * @desc    Send password reset email (OLD - Token-based, kept for backward compatibility)
  * @access  Public
  */
 router.post('/forgot-password', [
