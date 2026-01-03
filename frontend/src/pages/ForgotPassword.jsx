@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaEnvelope, FaArrowLeft, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import Footer from '../components/common/Footer';
 import OTPInput from '../components/common/OTPInput';
 
 const ForgotPassword = () => {
@@ -277,8 +276,8 @@ const ForgotPassword = () => {
                                         onClick={handleResendOTP}
                                         disabled={!canResend}
                                         className={`text-sm ${canResend
-                                                ? 'text-primary-400 hover:text-primary-300 cursor-pointer'
-                                                : 'text-dark-600 cursor-not-allowed'
+                                            ? 'text-primary-400 hover:text-primary-300 cursor-pointer'
+                                            : 'text-dark-600 cursor-not-allowed'
                                             } transition-colors`}
                                     >
                                         📧 Resend Code {!canResend && '(wait 60s)'}
@@ -351,9 +350,6 @@ const ForgotPassword = () => {
                     </div>
                 </motion.div>
             </div>
-
-            {/* Footer */}
-            <Footer />
         </div>
     );
 };
