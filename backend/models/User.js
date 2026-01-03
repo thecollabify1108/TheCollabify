@@ -45,6 +45,14 @@ const userSchema = new mongoose.Schema({
         enum: ['local', 'google'],
         default: 'local'
     },
+    emailVerified: {
+        type: Boolean,
+        default: false
+    },
+    creatorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Creator'
+    },
     pushSubscription: {
         endpoint: String,
         keys: {
