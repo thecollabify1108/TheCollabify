@@ -137,7 +137,7 @@ const ForgotPassword = () => {
     };
 
     const handleResendOTP = async () => {
-        if (!can Resend) return;
+        if (!canResend) return;
 
         try {
             const response = await axios.post('/api/auth/password-reset/send-otp', { email });
