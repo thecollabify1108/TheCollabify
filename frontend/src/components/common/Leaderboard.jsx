@@ -82,8 +82,8 @@ const Leaderboard = () => {
                                 key={p.id}
                                 onClick={() => setPeriod(p.id)}
                                 className={`px-6 py-2 rounded-lg text-sm font-medium transition-all ${period === p.id
-                                        ? 'bg-primary-600 text-white shadow-lg'
-                                        : 'text-dark-400 hover:text-dark-200'
+                                    ? 'bg-primary-600 text-white shadow-lg'
+                                    : 'text-dark-400 hover:text-dark-200'
                                     }`}
                             >
                                 {p.label}
@@ -115,7 +115,6 @@ const Leaderboard = () => {
                                 )}
                             </div>
                             <h3 className="font-bold text-dark-100 truncate">{topThree[1].user.name}</h3>
-                            <p className="text-sm text-dark-400 mb-2">@{topThree[1].instagramUsername}</p>
                             <div className="inline-flex items-center px-2 py-1 rounded bg-slate-500/10 text-slate-300 text-xs font-bold">
                                 {topThree[1].calculatedScore?.toFixed(0) || '968'} pts
                             </div>
@@ -142,7 +141,6 @@ const Leaderboard = () => {
                                 )}
                             </div>
                             <h3 className="text-xl font-bold text-dark-100 truncate">{topThree[0].user.name}</h3>
-                            <p className="text-dark-400 mb-3">@{topThree[0].instagramUsername}</p>
                             <div className="flex justify-center items-center gap-2 mb-2">
                                 <span className="badge badge-warning">{topThree[0].category}</span>
                             </div>
@@ -173,7 +171,6 @@ const Leaderboard = () => {
                                 )}
                             </div>
                             <h3 className="font-bold text-dark-100 truncate">{topThree[2].user.name}</h3>
-                            <p className="text-sm text-dark-400 mb-2">@{topThree[2].instagramUsername}</p>
                             <div className="inline-flex items-center px-2 py-1 rounded bg-amber-600/10 text-amber-600 text-xs font-bold">
                                 {topThree[2].calculatedScore?.toFixed(0) || '850'} pts
                             </div>
@@ -207,7 +204,7 @@ const Leaderboard = () => {
                                 </div>
                                 <div className="flex-grow min-w-0">
                                     <h4 className="font-semibold text-dark-100 truncate">{creator.user.name}</h4>
-                                    <p className="text-sm text-dark-400 truncate">@{creator.instagramUsername} • {creator.category}</p>
+                                    <p className="text-sm text-dark-400 truncate">{creator.category}</p>
                                 </div>
                                 <div className="flex-shrink-0 text-right">
                                     <div className="font-bold text-primary-400">{creator.calculatedScore?.toFixed(0) || '0'}</div>

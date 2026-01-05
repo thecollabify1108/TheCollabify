@@ -100,10 +100,6 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
                                                 <FaCheckCircle className="text-primary-400 text-sm" />
                                             )}
                                         </h3>
-                                        <div className="flex items-center text-dark-400 gap-2 mb-2">
-                                            <FaInstagram className="text-primary-400" />
-                                            <span>@{profile.instagramUsername}</span>
-                                        </div>
                                         <span className="badge badge-info text-xs">
                                             {profile.category} Creator
                                         </span>
