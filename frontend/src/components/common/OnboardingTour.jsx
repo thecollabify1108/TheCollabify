@@ -135,19 +135,19 @@ const OnboardingTour = ({ role = 'creator', onComplete }) => {
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="fixed inset-4 md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:inset-auto z-50 md:w-[90%] md:max-w-md flex items-center justify-center md:block"
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     >
-                        <div className="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden shadow-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden shadow-2xl w-full max-w-md max-h-[95vh] flex flex-col">
                             {/* Header with gradient */}
-                            <div className={`bg-gradient-to-r ${step.color} p-4 md:p-6 text-center`}>
+                            <div className={`bg-gradient-to-r ${step.color} p-6 text-center flex-shrink-0`}>
                                 <motion.div
                                     key={currentStep}
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
                                     transition={{ type: "spring", stiffness: 200 }}
-                                    className="w-16 h-16 md:w-20 md:h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-3 md:mb-4"
+                                    className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4"
                                 >
-                                    <StepIcon className="text-white text-3xl md:text-4xl" />
+                                    <StepIcon className="text-white text-4xl" />
                                 </motion.div>
 
                                 {/* Progress dots */}
@@ -166,39 +166,42 @@ const OnboardingTour = ({ role = 'creator', onComplete }) => {
                                 </div>
                             </div>
 
-                            {/* Content */}
-                            <div className="p-4 md:p-6">
+
+                            {/* Content - Scrollable */}
+                            <div className="p-6 flex-1 overflow-y-auto">
                                 <motion.div
                                     key={currentStep}
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ duration: 0.3 }}
                                 >
-                                    <h3 className="text-lg md:text-xl font-bold text-dark-100 mb-2 text-center">
+                                    <h3 className="text-xl font-bold text-dark-100 mb-3 text-center">
                                         {step.title}
                                     </h3>
-                                    <p className="text-sm md:text-base text-dark-400 text-center mb-4 md:mb-6">
+                                    <p className="text-base text-dark-400 text-center mb-6 leading-relaxed">
                                         {step.description}
                                     </p>
                                 </motion.div>
+                            </div>
 
-                                {/* Navigation */}
+                            {/* Navigation - Fixed at bottom */}
+                            <div className="p-6 border-t border-dark-700 flex-shrink-0">
                                 <div className="flex items-center justify-between">
                                     <button
                                         onClick={handlePrev}
                                         disabled={currentStep === 0}
-                                        className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-2 rounded-lg text-sm transition-colors ${currentStep === 0
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${currentStep === 0
                                             ? 'text-dark-600 cursor-not-allowed'
                                             : 'text-dark-300 hover:text-dark-100 hover:bg-dark-700'
                                             }`}
                                     >
-                                        <FaArrowLeft className="text-xs md:text-sm" />
+                                        <FaArrowLeft className="text-sm" />
                                         <span className="hidden sm:inline">Back</span>
                                     </button>
 
                                     <button
                                         onClick={handleSkip}
-                                        className="text-dark-400 hover:text-dark-200 text-xs md:text-sm"
+                                        className="text-dark-400 hover:text-dark-200 text-sm px-2"
                                     >
                                         Skip tour
                                     </button>
@@ -207,18 +210,17 @@ const OnboardingTour = ({ role = 'creator', onComplete }) => {
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={handleNext}
-                                        className={`flex items-center gap-1 md:gap-2 px-4 md:px-6 py-2 rounded-lg bg-gradient-to-r ${step.color} text-white font-medium text-sm`}
+                                        className={`flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r ${step.color} text-white font-medium text-sm`}
                                     >
                                         {currentStep === steps.length - 1 ? (
                                             <>
-                                                <span className="hidden sm:inline">Get Started</span>
-                                                <span className="sm:hidden">Start</span>
-                                                <FaRocket className="text-xs md:text-sm" />
+                                                <span>Get Started</span>
+                                                <FaRocket className="text-sm" />
                                             </>
                                         ) : (
                                             <>
                                                 Next
-                                                <FaArrowRight className="text-xs md:text-sm" />
+                                                <FaArrowRight className="text-sm" />
                                             </>
                                         )}
                                     </motion.button>

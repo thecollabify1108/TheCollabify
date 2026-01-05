@@ -34,10 +34,6 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                     </div>
                     <div>
                         <h3 className="font-semibold text-dark-100">{user.name || 'Creator'}</h3>
-                        <div className="flex items-center text-sm text-dark-400">
-                            <FaInstagram className="mr-1 text-primary-400" />
-                            @{profile.instagramUsername}
-                        </div>
                     </div>
                 </div>
 
