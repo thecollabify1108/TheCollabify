@@ -408,4 +408,3 @@ const CreatorSearch = () => {
 };
 
 export default CreatorSearch;
-```
