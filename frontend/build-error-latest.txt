@@ -1,0 +1,125 @@
+﻿
+> creator-seller-marketplace-frontend@1.0.0 build
+> node node_modules/vite/bin/vite.js build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 748 modules transformed.
+node.exe : 
+[31mx[39m Build 
+failed in 4.33s
+At line:1 char:1
++ & "C:\Program Files\
+nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ([31mx[39   
+ m Build failed in    
+ 4.33s:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+[31merror during 
+build:
+[31msrc/components/cr
+eator/ContentCreatorTi
+ps.jsx (12:4): 
+"FaRefresh" is not 
+exported by "node_modu
+les/react-icons/fa/ind
+ex.esm.js", imported 
+by "src/components/cre
+ator/ContentCreatorTip
+s.jsx".[31m
+file: [36mC:/Users/su
+khv/project 2/frontend
+/src/components/creato
+r/ContentCreatorTips.j
+sx:12:4[31m
+[33m
+10:     FaCamera,
+11:     FaClock,
+12:     FaRefresh
+        ^
+13: } from 
+'react-icons/fa';
+14: import { 
+HiSparkles } from 
+'react-icons/hi';
+[31m
+    at getRollupError 
+(file:///C:/Users/sukh
+v/project%202/frontend
+/node_modules/rollup/d
+ist/es/shared/parseAst
+.js:401:41)
+    at error (file:///
+C:/Users/sukhv/project
+%202/frontend/node_mod
+ules/rollup/dist/es/sh
+ared/parseAst.js:397:4
+2)
+    at Module.error (f
+ile:///C:/Users/sukhv/
+project%202/frontend/n
+ode_modules/rollup/dis
+t/es/shared/node-entry
+.js:17022:16)
+    at 
+Module.traceVariable (
+file:///C:/Users/sukhv
+/project%202/frontend/
+node_modules/rollup/di
+st/es/shared/node-entr
+y.js:17478:29)
+    at ModuleScope.fin
+dVariable (file:///C:/
+Users/sukhv/project%20
+2/frontend/node_module
+s/rollup/dist/es/share
+d/node-entry.js:15141:
+39)
+    at ReturnValueScop
+e.findVariable (file:/
+//C:/Users/sukhv/proje
+ct%202/frontend/node_m
+odules/rollup/dist/es/
+shared/node-entry.js:5
+688:38)
+    at FunctionBodySco
+pe.findVariable (file:
+///C:/Users/sukhv/proj
+ect%202/frontend/node_
+modules/rollup/dist/es
+/shared/node-entry.js:
+5688:38)
+    at 
+Identifier.bind (file:
+///C:/Users/sukhv/proj
+ect%202/frontend/node_
+modules/rollup/dist/es
+/shared/node-entry.js:
+5462:40)
+    at 
+CallExpression.bind (f
+ile:///C:/Users/sukhv/
+project%202/frontend/n
+ode_modules/rollup/dis
+t/es/shared/node-entry
+.js:2825:28)
+    at 
+CallExpression.bind (f
+ile:///C:/Users/sukhv/
+project%202/frontend/n
+ode_modules/rollup/dis
+t/es/shared/node-entry
+.js:12172:15)[39m

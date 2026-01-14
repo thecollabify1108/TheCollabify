@@ -9,7 +9,7 @@ import {
     FaUsers,
     FaCamera,
     FaClock,
-    FaRefresh
+    FaSync
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 
@@ -128,7 +128,7 @@ const ContentCreatorTips = () => {
                     className="p-2 rounded-lg bg-dark-800/50 hover:bg-dark-700 transition-colors text-dark-300 hover:text-dark-100"
                     title="Next tip"
                 >
-                    <FaRefresh className="w-5 h-5" />
+                    <FaSync className="w-5 h-5" />
                 </button>
             </div>
 
@@ -181,8 +181,8 @@ const ContentCreatorTips = () => {
                             key={index}
                             onClick={() => setCurrentTipIndex(index)}
                             className={`h-1.5 rounded-full transition-all ${index === currentTipIndex
-                                    ? 'w-6 bg-white'
-                                    : 'w-1.5 bg-white/40 hover:bg-white/60'
+                                ? 'w-6 bg-white'
+                                : 'w-1.5 bg-white/40 hover:bg-white/60'
                                 }`}
                         />
                     ))}
