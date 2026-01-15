@@ -589,6 +589,54 @@ router.post('/change-password', auth, [
 });
 
 /**
+ * @route   POST /api/auth/set-password
+ * @desc    Set password for OAuth users (Google sign-up)
+ * @access  Private
+ */
+router.post('/set-password', auth, [
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    body('confirmPassword').custom((value, { req }) => {
+        if (value !== req.body.password) {
+            throw new Error('Passwords do not match');
+        }
+        return true;
+    }),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { password } = req.body;
+
+        const user = await User.findById(req.userId).select('+password');
+
+        // Check if user already has a password set
+        // Google OAuth users have random hex password, check if it's hex format
+        const hasRealPassword = user.password && !/^[a-f0-9]{64}$/.test(user.password);
+
+        if (hasRealPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password already set. Use change password instead.'
+            });
+        }
+
+        // Set new password
+        user.password = password;
+        await user.save();
+
+        res.json({
+            success: true,
+            message: 'Password set successfully! You can now login with email and password.'
+        });
+    } catch (error) {
+        console.error('Set password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to set password'
+        });
+    }
+});
+
+/**
  * @route   POST /api/auth/google
  * @desc    Login or Register with Google OAuth
  * @access  Public
