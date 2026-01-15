@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendinblue/client": "^3.3.1",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
@@ -31,7 +32,6 @@
     "nodemailer": "^6.9.7",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
-    "resend": "^6.7.0",
     "web-push": "^3.6.7"
   },
   "devDependencies": {

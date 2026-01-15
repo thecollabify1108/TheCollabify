@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const OTP = require('../models/OTP');
-const { sendOTPEmail } = require('../utils/resendEmailService');
+const { sendOTPEmail } = require('../utils/brevoEmailService');
 
 /**
  * OTP Service
