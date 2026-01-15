@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaInstagram, FaEnvelope, FaArrowLeft, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../services/api';
 import OTPInput from '../components/common/OTPInput';
 
 const ForgotPassword = () => {
@@ -48,7 +48,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/auth/password-reset/send-otp', { email });
+            const response = await api.post('/auth/password-reset/send-otp', { email });
 
             if (response.data.success) {
                 setTempUserId(response.data.data.tempUserId);
@@ -76,7 +76,7 @@ const ForgotPassword = () => {
         setOtpLoading(true);
 
         try {
-            const response = await axios.post('/api/auth/password-reset/verify-otp', {
+            const response = await api.post('/auth/password-reset/verify-otp', {
                 tempUserId,
                 otp: otpCode
             });
@@ -110,7 +110,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/auth/password-reset/reset', {
+            const response = await api.post('/auth/password-reset/reset', {
                 tempUserId,
                 newPassword
             });
@@ -140,7 +140,7 @@ const ForgotPassword = () => {
         if (!canResend) return;
 
         try {
-            const response = await axios.post('/api/auth/password-reset/send-otp', { email });
+            const response = await api.post('/auth/password-reset/send-otp', { email });
 
             if (response.data.success) {
                 setTempUserId(response.data.data.tempUserId);
