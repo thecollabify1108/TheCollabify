@@ -457,17 +457,25 @@ router.post('/password-reset/send-otp', [
         if (!user) {
             return res.json({
                 success: true,
-                message: 'If an account with that email exists, we sent a password reset OTP.'
+                message: 'If an account with that email exists, we sent a password reset OTP.',
+                data: {
+                    tempUserId: Buffer.from(JSON.stringify({ email })).toString('base64'),
+                    expiresIn: 600
+                }
             });
         }
 
         // Generate and send OTP
         const result = await createAndSendOTP(email, user.name, 'password-reset');
 
+        // Create tempUserId (base64 encoded email)
+        const tempUserId = Buffer.from(JSON.stringify({ email })).toString('base64');
+
         res.json({
             success: true,
             message: 'Password reset OTP sent to your email. Please check your inbox.',
             data: {
+                tempUserId,
                 expiresIn: result.expiresIn
             }
         });
@@ -482,25 +490,27 @@ router.post('/password-reset/send-otp', [
 
 /**
  * @route   POST /api/auth/password-reset/verify-otp
- * @desc    Verify OTP and reset password
+ * @desc    Verify OTP (step 2 of 3)
  * @access  Public
  */
 router.post('/password-reset/verify-otp', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+    body('tempUserId').notEmpty().withMessage('User data is required'),
     body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
-    body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
     handleValidation
 ], async (req, res) => {
     try {
-        const { email, otp, newPassword } = req.body;
+        const { tempUserId, otp } = req.body;
 
-        // Find user
-        const user = await User.findOne({ email });
-
-        if (!user) {
+        // Decode tempUserId to get email
+        let email;
+        try {
+            const decoded = Buffer.from(tempUserId, 'base64').toString('utf-8');
+            const data = JSON.parse(decoded);
+            email = data.email;
+        } catch (err) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid email or OTP'
+                message: 'Invalid user data'
             });
         }
 
@@ -511,6 +521,55 @@ router.post('/password-reset/verify-otp', [
             return res.status(400).json({
                 success: false,
                 message: otpResult.message
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'OTP verified successfully'
+        });
+    } catch (error) {
+        console.error('Verify OTP error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to verify OTP. Please try again.'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/auth/password-reset/reset
+ * @desc    Reset password (step 3 of 3)
+ * @access  Public
+ */
+router.post('/password-reset/reset', [
+    body('tempUserId').notEmpty().withMessage('User data is required'),
+    body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { tempUserId, newPassword } = req.body;
+
+        // Decode tempUserId to get email
+        let email;
+        try {
+            const decoded = Buffer.from(tempUserId, 'base64').toString('utf-8');
+            const data = JSON.parse(decoded);
+            email = data.email;
+        } catch (err) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid user data'
+            });
+        }
+
+        // Find user
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: 'User not found'
             });
         }
 
@@ -533,11 +592,17 @@ router.post('/password-reset/verify-otp', [
             success: true,
             message: 'Password reset successful! You are now logged in.',
             data: {
-                token // Still send token for backward compatibility
+                token,
+                user: {
+                    id: user._id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role
+                }
             }
         });
     } catch (error) {
-        console.error('Verify OTP password reset error:', error);
+        console.error('Reset password error:', error);
         res.status(500).json({
             success: false,
             message: 'Failed to reset password. Please try again.'
