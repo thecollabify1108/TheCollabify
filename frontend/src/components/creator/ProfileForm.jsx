@@ -85,6 +85,17 @@ const ProfileForm = ({ profile, onSave }) => {
             return;
         }
 
+        // Warn about match changes if updating existing profile
+        if (profile) {
+            const confirmed = window.confirm(
+                '⚠️ Updating your profile will change your matches.\n\n' +
+                'Sellers who previously matched with you may no longer see you, ' +
+                'and new sellers matching your updated profile will see you.\n\n' +
+                'Continue with update?'
+            );
+            if (!confirmed) return;
+        }
+
         setLoading(true);
         try {
             const data = {

@@ -27,6 +27,7 @@ import ProfileProgress from '../components/creator/ProfileProgress';
 import BadgeShowcase from '../components/creator/BadgeShowcase';
 import ContentCreatorTips from '../components/creator/ContentCreatorTips';
 import MessageRequests from '../components/creator/MessageRequests';
+import ProfileCard from '../components/creator/ProfileCard';
 
 const CreatorDashboard = () => {
     const { user } = useAuth();
@@ -38,6 +39,7 @@ const CreatorDashboard = () => {
     const [showProfileForm, setShowProfileForm] = useState(false);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messageSubTab, setMessageSubTab] = useState('conversations'); // 'conversations' or 'requests'
+    const [isEditingProfile, setIsEditingProfile] = useState(false);
 
     const [searchParams] = useSearchParams();
 
@@ -81,8 +83,11 @@ const CreatorDashboard = () => {
 
     const handleProfileSaved = () => {
         setShowProfileForm(false);
+        setIsEditingProfile(false);
         fetchData();
         toast.success('Profile updated successfully!');
+        // Navigate to home tab after successful save
+        setActiveTab('home');
     };
 
     const handleApplyToPromotion = async (promotionId) => {
@@ -243,8 +248,8 @@ const CreatorDashboard = () => {
                                     <button
                                         onClick={() => setMessageSubTab('conversations')}
                                         className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'conversations'
-                                                ? 'bg-primary-500 text-white'
-                                                : 'text-dark-400 hover:text-dark-200'
+                                            ? 'bg-primary-500 text-white'
+                                            : 'text-dark-400 hover:text-dark-200'
                                             }`}
                                     >
                                         Conversations
@@ -252,8 +257,8 @@ const CreatorDashboard = () => {
                                     <button
                                         onClick={() => setMessageSubTab('requests')}
                                         className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'requests'
-                                                ? 'bg-primary-500 text-white'
-                                                : 'text-dark-400 hover:text-dark-200'
+                                            ? 'bg-primary-500 text-white'
+                                            : 'text-dark-400 hover:text-dark-200'
                                             }`}
                                     >
                                         Requests
@@ -291,28 +296,38 @@ const CreatorDashboard = () => {
                                 <p className="text-sm text-dark-400">Manage your creator profile</p>
                             </div>
 
-                            {/* Availability Toggle */}
-                            {profile && (
-                                <div className="p-4 rounded-2xl bg-dark-800/40 border border-dark-700/50">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <h3 className="font-semibold text-dark-100 mb-1">Availability Status</h3>
-                                            <p className="text-sm text-dark-400">Let brands know you're open for work</p>
+                            {/* Show ProfileCard if profile exists and not editing */}
+                            {profile && !isEditingProfile ? (
+                                <ProfileCard
+                                    profile={profile}
+                                    onEdit={() => setIsEditingProfile(true)}
+                                />
+                            ) : (
+                                <>
+                                    {/* Availability Toggle - only show when editing */}
+                                    {profile && (
+                                        <div className="p-4 rounded-2xl bg-dark-800/40 border border-dark-700/50">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="font-semibold text-dark-100 mb-1">Availability Status</h3>
+                                                    <p className="text-sm text-dark-400">Let brands know you're open for work</p>
+                                                </div>
+                                                <button
+                                                    onClick={handleToggleAvailability}
+                                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${profile.isAvailable
+                                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                            : 'bg-dark-700 text-dark-400 border border-dark-600'
+                                                        }`}
+                                                >
+                                                    {profile.isAvailable ? '● Available' : 'Unavailable'}
+                                                </button>
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={handleToggleAvailability}
-                                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${profile.isAvailable
-                                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                                : 'bg-dark-700 text-dark-400 border border-dark-600'
-                                                }`}
-                                        >
-                                            {profile.isAvailable ? '● Available' : 'Unavailable'}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                                    )}
 
-                            <ProfileForm profile={profile} onSave={handleProfileSaved} />
+                                    <ProfileForm profile={profile} onSave={handleProfileSaved} />
+                                </>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
