@@ -26,6 +26,7 @@ import AIOpportunitySuggestions from '../components/creator/AIOpportunitySuggest
 import ProfileProgress from '../components/creator/ProfileProgress';
 import BadgeShowcase from '../components/creator/BadgeShowcase';
 import ContentCreatorTips from '../components/creator/ContentCreatorTips';
+import MessageRequests from '../components/creator/MessageRequests';
 
 const CreatorDashboard = () => {
     const { user } = useAuth();
@@ -36,6 +37,7 @@ const CreatorDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showProfileForm, setShowProfileForm] = useState(false);
     const [selectedConversation, setSelectedConversation] = useState(null);
+    const [messageSubTab, setMessageSubTab] = useState('conversations'); // 'conversations' or 'requests'
 
     const [searchParams] = useSearchParams();
 
@@ -234,10 +236,44 @@ const CreatorDashboard = () => {
                             className="p-4"
                         >
                             <div className="mb-4">
-                                <h2 className="text-xl font-bold text-dark-100 mb-1">Messages</h2>
-                                <p className="text-sm text-dark-400">Chat with brands</p>
+                                <h2 className="text-xl font-bold text-dark-100 mb-3">Messages</h2>
+
+                                {/* Sub-tabs for Messages */}
+                                <div className="flex gap-2 p-1 bg-dark-800/40 rounded-lg border border-dark-700/50">
+                                    <button
+                                        onClick={() => setMessageSubTab('conversations')}
+                                        className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'conversations'
+                                                ? 'bg-primary-500 text-white'
+                                                : 'text-dark-400 hover:text-dark-200'
+                                            }`}
+                                    >
+                                        Conversations
+                                    </button>
+                                    <button
+                                        onClick={() => setMessageSubTab('requests')}
+                                        className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'requests'
+                                                ? 'bg-primary-500 text-white'
+                                                : 'text-dark-400 hover:text-dark-200'
+                                            }`}
+                                    >
+                                        Requests
+                                    </button>
+                                </div>
                             </div>
-                            <ConversationList onSelectConversation={setSelectedConversation} />
+
+                            {messageSubTab === 'conversations' ? (
+                                <ConversationList onSelectConversation={setSelectedConversation} />
+                            ) : (
+                                <MessageRequests
+                                    onAccept={() => {
+                                        // Refresh conversations when request accepted
+                                        setMessageSubTab('conversations');
+                                    }}
+                                    onReject={() => {
+                                        // Stay on requests tab after rejection
+                                    }}
+                                />
+                            )}
                         </motion.div>
                     )}
 
@@ -291,8 +327,8 @@ const CreatorDashboard = () => {
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
                                 className={`relative flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${activeTab === tab.id
-                                        ? 'text-primary-400'
-                                        : 'text-dark-400 hover:text-dark-200'
+                                    ? 'text-primary-400'
+                                    : 'text-dark-400 hover:text-dark-200'
                                     }`}
                             >
                                 <span className="text-xl">{tab.icon}</span>
@@ -321,6 +357,7 @@ const CreatorDashboard = () => {
                         conversationId={selectedConversation._id}
                         otherUserName={selectedConversation.sellerId?.name || 'Seller'}
                         promotionTitle={selectedConversation.promotionId?.title || 'Promotion'}
+                        conversation={selectedConversation}
                         onClose={() => setSelectedConversation(null)}
                     />
                 )}
@@ -360,10 +397,10 @@ const ApplicationsView = ({ applications }) => {
                         </div>
                         <span
                             className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${app.applicationStatus === 'Accepted'
-                                    ? 'bg-emerald-500/20 text-emerald-400'
-                                    : app.applicationStatus === 'Rejected'
-                                        ? 'bg-red-500/20 text-red-400'
-                                        : 'bg-amber-500/20 text-amber-400'
+                                ? 'bg-emerald-500/20 text-emerald-400'
+                                : app.applicationStatus === 'Rejected'
+                                    ? 'bg-red-500/20 text-red-400'
+                                    : 'bg-amber-500/20 text-amber-400'
                                 }`}
                         >
                             {app.applicationStatus}
