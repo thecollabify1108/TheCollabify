@@ -245,7 +245,7 @@ const ProfileForm = ({ profile, onSave }) => {
                 <div>
                     <label className="input-label">Instagram Profile URL (Optional)</label>
                     <input
-                        type="url"
+                        type="text"
                         name="instagramProfileUrl"
                         value={formData.instagramProfileUrl}
                         onChange={handleChange}
@@ -253,7 +253,7 @@ const ProfileForm = ({ profile, onSave }) => {
                         className="input-field"
                     />
                     <p className="text-xs text-dark-400 mt-1">
-                        Add your Instagram profile link for verification
+                        Paste your Instagram profile URL (query parameters like ?utm_source are okay)
                     </p>
                 </div>
 
