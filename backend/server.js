@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
+const morgan = require('morgan');
 const passport = require('./config/passport');
 const connectDB = require('./config/db');
 
@@ -20,6 +21,13 @@ const app = express();
 // Security middleware
 app.use(helmet()); // Set security headers
 app.use(compression()); // Compress responses
+
+// Request logging
+if (process.env.NODE_ENV === 'production') {
+    app.use(morgan('combined')); // Apache-style logging for production
+} else {
+    app.use(morgan('dev')); // Colored, concise logging for development
+}
 
 // Rate limiting - prevent brute force attacks
 const limiter = rateLimit({
@@ -48,9 +56,24 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// CORS configuration
+// Enhanced CORS configuration - support multiple origins
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'https://the-collabify.vercel.app',
+    process.env.FRONTEND_URL
+].filter(Boolean); // Remove undefined values
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or Postman)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
     credentials: true // Enable credentials (cookies) for cross-origin requests
 }));
 
@@ -76,14 +99,6 @@ app.use(passport.session());
 // Body parser with limits
 app.use(express.json({ limit: '10kb' })); // Limit body size
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
-// Request logging in development
-if (process.env.NODE_ENV === 'development') {
-    app.use((req, res, next) => {
-        console.log(`${req.method} ${req.path}`);
-        next();
-    });
-}
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));

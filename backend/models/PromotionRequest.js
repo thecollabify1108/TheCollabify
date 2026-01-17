@@ -142,12 +142,19 @@ promotionRequestSchema.methods.hasCreatorApplied = function (creatorId) {
     );
 };
 
-// Index for efficient querying
+// ===== INDEXES FOR PERFORMANCE =====
+// Single-field indexes
 promotionRequestSchema.index({ sellerId: 1 });
 promotionRequestSchema.index({ status: 1 });
 promotionRequestSchema.index({ targetCategory: 1 });
 promotionRequestSchema.index({ promotionType: 1 });
 promotionRequestSchema.index({ createdAt: -1 });
 promotionRequestSchema.index({ 'matchedCreators.creatorId': 1 });
+
+// Compound  indexes for common query patterns
+promotionRequestSchema.index({ status: 1, createdAt: -1 }); // For filtering by status and sorting by date
+promotionRequestSchema.index({ sellerId: 1, status: 1 }); // For seller's campaign dashboard
+promotionRequestSchema.index({ targetCategory: 1, status: 1, createdAt: -1 }); // For category browsing
+promotionRequestSchema.index({ status: 1, targetCategory: 1, promotionType: 1 }); // For filtered searches
 
 module.exports = mongoose.model('PromotionRequest', promotionRequestSchema);

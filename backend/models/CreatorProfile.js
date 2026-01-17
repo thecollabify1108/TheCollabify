@@ -169,12 +169,18 @@ creatorProfileSchema.pre('save', function (next) {
     next();
 });
 
-// Index for efficient querying
+// ===== INDEXES FOR PERFORMANCE =====
+// Single-field indexes
 creatorProfileSchema.index({ userId: 1 });
 creatorProfileSchema.index({ category: 1 });
 creatorProfileSchema.index({ isAvailable: 1 });
 creatorProfileSchema.index({ followerCount: 1 });
 creatorProfileSchema.index({ 'priceRange.min': 1, 'priceRange.max': 1 });
 creatorProfileSchema.index({ 'insights.score': -1 });
+
+// Compound indexes for AI matching and search
+creatorProfileSchema.index({ category: 1, isAvailable: 1, followerCount: -1 }); // For AI matching
+creatorProfileSchema.index({ isAvailable: 1, followerCount: -1, engagementRate: -1 }); // For sorting creators
+creatorProfileSchema.index({ category: 1, followerCount: -1 }); // For category browsing
 
 module.exports = mongoose.model('CreatorProfile', creatorProfileSchema);
