@@ -29,6 +29,7 @@ import ContentCreatorTips from '../components/creator/ContentCreatorTips';
 import MessageRequests from '../components/creator/MessageRequests';
 import ProfileCard from '../components/creator/ProfileCard';
 import PullToRefresh from '../components/common/PullToRefresh';
+import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import { haptic } from '../utils/haptic';
 
 const CreatorDashboard = () => {
@@ -415,6 +416,16 @@ const CreatorDashboard = () => {
                     )}
                 </AnimatePresence>
             </main>
+
+            {/* Quick Actions FAB */}
+            <QuickActionsFAB
+                userRole="creator"
+                onBrowse={() => setActiveTab('opportunities')}
+                onQuickApply={() => {
+                    setActiveTab('opportunities');
+                    toast.success('Browse opportunities below to apply!');
+                }}
+            />
 
             {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 right-0 bg-dark-900/95 backdrop-blur-xl border-t border-dark-800 z-50">

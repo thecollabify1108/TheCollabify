@@ -28,6 +28,9 @@ import AICampaignSuggestions from '../components/seller/AICampaignSuggestions';
 import OnboardingTour from '../components/common/OnboardingTour';
 import CreatorSearch from '../components/seller/CreatorSearch';
 import StartupTips from '../components/seller/StartupTips';
+import PullToRefresh from '../components/common/PullToRefresh';
+import QuickActionsFAB from '../components/common/QuickActionsFAB';
+import { haptic } from '../utils/haptic';
 import { FaSearch } from 'react-icons/fa';
 
 const SellerDashboard = () => {
@@ -454,67 +457,40 @@ const SellerDashboard = () => {
                 </AnimatePresence>
             </main>
 
-            {/* Floating Create Button */}
-            <FloatingCreateButton onClick={() => setShowRequestWizard(true)} />
-
-            {/* Bottom Navigation - Mobile Style */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-dark-900/95 backdrop-blur-xl border-t border-dark-700/50 z-30">
-                <div className="max-w-lg mx-auto flex items-center justify-around py-2">
-                    {tabs.map((tab) => (
-                        <motion.button
-                            key={tab.id}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`relative flex flex-col items-center gap-1 py-2 px-4 rounded-xl transition-all ${activeTab === tab.id
-                                ? 'text-primary-400'
-                                : 'text-dark-400 hover:text-dark-200'
-                                }`}
-                        >
-                            <span className="text-xl">{tab.icon}</span>
-                            <span className="text-xs font-medium">{tab.label}</span>
-
-                            {/* Active indicator */}
-                            {activeTab === tab.id && (
-                                <motion.div
-                                    layoutId="activeTab"
-                                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary-400"
-                                />
-                            )}
-
-                            {/* Badge */}
-                            {tab.badge > 0 && (
-                                <span className="absolute top-0 right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                                    {tab.badge}
-                                </span>
-                            )}
-                        </motion.button>
-                    ))}
-                </div>
-            </nav>
-
-            {/* Modals */}
-            <RequestWizard
-                isOpen={showRequestWizard}
-                onClose={() => {
-                    setShowRequestWizard(false);
-                    setAiSuggestionData(null);
-                }}
-                onSubmit={handleCreateRequest}
-                initialData={aiSuggestionData}
-            />
-
-            {selectedRequest && (
-                <CampaignTracker
-                    request={selectedRequest}
-                    onClose={() => setSelectedRequest(null)}
-                    onAccept={(creatorId) => handleAcceptCreator(selectedRequest._id, creatorId)}
-                    onReject={(creatorId) => handleRejectCreator(selectedRequest._id, creatorId)}
-                    onMessage={(creatorId, creatorName) => handleMessageCreator(selectedRequest._id, creatorId, creatorName)}
-                    onUpdateStatus={(status) => handleUpdateStatus(selectedRequest._id, status)}
-                    onDelete={() => handleDeleteRequest(selectedRequest._id)}
-                />
+            {tab.badge > 0 && (
+                <span className="absolute top-0 right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
+                    {tab.badge}
+                </span>
             )}
-        </div>
+        </motion.button>
+    ))
+}
+                </div >
+            </nav >
+
+    {/* Modals */ }
+    < RequestWizard
+isOpen = { showRequestWizard }
+onClose = {() => {
+    setShowRequestWizard(false);
+    setAiSuggestionData(null);
+}}
+onSubmit = { handleCreateRequest }
+initialData = { aiSuggestionData }
+    />
+
+    { selectedRequest && (
+        <CampaignTracker
+            request={selectedRequest}
+            onClose={() => setSelectedRequest(null)}
+            onAccept={(creatorId) => handleAcceptCreator(selectedRequest._id, creatorId)}
+            onReject={(creatorId) => handleRejectCreator(selectedRequest._id, creatorId)}
+            onMessage={(creatorId, creatorName) => handleMessageCreator(selectedRequest._id, creatorId, creatorName)}
+            onUpdateStatus={(status) => handleUpdateStatus(selectedRequest._id, status)}
+            onDelete={() => handleDeleteRequest(selectedRequest._id)}
+        />
+    )}
+        </div >
     );
 };
 
