@@ -113,7 +113,7 @@ const Login = () => {
                     <div className="text-center mb-8">
                         <Link to="/" className="inline-flex items-center space-x-2 mb-6">
                             <img src="/favicon.png" alt="" className="w-10 h-10 object-contain" />
-                            <span className="text-2xl font-bold gradient-text">The Collabify.ai</span>
+                            <span className="text-2xl font-bold gradient-text">TheCollabify</span>
                         </Link>
                         <h1 className="text-3xl font-bold text-dark-100 mb-2">Welcome Back</h1>
                         <p className="text-dark-400">Sign in to continue to your dashboard</p>
@@ -227,7 +227,7 @@ const Login = () => {
                                 <div className="w-full border-t border-dark-700"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-dark-800 text-dark-400">New to The Collabify.ai?</span>
+                                <span className="px-4 bg-dark-800 text-dark-400">New to TheCollabify?</span>
                             </div>
                         </div>
 
