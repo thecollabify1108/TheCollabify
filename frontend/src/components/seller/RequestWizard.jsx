@@ -15,14 +15,14 @@ import { HiSparkles } from 'react-icons/hi';
 const RequestWizard = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        title: initialData.title || '',
-        promotionType: initialData.promotionType || '',
-        budget: initialData.budget || '',
-        description: initialData.description || '',
-        requirements: initialData.requirements || '',
-        targetNiche: initialData.targetNiche || [],
-        minFollowers: initialData.minFollowers || 1000,
-        maxFollowers: initialData.maxFollowers || 100000
+        title: initialData?.title || '',
+        promotionType: initialData?.promotionType || '',
+        budget: initialData?.budget || '',
+        description: initialData?.description || '',
+        requirements: initialData?.requirements || '',
+        targetNiche: initialData?.targetNiche || [],
+        minFollowers: initialData?.minFollowers || 1000,
+        maxFollowers: initialData?.maxFollowers || 100000
     });
 
     const niches = [
