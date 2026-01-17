@@ -78,7 +78,7 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                     </span>
                 )}
                 <span className="badge badge-neutral">
-                    ${profile.priceRange?.min} - ${profile.priceRange?.max}
+                    ₹{profile.priceRange?.min} - ₹{profile.priceRange?.max}
                 </span>
             </div>
 
