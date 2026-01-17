@@ -33,7 +33,7 @@ import { haptic } from '../utils/haptic';
 
 const CreatorDashboard = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('home');
+    const [activeTab, setActiveTab] = useState('dashboard');
     const [profile, setProfile] = useState(null);
     const [promotions, setPromotions] = useState([]);
     const [applications, setApplications] = useState([]);
@@ -44,6 +44,13 @@ const CreatorDashboard = () => {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
 
     const [searchParams] = useSearchParams();
+
+    // Helper function to format numbers
+    const formatNumber = (num) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toString();
+    };
 
     useEffect(() => {
         fetchData();
@@ -120,15 +127,36 @@ const CreatorDashboard = () => {
 
     const pendingApplications = applications.filter(a => a.applicationStatus === 'Pending').length;
     const completedCampaigns = profile?.successfulPromotions || 0;
+    const pendingRequests = 0; // Will be fetched from messages
 
-    // Bottom navigation tabs
+    // Simplified bottom navigation - 4 tabs instead of 6
     const tabs = [
-        { id: 'home', label: 'Home', icon: <HiHome /> },
-        { id: 'opportunities', label: 'Browse', icon: <FaBriefcase />, badge: promotions.length },
-        { id: 'applications', label: 'Applied', icon: <FaCheck />, badge: pendingApplications },
-        { id: 'achievements', label: 'Badges', icon: <FaTrophy /> },
-        { id: 'messages', label: 'Chat', icon: <HiChat /> },
-        { id: 'profile', label: 'Profile', icon: <FaCog /> }
+        {
+            id: 'dashboard',
+            label: 'Dashboard',
+            icon: <HiHome />,
+            description: 'Overview & Activity'
+        },
+        {
+            id: 'opportunities',
+            label: 'Opportunities',
+            icon: <FaBriefcase />,
+            badge: promotions.length,
+            description: 'Browse Brands'
+        },
+        {
+            id: 'messages',
+            label: 'Messages',
+            icon: <HiChat />,
+            badge: pendingRequests,
+            description: 'Chat & Requests'
+        },
+        {
+            id: 'profile',
+            label: 'Profile',
+            icon: <FaCog />,
+            description: 'Settings'
+        }
     ];
 
     return (
@@ -139,10 +167,10 @@ const CreatorDashboard = () => {
             {/* Main Content */}
             <main className="max-w-lg mx-auto">
                 <AnimatePresence mode="wait">
-                    {/* Home Tab - Analytics Dashboard */}
-                    {activeTab === 'home' && (
+                    {/* Dashboard Tab - Simplified */}
+                    {activeTab === 'dashboard' && (
                         <motion.div
-                            key="home"
+                            key="dashboard"
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
@@ -150,29 +178,114 @@ const CreatorDashboard = () => {
                         >
                             {profile ? (
                                 <>
-                                    {/* Creator Analytics */}
-                                    <CreatorAnalytics />
+                                    {/* Welcome Header */}
+                                    <div className="p-6 rounded-2xl bg-gradient-to-br from-primary-500/10 to-secondary-500/10 border border-primary-500/20">
+                                        <h1 className="text-2xl font-bold text-dark-100 mb-2">Welcome back, {user.name.split(' ')[0]}! 👋</h1>
+                                        <p className="text-dark-400 text-sm mb-4">Here's what's happening with your profile</p>
 
-                                    {/* Quick Stats Bar */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <div className="p-4 rounded-2xl bg-dark-800/40 border border-dark-700/50">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <HiUserGroup className="text-blue-400" />
-                                                <span className="text-xs text-dark-400">Followers</span>
-                                            </div>
-                                            <div className="text-2xl font-bold text-dark-100">{formatNumber(profile.followerCount)}</div>
+                                        {/* Availability Toggle */}
+                                        <button
+                                            onClick={handleToggleAvailability}
+                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${profile.isAvailable
+                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                                : 'bg-dark-700 text-dark-400 border border-dark-600'
+                                                }`}
+                                        >
+                                            <span className={`w-2 h-2 rounded-full ${profile.isAvailable ? 'bg-emerald-400' : 'bg-dark-500'}`}></span>
+                                            {profile.isAvailable ? 'Available for work' : 'Not available'}
+                                        </button>
+                                    </div>
+
+                                    {/* Quick Stats - Only 3 Cards */}
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="p-4 rounded-xl bg-dark-800/40 border border-dark-700/50">
+                                            <div className="text-xs text-dark-400 mb-1">Active</div>
+                                            <div className="text-2xl font-bold text-dark-100">{pendingApplications}</div>
+                                            <div className="text-xs text-dark-500">Applications</div>
                                         </div>
-                                        <div className="p-4 rounded-2xl bg-dark-800/40 border border-dark-700/50">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <HiLightningBolt className="text-amber-400" />
-                                                <span className="text-xs text-dark-400">Engagement</span>
-                                            </div>
-                                            <div className="text-2xl font-bold text-dark-100">{profile.engagementRate}%</div>
+                                        <div className="p-4 rounded-xl bg-dark-800/40 border border-dark-700/50">
+                                            <div className="text-xs text-dark-400 mb-1">Earned</div>
+                                            <div className="text-2xl font-bold text-emerald-400">₹{(completedCampaigns * 5000).toLocaleString()}</div>
+                                            <div className="text-xs text-dark-500">This month</div>
+                                        </div>
+                                        <div className="p-4 rounded-xl bg-dark-800/40 border border-dark-700/50">
+                                            <div className="text-xs text-dark-400 mb-1">AI Score</div>
+                                            <div className="text-2xl font-bold text-primary-400">{profile.aiMatchScore || 87}</div>
+                                            <div className="text-xs text-dark-500">Rating</div>
                                         </div>
                                     </div>
 
-                                    {/* Profile Progress */}
-                                    <ProfileProgress profile={profile} onEditProfile={() => setActiveTab('profile')} />
+                                    {/* Today's Focus */}
+                                    <div className="p-5 rounded-xl bg-dark-800/40 border border-dark-700/50">
+                                        <h3 className="text-lg font-semibold text-dark-100 mb-4">Today's Focus</h3>
+                                        <div className="space-y-3">
+                                            {promotions.length > 0 && (
+                                                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary-500/10 border border-primary-500/20 cursor-pointer hover:bg-primary-500/20 transition"
+                                                    onClick={() => setActiveTab('opportunities')}>
+                                                    <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center">
+                                                        <HiSparkles className="w-5 h-5 text-primary-400" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="text-sm font-medium text-dark-100">{promotions.length} new opportunities match you</div>
+                                                        <div className="text-xs text-dark-400">Browse brands looking for creators</div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {pendingApplications > 0 && (
+                                                <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                                                    <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                                                        <FaCheck className="w-4 h-4 text-amber-400" />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="text-sm font-medium text-dark-100">{pendingApplications} brands waiting for response</div>
+                                                        <div className="text-xs text-dark-400">Check your applications</div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-dark-700/40 border border-dark-600/50 cursor-pointer hover:bg-dark-700 transition"
+                                                onClick={() => setActiveTab('profile')}>
+                                                <div className="w-10 h-10 rounded-full bg-dark-600 flex items-center justify-center">
+                                                    <FaCog className="w-4 h-4 text-dark-400" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="text-sm font-medium text-dark-100">Profile completion</div>
+                                                    <div className="text-xs text-dark-400">Complete for better matches</div>
+                                                </div>
+                                                <div className="text-sm font-semibold text-primary-400">90%</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Recent Applications */}
+                                    {applications.length > 0 && (
+                                        <div className="p-5 rounded-xl bg-dark-800/40 border border-dark-700/50">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h3 className="text-lg font-semibold text-dark-100">Recent Activity</h3>
+                                                <button className="text-sm text-primary-400 hover:text-primary-300">View All</button>
+                                            </div>
+                                            <div className="space-y-2">
+                                                {applications.slice(0, 3).map((app, idx) => (
+                                                    <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-dark-700/40 border border-dark-600/30">
+                                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white text-xs font-bold">
+                                                            {app.request?.brand?.name?.[0] || 'B'}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-sm font-medium text-dark-100 truncate">
+                                                                {app.request?.title || 'Brand Collaboration'}
+                                                            </div>
+                                                            <div className="text-xs text-dark-400">Applied 2 hours ago</div>
+                                                        </div>
+                                                        <span className={`px-2 py-1 text-xs rounded-full ${app.applicationStatus === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                            app.applicationStatus === 'Rejected' ? 'bg-red-500/20 text-red-400' :
+                                                                'bg-amber-500/20 text-amber-400'
+                                                            }`}>
+                                                            {app.applicationStatus}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                 </>
                             ) : (
                                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
@@ -199,39 +312,7 @@ const CreatorDashboard = () => {
                         </motion.div>
                     )}
 
-                    {/* Applications Tab */}
-                    {activeTab === 'applications' && (
-                        <motion.div
-                            key="applications"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="p-4"
-                        >
-                            <div className="mb-4">
-                                <h2 className="text-xl font-bold text-dark-100 mb-1">My Applications</h2>
-                                <p className="text-sm text-dark-400">{applications.length} total applications</p>
-                            </div>
-                            <ApplicationsView applications={applications} />
-                        </motion.div>
-                    )}
 
-                    {/* Achievements Tab */}
-                    {activeTab === 'achievements' && (
-                        <motion.div
-                            key="achievements"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="p-4"
-                        >
-                            <div className="mb-4">
-                                <h2 className="text-xl font-bold text-dark-100 mb-1">Your Achievements</h2>
-                                <p className="text-sm text-dark-400">Milestones & badges earned</p>
-                            </div>
-                            <BadgeShowcase />
-                        </motion.div>
-                    )}
 
                     {/* Messages Tab */}
                     {activeTab === 'messages' && (
