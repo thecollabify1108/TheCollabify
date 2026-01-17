@@ -11,7 +11,7 @@ import {
 import { HiSparkles } from 'react-icons/hi';
 import CreatorCard from './CreatorCard';
 
-const CampaignTracker = ({ request, onAccept, onReject, onUpdateStatus, onMessage }) => {
+const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus, onMessage }) => {
     const [activeSection, setActiveSection] = useState('applicants');
 
     const applicants = request.matchedCreators?.filter(mc => mc.status === 'Applied') || [];
@@ -68,8 +68,18 @@ const CampaignTracker = ({ request, onAccept, onReject, onUpdateStatus, onMessag
                         </div>
                     </div>
 
-                    {/* Status Actions */}
+                    {/* Action Buttons */}
                     <div className="mt-4 md:mt-0 md:ml-6 flex flex-col gap-2">
+                        {/* Close Modal Button */}
+                        <button
+                            onClick={onClose}
+                            className="btn-outline text-sm flex items-center text-dark-300 border-dark-600 hover:bg-dark-700"
+                        >
+                            <FaTimes className="mr-2" />
+                            Close
+                        </button>
+
+                        {/* Campaign Status Actions */}
                         {request.status === 'Accepted' && (
                             <button
                                 onClick={() => onUpdateStatus(request._id, 'Completed')}
@@ -81,11 +91,15 @@ const CampaignTracker = ({ request, onAccept, onReject, onUpdateStatus, onMessag
                         )}
                         {['Open', 'Creator Interested'].includes(request.status) && (
                             <button
-                                onClick={() => onUpdateStatus(request._id, 'Cancelled')}
+                                onClick={() => {
+                                    if (window.confirm('Are you sure you want to cancel this campaign? This action cannot be undone.')) {
+                                        onUpdateStatus(request._id, 'Cancelled');
+                                    }
+                                }}
                                 className="btn-outline text-sm flex items-center text-red-400 border-red-500/50 hover:bg-red-500/10"
                             >
-                                <FaTimes className="mr-2" />
-                                Cancel
+                                <FaFlag className="mr-2" />
+                                Cancel Campaign
                             </button>
                         )}
                     </div>
