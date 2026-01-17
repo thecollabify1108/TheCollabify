@@ -118,11 +118,21 @@
     @apply block text-sm font-medium text-dark-300 mb-2;
   }
 
-  /* Card hover effect */
+  /* Card hover effect - Enhanced with Scale */
   .card-hover {
     @apply transition-all duration-300;
     @apply hover:shadow-2xl hover:shadow-primary-500/10;
-    @apply hover:-translate-y-1;
+    @apply hover:-translate-y-2 hover:scale-[1.02];
+  }
+
+  /* Mobile tap scale effect */
+  .tap-scale {
+    @apply active:scale-95 transition-transform duration-150;
+  }
+
+  /* Interactive card (combines hover + tap) */
+  .card-interactive {
+    @apply card-hover tap-scale cursor-pointer;
   }
 
   /* Floating orb decoration */
