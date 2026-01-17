@@ -226,6 +226,111 @@ const ForBrands = () => {
                 </div>
             </section>
 
+            {/* Features Section */}
+            <section className="py-16 px-4 bg-dark-900/30">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-dark-100">
+                        Why Brands Choose <span className="gradient-text">TheCollabify</span>
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className="glass-card p-6 hover:border-primary-500/50 transition"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-primary-500/20 flex items-center justify-center mb-4">
+                                <svg className="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">AI-Powered Matching</h3>
+                            <p className="text-dark-400">Our algorithm matches you with creators that align perfectly with your brand values and target audience.</p>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="glass-card p-6 hover:border-primary-500/50 transition"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
+                                <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Performance Tracking</h3>
+                            <p className="text-dark-400">Monitor campaign performance in real-time with detailed analytics and ROI metrics.</p>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="glass-card p-6 hover:border-primary-500/50 transition"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center mb-4">
+                                <svg className="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Flexible Budgets</h3>
+                            <p className="text-dark-400">Set your budget and find creators that fit. From micro-influencers to macro creators.</p>
+                        </motion.div>
+                    </div>
+                </div>
+            </section>
+
+            {/* How It Works */}
+            <section className="py-16 px-4">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-dark-100">
+                        Launch Your Campaign in <span className="gradient-text">3 Simple Steps</span>
+                    </h2>
+                    <div className="space-y-8">
+                        {[
+                            { step: '01', title: 'Create Campaign', desc: 'Define your campaign goals, budget, and target audience in minutes' },
+                            { step: '02', title: 'Get Matched', desc: 'Our AI finds and suggests the best creators for your brand automatically' },
+                            { step: '03', title: 'Track & Measure', desc: 'Monitor performance, communicate directly, and see your ROI grow' }
+                        ].map((item, idx) => (
+                            <motion.div
+                                key={idx}
+                                initial={{ opacity: 0, x: -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="flex items-start gap-6"
+                            >
+                                <div className="text-5xl font-bold gradient-text opacity-30">{item.step}</div>
+                                <div className="flex-1">
+                                    <h3 className="text-xl font-semibold text-dark-100 mb-2">{item.title}</h3>
+                                    <p className="text-dark-400">{item.desc}</p>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* CTA Section */}
+            <section className="py-16 px-4 bg-gradient-to-br from-primary-500/10 to-secondary-500/10">
+                <div className="max-w-4xl mx-auto text-center">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-4 text-dark-100">
+                        Ready to Amplify Your Brand?
+                    </h2>
+                    <p className="text-dark-400 text-lg mb-8">
+                        Join hundreds of brands already growing with TheCollabify
+                    </p>
+                    <motion.button
+                        onClick={() => navigate('/register?role=seller')}
+                        className="px-8 py-4 bg-primary-500 text-white rounded-xl font-semibold text-lg hover:bg-primary-600 transition"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        Start Free Campaign
+                    </motion.button>
+                </div>
+            </section>
+
             {/* Back to Home Button */}
             <div className="py-12 px-4 text-center">
                 <Link

@@ -687,11 +687,34 @@ const Landing = () => {
                 </div>
             </footer>
 
+            {/* Floating Mobile CTA Bar - High Conversion */}
+            <motion.div
+                initial={{ y: 100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 1, duration: 0.5 }}
+                className="fixed bottom-0 left-0 right-0 md:hidden bg-dark-900/95 backdrop-blur-xl border-t border-dark-700 p-4 z-50"
+            >
+                <div className="flex gap-3">
+                    <Link
+                        to="/register?role=creator"
+                        className="flex-1 text-center py-3 px-4 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500 text-dark-100 font-semibold transition-all"
+                    >
+                        I'm a Creator
+                    </Link>
+                    <Link
+                        to="/register?role=seller"
+                        className="flex-1 text-center py-3 px-4 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition shadow-lg shadow-primary-500/30"
+                    >
+                        I'm a Brand
+                    </Link>
+                </div>
+            </motion.div>
+
             {/* Scroll to Top Button - Optimized for Mobile */}
             {showScrollTop && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-8 right-8 w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary-500/80 hover:bg-primary-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 hover:scale-110 active:scale-95"
+                    className="fixed bottom-24 md:bottom-8 right-8 w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary-500/80 hover:bg-primary-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 hover:scale-110 active:scale-95"
                     aria-label="Scroll to top"
                 >
                     <span className="text-lg md:text-xl">↑</span>
