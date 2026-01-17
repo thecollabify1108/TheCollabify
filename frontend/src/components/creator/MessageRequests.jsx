@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaUser, FaCheck, FaTimes, FaClock, FaInbox } from 'react-icons/fa';
-import { HiSparkles } from 'react-icons/hi';
+import { motion } from 'framer-motion';
+import { FaCheck, FaTimes, FaEnvelope, FaBuilding } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
-const MessageRequests = ({ onAccept, onReject }) => {
-    const [requests, setRequests] = useState([]);
+/**
+ * MessageRequests - Shows pending message requests from sellers
+ * Creators can accept or reject requests
+ */
+const MessageRequests = ({ onAccept }) => {
     const [loading, setLoading] = useState(true);
-    const [processing, setProcessing] = useState(null);
+    const [requests, setRequests] = useState([]);
+    const [processing, setProcessing] = useState(new Set());
 
     useEffect(() => {
         fetchRequests();
@@ -17,62 +20,90 @@ const MessageRequests = ({ onAccept, onReject }) => {
     const fetchRequests = async () => {
         try {
             setLoading(true);
-            const res = await chatAPI.getRequests();
-            setRequests(res.data.data.requests);
+            const response = await chatAPI.getConversations();
+
+            // Filter only pending conversations
+            const pendingRequests = response.data.data.conversations.filter(
+                conv => conv.status === 'pending'
+            );
+
+            setRequests(pendingRequests);
         } catch (error) {
+            console.error('Failed to fetch requests:', error);
             toast.error('Failed to load message requests');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAccept = async (conversationId) => {
-        setProcessing(conversationId);
+    const handleAccept = async (requestId) => {
+        setProcessing(prev => new Set([...prev, requestId]));
         try {
-            await chatAPI.acceptRequest(conversationId);
-            toast.success('Message request accepted!');
-            setRequests(prev => prev.filter(r => r._id !== conversationId));
-            onAccept?.();
+            await chatAPI.acceptRequest(requestId);
+            toast.success('✅ Message request accepted!');
+
+            // Remove from list
+            setRequests(prev => prev.filter(r => r._id !== requestId));
+
+            // Notify parent to refresh conversations
+            if (onAccept) {
+                onAccept();
+            }
         } catch (error) {
             toast.error('Failed to accept request');
-        } finally {
-            setProcessing(null);
+            setProcessing(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(requestId);
+                return newSet;
+            });
         }
     };
 
-    const handleReject = async (conversationId) => {
-        if (!window.confirm('Reject this message request? This will delete the conversation.')) return;
-
-        setProcessing(conversationId);
+    const handleReject = async (requestId) => {
+        setProcessing(prev => new Set([...prev, requestId]));
         try {
-            await chatAPI.rejectRequest(conversationId);
+            await chatAPI.rejectRequest(requestId);
             toast.success('Message request rejected');
-            setRequests(prev => prev.filter(r => r._id !== conversationId));
-            onReject?.();
+
+            // Remove from list
+            setRequests(prev => prev.filter(r => r._id !== requestId));
         } catch (error) {
             toast.error('Failed to reject request');
-        } finally {
-            setProcessing(null);
+            setProcessing(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(requestId);
+                return newSet;
+            });
         }
     };
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-2 border-primary-500 rounded-full border-t-transparent animate-spin" />
+            <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="glass-card p-4 animate-pulse">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-dark-700" />
+                            <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-dark-700 rounded w-1/3" />
+                                <div className="h-3 bg-dark-700 rounded w-1/2" />
+                            </div>
+                        </div>
+                    </div>
+                ))}
             </div>
         );
     }
 
     if (requests.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
-                <div className="w-20 h-20 rounded-full bg-dark-800/50 flex items-center justify-center mb-4">
-                    <FaInbox className="text-4xl text-dark-600" />
+            <div className="text-center py-12">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-dark-800/50 flex items-center justify-center">
+                    <FaEnvelope className="text-3xl text-dark-500" />
                 </div>
-                <h3 className="text-lg font-semibold text-dark-100 mb-2">No message requests</h3>
-                <p className="text-sm text-dark-400 max-w-sm">
-                    When sellers want to message you, their requests will appear here for your approval.
+                <h3 className="text-lg font-semibold text-dark-200 mb-2">No Pending Requests</h3>
+                <p className="text-sm text-dark-400">
+                    You don't have any message requests at the moment
                 </p>
             </div>
         );
@@ -80,49 +111,6 @@ const MessageRequests = ({ onAccept, onReject }) => {
 
     return (
         <div className="space-y-3">
-            <AnimatePresence>
-                {requests.map((request, index) => {
-                    const seller = request.sellerId;
-                    const campaign = request.promotionId;
-
-                    return (
-                        <motion.div
-                            key={request._id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, x: -100 }}
-                            transition={{ delay: index * 0.05 }}
-                            className="bg-dark-800/60 border border-dark-700 rounded-xl p-4 hover:border-primary-500/30 transition-all"
-                        >
-                            {/* Seller Info */}
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
-                                    {seller?.name?.charAt(0).toUpperCase() || 'S'}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-dark-100 truncate">{seller?.name || 'Seller'}</h4>
-                                    <p className="text-sm text-dark-400 truncate">{seller?.email}</p>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-amber-400 bg-amber-500/10 px-2 py-1 rounded-full">
-                                    <FaClock />
-                                    <span>Pending</span>
-                                </div>
-                            </div>
-
-                            {/* Campaign Info */}
-                            {campaign && (
-                                <div className="mb-4 p-3 bg-dark-700/50 rounded-lg">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <HiSparkles className="text-primary-400" />
-                                        <span className="text-xs text-dark-400 uppercase tracking-wider">Campaign</span>
-                                    </div>
-                                    <p className="text-sm text-dark-200 font-medium truncate">{campaign.title}</p>
-                                </div>
-                            )}
-
-                            {/* Action Buttons */}
-                            <div className="flex gap-2">
-                                <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => handleAccept(request._id)}
@@ -142,12 +130,12 @@ const MessageRequests = ({ onAccept, onReject }) => {
                                     <FaTimes />
                                     Reject
                                 </motion.button>
-                            </div>
-                        </motion.div>
+                            </div >
+                        </motion.div >
                     );
                 })}
-            </AnimatePresence>
-        </div>
+            </AnimatePresence >
+        </div >
     );
 };
 
