@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaCrown, FaTrophy, FaMedal, FaStar } from 'react-icons/fa';
+import { FaCrown, FaTrophy, FaMedal, FaStar, FaExclamationTriangle, FaRedo } from 'react-icons/fa';
 import { publicAPI } from '../../services/api';
+import EmptyState from './EmptyState';
 
 const Leaderboard = () => {
     const [period, setPeriod] = useState('allTime');
     const [creators, setCreators] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const periods = [
         { id: 'weekly', label: 'This Week' },
@@ -14,21 +16,23 @@ const Leaderboard = () => {
         { id: 'allTime', label: 'All Time' }
     ];
 
-    useEffect(() => {
-        const fetchLeaderboard = async () => {
-            setLoading(true);
-            try {
-                const response = await publicAPI.getLeaderboard({ period, limit: 10 });
-                if (response.data.success) {
-                    setCreators(response.data.data.creators);
-                }
-            } catch (error) {
-                console.error('Failed to fetch leaderboard', error);
-            } finally {
-                setLoading(false);
+    const fetchLeaderboard = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await publicAPI.getLeaderboard({ period, limit: 10 });
+            if (response.data.success) {
+                setCreators(response.data.data.creators);
             }
-        };
+        } catch (error) {
+            console.error('Failed to fetch leaderboard', error);
+            setError(error.message || 'Failed to load leaderboard');
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchLeaderboard();
     }, [period]);
 

@@ -77,9 +77,11 @@ const ForCreators = () => {
                                 to="/for-creators"
                                 className="text-dark-100 font-medium border-b-2 border-primary-500 pb-1"
                             >
-                                For Influencer
+                                For Influencers
                             </Link>
                             <ThemeToggle />
+                            <Link to="/login" className="px-4 py-2 text-dark-300 hover:text-dark-100 transition">Login</Link>
+                            <Link to="/register" className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition">Get Started</Link>
                         </div>
 
                         {/* Mobile Right Side */}
@@ -120,7 +122,7 @@ const ForCreators = () => {
                                 className="block py-3 px-4 rounded-xl text-dark-100 bg-dark-800 font-medium"
                                 onClick={() => setMobileMenuOpen(false)}
                             >
-                                For Influencer
+                                For Influencers
                             </Link>
                             <Link
                                 to="/"
@@ -128,6 +130,20 @@ const ForCreators = () => {
                                 onClick={() => setMobileMenuOpen(false)}
                             >
                                 ← Back to Home
+                            </Link>
+                            <Link
+                                to="/login"
+                                className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Login
+                            </Link>
+                            <Link
+                                to="/register"
+                                className="block py-3 px-4 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                Get Started
                             </Link>
                         </div>
                     </div>
