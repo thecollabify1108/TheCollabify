@@ -40,6 +40,7 @@ const SellerDashboard = () => {
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [processedCreators, setProcessedCreators] = useState(new Set());
+    const [aiSuggestionData, setAiSuggestionData] = useState(null);
 
     useEffect(() => {
         fetchRequests();
@@ -64,6 +65,75 @@ const SellerDashboard = () => {
             setConversations(res.data.data.conversations || []);
         } catch (error) {
             console.error('Failed to fetch conversations', error);
+        }
+    };
+
+    // Transform AI suggestion to form data
+    const transformSuggestionToFormData = (suggestion) => {
+        const baseData = {
+            title: '',
+            promotionType: '',
+            budget: '',
+            description: '',
+            requirements: '',
+            targetNiche: [],
+            minFollowers: 1000,
+            maxFollowers: 100000
+        };
+
+        switch (suggestion.type) {
+            case 'timing':
+                return {
+                    ...baseData,
+                    title: 'Evening Launch Campaign',
+                    description: 'Campaign optimized for evening launch (6-9 PM) to maximize creator engagement and application rates.'
+                };
+
+            case 'category':
+                return {
+                    ...baseData,
+                    title: `${suggestion.data?.category || 'Fashion'} Campaign`,
+                    targetNiche: [suggestion.data?.category || 'Fashion'],
+                    description: `Promote your brand in the ${suggestion.data?.category || 'Fashion'} niche with high creator availability.`
+                };
+
+            case 'budget':
+                return {
+                    ...baseData,
+                    title: 'Optimized Budget Campaign',
+                    budget: suggestion.data?.max || suggestion.data?.min || '3000',
+                    description: 'Campaign with budget optimized for maximum quality applicants based on market trends.'
+                };
+
+            case 'promotion':
+                return {
+                    ...baseData,
+                    title: `${suggestion.data?.promotionType || 'Reels'} Campaign`,
+                    promotionType: suggestion.data?.promotionType || 'Reel',
+                    description: `${suggestion.data?.promotionType || 'Reels'} campaign designed for maximum engagement and viral potential.`
+                };
+
+            case 'followers':
+                return {
+                    ...baseData,
+                    title: 'Micro-Influencer Campaign',
+                    minFollowers: suggestion.data?.followerMin || 5000,
+                    maxFollowers: suggestion.data?.followerMax || 25000,
+                    description: 'Target micro-influencers with high engagement rates for authentic, impactful promotions.'
+                };
+
+            case 'quickstart':
+                return {
+                    ...baseData,
+                    title: 'Quick Start Campaign',
+                    promotionType: 'Reel',
+                    budget: '3000',
+                    targetNiche: ['Fashion'],
+                    description: 'AI-optimized quick start campaign with recommended settings for best results.'
+                };
+
+            default:
+                return baseData;
         }
     };
 
@@ -353,9 +423,10 @@ const SellerDashboard = () => {
                             <AICampaignSuggestions
                                 requests={requests}
                                 onApplySuggestion={(suggestion) => {
-                                    if (suggestion.type === 'quickstart' || suggestion.type === 'category') {
-                                        setShowRequestWizard(true);
-                                    }
+                                    // Transform AI suggestion to form data
+                                    const formData = transformSuggestionToFormData(suggestion);
+                                    setAiSuggestionData(formData);
+                                    setShowRequestWizard(true);
                                 }}
                             />
                         </motion.div>
@@ -404,8 +475,12 @@ const SellerDashboard = () => {
             {/* Modals */}
             <RequestWizard
                 isOpen={showRequestWizard}
-                onClose={() => setShowRequestWizard(false)}
+                onClose={() => {
+                    setShowRequestWizard(false);
+                    setAiSuggestionData(null);
+                }}
                 onSubmit={handleCreateRequest}
+                initialData={aiSuggestionData}
             />
 
             {selectedRequest && (
