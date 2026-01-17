@@ -50,14 +50,25 @@
     animation: gradient 8s ease infinite;
   }
 
-  /* 3D Button */
+  /* 3D Button with Animated Glow */
   .btn-3d {
     @apply relative px-6 py-3 font-semibold rounded-xl transition-all duration-200;
     @apply bg-gradient-to-r from-primary-600 to-secondary-600;
     @apply hover:from-primary-500 hover:to-secondary-500;
-    @apply shadow-lg hover:shadow-xl hover:shadow-primary-500/25;
+    @apply shadow-lg hover:shadow-xl;
     @apply transform hover:-translate-y-1 active:translate-y-0;
     @apply text-white;
+    box-shadow:
+      0 10px 25px -5px rgba(139, 92, 246, 0.3),
+      0 8px 10px -6px rgba(236, 72, 153, 0.2);
+  }
+
+  .btn-3d:hover {
+    box-shadow:
+      0 20px 40px -10px rgba(139, 92, 246, 0.4),
+      0 8px 16px -6px rgba(236, 72, 153, 0.3),
+      0 0 20px rgba(139, 92, 246, 0.5);
+    animation: button-glow 1.5s ease-in-out infinite;
   }
 
   .btn-3d::before {
@@ -291,6 +302,25 @@
 
   75% {
     transform: translate(20px, 30px) scale(1.05) rotate(270deg);
+  }
+}
+
+/* Button glow animation */
+@keyframes button-glow {
+
+  0%,
+  100% {
+    box-shadow:
+      0 20px 40px -10px rgba(139, 92, 246, 0.4),
+      0 8px 16px -6px rgba(236, 72, 153, 0.3),
+      0 0 20px rgba(139, 92, 246, 0.5);
+  }
+
+  50% {
+    box-shadow:
+      0 20px 40px -10px rgba(139, 92, 246, 0.5),
+      0 8px 16px -6px rgba(236, 72, 153, 0.4),
+      0 0 30px rgba(139, 92, 246, 0.6);
   }
 }
 
