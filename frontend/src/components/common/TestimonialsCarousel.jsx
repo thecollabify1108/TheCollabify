@@ -4,6 +4,8 @@ import { FaQuoteLeft, FaStar, FaChevronLeft, FaChevronRight } from 'react-icons/
 const TestimonialsCarousel = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    const [touchStart, setTouchStart] = useState(0);
+    const [touchEnd, setTouchEnd] = useState(0);
 
     const testimonials = [
         {
@@ -68,6 +70,33 @@ const TestimonialsCarousel = () => {
         setIsAutoPlaying(false);
     };
 
+    // Touch handlers for mobile swipe
+    const handleTouchStart = (e) => {
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchMove = (e) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > 50;
+        const isRightSwipe = distance < -50;
+
+        if (isLeftSwipe) {
+            goToNext();
+        } else if (isRightSwipe) {
+            goToPrev();
+        }
+
+        // Reset
+        setTouchStart(0);
+        setTouchEnd(0);
+    };
+
     return (
         <section className="py-24 px-4 relative overflow-hidden">
             <div className="max-w-4xl mx-auto">
@@ -99,6 +128,9 @@ const TestimonialsCarousel = () => {
                     <div
                         className="carousel-track"
                         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
                     >
                         {testimonials.map((testimonial, index) => (
                             <div key={index} className="carousel-slide px-8">

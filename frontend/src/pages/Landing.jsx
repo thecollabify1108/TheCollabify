@@ -687,14 +687,14 @@ const Landing = () => {
                 </div>
             </footer>
 
-            {/* Scroll to Top Button */}
+            {/* Scroll to Top Button - Optimized for Mobile */}
             {showScrollTop && (
                 <button
                     onClick={scrollToTop}
-                    className="fixed bottom-8 right-8 w-12 h-12 rounded-full bg-primary-500 text-white shadow-lg hover:bg-primary-600 transition-all duration-300 flex items-center justify-center z-50 animate-bounce-slow"
+                    className="fixed bottom-8 right-8 w-10 h-10 md:w-12 md:h-12 rounded-full bg-primary-500/80 hover:bg-primary-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 hover:scale-110 active:scale-95"
                     aria-label="Scroll to top"
                 >
-                    <span className="text-xl">↑</span>
+                    <span className="text-lg md:text-xl">↑</span>
                 </button>
             )}
         </div>
