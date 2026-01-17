@@ -32,7 +32,7 @@ import { FaSearch } from 'react-icons/fa';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('discover');
+    const [activeTab, setActiveTab] = useState('dashboard');
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showRequestWizard, setShowRequestWizard] = useState(false);
@@ -238,14 +238,34 @@ const SellerDashboard = () => {
 
     const pendingCreators = getPendingCreators();
 
-    // Bottom navigation tabs
+    // Simplified bottom navigation - 4 tabs instead of 6
     const tabs = [
-        { id: 'feed', label: 'Profile', icon: <HiHome /> },
-        { id: 'search', label: 'Find', icon: <FaSearch /> },
-        { id: 'discover', label: 'Matches', icon: <HiUserGroup /> },
-        { id: 'campaigns', label: 'Campaigns', icon: <HiViewGrid /> },
-        { id: 'messages', label: 'Messages', icon: <HiChat />, badge: conversations.filter(c => c.unreadCount > 0).length },
-        { id: 'ai', label: 'AI', icon: <HiSparkles /> }
+        {
+            id: 'dashboard',
+            label: 'Dashboard',
+            icon: <HiHome />,
+            description: 'Overview & Campaigns'
+        },
+        {
+            id: 'search',
+            label: 'Search',
+            icon: <FaSearch />,
+            description: 'Find Creators'
+        },
+        {
+            id: 'discover',
+            label: 'Matches',
+            icon: <HiUserGroup />,
+            badge: pendingCreators.length,
+            description: 'Review Applicants'
+        },
+        {
+            id: 'messages',
+            label: 'Messages',
+            icon: <HiChat />,
+            badge: conversations.filter(c => c.unreadCount > 0).length,
+            description: 'Chat with Creators'
+        }
     ];
 
     if (loading) {
