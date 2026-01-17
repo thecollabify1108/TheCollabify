@@ -226,6 +226,11 @@
     background: theme('colors.dark.800');
     border-radius: calc(1rem - 1px);
   }
+
+  /* Minimum tap target size for accessibility */
+  .min-tap-target {
+    @apply min-w-[44px] min-h-[44px] flex items-center justify-center;
+  }
 }
 
 /* 3D Floating Orbs Background */
