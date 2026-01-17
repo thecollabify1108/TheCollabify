@@ -383,7 +383,7 @@ const Landing = () => {
             </section>
 
             {/* How It Works - Large Numbers Style */}
-            <section id="how-it-works" className="py-24 px-4 relative">
+            <section id="how-it-works" className="py-28 md:py-32 px-4 relative">
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-16">
                         <motion.h2
@@ -440,7 +440,7 @@ const Landing = () => {
             </section>
 
             {/* Features - Bento Box Style */}
-            <section id="features" className="py-24 px-4 relative bg-dark-900/50">
+            <section id="features" className="py-28 md:py-32 px-4 relative bg-dark-900/50">
                 <div className="max-w-6xl mx-auto relative z-10">
                     <div className="text-center mb-16">
                         <motion.h2
@@ -504,7 +504,7 @@ const Landing = () => {
             <FAQAccordion />
 
             {/* Final CTA Section */}
-            <section className="py-24 px-4 relative">
+            <section className="py-28 md:py-32 px-4 relative">
                 <div className="max-w-4xl mx-auto">
                     <motion.div
                         className="glass-card p-12 md:p-16 text-center relative overflow-hidden"
@@ -541,7 +541,7 @@ const Landing = () => {
             </section>
 
             {/* About Section */}
-            <section id="about" className="py-24 px-4 relative">
+            <section id="about" className="py-28 md:py-32 px-4 relative">
                 <div className="max-w-7xl mx-auto">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
