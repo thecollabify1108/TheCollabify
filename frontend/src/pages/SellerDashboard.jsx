@@ -47,7 +47,19 @@ const SellerDashboard = () => {
 
     useEffect(() => {
         fetchRequests();
-        fetchConversations();
+        fetchMatches();
+
+        // Listen for message request events from CreatorSearch
+        const handleSwitchToMessages = (event) => {
+            const { conversation } = event.detail;
+            if (conversation) {
+                setSelectedConversation(conversation);
+                setActiveTab('messages');
+            }
+        };
+
+        window.addEventListener('switchToMessages', handleSwitchToMessages);
+        return () => window.removeEventListener('switchToMessages', handleSwitchToMessages);
     }, []);
 
     const fetchRequests = async () => {

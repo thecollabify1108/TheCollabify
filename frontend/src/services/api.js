@@ -109,9 +109,10 @@ export const chatAPI = {
     deleteConversation: (conversationId) => api.delete(`/chat/conversations/${conversationId}`),
     findOrRestoreConversation: (promotionId, creatorId) => api.post('/chat/find-or-restore', { promotionId, creatorId }),
     // Message request endpoints
+    sendMessageRequest: (creatorId) => api.post('/chat/message-request', { creatorId }),
     getRequests: () => api.get('/chat/requests'),
-    acceptRequest: (conversationId) => api.post(`/chat/conversations/${conversationId}/accept`),
-    rejectRequest: (conversationId) => api.post(`/chat/conversations/${conversationId}/reject`)
+    acceptRequest: (conversationId) => api.post(`/chat/message-request/${conversationId}/accept`),
+    rejectRequest: (conversationId) => api.post(`/chat/message-request/${conversationId}/reject`)
 };
 
 // Admin API

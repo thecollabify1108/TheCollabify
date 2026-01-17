@@ -113,16 +113,36 @@ const CreatorSearch = () => {
         setTimeout(() => setSelectedCreator(null), 300); // Wait for animation
     };
 
-    const handleMessage = (creator) => {
-        // TODO: Navigate to messages or open chat
-        console.log('Message creator:', creator);
-        handleCloseModal();
+    const handleMessage = async (creator) => {
+        try {
+            // Import needed - we'll add this at top
+            const { chatAPI } = await import('../../services/api');
+            const toast = (await import('react-hot-toast')).default;
+
+            // Send message request to creator
+            const response = await chatAPI.sendMessageRequest(creator._id || creator.creatorId._id);
+
+            if (response.data.success) {
+                toast.success('Message request sent! Waiting for creator approval.');
+                handleCloseModal();
+
+                // Notify parent to switch to messages tab
+                window.dispatchEvent(new CustomEvent('switchToMessages', {
+                    detail: { conversation: response.data.data.conversation }
+                }));
+            }
+        } catch (error) {
+            const toast = (await import('react-hot-toast')).default;
+            toast.error(error.response?.data?.message || 'Failed to send message request');
+        }
     };
 
     const handleInvite = (creator) => {
-        // TODO: Open campaign invitation modal
-        console.log('Invite creator:', creator);
+        // Close modal and trigger campaign creation with pre-filled creator
         handleCloseModal();
+        window.dispatchEvent(new CustomEvent('inviteCreator', {
+            detail: { creator }
+        }));
     };
 
 

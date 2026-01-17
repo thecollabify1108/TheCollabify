@@ -25,23 +25,19 @@ const handleValidation = (req, res, next) => {
  * @desc    Get user's conversations
  * @access  Private
  */
+// Get all conversations for a user
 router.get('/conversations', auth, async (req, res) => {
     try {
-        const userId = req.userId;
+        const userId = req.user._id;
+        const userRole = req.user.role;
 
-        // Find conversations where user is either seller or creator
-        // Exclude conversations deleted by this user
-        const conversations = await Conversation.find({
-            $or: [
-                { sellerId: userId },
-                { creatorUserId: userId }
-            ],
-            status: { $in: ['active', 'pending'] },
-            'deletedBy.userId': { $ne: userId }  // Exclude deleted by this user
-        })
-            .populate('sellerId', 'name email avatar')
-            .populate('creatorUserId', 'name email avatar')
-            .populate('promotionId', 'title status')
+        const query = userRole === 'seller'
+            ? { sellerUserId: userId }
+            : { creatorUserId: userId };
+
+        const conversations = await Conversation.find(query)
+            .populate('sellerUserId', 'name email')
+            .populate('creatorUserId', 'name email')
             .sort({ updatedAt: -1 });
 
         res.json({
@@ -52,7 +48,153 @@ router.get('/conversations', auth, async (req, res) => {
         console.error('Get conversations error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to get conversations'
+            message: 'Failed to fetch conversations'
+        });
+    }
+});
+
+// Send message request (seller to creator)
+router.post('/message-request', auth, async (req, res) => {
+    try {
+        const sellerId = req.user._id;
+        const { creatorId } = req.body;
+
+        if (req.user.role !== 'seller') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only sellers can send message requests'
+            });
+        }
+
+        // Check if conversation already exists
+        let conversation = await Conversation.findOne({
+            sellerUserId: sellerId,
+            creatorUserId: creatorId
+        });
+
+        if (conversation) {
+            return res.json({
+                success: true,
+                data: { conversation },
+                message: conversation.status === 'pending'
+                    ? 'Message request already sent'
+                    : 'Conversation already exists'
+            });
+        }
+
+        // Create new conversation with pending status
+        conversation = new Conversation({
+            sellerUserId: sellerId,
+            creatorUserId: creatorId,
+            status: 'pending',
+            lastMessage: 'Message request sent'
+        });
+
+        await conversation.save();
+
+        // Populate user details
+        await conversation.populate('sellerUserId', 'name email');
+        await conversation.populate('creatorUserId', 'name email');
+
+        res.json({
+            success: true,
+            data: { conversation },
+            message: 'Message request sent successfully'
+        });
+    } catch (error) {
+        console.error('Send message request error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to send message request'
+        });
+    }
+});
+
+// Accept message request (creator only)
+router.post('/message-request/:conversationId/accept', auth, async (req, res) => {
+    try {
+        const creatorId = req.user._id;
+        const { conversationId } = req.params;
+
+        if (req.user.role !== 'creator') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only creators can accept message requests'
+            });
+        }
+
+        const conversation = await Conversation.findOne({
+            _id: conversationId,
+            creatorUserId: creatorId,
+            status: 'pending'
+        });
+
+        if (!conversation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message request not found'
+            });
+        }
+
+        conversation.status = 'active';
+        conversation.lastMessage = 'Request accepted';
+        await conversation.save();
+
+        await conversation.populate('sellerUserId', 'name email');
+        await conversation.populate('creatorUserId', 'name email');
+
+        res.json({
+            success: true,
+            data: { conversation },
+            message: 'Message request accepted'
+        });
+    } catch (error) {
+        console.error('Accept message request error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to accept message request'
+        });
+    }
+});
+
+// Reject message request (creator only)
+router.post('/message-request/:conversationId/reject', auth, async (req, res) => {
+    try {
+        const creatorId = req.user._id;
+        const { conversationId } = req.params;
+
+        if (req.user.role !== 'creator') {
+            return res.status(403).json({
+                success: false,
+                message: 'Only creators can reject message requests'
+            });
+        }
+
+        const conversation = await Conversation.findOne({
+            _id: conversationId,
+            creatorUserId: creatorId,
+            status: 'pending'
+        });
+
+        if (!conversation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Message request not found'
+            });
+        }
+
+        // Delete the conversation or mark as rejected
+        await Conversation.findByIdAndDelete(conversationId);
+
+        res.json({
+            success: true,
+            message: 'Message request rejected'
+        });
+    } catch (error) {
+        console.error('Reject message request error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to reject message request'
         });
     }
 });
