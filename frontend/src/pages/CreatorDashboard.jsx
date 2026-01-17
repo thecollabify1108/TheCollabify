@@ -137,7 +137,7 @@ const CreatorDashboard = () => {
             {/* Main Content */}
             <main className="max-w-lg mx-auto">
                 <AnimatePresence mode="wait">
-                    {/* Home Tab - Content Creator Tips */}
+                    {/* Home Tab - Analytics Dashboard */}
                     {activeTab === 'home' && (
                         <motion.div
                             key="home"
@@ -148,8 +148,8 @@ const CreatorDashboard = () => {
                         >
                             {profile ? (
                                 <>
-                                    {/* Content Creator Tips */}
-                                    <ContentCreatorTips />
+                                    {/* Creator Analytics */}
+                                    <CreatorAnalytics />
 
                                     {/* Quick Stats Bar */}
                                     <div className="grid grid-cols-2 gap-3">
@@ -315,8 +315,8 @@ const CreatorDashboard = () => {
                                                 <button
                                                     onClick={handleToggleAvailability}
                                                     className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${profile.isAvailable
-                                                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                                            : 'bg-dark-700 text-dark-400 border border-dark-600'
+                                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                        : 'bg-dark-700 text-dark-400 border border-dark-600'
                                                         }`}
                                                 >
                                                     {profile.isAvailable ? '● Available' : 'Unavailable'}
