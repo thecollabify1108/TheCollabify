@@ -195,7 +195,7 @@ const ForgotPassword = () => {
                     <div className="text-center mb-8">
                         <Link to="/" className="inline-flex items-center space-x-2 mb-6">
                             <img src="/favicon.png" alt="" className="w-10 h-10 object-contain" />
-                            <span className="text-2xl font-bold gradient-text">The Collabify.ai</span>
+                            <span className="text-2xl font-bold gradient-text">TheCollabify</span>
                         </Link>
                         <h1 className="text-3xl font-bold text-dark-100 mb-2">{getStepTitle()}</h1>
                         <p className="text-dark-400">{getStepDescription()}</p>
