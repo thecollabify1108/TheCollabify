@@ -19,9 +19,10 @@ const creatorProfileSchema = new mongoose.Schema({
         validate: {
             validator: function (v) {
                 if (!v) return true; // Allow empty
-                return /^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9._]+\/?$/.test(v);
+                // More lenient regex: accepts various Instagram URL formats
+                return /^https?:\/\/(www\.)?instagram\.com\/.+/.test(v);
             },
-            message: 'Please provide a valid Instagram profile URL'
+            message: 'Please provide a valid Instagram profile URL (e.g., https://instagram.com/username)'
         }
     },
     instagramVerified: {

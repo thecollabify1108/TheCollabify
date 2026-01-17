@@ -251,7 +251,6 @@ const ProfileForm = ({ profile, onSave }) => {
                         onChange={handleChange}
                         placeholder="https://instagram.com/your_username"
                         className="input-field"
-                        pattern="https?://(www\.)?instagram\.com/[a-zA-Z0-9._]+/?"
                     />
                     <p className="text-xs text-dark-400 mt-1">
                         Add your Instagram profile link for verification
