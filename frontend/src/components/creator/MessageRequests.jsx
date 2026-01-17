@@ -111,31 +111,65 @@ const MessageRequests = ({ onAccept }) => {
 
     return (
         <div className="space-y-3">
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleAccept(request._id)}
-                                    disabled={processing === request._id}
-                                    className="flex-1 px-4 py-2.5 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                >
-                                    <FaCheck />
-                                    {processing === request._id ? 'Accepting...' : 'Accept'}
-                                </motion.button>
-                                <motion.button
-                                    whileHover={{ scale: 1.02 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    onClick={() => handleReject(request._id)}
-                                    disabled={processing === request._id}
-                                    className="flex-1 px-4 py-2.5 rounded-lg bg-dark-700 border border-dark-600 text-red-400 font-medium flex items-center justify-center gap-2 hover:bg-dark-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                >
-                                    <FaTimes />
-                                    Reject
-                                </motion.button>
-                            </div >
-                        </motion.div >
-                    );
-                })}
-            </AnimatePresence >
-        </div >
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-dark-100">
+                    Message Requests ({requests.length})
+                </h3>
+            </div>
+
+            {requests.map((request) => {
+                const seller = request.sellerUserId || {};
+                const isProcessing = processing.has(request._id);
+
+                return (
+                    <motion.div
+                        key={request._id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -100 }}
+                        className="glass-card p-4 hover:border-primary-500/30 transition"
+                    >
+                        <div className="flex items-start gap-3">
+                            {/* Seller Avatar */}
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold flex-shrink-0">
+                                {seller.name?.charAt(0).toUpperCase() || 'S'}
+                            </div>
+
+                            {/* Request Info */}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-semibold text-dark-100">{seller.name || 'Brand'}</h4>
+                                    <FaBuilding className="text-xs text-dark-500" />
+                                </div>
+                                <p className="text-sm text-dark-400 mb-3">
+                                    wants to send you a message
+                                </p>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleAccept(request._id)}
+                                        disabled={isProcessing}
+                                        className="flex-1 px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        <FaCheck className="text-sm" />
+                                        Accept
+                                    </button>
+                                    <button
+                                        onClick={() => handleReject(request._id)}
+                                        disabled={isProcessing}
+                                        className="flex-1 px-4 py-2 rounded-lg bg-dark-700 text-dark-200 font-medium hover:bg-dark-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        <FaTimes className="text-sm" />
+                                        Decline
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                );
+            })}
+        </div>
     );
 };
 
