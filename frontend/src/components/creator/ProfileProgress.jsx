@@ -10,14 +10,14 @@ const ProfileProgress = ({ profile, onEditProfile }) => {
     if (!profile) return null;
 
     // Calculate completion percentage based on filled fields
+    // Instagram URL is optional and doesn't affect completion
     const fields = [
-        { name: 'Category', filled: !!profile.category, weight: 15 },
-        { name: 'Follower Count', filled: profile.followerCount > 0, weight: 15 },
-        { name: 'Engagement Rate', filled: profile.engagementRate > 0, weight: 15 },
+        { name: 'Category', filled: !!profile.category, weight: 20 },
+        { name: 'Follower Count', filled: profile.followerCount > 0, weight: 20 },
+        { name: 'Engagement Rate', filled: profile.engagementRate > 0, weight: 20 },
         { name: 'Bio', filled: profile.bio?.length > 20, weight: 10 },
         { name: 'Price Range', filled: profile.priceRange?.min > 0, weight: 15 },
-        { name: 'Promotion Types', filled: profile.promotionTypes?.length > 0, weight: 15 },
-        { name: 'Instagram Username', filled: !!profile.instagramUsername, weight: 15 }
+        { name: 'Promotion Types', filled: profile.promotionTypes?.length > 0, weight: 15 }
     ];
 
     const completedWeight = fields
