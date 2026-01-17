@@ -28,6 +28,8 @@ import BadgeShowcase from '../components/creator/BadgeShowcase';
 import ContentCreatorTips from '../components/creator/ContentCreatorTips';
 import MessageRequests from '../components/creator/MessageRequests';
 import ProfileCard from '../components/creator/ProfileCard';
+import PullToRefresh from '../components/common/PullToRefresh';
+import { haptic } from '../utils/haptic';
 
 const CreatorDashboard = () => {
     const { user } = useAuth();
