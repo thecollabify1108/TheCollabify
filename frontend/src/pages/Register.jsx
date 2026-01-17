@@ -9,6 +9,7 @@ import axios from 'axios';
 import Footer from '../components/common/Footer';
 import Confetti from '../components/common/Confetti';
 import OTPInput from '../components/common/OTPInput';
+import PasswordStrengthIndicator from '../components/common/PasswordStrengthIndicator';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -345,6 +346,8 @@ const Register = () => {
                                             {showPassword ? <FaEyeSlash /> : <FaEye />}
                                         </button>
                                     </div>
+                                    {/* Password Strength Indicator */}
+                                    <PasswordStrengthIndicator password={formData.password} showFeedback={true} />
                                 </div>
 
                                 {/* Confirm Password */}
