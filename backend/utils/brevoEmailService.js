@@ -13,7 +13,7 @@ const sendOTPEmail = async (email, name, otpCode) => {
 
         sendSmtpEmail.sender = {
             name: "TheCollabify",
-            email: "noreply@thecollabify.com" // Can use any email
+            email: "thecollabify1108@gmail.com" // Verified sender
         };
         sendSmtpEmail.to = [{ email: email, name: name }];
         sendSmtpEmail.subject = "Your OTP Code - TheCollabify";
