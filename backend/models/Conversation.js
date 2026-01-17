@@ -27,7 +27,7 @@ const conversationSchema = new mongoose.Schema({
     },
     // For accept/reject feature - tracks if conversation needs approval
     acceptanceStatus: {
-        byCreator: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'accepted' },
+        byCreator: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
         bySeller: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'accepted' }
     },
     // For one-sided delete - tracks who has deleted the conversation from their view

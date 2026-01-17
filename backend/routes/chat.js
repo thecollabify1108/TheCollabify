@@ -264,6 +264,15 @@ router.post('/conversations/:id/messages', auth, [
             });
         }
 
+        // Check if conversation is accepted by creator
+        if (conversation.acceptanceStatus.byCreator !== 'accepted') {
+            return res.status(403).json({
+                success: false,
+                message: 'Creator has not accepted this conversation yet',
+                isPending: true
+            });
+        }
+
         // Create message
         const message = await Message.create({
             conversationId: req.params.id,
@@ -479,6 +488,139 @@ router.delete('/conversations/:id', auth, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to delete conversation'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/chat/conversations/:id/accept
+ * @desc    Accept a message request (Creator only)
+ * @access  Private
+ */
+router.post('/conversations/:id/accept', auth, async (req, res) => {
+    try {
+        const conversation = await Conversation.findById(req.params.id);
+
+        if (!conversation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Conversation not found'
+            });
+        }
+
+        // Verify user is the creator
+        const userId = req.userId.toString();
+        if (conversation.creatorUserId.toString() !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only creators can accept message requests'
+            });
+        }
+
+        // Check if already accepted
+        if (conversation.acceptanceStatus.byCreator === 'accepted') {
+            return res.json({
+                success: true,
+                message: 'Request already accepted'
+            });
+        }
+
+        // Accept the request
+        conversation.acceptanceStatus.byCreator = 'accepted';
+        await conversation.save();
+
+        // Populate for response
+        await conversation.populate('sellerId', 'name email avatar');
+        await conversation.populate('creatorUserId', 'name email avatar');
+        await conversation.populate('promotionId', 'title status');
+
+        res.json({
+            success: true,
+            message: 'Message request accepted',
+            data: { conversation }
+        });
+    } catch (error) {
+        console.error('Accept message request error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to accept message request'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/chat/conversations/:id/reject
+ * @desc    Reject a message request and delete conversation (Creator only)
+ * @access  Private
+ */
+router.post('/conversations/:id/reject', auth, async (req, res) => {
+    try {
+        const conversation = await Conversation.findById(req.params.id);
+
+        if (!conversation) {
+            return res.status(404).json({
+                success: false,
+                message: 'Conversation not found'
+            });
+        }
+
+        // Verify user is the creator
+        const userId = req.userId.toString();
+        if (conversation.creatorUserId.toString() !== userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Only creators can reject message requests'
+            });
+        }
+
+        // Delete the conversation entirely
+        await Conversation.findByIdAndDelete(req.params.id);
+
+        // Optionally delete all messages in this conversation
+        await Message.deleteMany({ conversationId: req.params.id });
+
+        res.json({
+            success: true,
+            message: 'Message request rejected and conversation deleted'
+        });
+    } catch (error) {
+        console.error('Reject message request error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to reject message request'
+        });
+    }
+});
+
+/**
+ * @route   GET /api/chat/requests
+ * @desc    Get pending message requests (Creator only)
+ * @access  Private
+ */
+router.get('/requests', auth, async (req, res) => {
+    try {
+        const userId = req.userId;
+
+        // Find conversations where user is creator and status is pending
+        const requests = await Conversation.find({
+            creatorUserId: userId,
+            'acceptanceStatus.byCreator': 'pending',
+            'deletedBy.userId': { $ne: userId }
+        })
+            .populate('sellerId', 'name email avatar')
+            .populate('creatorUserId', 'name email avatar')
+            .populate('promotionId', 'title status')
+            .sort({ createdAt: -1 });
+
+        res.json({
+            success: true,
+            data: { requests }
+        });
+    } catch (error) {
+        console.error('Get message requests error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get message requests'
         });
     }
 });
