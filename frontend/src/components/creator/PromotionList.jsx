@@ -1,16 +1,16 @@
 import { motion } from 'framer-motion';
 import { FaBriefcase, FaRupeeSign, FaUsers, FaCheck } from 'react-icons/fa';
+import EmptyState from '../common/EmptyState';
+import UrgencyBadge from '../common/UrgencyBadge';
 
 const PromotionList = ({ promotions, onApply }) => {
     if (!promotions || promotions.length === 0) {
         return (
-            <div className="glass-card p-12 text-center">
-                <FaBriefcase className="w-16 h-16 text-dark-600 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-dark-300 mb-2">No matching promotions</h3>
-                <p className="text-dark-400">
-                    We'll notify you when new opportunities match your profile. Make sure your profile is complete and you're marked as available.
-                </p>
-            </div>
+            <EmptyState
+                icon={<FaBriefcase className="text-5xl text-dark-500" />}
+                title="No matching opportunities yet"
+                description="We'll notify you when new campaigns match your profile. Make sure your profile is complete and you're marked as available for work."
+            />
         );
     }
 
@@ -67,6 +67,14 @@ const PromotionList = ({ promotions, onApply }) => {
                                                 : promotion.followerRange?.max} followers
                                     </span>
                                 </div>
+                            </div>
+
+                            {/* Urgency Indicators */}
+                            <div className="mt-3">
+                                <UrgencyBadge
+                                    daysLeft={promotion.deadline ? Math.ceil((new Date(promotion.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : undefined}
+                                    applicantCount={promotion.applications?.length}
+                                />
                             </div>
 
                             {/* Seller Info */}
