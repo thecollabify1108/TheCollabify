@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaPlus, FaTimes, FaCheck, FaClock, FaFire, FaUsers } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
+import UrgencyBadge from '../common/UrgencyBadge';
 
 const CampaignStories = ({ campaigns, onCreateNew, onSelectCampaign }) => {
     const [selectedStory, setSelectedStory] = useState(null);
@@ -157,6 +158,14 @@ const CampaignStories = ({ campaigns, onCreateNew, onSelectCampaign }) => {
                                     </div>
 
                                     <p className="text-dark-300 text-sm line-clamp-3">{selectedStory.description}</p>
+
+                                    {/* Urgency Indicators */}
+                                    <div className="pt-2">
+                                        <UrgencyBadge
+                                            daysLeft={selectedStory.deadline ? Math.ceil((new Date(selectedStory.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : undefined}
+                                            applicantCount={selectedStory.matchedCreators?.length}
+                                        />
+                                    </div>
 
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
