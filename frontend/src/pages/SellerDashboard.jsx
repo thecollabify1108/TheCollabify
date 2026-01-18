@@ -17,18 +17,12 @@ import toast from 'react-hot-toast';
 import Navbar from '../components/common/Navbar';
 import CampaignStories from '../components/seller/CampaignStories';
 import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
-import SocialActivityFeed from '../components/seller/SocialActivityFeed';
-import FloatingCreateButton from '../components/seller/FloatingCreateButton';
 import QuickStatsBar from '../components/seller/QuickStatsBar';
 import RequestWizard from '../components/seller/RequestWizard';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import MessagingPanel from '../components/seller/MessagingPanel';
-import CampaignAnalytics from '../components/seller/CampaignAnalytics';
-import AICampaignSuggestions from '../components/seller/AICampaignSuggestions';
 import OnboardingTour from '../components/common/OnboardingTour';
 import CreatorSearch from '../components/seller/CreatorSearch';
-import StartupTips from '../components/seller/StartupTips';
-import PullToRefresh from '../components/common/PullToRefresh';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import { haptic } from '../utils/haptic';
 import { FaSearch } from 'react-icons/fa';
@@ -329,20 +323,6 @@ const SellerDashboard = () => {
             {/* Main Content Area */}
             <main className="max-w-lg mx-auto">
                 <AnimatePresence mode="wait">
-                    {/* Profile/Feed Tab - Startup Tips */}
-                    {activeTab === 'feed' && (
-                        <motion.div
-                            key="feed"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="space-y-6 p-4"
-                        >
-                            {/* Startup Tips & Business Insights */}
-                            <StartupTips />
-                        </motion.div>
-                    )}
-
                     {/* Search Tab - Creator Discovery */}
                     {activeTab === 'search' && (
                         <motion.div
@@ -451,28 +431,6 @@ const SellerDashboard = () => {
                                 selectedConversation={selectedConversation}
                                 onSelectConversation={(conv) => setSelectedConversation(conv)}
                                 onBack={() => setSelectedConversation(null)}
-                            />
-                        </motion.div>
-                    )}
-
-                    {/* AI Suggestions Tab */}
-                    {activeTab === 'ai' && (
-                        <motion.div
-                            key="ai"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="p-4 space-y-6"
-                        >
-                            {/* AI Campaign Suggestions */}
-                            <AICampaignSuggestions
-                                requests={requests}
-                                onApplySuggestion={(suggestion) => {
-                                    // Transform AI suggestion to form data
-                                    const formData = transformSuggestionToFormData(suggestion);
-                                    setAiSuggestionData(formData);
-                                    setShowRequestWizard(true);
-                                }}
                             />
                         </motion.div>
                     )}
