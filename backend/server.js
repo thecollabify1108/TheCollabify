@@ -18,6 +18,9 @@ connectDB();
 
 const app = express();
 
+// Trust proxy - required when running behind Render/Heroku reverse proxy
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet()); // Set security headers
 app.use(compression()); // Compress responses
