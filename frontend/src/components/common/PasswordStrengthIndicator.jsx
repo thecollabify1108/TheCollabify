@@ -5,7 +5,7 @@ import {
     getStrengthColor,
     getStrengthText,
     getStrengthTextColor
-} from '../utils/passwordValidator';
+} from '../../utils/passwordValidator';
 
 /**
  * PasswordStrengthIndicator - Visual password strength meter
