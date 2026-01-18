@@ -1,4 +1,5 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const helmet = require('helmet');
@@ -9,6 +10,7 @@ const session = require('express-session');
 const morgan = require('morgan');
 const passport = require('./config/passport');
 const connectDB = require('./config/db');
+const initializeSocketServer = require('./socketServer');
 
 // Load environment variables
 dotenv.config();
@@ -148,9 +150,24 @@ app.use((err, req, res, next) => {
     });
 });
 
+// Create HTTP server (required for Socket.io)
+const server = http.createServer(app);
+
+// Initialize Socket.io for real-time features
+const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
+
+// Make Socket.io functions available to routes
+app.locals.sendNotification = sendNotification;
+app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
+app.locals.sendBulkNotification = sendBulkNotification;
+
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+server.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+    console.log(`🔌 WebSocket server ready for real-time features`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`📡 API available at http://localhost:${PORT}/api`);
 });
+
+module.exports = { app, server, io };
