@@ -757,7 +757,8 @@ const Landing = () => {
                     </button>
                 )}
             </div>
-            );
+        </>
+    );
 };
 
-            export default Landing;
+export default Landing;
