@@ -30,6 +30,7 @@ import MessageRequests from '../components/creator/MessageRequests';
 import ProfileCard from '../components/creator/ProfileCard';
 import PullToRefresh from '../components/common/PullToRefresh';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
+import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
 import { haptic } from '../utils/haptic';
 
 const CreatorDashboard = () => {
@@ -51,6 +52,23 @@ const CreatorDashboard = () => {
         if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
         if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
         return num.toString();
+    };
+
+    // Calculate profile completion percentage
+    const calculateProfileCompletion = () => {
+        if (!profile) return 0;
+        let completion = 0;
+        const fields = [
+            profile.instagramHandle,
+            profile.followerCount > 0,
+            profile.engagementRate > 0,
+            profile.category,
+            profile.bio,
+            profile.portfolio?.length > 0
+        ];
+        const filledFields = fields.filter(Boolean).length;
+        completion = Math.round((filledFields / fields.length) * 100);
+        return completion;
     };
 
     useEffect(() => {
@@ -196,6 +214,12 @@ const CreatorDashboard = () => {
                                             {profile.isAvailable ? 'Available for work' : 'Not available'}
                                         </button>
                                     </div>
+
+                                    {/* Profile Completion Progress */}
+                                    <ProfileCompletionBar
+                                        completion={calculateProfileCompletion()}
+                                        onComplete={() => setActiveTab('profile')}
+                                    />
 
                                     {/* Quick Stats - Only 3 Cards */}
                                     <div className="grid grid-cols-3 gap-3">

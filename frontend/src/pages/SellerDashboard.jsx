@@ -24,6 +24,7 @@ import MessagingPanel from '../components/seller/MessagingPanel';
 import OnboardingTour from '../components/common/OnboardingTour';
 import CreatorSearch from '../components/seller/CreatorSearch';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
+import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
 import { haptic } from '../utils/haptic';
 import { FaSearch } from 'react-icons/fa';
 
@@ -364,6 +365,12 @@ const SellerDashboard = () => {
                             exit={{ opacity: 0, x: -20 }}
                             className="p-4 space-y-4"
                         >
+                            {/* Profile Completion Bar */}
+                            <ProfileCompletionBar
+                                completion={user?.companyName && user?.email ? 100 : 60}
+                                onComplete={() => {/* Navigate to profile settings */ }}
+                            />
+
                             <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
                                 <HiSparkles className="text-primary-400" /> Your Campaigns
                             </h2>
