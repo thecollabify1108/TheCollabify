@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaInstagram, FaUser, FaSignOutAlt, FaCog } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import NotificationBell from './NotificationBell';
+import LiveNotificationBell from '../realtime/LiveNotificationBell';
 import ThemeToggle from './ThemeToggle';
 
 const Navbar = () => {
@@ -49,8 +49,8 @@ const Navbar = () => {
 
     return (
         <nav className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled
-                ? 'bg-dark-950/95 backdrop-blur-2xl border-dark-700 shadow-lg shadow-primary-500/5'
-                : 'bg-dark-950/70 backdrop-blur-xl border-dark-800'
+            ? 'bg-dark-950/95 backdrop-blur-2xl border-dark-700 shadow-lg shadow-primary-500/5'
+            : 'bg-dark-950/70 backdrop-blur-xl border-dark-800'
             }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
@@ -68,8 +68,8 @@ const Navbar = () => {
 
                     {/* Right side */}
                     <div className="flex items-center space-x-4">
-                        {/* Notifications */}
-                        <NotificationBell />
+                        {/* Live Notifications - Real-time */}
+                        <LiveNotificationBell userId={user?._id} />
 
                         {/* Theme Toggle */}
                         <ThemeToggle />

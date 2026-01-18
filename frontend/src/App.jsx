@@ -21,6 +21,7 @@ import AppLoader from './components/common/AppLoader';
 import NotFound from './pages/NotFound';
 import ServerError from './pages/ServerError';
 import NotificationPrompt from './components/common/NotificationPrompt';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 
 // Protected route wrapper
@@ -76,7 +77,7 @@ function App() {
     const location = useLocation();
 
     return (
-        <>
+        <ErrorBoundary>
             {/* 3D Animated Background */}
             <div className="floating-orbs">
                 <div className="floating-orb orb-1"></div>
@@ -183,7 +184,7 @@ function App() {
                     <Route path="*" element={<NotFound />} />
                 </Routes>
             </AnimatePresence>
-        </>
+        </ErrorBoundary>
     );
 }
 
