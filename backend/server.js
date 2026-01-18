@@ -26,7 +26,7 @@ app.use(compression()); // Compress responses
 if (process.env.NODE_ENV === 'production') {
     app.use(morgan('combined')); // Apache-style logging for production
 } else {
-    app.use(morgan('dev')); // Colored, concise logging for development
+    app.use(morgan('dev')); //Colored, concise logging for development
 }
 
 // Rate limiting - prevent brute force attacks
@@ -56,23 +56,28 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
-// Enhanced CORS configuration - support multiple origins
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://the-collabify.vercel.app',
-    process.env.FRONTEND_URL
-].filter(Boolean); // Remove undefined values
-
+// Enhanced CORS configuration - support ALL Vercel deployments
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps or Postman)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) === -1) {
-            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-            return callback(new Error(msg), false);
+
+        // Allow localhost for development
+        if (origin.includes('localhost')) return callback(null, true);
+
+        // Allow ALL Vercel deployments (*.vercel.app)
+        if (origin.match(/https:\/\/.*\.vercel\.app$/)) {
+            return callback(null, true);
         }
-        return callback(null, true);
+
+        // Allow custom frontend URL from environment
+        if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+            return callback(null, true);
+        }
+
+        console.log(`CORS blocked origin: ${origin}`);
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
     },
     credentials: true // Enable credentials (cookies) for cross-origin requests
 }));
