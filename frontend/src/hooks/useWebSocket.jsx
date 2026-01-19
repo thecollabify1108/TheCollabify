@@ -16,7 +16,12 @@ const useWebSocket = (userId) => {
         if (!userId) return;
 
         // Connect to WebSocket server
-        const newSocket = io(process.env.REACT_APP_WS_URL || 'http://localhost:5000', {
+        const wsUrl = import.meta.env.VITE_WS_URL;
+        if (!wsUrl) {
+            console.error('❌ VITE_WS_URL not configured!');
+            return;
+        }
+        const newSocket = io(wsUrl, {
             auth: {
                 userId,
                 token: localStorage.getItem('token')

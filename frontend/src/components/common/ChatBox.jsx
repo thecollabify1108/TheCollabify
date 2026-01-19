@@ -4,6 +4,11 @@ import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import useTypingIndicator from '../../hooks/useTypingIndicator';
+import useWebSocket from '../../hooks/useWebSocket';
+import webSocketService from '../../services/websocket';
+import OnlineStatusIndicator from '../realtime/OnlineStatusIndicator';
+import TypingIndicator from '../realtime/TypingIndicator';
 
 const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conversation }) => {
     const { user } = useAuth();
@@ -18,6 +23,13 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const [isPending, setIsPending] = useState(false);
     const messagesEndRef = useRef(null);
     const pollInterval = useRef(null);
+
+    // WebSocket hooks
+    const { isConnected, isUserOnline } = useWebSocket(user);
+    const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversationId);
+
+    // Get other user ID for online status
+    const otherUserId = conversation?.participants?.find(p => p._id !== user?.id)?._id;
 
     // Check if conversation is pending
     useEffect(() => {
@@ -62,11 +74,19 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         e.preventDefault();
         if (!newMessage.trim() || sending) return;
 
+        sendStopTyping(); // Stop typing indicator
         setSending(true);
+
         try {
             const res = await chatAPI.sendMessage(conversationId, newMessage.trim());
-            setMessages(prev => [...prev, res.data.data.message]);
+            const newMsg = res.data.data.message;
+            setMessages(prev => [...prev, newMsg]);
             setNewMessage('');
+
+            // Send via WebSocket for real-time delivery
+            if (isConnected && otherUserId) {
+                webSocketService.sendMessage(conversationId, newMsg, otherUserId);
+            }
         } catch (error) {
             // Check if error is due to pending status
             if (error.response?.data?.isPending) {
@@ -77,6 +97,16 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
             }
         } finally {
             setSending(false);
+        }
+    };
+
+    // Handle typing in input
+    const handleMessageChange = (e) => {
+        setNewMessage(e.target.value);
+        if (e.target.value.trim() && isConnected) {
+            sendTyping();
+        } else {
+            sendStopTyping();
         }
     };
 
@@ -182,11 +212,27 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         >
             {/* Header */}
             <div className="px-4 py-3 bg-gradient-to-r from-primary-600 to-secondary-600 flex items-center justify-between">
-                <div className="flex items-center">
-                    <FaComments className="text-white text-lg mr-2" />
+                <div className="flex items-center gap-3">
+                    {/* Avatar with online status */}
+                    <div className="relative">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-secondary-400 flex items-center justify-center text-white font-bold">
+                            {otherUserName?.[0]?.toUpperCase()}
+                        </div>
+                        {otherUserId && (
+                            <OnlineStatusIndicator
+                                isOnline={isUserOnline(otherUserId)}
+                                size="sm"
+                                position="avatar"
+                            />
+                        )}
+                    </div>
                     <div>
-                        <h3 className="text-white font-semibold text-sm">{otherUserName}</h3>
-                        <p className="text-white/70 text-xs truncate max-w-[180px]">{promotionTitle}</p>
+                        <div className="flex items-center gap-2">
+                            <h3 className="text-white font-semibold text-sm">{otherUserName}</h3>
+                        </div>
+                        <p className="text-white/70 text-xs truncate max-w-[180px]">
+                            {otherUserId && isUserOnline(otherUserId) ? 'Online' : promotionTitle}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -318,6 +364,10 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                         </div>
                     ))
                 )}
+
+                {/* Typing indicator */}
+                <TypingIndicator typingUsers={typingUsers} variant="bubble" />
+
                 <div ref={messagesEndRef} />
             </div>
 
@@ -327,7 +377,8 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                     <input
                         type="text"
                         value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
+                        onChange={handleMessageChange}
+                        onBlur={sendStopTyping}
                         placeholder={isPending ? "Locked - Waiting for creator to accept..." : "Type a message..."}
                         className="flex-1 bg-dark-700 border border-dark-600 rounded-xl px-4 py-2 text-sm text-dark-100 placeholder-dark-400 focus:border-primary-500 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
                         maxLength={2000}
