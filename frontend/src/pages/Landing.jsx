@@ -20,7 +20,6 @@ import FAQAccordion from '../components/common/FAQAccordion';
 import Leaderboard from '../components/common/Leaderboard';
 
 // TIER 1: Premium Visual Effects
-import MagneticCursor from '../components/effects/MagneticCursor';
 import LiquidBackground from '../components/effects/LiquidBackground';
 import ParallaxSection from '../components/effects/ParallaxSection';
 import MorphingLogo from '../components/effects/MorphingLogo';
@@ -142,7 +141,6 @@ const Landing = () => {
     return (
         <>
             {/* TIER 1: Premium Visual Effects */}
-            <MagneticCursor />
             <LiquidBackground />
 
             <div className="min-h-screen bg-dark-950 overflow-hidden relative">
