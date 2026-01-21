@@ -162,12 +162,13 @@ app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
 app.locals.sendBulkNotification = sendBulkNotification;
 
 const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0'; // Required for Render to detect the port
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
     console.log(`✅ Server running on port ${PORT}`);
     console.log(`🔌 WebSocket server ready for real-time features`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`📡 API available at http://localhost:${PORT}/api`);
+    console.log(`📡 API endpoints ready`);
 });
 
 module.exports = { app, server, io };
