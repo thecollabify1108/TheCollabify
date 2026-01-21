@@ -47,7 +47,15 @@ api.interceptors.response.use(
 
 // Auth API
 export const authAPI = {
-    login: (data) => api.post('/auth/login', data),
+    // OTP-based registration (NEW)
+    sendRegistrationOTP: (data) => api.post('/auth/register/send-otp', data),
+    verifyRegistrationOTP: (data) => api.post('/auth/register/verify-otp', data),
+    resendRegistrationOTP: (data) => api.post('/auth/register/resend-otp', data),
+
+    // Login with optional role for multi-role users
+    login: (data) => api.post('/auth/login', data),  // Can include { email, password, role }
+
+    // Legacy endpoints
     register: (data) => api.post('/auth/register', data),
     logout: () => api.post('/auth/logout'),
     getMe: () => api.get('/auth/me'),
