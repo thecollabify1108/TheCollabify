@@ -29,8 +29,27 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ['creator', 'seller', 'admin'],
-        required: [true, 'Role is required']
+        required: function () {
+            // Required if roles array is empty (legacy users)
+            return !this.roles || this.roles.length === 0;
+        }
     },
+    // New multi-role support
+    roles: [{
+        type: {
+            type: String,
+            enum: ['creator', 'seller', 'admin'],
+            required: true
+        },
+        password: {
+            type: String,
+            required: true
+        },
+        addedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
     avatar: {
         type: String,
         default: ''
@@ -66,25 +85,64 @@ const userSchema = new mongoose.Schema({
     },
     resetPasswordToken: String,
     resetPasswordExpires: Date,
-    lastLogin: Date
+    lastLogin: Date,
+    activeRole: {
+        type: String,
+        enum: ['creator', 'seller', 'admin']
+    }
 }, {
     timestamps: true
 });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {
-    if (!this.isModified('password')) {
-        return next();
+    // Hash legacy password if modified
+    if (this.isModified('password') && this.password) {
+        const salt = await bcrypt.genSalt(12);
+        this.password = await bcrypt.hash(this.password, salt);
     }
 
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
+    // Hash role-specific passwords if modified
+    if (this.isModified('roles') && this.roles) {
+        for (let roleObj of this.roles) {
+            // Only hash if password looks unhashed (not starting with $2)
+            if (roleObj.password && !roleObj.password.startsWith('$2')) {
+                const salt = await bcrypt.genSalt(12);
+                roleObj.password = await bcrypt.hash(roleObj.password, salt);
+            }
+        }
+    }
+
     next();
 });
 
-// Compare password method
-userSchema.methods.comparePassword = async function (candidatePassword) {
-    return await bcrypt.compare(candidatePassword, this.password);
+// Compare password method - supports both legacy and role-based passwords
+userSchema.methods.comparePassword = async function (candidatePassword, role = null) {
+    // If roles array exists and role is specified, compare against role password
+    if (this.roles && this.roles.length > 0 && role) {
+        const roleObj = this.roles.find(r => r.type === role);
+        if (roleObj && roleObj.password) {
+            return await bcrypt.compare(candidatePassword, roleObj.password);
+        }
+    }
+
+    // If roles array exists but no role specified, try all roles
+    if (this.roles && this.roles.length > 0 && !role) {
+        for (let roleObj of this.roles) {
+            const isMatch = await bcrypt.compare(candidatePassword, roleObj.password);
+            if (isMatch) {
+                return { match: true, role: roleObj.type };
+            }
+        }
+        return { match: false };
+    }
+
+    // Legacy: single password comparison
+    if (this.password) {
+        return await bcrypt.compare(candidatePassword, this.password);
+    }
+
+    return false;
 };
 
 // Generate password reset token

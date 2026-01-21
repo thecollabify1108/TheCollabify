@@ -40,26 +40,45 @@ router.post('/register/send-otp', [
 
         // Check if user already exists
         const existingUser = await User.findOne({ email });
+
+        let isAddingRole = false;
+
         if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                message: 'User with this email already exists'
-            });
+            // Check if user already has this role
+            if (existingUser.roles && existingUser.roles.length > 0) {
+                const hasRole = existingUser.roles.some(r => r.type === role);
+                if (hasRole) {
+                    return res.status(400).json({
+                        success: false,
+                        message: `You already have a ${role} account with this email`
+                    });
+                }
+                isAddingRole = true;
+            } else if (existingUser.role === role) {
+                return res.status(400).json({
+                    success: false,
+                    message: `You already have a ${role} account with this email`
+                });
+            } else {
+                isAddingRole = true;
+            }
         }
 
         // Generate and send OTP
         const result = await createAndSendOTP(email, name, 'registration');
 
-        // Store user data temporarily (in production, use Redis or session)
-        // For now, we'll send it back encrypted or use session storage
-        const tempData = Buffer.from(JSON.stringify({ email, name, password, role })).toString('base64');
+        // Store user data temporarily
+        const tempData = Buffer.from(JSON.stringify({ email, name, password, role, isAddingRole })).toString('base64');
 
         res.json({
             success: true,
-            message: 'OTP sent to your email. Please check your inbox.',
+            message: isAddingRole
+                ? `OTP sent! You're adding ${role} role to your account.`
+                : 'OTP sent to your email. Please check your inbox.',
             data: {
                 tempUserId: tempData,
-                expiresIn: result.expiresIn
+                expiresIn: result.expiresIn,
+                isAddingRole
             }
         });
     } catch (error) {
@@ -96,7 +115,7 @@ router.post('/register/verify-otp', [
             });
         }
 
-        const { email, name, password, role } = userData;
+        const { email, name, password, role, isAddingRole } = userData;
 
         // Verify OTP
         const otpResult = await verifyOTP(email, otp, 'registration');
@@ -108,26 +127,51 @@ router.post('/register/verify-otp', [
             });
         }
 
-        // Check if user already exists (double-check)
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                message: 'User with this email already exists'
+        // Check if adding to existing user or creating new
+        let user = await User.findOne({ email });
+        let token;
+
+        if (isAddingRole && user) {
+            // Add new role to existing user
+            if (!user.roles) {
+                user.roles = [];
+            }
+
+            // Migrate legacy user to roles array if needed
+            if (user.role && user.password) {
+                user.roles.push({
+                    type: user.role,
+                    password: user.password
+                });
+            }
+
+            // Add new role with new password
+            user.roles.push({
+                type: role,
+                password: password  // Will be hashed by pre-save hook
             });
+
+            user.activeRole = role;
+            user.emailVerified = true;
+            await user.save();
+
+            token = generateToken(user._id);
+
+        } else {
+            // Create new user
+            user = await User.create({
+                email,
+                name,
+                roles: [{
+                    type: role,
+                    password: password  // Will be hashed by pre-save hook
+                }],
+                activeRole: role,
+                emailVerified: true
+            });
+
+            token = generateToken(user._id);
         }
-
-        // Create user with email verified
-        const user = await User.create({
-            email,
-            password,
-            name,
-            role,
-            emailVerified: true
-        });
-
-        // Generate token
-        const token = generateToken(user._id);
 
         // Send welcome notification
         try {
@@ -292,10 +336,11 @@ router.post('/register', [
 router.post('/login', [
     body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
     body('password').notEmpty().withMessage('Password is required'),
+    body('role').optional().isIn(['creator', 'seller']).withMessage('Role must be creator or seller'),
     handleValidation
 ], async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const { email, password, role } = req.body;
 
         // Find user and include password for comparison
         const user = await User.findOne({ email }).select('+password');
@@ -315,13 +360,40 @@ router.post('/login', [
             });
         }
 
-        // Compare password
-        const isMatch = await user.comparePassword(password);
+        // Compare password based on role
+        let isMatch;
+        let userRole;
+
+        if (user.roles && user.roles.length > 0) {
+            // Multi-role user
+            if (role) {
+                // Specific role requested
+                isMatch = await user.comparePassword(password, role);
+                if (isMatch) {
+                    userRole = role;
+                }
+            } else {
+                // No role specified, try all
+                const result = await user.comparePassword(password);
+                if (result && result.match) {
+                    isMatch = true;
+                    userRole = result.role;
+                } else {
+                    isMatch = false;
+                }
+            }
+        } else {
+            // Legacy single-role user
+            isMatch = await user.comparePassword(password);
+            userRole = user.role;
+        }
 
         if (!isMatch) {
             return res.status(401).json({
                 success: false,
-                message: 'Invalid email or password'
+                message: role
+                    ? `Invalid password for ${role} role`
+                    : 'Invalid email or password'
             });
         }
 
@@ -348,10 +420,11 @@ router.post('/login', [
                     id: user._id,
                     email: user.email,
                     name: user.name,
-                    role: user.role,
-                    avatar: user.avatar
+                    role: userRole,
+                    avatar: user.avatar,
+                    availableRoles: user.roles ? user.roles.map(r => r.type) : [user.role]
                 },
-                token // Still send token for backward compatibility during transition
+                token
             }
         });
     } catch (error) {
