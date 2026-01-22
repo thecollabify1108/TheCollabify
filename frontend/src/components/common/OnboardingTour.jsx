@@ -1,230 +1,261 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaArrowRight, FaArrowLeft, FaTimes, FaRocket } from 'react-icons/fa';
-import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
+import { FaTimes, FaArrowRight, FaCheck } from 'react-icons/fa';
+import { HiSparkles } from 'react-icons/hi';
 
-/**
- * Onboarding Tour Component
- * Interactive guide for new users with step-by-step tooltips
- */
-const OnboardingTour = ({ role = 'creator', onComplete }) => {
+const OnboardingTour = ({ userRole }) => {
     const [currentStep, setCurrentStep] = useState(0);
-    const [isVisible, setIsVisible] = useState(false);
+    const [isActive, setIsActive] = useState(false);
+    const [hasCompletedTour, setHasCompletedTour] = useState(false);
 
-    // Check if user has seen the tour
-    useEffect(() => {
-        const tourSeen = localStorage.getItem(`onboardingTour_${role}`);
-        if (!tourSeen) {
-            // Small delay before showing tour
-            setTimeout(() => setIsVisible(true), 1500);
-        }
-    }, [role]);
-
+    // Define tour steps based on user role
     const creatorSteps = [
         {
-            title: "Welcome to TheCollabify! 🎉",
-            description: "We'll help you connect with amazing brands and grow your influence.",
-            icon: HiSparkles,
-            color: "from-primary-500 to-secondary-500"
+            title: '👋 Welcome to Your Dashboard!',
+            description: 'This is your command center. Track promotions, earnings, and manage your profile all in one place.',
+            target: null,
+            position: 'center'
         },
         {
-            title: "Complete Your Profile 📝",
-            description: "Add your follower count, engagement rate, and niche to attract more brands.",
-            icon: HiLightningBolt,
-            color: "from-amber-500 to-orange-500"
+            title: '📊 Track Your Progress',
+            description: 'Complete your profile to unlock AI-powered campaign matching. The progress ring shows how much is left!',
+            target: '.profile-progress',
+            position: 'bottom'
         },
         {
-            title: "Browse Opportunities 🔍",
-            description: "Check the 'Opportunities' tab to find promotions that match your profile.",
-            icon: FaRocket,
-            color: "from-green-500 to-emerald-500"
+            title: '💰 View Your Earnings',
+            description: 'Monitor your active promotions, total earnings, and success rate in real-time.',
+            target: '.quick-stats',
+            position: 'bottom'
         },
         {
-            title: "Apply to Promotions ✨",
-            description: "Like what you see? Apply with one click and wait for brand approval!",
-            icon: HiSparkles,
-            color: "from-blue-500 to-cyan-500"
+            title: '🎯 Discover Campaigns',
+            description: 'Browse AI-matched campaigns perfect for your profile. The higher the match score, the better!',
+            target: '.available-promotions',
+            position: 'top'
         },
         {
-            title: "Get Matched & Earn 💰",
-            description: "Once accepted, chat with brands and complete promotions to earn!",
-            icon: FaRocket,
-            color: "from-purple-500 to-pink-500"
+            title: '📬 Manage Applications',
+            description: 'Track all your campaign applications and their status in one place.',
+            target: '.my-applications',
+            position: 'top'
+        },
+        {
+            title: '⭐ Earn Badges',
+            description: 'Complete campaigns to earn achievement badges and increase your match scores!',
+            target: '.badges-section',
+            position: 'top'
         }
     ];
 
     const sellerSteps = [
         {
-            title: "Welcome to TheCollabify! 🎉",
-            description: "We'll help you find the perfect creators for your brand campaigns.",
-            icon: HiSparkles,
-            color: "from-primary-500 to-secondary-500"
+            title: '👋 Welcome to Your Brand Dashboard!',
+            description: 'Manage campaigns, discover creators, and track ROI all from this central hub.',
+            target: null,
+            position: 'center'
         },
         {
-            title: "Create a Campaign 📢",
-            description: "Click the + button to create your first promotion request.",
-            icon: HiLightningBolt,
-            color: "from-amber-500 to-orange-500"
+            title: '🚀 Quick Actions',
+            description: 'Create new campaigns, browse creators, or check analytics with one click.',
+            target: '.quick-actions',
+            position: 'bottom'
         },
         {
-            title: "AI Matches Creators 🤖",
-            description: "Our AI finds creators that perfectly match your campaign requirements.",
-            icon: HiSparkles,
-            color: "from-green-500 to-emerald-500"
+            title: '📊 Campaign Overview',
+            description: 'View your active campaigns, total reach, investment, and ROI at a glance.',
+            target: '.campaign-summary',
+            position: 'bottom'
         },
         {
-            title: "Swipe to Review 👆",
-            description: "In 'Discover' tab, swipe right to accept or left to reject applicants.",
-            icon: FaRocket,
-            color: "from-blue-500 to-cyan-500"
+            title: '🔍 Discover Creators',
+            description: 'Use AI-powered search to find creators that perfectly match your brand.',
+            target: '.creator-discovery',
+            position: 'top'
         },
         {
-            title: "Chat & Collaborate 💬",
-            description: "Message creators directly to discuss campaign details and finalize!",
-            icon: HiSparkles,
-            color: "from-purple-500 to-pink-500"
+            title: '📬 Review Applications',
+            description: 'Manage incoming applications from interested creators efficiently.',
+            target: '.applications-tab',
+            position: 'top'
+        },
+        {
+            title: '💬 Direct Messaging',
+            description: 'Communicate instantly with creators to discuss campaign details.',
+            target: '.messages-tab',
+            position: 'top'
         }
     ];
 
-    const steps = role === 'creator' ? creatorSteps : sellerSteps;
+    const steps = userRole === 'creator' ? creatorSteps : sellerSteps;
+
+    useEffect(() => {
+        // Check if user has completed tour
+        const tourCompleted = localStorage.getItem(`onboarding_tour_${userRole}_completed`);
+
+        if (!tourCompleted) {
+            // Start tour after 1 second delay
+            setTimeout(() => {
+                setIsActive(true);
+            }, 1000);
+        } else {
+            setHasCompletedTour(true);
+        }
+    }, [userRole]);
 
     const handleNext = () => {
         if (currentStep < steps.length - 1) {
-            setCurrentStep(prev => prev + 1);
+            setCurrentStep(currentStep + 1);
         } else {
-            handleComplete();
+            completeTour();
         }
     };
 
-    const handlePrev = () => {
+    const handlePrevious = () => {
         if (currentStep > 0) {
-            setCurrentStep(prev => prev - 1);
+            setCurrentStep(currentStep - 1);
         }
-    };
-
-    const handleComplete = () => {
-        localStorage.setItem(`onboardingTour_${role}`, 'true');
-        setIsVisible(false);
-        if (onComplete) onComplete();
     };
 
     const handleSkip = () => {
-        handleComplete();
+        setIsActive(false);
+        localStorage.setItem(`onboarding_tour_${userRole}_skipped`, 'true');
     };
 
-    if (!isVisible) return null;
+    const completeTour = () => {
+        setIsActive(false);
+        setHasCompletedTour(true);
+        localStorage.setItem(`onboarding_tour_${userRole}_completed`, 'true');
+    };
+
+    // Restart tour function (can be called from a button in settings)
+    const restartTour = () => {
+        localStorage.removeItem(`onboarding_tour_${userRole}_completed`);
+        localStorage.removeItem(`onboarding_tour_${userRole}_skipped`);
+        setCurrentStep(0);
+        setIsActive(true);
+        setHasCompletedTour(false);
+    };
+
+    // Expose restart function globally
+    useEffect(() => {
+        window.restartOnboardingTour = restartTour;
+        return () => {
+            delete window.restartOnboardingTour;
+        };
+    }, []);
+
+    if (!isActive) return null;
 
     const step = steps[currentStep];
-    const StepIcon = step.icon;
+    const isLastStep = currentStep === steps.length - 1;
 
     return (
         <AnimatePresence>
-            {isVisible && (
+            {isActive && (
                 <>
                     {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
                         onClick={handleSkip}
                     />
 
                     {/* Tour Card */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        key={currentStep}
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                        transition={{ type: 'spring', damping: 25 }}
+                        className={`fixed z-[9999] ${step.position === 'center'
+                                ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
+                                : 'bottom-8 right-8 max-w-md'
+                            }`}
                     >
-                        <div className="bg-dark-800 border border-dark-700 rounded-2xl overflow-hidden shadow-2xl w-full max-w-md max-h-[95vh] flex flex-col">
-                            {/* Header with gradient */}
-                            <div className={`bg-gradient-to-r ${step.color} p-6 text-center flex-shrink-0`}>
-                                <motion.div
-                                    key={currentStep}
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{ type: "spring", stiffness: 200 }}
-                                    className="w-20 h-20 mx-auto bg-white/20 rounded-full flex items-center justify-center mb-4"
+                        <div className="bg-dark-900 border-2 border-primary-500 rounded-2xl shadow-2xl overflow-hidden">
+                            {/* Header */}
+                            <div className="bg-gradient-to-r from-primary-600 to-secondary-600 p-5 relative">
+                                <button
+                                    onClick={handleSkip}
+                                    className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                    aria-label="Skip tour"
                                 >
-                                    <StepIcon className="text-white text-4xl" />
-                                </motion.div>
+                                    <FaTimes className="text-white" />
+                                </button>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                                        <HiSparkles className="text-2xl text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white">{step.title}</h3>
+                                        <p className="text-sm text-white/80">
+                                            Step {currentStep + 1} of {steps.length}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
 
-                                {/* Progress dots */}
-                                <div className="flex justify-center gap-2">
+                            {/* Content */}
+                            <div className="p-6">
+                                <p className="text-dark-200 text-base leading-relaxed mb-6">
+                                    {step.description}
+                                </p>
+
+                                {/* Progress Dots */}
+                                <div className="flex justify-center gap-2 mb-6">
                                     {steps.map((_, index) => (
-                                        <motion.div
+                                        <div
                                             key={index}
                                             className={`h-2 rounded-full transition-all ${index === currentStep
-                                                ? 'w-6 bg-white'
-                                                : index < currentStep
-                                                    ? 'w-2 bg-white/60'
-                                                    : 'w-2 bg-white/30'
+                                                    ? 'w-8 bg-primary-500'
+                                                    : index < currentStep
+                                                        ? 'w-2 bg-primary-400'
+                                                        : 'w-2 bg-dark-700'
                                                 }`}
                                         />
                                     ))}
                                 </div>
-                            </div>
 
-
-                            {/* Content - Scrollable */}
-                            <div className="p-6 flex-1 overflow-y-auto">
-                                <motion.div
-                                    key={currentStep}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ duration: 0.3 }}
-                                >
-                                    <h3 className="text-xl font-bold text-dark-100 mb-3 text-center">
-                                        {step.title}
-                                    </h3>
-                                    <p className="text-base text-dark-400 text-center mb-6 leading-relaxed">
-                                        {step.description}
-                                    </p>
-                                </motion.div>
-                            </div>
-
-                            {/* Navigation - Fixed at bottom */}
-                            <div className="p-6 border-t border-dark-700 flex-shrink-0">
-                                <div className="flex items-center justify-between">
+                                {/* Navigation */}
+                                <div className="flex gap-3">
+                                    {currentStep > 0 && (
+                                        <button
+                                            onClick={handlePrevious}
+                                            className="flex-1 py-3 px-4 rounded-xl bg-dark-800 text-dark-200 font-medium hover:bg-dark-700 transition-colors"
+                                        >
+                                            Previous
+                                        </button>
+                                    )}
                                     <button
-                                        onClick={handlePrev}
-                                        disabled={currentStep === 0}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${currentStep === 0
-                                            ? 'text-dark-600 cursor-not-allowed'
-                                            : 'text-dark-300 hover:text-dark-100 hover:bg-dark-700'
-                                            }`}
-                                    >
-                                        <FaArrowLeft className="text-sm" />
-                                        <span className="hidden sm:inline">Back</span>
-                                    </button>
-
-                                    <button
-                                        onClick={handleSkip}
-                                        className="text-dark-400 hover:text-dark-200 text-sm px-2"
-                                    >
-                                        Skip tour
-                                    </button>
-
-                                    <motion.button
-                                        whileHover={{ scale: 1.05 }}
-                                        whileTap={{ scale: 0.95 }}
                                         onClick={handleNext}
-                                        className={`flex items-center gap-2 px-6 py-2 rounded-lg bg-gradient-to-r ${step.color} text-white font-medium text-sm`}
+                                        className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
                                     >
-                                        {currentStep === steps.length - 1 ? (
+                                        {isLastStep ? (
                                             <>
-                                                <span>Get Started</span>
-                                                <FaRocket className="text-sm" />
+                                                <FaCheck />
+                                                <span>Got it!</span>
                                             </>
                                         ) : (
                                             <>
-                                                Next
-                                                <FaArrowRight className="text-sm" />
+                                                <span>Next</span>
+                                                <FaArrowRight />
                                             </>
                                         )}
-                                    </motion.button>
+                                    </button>
                                 </div>
+
+                                {/* Skip Option */}
+                                {currentStep === 0 && (
+                                    <button
+                                        onClick={handleSkip}
+                                        className="w-full mt-3 text-sm text-dark-500 hover:text-dark-400 transition-colors"
+                                    >
+                                        Skip tour
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </motion.div>
