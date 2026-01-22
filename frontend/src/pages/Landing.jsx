@@ -141,7 +141,6 @@ const Landing = () => {
     return (
         <>
             {/* TIER 1: Premium Visual Effects */}
-            <LiquidBackground />
 
             <div className="min-h-screen bg-dark-950 overflow-hidden relative">
                 {/* Original floating orbs replaced by LiquidBackground */}
