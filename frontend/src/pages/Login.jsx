@@ -26,6 +26,23 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Client-side validation
+        if (!formData.email || !formData.password) {
+            toast.error('Please fill in all fields');
+            return;
+        }
+
+        if (!/\S+@\S+\.\S+/.test(formData.email)) {
+            toast.error('Please enter a valid email address');
+            return;
+        }
+
+        if (formData.password.length < 6) {
+            toast.error('Password must be at least 6 characters');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -45,7 +62,8 @@ const Login = () => {
                 }
             }, 1000);
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Login failed');
+            const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+            toast.error(message);
         } finally {
             setLoading(false);
         }

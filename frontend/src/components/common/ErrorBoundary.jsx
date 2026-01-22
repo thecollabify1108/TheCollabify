@@ -39,60 +39,83 @@ class ErrorBoundary extends React.Component {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="glass-card max-w-md w-full p-8 text-center"
+                        className="max-w-md w-full"
                     >
-                        {/* Icon */}
-                        <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
-                            <HiExclamationCircle className="w-10 h-10 text-red-400" />
-                        </div>
+                        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-8 text-center">
+                            {/* Error Icon */}
+                            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-red-500/10 flex items-center justify-center">
+                                <svg
+                                    className="w-10 h-10 text-red-500"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                    aria-hidden="true"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                    />
+                                </svg>
+                            </div>
 
-                        {/* Heading */}
-                        <h2 className="text-2xl font-bold text-dark-100 mb-2">
-                            Oops! Something went wrong
-                        </h2>
+                            {/* Error Message */}
+                            <h1 className="text-2xl font-bold text-dark-100 mb-2">
+                                Oops! Something went wrong
+                            </h1>
+                            <p className="text-dark-400 mb-6">
+                                We encountered an unexpected error. Don't worry, your data is safe.
+                            </p>
 
-                        <p className="text-dark-400 mb-6">
-                            We encountered an unexpected error. Don't worry, your data is safe. Please try refreshing the page.
-                        </p>
-
-                        {/* Error Details (development only) */}
-                        {process.env.NODE_ENV === 'development' && this.state.error && (
-                            <details className="mb-6 text-left">
-                                <summary className="cursor-pointer text-sm text-dark-500 hover:text-dark-400 mb-2">
-                                    Error Details (Development)
-                                </summary>
-                                <div className="p-3 rounded-lg bg-dark-800 text-xs text-red-400 overflow-auto max-h-40">
-                                    <p className="font-mono">{this.state.error.toString()}</p>
-                                    {this.state.errorInfo && (
-                                        <pre className="mt-2 text-dark-500">
-                                            {this.state.errorInfo.componentStack}
-                                        </pre>
+                            {/* Error Details (Development only) */}
+                            {import.meta.env.DEV && this.state.error && (
+                                <div className="mb-6 p-4 bg-dark-950 border border-dark-700 rounded-xl text-left">
+                                    <p className="text-xs text-red-400 font-mono mb-2">
+                                        {this.state.error.toString()}
+                                    </p>
+                                    {this.state.errorInfo?.componentStack && (
+                                        <details className="mt-2">
+                                            <summary className="text-xs text-dark-500 cursor-pointer hover:text-dark-400">
+                                                Show stack trace
+                                            </summary>
+                                            <pre className="text-xs text-dark-500 mt-2 overflow-auto max-h-40">
+                                                {this.state.errorInfo.componentStack}
+                                            </pre>
+                                        </details>
                                     )}
                                 </div>
-                            </details>
-                        )}
+                            )}
 
-                        {/* Actions */}
-                        <div className="flex gap-3">
-                            <button
-                                onClick={() => window.location.reload()}
-                                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold hover:from-primary-500 hover:to-secondary-500 transition flex items-center justify-center gap-2"
-                            >
-                                <HiRefresh className="w-5 h-5" />
-                                Refresh Page
-                            </button>
-                            <button
-                                onClick={this.handleReset}
-                                className="flex-1 py-3 rounded-xl bg-dark-800 text-dark-200 font-semibold hover:bg-dark-700 transition"
-                            >
-                                Try Again
-                            </button>
+                            {/* Actions */}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => {
+                                        this.setState({ hasError: false, error: null, errorInfo: null });
+                                        window.location.reload();
+                                    }}
+                                    className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-medium hover:opacity-90 transition-opacity"
+                                    aria-label="Reload page"
+                                >
+                                    Try Again
+                                </button>
+                                <button
+                                    onClick={() => window.location.href = '/'}
+                                    className="flex-1 py-3 px-4 rounded-xl bg-dark-800 text-dark-300 font-medium hover:bg-dark-700 transition-colors"
+                                    aria-label="Go to homepage"
+                                >
+                                    Go Home
+                                </button>
+                            </div>
+
+                            {/* Help Text */}
+                            <p className="mt-6 text-xs text-dark-500">
+                                If this problem persists, please{' '}
+                                <a href="mailto:support@thecollabify.com" className="text-primary-400 hover:text-primary-300 underline">
+                                    contact support
+                                </a>
+                            </p>
                         </div>
-
-                        {/* Support Link */}
-                        <p className="mt-6 text-sm text-dark-500">
-                            Need help? <a href="mailto:support@thecollabify.com" className="text-primary-400 hover:underline">Contact Support</a>
-                        </p>
                     </motion.div>
                 </div>
             );
