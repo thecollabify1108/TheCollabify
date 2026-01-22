@@ -33,6 +33,10 @@ import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
 import { haptic } from '../utils/haptic';
 
+// NEW: Enhanced Components
+import AIAssistantPanel from '../components/common/AIAssistantPanel';
+import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
+
 const CreatorDashboard = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');

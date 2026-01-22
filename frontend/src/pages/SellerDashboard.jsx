@@ -28,6 +28,13 @@ import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
 import { haptic } from '../utils/haptic';
 import { FaSearch } from 'react-icons/fa';
 
+// NEW: Enhanced Components
+import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
+import SmartRecommendationsPanel from '../components/seller/SmartRecommendationsPanel';
+import AIAssistantPanel from '../components/common/AIAssistantPanel';
+import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
+import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
+
 const SellerDashboard = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -39,6 +46,11 @@ const SellerDashboard = () => {
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [processedCreators, setProcessedCreators] = useState(new Set());
     const [aiSuggestionData, setAiSuggestionData] = useState(null);
+
+    // NEW: Enhanced features state
+    const [showEnhancedWizard, setShowEnhancedWizard] = useState(false);
+    const [showAIRecommendations, setShowAIRecommendations] = useState(false);
+    const [allCreators, setAllCreators] = useState([]);
 
     const fetchMatches = async () => {
         try {
@@ -502,6 +514,25 @@ const SellerDashboard = () => {
                     onDelete={() => handleDeleteRequest(selectedRequest._id)}
                 />
             )}
+
+            {/* NEW: Enhanced Campaign Wizard */}
+            <EnhancedCampaignWizard
+                isOpen={showEnhancedWizard}
+                onClose={() => setShowEnhancedWizard(false)}
+                onSubmit={handleCreateRequest}
+            />
+
+            {/* NEW: AI Assistant Panel (Always available) */}
+            <AIAssistantPanel
+                campaign={selectedRequest}
+                onUse={(content) => {
+                    console.log('AI Content:', content);
+                    toast.success('AI content ready to use!');
+                }}
+            />
+
+            {/* Onboarding Tour */}
+            <OnboardingTour role="seller" />
         </div>
     );
 };
