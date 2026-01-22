@@ -177,8 +177,15 @@ router.post('/register/verify-otp', [
         // Send welcome notification
         try {
             await notifyWelcome(user._id, role);
+
+            // Send welcome email based on role
+            if (role === 'creator') {
+                await sendEmail(user.email, 'welcomeCreator', user.name);
+            } else if (role === 'seller') {
+                await sendEmail(user.email, 'welcomeSeller', user.name);
+            }
         } catch (err) {
-            console.error('Failed to send welcome notification:', err);
+            console.error('Failed to send welcome notification/email:', err);
         }
 
         // Set HTTPOnly cookie
