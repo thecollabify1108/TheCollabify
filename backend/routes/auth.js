@@ -7,6 +7,7 @@ const { auth, generateToken } = require('../middleware/auth');
 const { sendPasswordResetEmail } = require('../utils/emailService');
 const { notifyWelcome } = require('../services/notificationService');
 const { createAndSendOTP, verifyOTP } = require('../services/otpService');
+const { sendEmail } = require('../services/emailTemplates');
 
 /**
  * Validation middleware

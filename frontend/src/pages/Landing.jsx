@@ -18,6 +18,7 @@ import AnimatedCounter from '../components/common/AnimatedCounter';
 import TestimonialsCarousel from '../components/common/TestimonialsCarousel';
 import FAQAccordion from '../components/common/FAQAccordion';
 import Leaderboard from '../components/common/Leaderboard';
+import SocialProofWidget from '../components/common/SocialProofWidget';
 
 // TIER 1: Premium Visual Effects
 import ParallaxSection from '../components/effects/ParallaxSection';
@@ -411,6 +412,20 @@ const Landing = () => {
                             </motion.div>
                         ))}
                     </motion.div>
+                </section>
+
+                {/* Social Proof Widget */}
+                <section className="py-12 relative">
+                    <div className="max-w-7xl mx-auto px-4">
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.6 }}
+                        >
+                            <SocialProofWidget />
+                        </motion.div>
+                    </div>
                 </section>
 
                 {/* How It Works - Large Numbers Style */}
