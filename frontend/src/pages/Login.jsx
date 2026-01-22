@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaInstagram, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa';
-import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Footer from '../components/common/Footer';
@@ -10,7 +9,7 @@ import Confetti from '../components/common/Confetti';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login, googleLogin } = useAuth();
+    const { login } = useAuth();
     const [googleLoading, setGoogleLoading] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -52,47 +51,12 @@ const Login = () => {
         }
     };
 
-    // Google Login handler
-    const handleGoogleSuccess = async (tokenResponse) => {
-        setGoogleLoading(true);
-        try {
-            // Get user info from Google
-            const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-            });
-            const googleUser = await response.json();
-
-            // Login with Google
-            const user = await googleLogin({
-                email: googleUser.email,
-                name: googleUser.name,
-                googleId: googleUser.sub,
-                avatar: googleUser.picture
-            });
-
-            setShowConfetti(true);
-            toast.success('Login successful!');
-
-            setTimeout(() => {
-                if (user.role === 'creator') {
-                    navigate('/creator/dashboard');
-                } else if (user.role === 'seller') {
-                    navigate('/seller/dashboard');
-                } else if (user.role === 'admin') {
-                    navigate('/admin');
-                }
-            }, 1000);
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Google login failed');
-        } finally {
-            setGoogleLoading(false);
-        }
+    // Google Login handler - redirects to backend OAuth
+    const handleGoogleLogin = () => {
+        // Redirect to backend OAuth endpoint
+        const API_URL = import.meta.env.VITE_API_URL || '';
+        window.location.href = `${API_URL}/oauth/google`;
     };
-
-    const googleLoginHook = useGoogleLogin({
-        onSuccess: handleGoogleSuccess,
-        onError: () => toast.error('Google login failed')
-    });
 
     return (
         <div className="min-h-screen bg-dark-950 flex items-center justify-center px-4 py-12 relative overflow-hidden">
@@ -207,7 +171,8 @@ const Login = () => {
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            onClick={() => googleLoginHook()}
+                            type="button"
+                            onClick={handleGoogleLogin}
                             disabled={googleLoading}
                             className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl bg-white text-gray-800 font-medium hover:bg-gray-100 transition-colors disabled:opacity-50"
                         >
