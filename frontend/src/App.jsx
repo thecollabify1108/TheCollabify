@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 
@@ -10,9 +11,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import CreatorDashboard from './pages/CreatorDashboard';
-import SellerDashboard from './pages/SellerDashboard';
-import AdminPanel from './pages/AdminPanel';
+// import CreatorDashboard from './pages/CreatorDashboard'; // Removed for lazy loading
+// import SellerDashboard from './pages/SellerDashboard'; // Removed for lazy loading
+// import AdminPanel from './pages/AdminPanel'; // Removed for lazy loading
 import TermsConditions from './pages/TermsConditions';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import ScrollToTop from './components/common/ScrollToTop';
@@ -22,6 +23,11 @@ import NotFound from './pages/NotFound';
 import ServerError from './pages/ServerError';
 import NotificationPrompt from './components/common/NotificationPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
+
+// Lazy load heavy components
+const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
+const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
+const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 
 
 // Protected route wrapper
@@ -147,7 +153,9 @@ function App() {
                         element={
                             <ProtectedRoute allowedRoles={['creator']}>
                                 <PageTransition>
-                                    <CreatorDashboard />
+                                    <Suspense fallback={<AppLoader />}>
+                                        <CreatorDashboard />
+                                    </Suspense>
                                 </PageTransition>
                             </ProtectedRoute>
                         }
@@ -159,7 +167,9 @@ function App() {
                         element={
                             <ProtectedRoute allowedRoles={['seller']}>
                                 <PageTransition>
-                                    <SellerDashboard />
+                                    <Suspense fallback={<AppLoader />}>
+                                        <SellerDashboard />
+                                    </Suspense>
                                 </PageTransition>
                             </ProtectedRoute>
                         }
@@ -171,7 +181,9 @@ function App() {
                         element={
                             <ProtectedRoute allowedRoles={['admin']}>
                                 <PageTransition>
-                                    <AdminPanel />
+                                    <Suspense fallback={<AppLoader />}>
+                                        <AdminPanel />
+                                    </Suspense>
                                 </PageTransition>
                             </ProtectedRoute>
                         }

@@ -23,12 +23,41 @@ const NotificationPrompt = () => {
         // 2. Permission is not yet granted or denied
         // 3. User hasn't dismissed it before
         if (isSupported && permission === 'default' && !hasSeenPrompt) {
-            // Delay showing the prompt for better UX
-            const timer = setTimeout(() => {
-                setIsVisible(true);
-            }, 5000); // Show after 5 seconds
+            // Don't show on mobile to avoid intrusion
+            if (window.innerWidth < 768) {
+                return;
+            }
 
-            return () => clearTimeout(timer);
+            let hasShown = false; // Flag to ensure prompt is shown only once by these triggers
+
+            const showPrompt = () => {
+                if (!hasShown) {
+                    setIsVisible(true);
+                    hasShown = true;
+                }
+            };
+
+            // Show after 30 seconds
+            const timeoutId = setTimeout(() => {
+                showPrompt();
+            }, 30000); // 30 seconds
+
+            // Or show after scrolling 50% of the page
+            const handleScroll = () => {
+                if (hasShown) return; // If already shown by timeout, don't re-trigger
+
+                const scrollPercent = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+                if (scrollPercent > 50) {
+                    showPrompt();
+                }
+            };
+
+            window.addEventListener('scroll', handleScroll);
+
+            return () => {
+                clearTimeout(timeoutId);
+                window.removeEventListener('scroll', handleScroll);
+            };
         }
     }, [isSupported, permission]);
 

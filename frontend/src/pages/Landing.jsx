@@ -221,17 +221,17 @@ const Landing = () => {
                     {mobileMenuOpen && (
                         <div className="md:hidden bg-dark-900/95 backdrop-blur-xl border-t border-dark-800">
                             <div className="px-4 py-4 space-y-3">
-                                {/* Login & Signup at top */}
-                                <div className="flex gap-3 pb-3 border-b border-dark-800">
+                                {/* Top Actions - Better centered for mobile */}
+                                <div className="flex flex-col sm:flex-row gap-3 px-4 pb-4 border-b border-dark-700">
                                     <button
                                         onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
-                                        className="flex-1 py-3 rounded-xl bg-dark-800 text-dark-100 font-medium hover:bg-dark-700 transition"
+                                        className="w-full py-3 rounded-xl btn-secondary text-sm font-medium"
                                     >
                                         Login
                                     </button>
                                     <button
                                         onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}
-                                        className="flex-1 py-3 rounded-xl btn-3d text-sm"
+                                        className="w-full py-3 rounded-xl btn-3d text-sm font-medium"
                                     >
                                         Get Started
                                     </button>
