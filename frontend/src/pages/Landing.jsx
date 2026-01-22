@@ -171,7 +171,7 @@ const Landing = () => {
                             {/* Desktop Navigation */}
                             <div className="hidden md:flex items-center space-x-6">
                                 <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition">For Brands</Link>
-                                <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">For Influencer</Link>
+                                <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition">For Influencers</Link>
                                 <a href="#how-it-works" className="text-dark-400 hover:text-dark-200 transition">How It Works</a>
                                 <a href="#features" className="text-dark-400 hover:text-dark-200 transition">Features</a>
                                 <a href="#about" className="text-dark-400 hover:text-dark-200 transition">About Us</a>
@@ -249,7 +249,7 @@ const Landing = () => {
                                     className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
                                     onClick={() => setMobileMenuOpen(false)}
                                 >
-                                    For Influencer
+                                    For Influencers
                                 </Link>
                                 <a
                                     href="#how-it-works"

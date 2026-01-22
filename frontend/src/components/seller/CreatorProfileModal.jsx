@@ -41,9 +41,9 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
         return 'from-red-500 to-red-400';
     };
 
-    const handleSaveToggle = () => {
+    const handleSaveToggle = async () => {
         setIsSaved(!isSaved);
-        // TODO: API call to save/unsave creator
+        // Future: API call to save/unsave creator will be implemented
     };
 
     return (
@@ -280,7 +280,7 @@ const PortfolioTab = ({ profile }) => (
         <p className="text-sm text-dark-400 text-center py-8">
             Portfolio integration coming soon! Connect your Instagram to showcase your best work.
         </p>
-        {/* TODO: Add Instagram feed grid here */}
+        {/* Instagram feed grid - Coming soon */}
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6].map(i => (
                 <div key={i} className="aspect-square bg-dark-800/50 rounded-xl flex items-center justify-center">

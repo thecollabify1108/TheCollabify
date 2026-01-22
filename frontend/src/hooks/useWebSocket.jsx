@@ -33,12 +33,16 @@ const useWebSocket = (userId) => {
 
         // Connection events
         newSocket.on('connect', () => {
-            console.log('✅ WebSocket connected');
+            if (import.meta.env.DEV) {
+                console.log('✅ WebSocket connected');
+            }
             setIsConnected(true);
         });
 
         newSocket.on('disconnect', () => {
-            console.log('❌ WebSocket disconnected');
+            if (import.meta.env.DEV) {
+                console.log('❌ WebSocket disconnected');
+            }
             setIsConnected(false);
         });
 
@@ -48,7 +52,9 @@ const useWebSocket = (userId) => {
 
         // Real-time notification handler
         newSocket.on('notification', (data) => {
-            console.log('📬 New notification:', data);
+            if (import.meta.env.DEV) {
+                console.log('📬 New notification:', data);
+            }
             setNotifications(prev => [data, ...prev]);
 
             // Show toast notification
@@ -83,14 +89,20 @@ const useWebSocket = (userId) => {
 
         // Campaign update handler
         newSocket.on('campaign_update', (data) => {
-            console.log('📊 Campaign update:', data);
+            if (import.meta.env.DEV) {
+                if (import.meta.env.DEV) {
+                    console.log('📊 Campaign update:', data);
+                }
+            }
             // Trigger re-fetch or update local state
             window.dispatchEvent(new CustomEvent('campaign_update', { detail: data }));
         });
 
         // New message handler
         newSocket.on('new_message', (data) => {
-            console.log('💬 New message:', data);
+            if (import.meta.env.DEV) {
+                console.log('💬 New message:', data);
+            }
             // Update unread count
             window.dispatchEvent(new CustomEvent('new_message', { detail: data }));
         });

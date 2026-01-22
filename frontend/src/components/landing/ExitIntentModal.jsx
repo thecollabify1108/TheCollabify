@@ -40,7 +40,8 @@ const ExitIntentModal = ({ onClose }) => {
 
         // For now, just simulate submission
         // In production, integrate with email service (Mailchimp, SendGrid, etc.)
-        console.log('Email submitted:', email);
+        // Submit email to backend
+        // API call would go here
 
         setSubmitted(true);
 
