@@ -20,7 +20,6 @@ import FAQAccordion from '../components/common/FAQAccordion';
 import Leaderboard from '../components/common/Leaderboard';
 
 // TIER 1: Premium Visual Effects
-import LiquidBackground from '../components/effects/LiquidBackground';
 import ParallaxSection from '../components/effects/ParallaxSection';
 import MorphingLogo from '../components/effects/MorphingLogo';
 
