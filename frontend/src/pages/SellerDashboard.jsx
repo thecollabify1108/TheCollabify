@@ -326,7 +326,7 @@ const SellerDashboard = () => {
             {/* Campaign Stories */}
             <CampaignStories
                 campaigns={requests}
-                onCreateNew={() => setShowRequestWizard(true)}
+                onCreateNew={() => setShowEnhancedWizard(true)}
                 onSelectCampaign={(campaign) => setSelectedRequest(campaign)}
             />
 
@@ -336,16 +336,38 @@ const SellerDashboard = () => {
             {/* Main Content Area */}
             <main className="max-w-lg mx-auto">
                 <AnimatePresence mode="wait">
-                    {/* Search Tab - Creator Discovery */}
+                    {/* Search Tab - Creator Discovery with AI */}
                     {activeTab === 'search' && (
                         <motion.div
                             key="search"
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="p-4"
+                            className="p-4 space-y-4"
                         >
-                            <CreatorSearch />
+                            {/* Enhanced Creator Search */}
+                            <EnhancedCreatorSearch
+                                onSearch={(results) => {
+                                    setAllCreators(results);
+                                    setShowAIRecommendations(true);
+                                }}
+                                onSelect={(creator) => {
+                                    console.log('Selected creator:', creator);
+                                    toast.success(`Selected ${creator.name}`);
+                                }}
+                            />
+
+                            {/* AI Smart Recommendations */}
+                            {showAIRecommendations && selectedRequest && (
+                                <SmartRecommendationsPanel
+                                    campaign={selectedRequest}
+                                    allCreators={allCreators}
+                                    onInvite={(creators) => {
+                                        console.log('Inviting creators:', creators);
+                                        toast.success(`Invited ${creators.length} creators!`);
+                                    }}
+                                />
+                            )}
                         </motion.div>
                     )}
 
