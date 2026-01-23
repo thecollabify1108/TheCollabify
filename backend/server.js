@@ -123,6 +123,11 @@ app.use('/api/search', require('./routes/search'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/achievements', require('./routes/achievements'));
 
+// NEW ROUTES - Phase 2 Backend Integration
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/calendar', require('./routes/contentCalendar'));
+app.use('/api/team', require('./routes/teamManagement'));
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json({
