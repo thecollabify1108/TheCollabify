@@ -173,39 +173,40 @@ mongodb+srv://thecollabify:<password>@cluster0.xxxxx.mongodb.net/thecollabify?re
 
 ### 5. Deployment Configuration ✅
 
-#### Backend (Railway/Render/Heroku)
+#### Backend (Render.com - Recommended)
 
-**Recommended: Railway.app**
+**Recommended: Render.com**
 
-**Step 1: Install Railway CLI**
-```bash
-npm install -g @railway/cli
+**Step 1: Create Render Account**
+1. Sign up at https://render.com
+2. Connect your GitHub repository
+
+**Step 2: Create Web Service**
+1. Dashboard → New → Web Service
+2. Connect your GitHub repo
+3. Select backend folder
+4. Configure:
+```
+Name: thecollabify-backend
+Environment: Node
+Build Command: npm install
+Start Command: npm start
 ```
 
-**Step 2: Login & Initialize**
-```bash
-railway login
-railway init
+**Step 3: Add Environment Variables**
+In Render Dashboard → Environment:
 ```
-
-**Step 3: Deploy**
-```bash
-cd backend
-railway up
-```
-
-**Step 4: Add Environment Variables**
-```bash
-railway variables set NODE_ENV=production
-railway variables set MONGODB_URI=your_connection_string
-railway variables set JWT_SECRET=your_secret
+NODE_ENV=production
+MONGODB_URI=your_connection_string
+JWT_SECRET=your_secret
+PORT=5000
+CLIENT_URL=https://thecollabify.vercel.app
 # Add all other env variables
 ```
 
-**Step 5: Custom Domain** (Optional)
-```bash
-railway domain
-```
+**Step 4: Deploy**
+- Render auto-deploys on git push
+- Get your backend URL: `https://thecollabify-backend.onrender.com`
 
 ---
 

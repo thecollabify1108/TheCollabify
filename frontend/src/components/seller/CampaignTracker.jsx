@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import CreatorCard from './CreatorCard';
+import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 
 const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus, onMessage }) => {
     const [activeSection, setActiveSection] = useState('applicants');
@@ -125,6 +126,22 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                     </div>
                 </div>
             </motion.div>
+
+            {/* AI Predictive Analytics */}
+            <PredictiveAnalyticsWidget
+                campaignData={{
+                    budget: request.budgetRange?.max || 5000,
+                    creatorFollowers: request.followerRange?.max || 50000,
+                    creatorEngagementRate: 3.5,
+                    promotionType: request.promotionType || 'Post',
+                    category: request.targetCategory || 'Lifestyle',
+                    duration: 14
+                }}
+                creatorProfile={{
+                    followers: request.followerRange?.max || 50000,
+                    avgEngagementRate: 3.5
+                }}
+            />
 
             {/* Section Tabs */}
             <div className="flex space-x-2 bg-dark-800/50 p-1 rounded-xl w-fit">
