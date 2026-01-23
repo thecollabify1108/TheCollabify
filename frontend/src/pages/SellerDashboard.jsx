@@ -6,7 +6,8 @@ import {
     FaStream,
     FaUsers,
     FaTimes,
-    FaArrowLeft
+    FaArrowLeft,
+    FaSearch
 } from 'react-icons/fa';
 import { HiSparkles, HiHome, HiUserGroup, HiChat, HiViewGrid } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -26,7 +27,6 @@ import CreatorSearch from '../components/seller/CreatorSearch';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
 import { haptic } from '../utils/haptic';
-import { FaSearch } from 'react-icons/fa';
 
 // NEW: Enhanced Components
 import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
@@ -34,6 +34,8 @@ import SmartRecommendationsPanel from '../components/seller/SmartRecommendations
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
 import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
 import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
+import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
+import TeamManagement from '../components/team/TeamManagement';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -270,13 +272,13 @@ const SellerDashboard = () => {
 
     const pendingCreators = getPendingCreators();
 
-    // Simplified bottom navigation - 4 tabs instead of 6
+    // Bottom navigation - 6 tabs with Analytics & Team
     const tabs = [
         {
             id: 'dashboard',
-            label: 'Dashboard',
+            label: 'Home',
             icon: <HiHome />,
-            description: 'Overview & Campaigns'
+            description: 'Campaigns'
         },
         {
             id: 'search',
@@ -285,18 +287,30 @@ const SellerDashboard = () => {
             description: 'Find Creators'
         },
         {
+            id: 'analytics',
+            label: 'Stats',
+            icon: <FaStream />,
+            description: 'Analytics'
+        },
+        {
+            id: 'team',
+            label: 'Team',
+            icon: <FaUsers />,
+            description: 'Manage Team'
+        },
+        {
             id: 'discover',
             label: 'Matches',
             icon: <HiUserGroup />,
             badge: pendingCreators.length,
-            description: 'Review Applicants'
+            description: 'Applicants'
         },
         {
             id: 'messages',
-            label: 'Messages',
+            label: 'Chat',
             icon: <HiChat />,
             badge: conversations.filter(c => c.unreadCount > 0).length,
-            description: 'Chat with Creators'
+            description: 'Messages'
         }
     ];
 
@@ -387,6 +401,36 @@ const SellerDashboard = () => {
                                 onReject={handleRejectCreator}
                                 onMessage={handleMessageCreator}
                             />
+                        </motion.div>
+                    )}
+
+                    {/* Analytics Tab */}
+                    {activeTab === 'analytics' && (
+                        <motion.div
+                            key="analytics"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="p-4"
+                        >
+                            <div className="mb-4">
+                                <h2 className="text-xl font-bold text-dark-100 mb-1">Campaign Analytics</h2>
+                                <p className="text-sm text-dark-400">Track your campaign performance</p>
+                            </div>
+                            <AnalyticsDashboard userType="seller" requests={requests} />
+                        </motion.div>
+                    )}
+
+                    {/* Team Management Tab */}
+                    {activeTab === 'team' && (
+                        <motion.div
+                            key="team"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="p-4"
+                        >
+                            <TeamManagement />
                         </motion.div>
                     )}
 

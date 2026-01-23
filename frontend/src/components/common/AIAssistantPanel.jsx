@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaWand, FaTimes, FaHashtag, FaLightbulb, FaClock, FaCopy } from 'react-icons/fa';
+import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaClock, FaCopy } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { generateCaption, generateHashtags, generateContentIdeas, generatePostingSchedule } from '../../services/aiContentGenerator';
 import toast from 'react-hot-toast';
@@ -96,7 +96,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                     onClick={() => setIsOpen(true)}
                     className="fixed bottom-24 right-6 z-40 w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl flex items-center justify-center text-white"
                 >
-                    <FaWand className="text-xl" />
+                    <FaMagic className="text-xl" />
                 </motion.button>
             )}
 
@@ -142,7 +142,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                 {/* Tabs */}
                                 <div className="flex gap-2 mt-4">
                                     {[
-                                        { id: 'captions', label: 'Captions', icon: <FaWand /> },
+                                        { id: 'captions', label: 'Captions', icon: <FaMagic /> },
                                         { id: 'hashtags', label: 'Hashtags', icon: <FaHashtag /> },
                                         { id: 'ideas', label: 'Ideas', icon: <FaLightbulb /> },
                                         { id: 'schedule', label: 'Schedule', icon: <FaClock /> }
@@ -151,8 +151,8 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                             key={tab.id}
                                             onClick={() => setActiveTab(tab.id)}
                                             className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
-                                                    ? 'bg-white text-purple-600'
-                                                    : 'bg-white/20 text-white hover:bg-white/30'
+                                                ? 'bg-white text-purple-600'
+                                                : 'bg-white/20 text-white hover:bg-white/30'
                                                 }`}
                                         >
                                             <span className="flex items-center justify-center gap-1">
@@ -221,8 +221,8 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                                         key={len}
                                                         onClick={() => setCaptionParams({ ...captionParams, length: len })}
                                                         className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${captionParams.length === len
-                                                                ? 'bg-purple-600 text-white'
-                                                                : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                                            ? 'bg-purple-600 text-white'
+                                                            : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                                             }`}
                                                     >
                                                         {len.charAt(0).toUpperCase() + len.slice(1)}

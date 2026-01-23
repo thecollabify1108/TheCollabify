@@ -6,7 +6,8 @@ import {
     FaCheck,
     FaTrophy,
     FaComments,
-    FaCog
+    FaCog,
+    FaCalendar
 } from 'react-icons/fa';
 import { HiHome, HiSparkles, HiUserGroup, HiLightningBolt, HiViewGrid, HiChat } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -36,6 +37,8 @@ import { haptic } from '../utils/haptic';
 // NEW: Enhanced Components
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
 import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
+import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
+import ContentCalendar from '../components/calendar/ContentCalendar';
 
 const CreatorDashboard = () => {
     const { user } = useAuth();
@@ -152,27 +155,39 @@ const CreatorDashboard = () => {
     const completedCampaigns = profile?.successfulPromotions || 0;
     const pendingRequests = 0; // Will be fetched from messages
 
-    // Simplified bottom navigation - 4 tabs instead of 6
+    // Bottom navigation - 6 tabs with Analytics & Calendar
     const tabs = [
         {
             id: 'dashboard',
-            label: 'Dashboard',
+            label: 'Home',
             icon: <HiHome />,
             description: 'Overview & Activity'
         },
         {
             id: 'opportunities',
-            label: 'Opportunities',
+            label: 'Jobs',
             icon: <FaBriefcase />,
             badge: promotions.length,
             description: 'Browse Brands'
         },
         {
+            id: 'analytics',
+            label: 'Stats',
+            icon: <FaTrophy />,
+            description: 'Performance'
+        },
+        {
+            id: 'calendar',
+            label: 'Calendar',
+            icon: <FaCalendar />,
+            description: 'Schedule'
+        },
+        {
             id: 'messages',
-            label: 'Messages',
+            label: 'Chat',
             icon: <HiChat />,
             badge: pendingRequests,
-            description: 'Chat & Requests'
+            description: 'Messages'
         },
         {
             id: 'profile',
@@ -341,7 +356,35 @@ const CreatorDashboard = () => {
                         </motion.div>
                     )}
 
+                    {/* Analytics Tab */}
+                    {activeTab === 'analytics' && (
+                        <motion.div
+                            key="analytics"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="p-4"
+                        >
+                            <div className="mb-4">
+                                <h2 className="text-xl font-bold text-dark-100 mb-1">Your Analytics</h2>
+                                <p className="text-sm text-dark-400">Track your performance and earnings</p>
+                            </div>
+                            <AnalyticsDashboard userType="creator" />
+                        </motion.div>
+                    )}
 
+                    {/* Calendar Tab */}
+                    {activeTab === 'calendar' && (
+                        <motion.div
+                            key="calendar"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="p-4"
+                        >
+                            <ContentCalendar userId={user._id} />
+                        </motion.div>
+                    )}
 
                     {/* Messages Tab */}
                     {activeTab === 'messages' && (
