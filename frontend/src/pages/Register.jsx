@@ -244,141 +244,155 @@ const Register = () => {
                             Continue
                         </button>
 
-                        <div className="text-center text-sm text-dark-400">
-                            Already have an account?{' '}
-                            <Link to="/login" className="font-semibold text-primary-400 hover:text-primary-300">
-                                Sign in
-                            </Link>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* STEP 2: DETAILS FORM */}
-                {step === 2 && (
-                    <motion.div
-                        key="step2"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <form onSubmit={handleSubmitDetails} className="space-y-5">
-                            {/* Name */}
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Full Name</label>
-                                <div className="relative group">
-                                    <FaUser className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value={formData.name}
-                                        onChange={handleChange}
-                                        placeholder="John Doe"
-                                        className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Email */}
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Email Address</label>
-                                <div className="relative group">
-                                    <FaEnvelope className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                                    <input
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        placeholder="name@example.com"
-                                        className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Password */}
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Password</label>
-                                <div className="relative group">
-                                    <FaLock className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        name="password"
-                                        value={formData.password}
-                                        onChange={handleChange}
-                                        placeholder="Min 8 chars"
-                                        className="w-full pl-10 pr-10 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                                        required
-                                    />
-                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3 text-dark-400 hover:text-dark-200">
-                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                    </button>
-                                </div>
-                                <PasswordStrengthIndicator password={formData.password} />
-                            </div>
-
-                            {/* Confirm Password */}
-                            <div className="space-y-1">
-                                <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Confirm Password</label>
-                                <div className="relative group">
-                                    <FaLock className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                                    <input
-                                        type={showPassword ? "text" : "password"}
-                                        name="confirmPassword"
-                                        value={formData.confirmPassword}
-                                        onChange={handleChange}
-                                        placeholder="Confirm password"
-                                        className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 transition-all disabled:opacity-50"
-                            >
-                                {loading ? 'Sending Code...' : 'Create Account'}
-                            </button>
-                        </form>
-                    </motion.div>
-                )}
-
-                {/* STEP 3: OTP */}
-                {step === 3 && (
-                    <motion.div
-                        key="step3"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-8"
-                    >
-                        <div className="text-center">
-                            <OTPInput value={otp} onChange={setOtp} disabled={otpLoading} />
                         </div>
 
-                        <div className="text-center">
-                            {otpTimer > 0 ? (
-                                <p className="text-dark-400 text-sm">Resend in <span className="font-mono text-primary-400">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span></p>
-                            ) : (
-                                <button className="text-primary-400 hover:text-primary-300 text-sm font-medium">Resend Code</button>
-                            )}
+                        <div className="relative my-6">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-dark-800"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                                <span className="px-4 bg-dark-950 text-dark-400">or sign up with</span>
+                            </div>
                         </div>
 
-                        <button
-                            onClick={handleVerifyOTP}
-                            disabled={otpLoading || otp.some(d => !d)}
-                            className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+                         <button
+                            type="button"
+                            onClick={googleLogin}
+                            disabled={loading}
+                            className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-dark-900 border border-dark-700 hover:bg-dark-800 text-dark-200 font-medium rounded-xl transition-all"
                         >
-                            {otpLoading ? 'Verifying...' : 'Verify Email'}
+                            <FaGoogle className="text-lg" />
+                            <span>Google</span>
                         </button>
                     </motion.div>
                 )}
-            </AnimatePresence>
-        </AuthLayout>
+
+            {/* STEP 2: DETAILS FORM */}
+            {step === 2 && (
+                <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <form onSubmit={handleSubmitDetails} className="space-y-5">
+                        {/* Name */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Full Name</label>
+                            <div className="relative group">
+                                <FaUser className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    onChange={handleChange}
+                                    placeholder="John Doe"
+                                    className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Email */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Email Address</label>
+                            <div className="relative group">
+                                <FaEnvelope className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    placeholder="name@example.com"
+                                    className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Password</label>
+                            <div className="relative group">
+                                <FaLock className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    placeholder="Min 8 chars"
+                                    className="w-full pl-10 pr-10 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
+                                    required
+                                />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3 text-dark-400 hover:text-dark-200">
+                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                </button>
+                            </div>
+                            <PasswordStrengthIndicator password={formData.password} />
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div className="space-y-1">
+                            <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Confirm Password</label>
+                            <div className="relative group">
+                                <FaLock className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    placeholder="Confirm password"
+                                    className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 transition-all disabled:opacity-50"
+                        >
+                            {loading ? 'Sending Code...' : 'Create Account'}
+                        </button>
+                    </form>
+                </motion.div>
+            )}
+
+            {/* STEP 3: OTP */}
+            {step === 3 && (
+                <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    transition={{ duration: 0.3 }}
+                    className="space-y-8"
+                >
+                    <div className="text-center">
+                        <OTPInput value={otp} onChange={setOtp} disabled={otpLoading} />
+                    </div>
+
+                    <div className="text-center">
+                        {otpTimer > 0 ? (
+                            <p className="text-dark-400 text-sm">Resend in <span className="font-mono text-primary-400">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span></p>
+                        ) : (
+                            <button className="text-primary-400 hover:text-primary-300 text-sm font-medium">Resend Code</button>
+                        )}
+                    </div>
+
+                    <button
+                        onClick={handleVerifyOTP}
+                        disabled={otpLoading || otp.some(d => !d)}
+                        className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+                    >
+                        {otpLoading ? 'Verifying...' : 'Verify Email'}
+                    </button>
+                </motion.div>
+            )}
+        </AnimatePresence>
+        </AuthLayout >
     );
 };
 

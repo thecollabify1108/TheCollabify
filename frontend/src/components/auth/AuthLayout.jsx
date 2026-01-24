@@ -102,7 +102,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
                         <div className="lg:hidden text-center mb-8">
                             <Link to="/" className="inline-flex items-center space-x-2">
                                 <img src="/favicon.png" alt="Logo" className="w-10 h-10 object-contain" />
-                                <span className="text-xl font-bold text-white">TheCollabify</span>
+                                <span className="text-xl font-bold text-dark-100">TheCollabify</span>
                             </Link>
                         </div>
 
