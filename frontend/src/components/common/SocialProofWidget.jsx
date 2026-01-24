@@ -134,13 +134,13 @@ const SocialProofWidget = () => {
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -20 }}
                                     transition={{ duration: 0.3 }}
-                                    className="text-sm text-dark-200"
+                                    className="text-sm text-gray-700 dark:text-dark-200"
                                 >
                                     {getActivityText(currentActivity)}
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                        <p className="text-xs text-dark-500 mt-1">
+                        <p className="text-xs text-gray-500 dark:text-dark-500 mt-1">
                             {currentActivity?.time}
                         </p>
                     </div>
@@ -149,11 +149,10 @@ const SocialProofWidget = () => {
                         {activities.map((_, index) => (
                             <div
                                 key={index}
-                                className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                                    index === currentActivityIndex
+                                className={`h-1.5 w-1.5 rounded-full transition-colors ${index === currentActivityIndex
                                         ? 'bg-primary-500'
                                         : 'bg-dark-700'
-                                }`}
+                                    }`}
                             />
                         ))}
                     </div>
@@ -168,9 +167,9 @@ const SocialProofWidget = () => {
                 >
                     <div className="flex items-center gap-2 mb-2">
                         <HiUserGroup className="text-primary-400 text-xl" />
-                        <span className="text-xs text-dark-500">Creators</span>
+                        <span className="text-xs text-gray-600 dark:text-dark-500">Creators</span>
                     </div>
-                    <p className="text-2xl font-bold text-dark-100">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-dark-100">
                         {stats.totalCreators.toLocaleString()}+
                     </p>
                 </motion.div>
@@ -181,9 +180,9 @@ const SocialProofWidget = () => {
                 >
                     <div className="flex items-center gap-2 mb-2">
                         <HiSparkles className="text-secondary-400 text-xl" />
-                        <span className="text-xs text-dark-500">Brands</span>
+                        <span className="text-xs text-gray-600 dark:text-dark-500">Brands</span>
                     </div>
-                    <p className="text-2xl font-bold text-dark-100">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-dark-100">
                         {stats.totalBrands.toLocaleString()}+
                     </p>
                 </motion.div>
@@ -194,9 +193,9 @@ const SocialProofWidget = () => {
                 >
                     <div className="flex items-center gap-2 mb-2">
                         <FaFire className="text-orange-400 text-xl" />
-                        <span className="text-xs text-dark-500">Active</span>
+                        <span className="text-xs text-gray-600 dark:text-dark-500">Active</span>
                     </div>
-                    <p className="text-2xl font-bold text-dark-100">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-dark-100">
                         {stats.activeCampaigns.toLocaleString()}
                     </p>
                 </motion.div>
@@ -207,9 +206,9 @@ const SocialProofWidget = () => {
                 >
                     <div className="flex items-center gap-2 mb-2">
                         <HiTrendingUp className="text-green-400 text-xl" />
-                        <span className="text-xs text-dark-500">Success</span>
+                        <span className="text-xs text-gray-600 dark:text-dark-500">Success</span>
                     </div>
-                    <p className="text-2xl font-bold text-dark-100">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-dark-100">
                         {stats.successRate}%
                     </p>
                 </motion.div>
