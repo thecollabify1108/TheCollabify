@@ -8,7 +8,7 @@ const ChatLayout = ({ children }) => {
         <div className="min-h-screen bg-dark-950 flex flex-col">
             <Navbar />
 
-            <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100vh-80px)]">
+            <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 h-[calc(100dvh-80px)]">
                 <div className="h-full bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden shadow-2xl flex relative">
                     {children}
                 </div>
