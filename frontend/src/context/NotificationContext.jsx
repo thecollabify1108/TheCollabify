@@ -13,7 +13,15 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
-    const { isAuthenticated } = useAuth();
+    let authContext;
+    try {
+        authContext = useAuth();
+    } catch (error) {
+        console.warn('AuthContext not available in NotificationProvider');
+        authContext = { isAuthenticated: false };
+    }
+
+    const { isAuthenticated } = authContext;
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -29,6 +37,7 @@ export const NotificationProvider = ({ children }) => {
             setUnreadCount(response.data.data.unreadCount);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
+            // Don't crash the app if notifications fail to load
         } finally {
             setLoading(false);
         }

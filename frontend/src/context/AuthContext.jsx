@@ -25,7 +25,13 @@ export const AuthProvider = ({ children }) => {
                     setUser(response.data.data.user);
                 } catch (error) {
                     console.error('Failed to fetch user:', error);
-                    logout();
+                    // Clear invalid token (don't call logout() to avoid circular dependency)
+                    if (error.response?.status === 401 || error.response?.status === 403) {
+                        localStorage.removeItem('token');
+                        setToken(null);
+                        setUser(null);
+                    }
+                    // For network errors, keep the token and try again later
                 }
             }
             setLoading(false);

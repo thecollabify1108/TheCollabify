@@ -13,7 +13,12 @@ const useWebSocket = (userId) => {
     const socketRef = useRef(null);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!userId) {
+            // Return safe defaults when no userId
+            setIsConnected(false);
+            setNotifications([]);
+            return;
+        }
 
         // Connect to WebSocket server
         const wsUrl = import.meta.env.VITE_WS_URL;

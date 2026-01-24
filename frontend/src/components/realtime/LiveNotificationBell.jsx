@@ -9,7 +9,7 @@ import useWebSocket from '../../hooks/useWebSocket';
  * Shows unread count and notification dropdown
  */
 const LiveNotificationBell = ({ userId }) => {
-    const { notifications, isConnected } = useWebSocket(userId);
+    const { notifications = [], isConnected } = useWebSocket(userId);
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
