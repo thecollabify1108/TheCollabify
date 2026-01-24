@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaChartLine, FaUsers, FaDollarSign, FaTrendingUp, FaFire } from 'react-icons/fa';
+import { FaChartLine, FaUsers, FaDollarSign, FaArrowUp, FaFire } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { predictROI, predictEngagement, calculateSuccessProbability } from '../../services/predictiveAnalytics';
 
@@ -132,20 +132,20 @@ const PredictiveAnalyticsWidget = ({ campaignData, creatorProfile }) => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
                 className={`bg-gradient-to-br ${successProbability.risk === 'low'
-                        ? 'from-blue-500/10 to-cyan-500/10 border-blue-500/20'
-                        : successProbability.risk === 'medium'
-                            ? 'from-yellow-500/10 to-orange-500/10 border-yellow-500/20'
-                            : 'from-red-500/10 to-pink-500/10 border-red-500/20'
+                    ? 'from-blue-500/10 to-cyan-500/10 border-blue-500/20'
+                    : successProbability.risk === 'medium'
+                        ? 'from-yellow-500/10 to-orange-500/10 border-yellow-500/20'
+                        : 'from-red-500/10 to-pink-500/10 border-red-500/20'
                     } border rounded-2xl p-6`}
             >
                 <div className="flex items-center gap-3 mb-4">
                     <div className={`w-12 h-12 ${successProbability.risk === 'low' ? 'bg-blue-500/20' :
-                            successProbability.risk === 'medium' ? 'bg-yellow-500/20' :
-                                'bg-red-500/20'
+                        successProbability.risk === 'medium' ? 'bg-yellow-500/20' :
+                            'bg-red-500/20'
                         } rounded-xl flex items-center justify-center`}>
-                        <FaTrendingUp className={`text-2xl ${successProbability.risk === 'low' ? 'text-blue-400' :
-                                successProbability.risk === 'medium' ? 'text-yellow-400' :
-                                    'text-red-400'
+                        <FaArrowUp className={`text-2xl ${successProbability.risk === 'low' ? 'text-blue-400' :
+                            successProbability.risk === 'medium' ? 'text-yellow-400' :
+                                'text-red-400'
                             }`} />
                     </div>
                     <div>
@@ -160,8 +160,8 @@ const PredictiveAnalyticsWidget = ({ campaignData, creatorProfile }) => {
                             {successProbability.probability}%
                         </div>
                         <div className={`inline-flex px-3 py-1 rounded-full text-sm font-medium ${successProbability.risk === 'low' ? 'bg-blue-500/20 text-blue-400' :
-                                successProbability.risk === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                    'bg-red-500/20 text-red-400'
+                            successProbability.risk === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                                'bg-red-500/20 text-red-400'
                             }`}>
                             {successProbability.risk.toUpperCase()} RISK
                         </div>

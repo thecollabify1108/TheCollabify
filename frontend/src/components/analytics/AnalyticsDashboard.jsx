@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     FaDollarSign,
-    FaTrendingUp,
-    FaTrendingDown,
+    FaArrowUp,
+    FaArrowDown,
     FaBriefcase,
     FaStar,
     FaEye,
@@ -109,8 +109,8 @@ const AnalyticsDashboard = ({ userType = 'creator' }) => {
                             key={p}
                             onClick={() => setPeriod(p)}
                             className={`px-4 py-2 rounded-lg font-medium transition-colors ${period === p
-                                    ? 'bg-purple-600 text-white'
-                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                 }`}
                         >
                             {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -272,7 +272,7 @@ const SummaryCard = ({ title, value, growth, icon: Icon, color, showGrowth = tru
                 {showGrowth && growth !== undefined && (
                     <div className={`flex items-center gap-1 text-sm font-semibold ${growth >= 0 ? 'text-emerald-400' : 'text-red-400'
                         }`}>
-                        {growth >= 0 ? <FaTrendingUp /> : <FaTrendingDown />}
+                        {growth >= 0 ? <FaArrowUp /> : <FaArrowDown />}
                         {Math.abs(growth).toFixed(1)}%
                     </div>
                 )}
