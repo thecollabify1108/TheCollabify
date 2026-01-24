@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaStore, FaCamera, FaGoogle, FaArrowLeft, FaCheck } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaStore, FaCamera, FaGoogle, FaArrowLeft, FaCheck, FaArrowRight } from 'react-icons/fa';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -14,7 +14,7 @@ import AuthLayout from '../components/auth/AuthLayout';
 const Register = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { googleLogin } = useAuth();
+    const { register, googleLogin } = useAuth();
 
     // Steps: 1=Role, 2=Details, 3=OTP
     const [step, setStep] = useState(1);
@@ -145,10 +145,57 @@ const Register = () => {
         }
     };
 
-    // Google Auth Logic (Simulated integration for brevity)
-    const handleGoogleSuccess = async (tokenResponse) => {
-        // Implementation remains similar to original, omitted for brevity but logic stands
-        toast.error('Please use standard email signup for this demo');
+    // Google Auth Logic
+    const loginWithGoogle = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            setGoogleLoading(true);
+            try {
+                // Determine role based on step or formData
+                // If step 1, user hasn't selected role yet, but button is inside step 1?
+                // Actually the Google button is in Step 1 alongside options or after?
+                // Let's check where the button is.
+                // It is in step 1.
+                // Wait, if it is in step 1, formData.role might be empty or default.
+                // The Google button is physically located below the role cards in the code I saw earlier.
+                // It says "or sign up with Google".
+                // If the user hasn't selected a role, we might need to prompt them or default?
+                // Actually, if they sign up with Google, maybe we direct them to role selection if backend says "new user"?
+                // BUT, for now, let's assume we pass the current role if selected, or maybe just login if account exists.
+
+                // If they are on Step 1, they haven't "submitted" a role, but formData.role defaults to 'seller' or 'creator'?
+                // Initial state in code: const [formData, setFormData] = useState({ role: '', ... });
+                // If role is empty, we probably shouldn't register them as anything specific yet?
+                // Or does backend handle "no role"?
+                // Let's send the role if it exists.
+
+                const user = await googleLogin({
+                    accessToken: tokenResponse.access_token,
+                    role: formData.role || undefined // Send role if selected
+                });
+
+                toast.success('Welcome to TheCollabify!');
+                if (user.role === 'creator') {
+                    navigate('/creator/dashboard');
+                } else if (user.role === 'seller') {
+                    navigate('/seller/dashboard');
+                } else if (user.role === 'admin') {
+                    navigate('/admin');
+                }
+            } catch (error) {
+                const message = error.response?.data?.message || 'Google registration failed';
+                toast.error(message);
+            } finally {
+                setGoogleLoading(false);
+            }
+        },
+        onError: () => {
+            toast.error('Google authentication failed');
+            setGoogleLoading(false);
+        }
+    });
+
+    const googleLoginHandler = () => {
+        loginWithGoogle();
     };
 
     // UI Helpers
@@ -195,9 +242,9 @@ const Register = () => {
                             {/* Seller Option */}
                             <button
                                 onClick={() => handleRoleSelect('seller')}
-                                className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group ${formData.role === 'seller'
-                                    ? 'border-primary-500 bg-primary-500/5 shadow-lg shadow-primary-500/10'
-                                    : 'border-dark-700 bg-dark-900 hover:border-dark-500'
+                                className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'seller'
+                                    ? 'border-primary-500 bg-primary-500/10 shadow-lg shadow-primary-500/10'
+                                    : 'border-dark-700 bg-white/5 dark:bg-black/20 hover:bg-white/10 dark:hover:bg-black/30 hover:border-dark-500'
                                     }`}
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'seller' ? 'bg-primary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
@@ -217,9 +264,9 @@ const Register = () => {
                             {/* Creator Option */}
                             <button
                                 onClick={() => handleRoleSelect('creator')}
-                                className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group ${formData.role === 'creator'
-                                    ? 'border-secondary-500 bg-secondary-500/5 shadow-lg shadow-secondary-500/10'
-                                    : 'border-dark-700 bg-dark-900 hover:border-dark-500'
+                                className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'creator'
+                                    ? 'border-secondary-500 bg-secondary-500/10 shadow-lg shadow-secondary-500/10'
+                                    : 'border-dark-700 bg-white/5 dark:bg-black/20 hover:bg-white/10 dark:hover:bg-black/30 hover:border-dark-500'
                                     }`}
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'creator' ? 'bg-secondary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
@@ -252,9 +299,9 @@ const Register = () => {
 
                         <button
                             type="button"
-                            onClick={googleLogin}
+                            onClick={googleLoginHandler}
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-dark-900 border border-dark-700 hover:bg-dark-800 text-dark-200 font-medium rounded-xl transition-all"
+                            className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 hover:bg-white/20 dark:hover:bg-black/20 text-dark-900 dark:text-dark-100 font-medium rounded-xl transition-all shadow-lg"
                         >
                             <FaGoogle className="text-lg" />
                             <span>Google</span>
@@ -333,9 +380,9 @@ const Register = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full py-4 mt-4 bg-dark-900 dark:bg-white text-white dark:text-dark-900 font-bold uppercase tracking-wider text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                                className="w-full py-4 mt-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 font-bold uppercase tracking-wider text-sm hover:bg-white/20 dark:hover:bg-black/20 transition-all disabled:opacity-50 shadow-lg"
                             >
-                                {loading ? 'Sending Code...' : `Join as a ${formData.role === 'seller' ? 'Brand' : 'Creator'}`}
+                                {loading ? 'Sending Code...' : `Join as a ${formData.role === 'seller' ? 'Brand' : 'Creator'} `}
                             </button>
                         </form>
                     </motion.div>
@@ -366,7 +413,7 @@ const Register = () => {
                         <button
                             onClick={handleVerifyOTP}
                             disabled={otpLoading || otp.some(d => !d)}
-                            className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase tracking-wider text-sm transition-all disabled:opacity-50"
+                            className="w-full py-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-emerald-500/50 text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider text-sm hover:bg-emerald-500/10 transition-all disabled:opacity-50 shadow-lg"
                         >
                             {otpLoading ? 'Verifying...' : 'Verify Email'}
                         </button>

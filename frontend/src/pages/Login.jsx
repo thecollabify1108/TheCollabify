@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { useGoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import Confetti from '../components/common/Confetti';
 import AuthLayout from '../components/auth/AuthLayout';
 
 const Login = () => {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, googleLogin } = useAuth();
     const [googleLoading, setGoogleLoading] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -56,9 +57,36 @@ const Login = () => {
         }
     };
 
+    const loginWithGoogle = useGoogleLogin({
+        onSuccess: async (tokenResponse) => {
+            setGoogleLoading(true);
+            try {
+                const user = await googleLogin({
+                    accessToken: tokenResponse.access_token
+                });
+                toast.success('Login successful!');
+                if (user.role === 'creator') {
+                    navigate('/creator/dashboard');
+                } else if (user.role === 'seller') {
+                    navigate('/seller/dashboard');
+                } else if (user.role === 'admin') {
+                    navigate('/admin');
+                }
+            } catch (error) {
+                const message = error.response?.data?.message || 'Google login failed';
+                toast.error(message);
+            } finally {
+                setGoogleLoading(false);
+            }
+        },
+        onError: () => {
+            toast.error('Google authentication failed');
+            setGoogleLoading(false);
+        }
+    });
+
     const handleGoogleLogin = () => {
-        const API_URL = import.meta.env.VITE_API_URL || '';
-        window.location.href = `${API_URL}/oauth/google`;
+        loginWithGoogle();
     };
 
     return (
@@ -118,7 +146,7 @@ const Login = () => {
                     whileTap={{ scale: 0.99 }}
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 bg-dark-900 dark:bg-white text-white dark:text-dark-900 font-bold uppercase tracking-wider text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 font-bold uppercase tracking-wider text-sm hover:bg-white/20 dark:hover:bg-black/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
                 >
                     {loading ? (
                         <span className="flex items-center justify-center gap-2">
@@ -145,7 +173,7 @@ const Login = () => {
                 whileTap={{ scale: 0.99 }}
                 onClick={handleGoogleLogin}
                 disabled={googleLoading}
-                className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-dark-900 border border-dark-700 hover:bg-dark-800 text-dark-200 font-medium rounded-xl transition-all"
+                className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 hover:bg-white/20 dark:hover:bg-black/20 font-medium rounded-xl transition-all shadow-lg text-dark-900 dark:text-dark-100"
             >
                 <FaGoogle className="text-lg" />
                 <span>Google</span>
