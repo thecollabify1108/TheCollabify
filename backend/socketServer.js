@@ -9,8 +9,6 @@
  */
 
 const { Server } = require('socket.io');
-const Message = require('./models/Message');
-const Conversation = require('./models/Conversation');
 
 // In-memory storage for online users (use Redis in production!)
 const onlineUsers = new Map();
@@ -98,61 +96,27 @@ function initializeSocketServer(httpServer) {
             console.log(`User ${socket.userId} left room: ${roomId}`);
         });
 
-        const Message = require('./models/Message');
-        const Conversation = require('./models/Conversation');
-
         // ... inside io.on('connection') ...
 
         // ===== MESSAGING =====
-        socket.on('send_message', async (data) => {
+        // Note: Actual saving happens in REST API (routes/chat.js)
+        // This event is now only for broadcasting to the specific recipient via socket
+        socket.on('send_message', (data) => {
             const { conversationId, message, recipientId } = data;
 
-            try {
-                // Save message to database
-                const newMessage = new Message({
-                    conversationId,
-                    senderId: socket.userId,
-                    content: message,
-                    status: 'sent'
-                });
+            // Broadcast to recipient
+            io.to(`user_${recipientId}`).emit('new_message', {
+                conversationId,
+                message,
+                sender: socket.userId
+            });
 
-                await newMessage.save();
-
-                // Update conversation's last message
-                await Conversation.findByIdAndUpdate(conversationId, {
-                    lastMessage: newMessage._id,
-                    lastMessageAt: new Date(),
-                    $inc: { unreadCount: 1 } // Increment unread count (simplified logic)
-                });
-
-                // Populate sender info for the recipient
-                // In a real app, you might want to populate this more efficiently
-                // or trust the frontend's existing knowledge of the user
-
-                // Send to recipient
-                io.to(`user_${recipientId}`).emit('new_message', {
-                    conversationId,
-                    message: {
-                        ...newMessage.toObject(),
-                        senderId: socket.userId // Send ID or populated object depending on frontend expectation
-                    },
-                    sender: socket.userId
-                });
-
-                // Send back to sender for confirmation
-                socket.emit('message_sent', {
-                    conversationId,
-                    message: newMessage, // Return the full saved message
-                    tempId: data.tempId
-                });
-            } catch (error) {
-                console.error('Error saving message:', error);
-                socket.emit('message_error', {
-                    conversationId,
-                    error: 'Failed to send message',
-                    tempId: data.tempId
-                });
-            }
+            // Confirm sent to sender (optional, can be handled by REST response)
+            socket.emit('message_sent', {
+                conversationId,
+                message,
+                tempId: data.tempId
+            });
         });
 
         // ===== ONLINE STATUS =====

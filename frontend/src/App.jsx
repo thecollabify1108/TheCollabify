@@ -28,6 +28,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
 const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
+const Messages = lazy(() => import('./pages/Messages'));
 
 
 // Protected route wrapper
@@ -146,6 +147,20 @@ function App() {
                     <Route path="/for-creators" element={<PageTransition><ForCreators /></PageTransition>} />
                     <Route path="/terms" element={<PageTransition><TermsConditions /></PageTransition>} />
                     <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+
+                    {/* Chat Route (New) */}
+                    <Route
+                        path="/messages"
+                        element={
+                            <ProtectedRoute allowedRoles={['creator', 'seller', 'admin']}>
+                                <PageTransition>
+                                    <Suspense fallback={<AppLoader />}>
+                                        <Messages />
+                                    </Suspense>
+                                </PageTransition>
+                            </ProtectedRoute>
+                        }
+                    />
 
                     {/* Creator routes */}
                     <Route
