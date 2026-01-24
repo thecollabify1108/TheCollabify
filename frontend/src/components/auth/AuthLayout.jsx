@@ -15,10 +15,10 @@ const AuthLayout = ({ children, title, subtitle }) => {
                 <ThemeToggle />
             </header>
 
-            {/* Main Content */}
-            <main className="flex-1 w-full max-w-md mx-auto px-6 py-8 flex flex-col">
+            {/* Main Content - Centered */}
+            <main className="flex-1 w-full max-w-md mx-auto px-6 py-8 flex flex-col justify-center">
                 {/* Hero / Title Section */}
-                <div className="mb-10 mt-4">
+                <div className="mb-8">
                     <h1 className="text-3xl font-bold mb-3 leading-tight">{title}</h1>
                     <p className="text-dark-500 text-base leading-relaxed">
                         {subtitle}
@@ -30,52 +30,61 @@ const AuthLayout = ({ children, title, subtitle }) => {
                 <div className="flex-1">
                     {children}
                 </div>
+            </main>
 
-                {/* Trust Badges */}
-                <div className="grid grid-cols-3 gap-4 mt-16 mb-12 border-t border-b border-dark-200 dark:border-dark-800 py-8">
-                    <div className="flex flex-col items-center text-center gap-2">
-                        <FaLock className="text-2xl text-dark-400" />
-                        <span className="text-xs font-semibold text-dark-500 uppercase tracking-wide">Secure &<br />Private</span>
-                    </div>
-                    <div className="flex flex-col items-center text-center gap-2 border-l border-r border-dark-200 dark:border-dark-800">
-                        <FaHandshake className="text-2xl text-dark-400" />
-                        <span className="text-xs font-semibold text-dark-500 uppercase tracking-wide">Verified<br />Partners</span>
-                    </div>
-                    <div className="flex flex-col items-center text-center gap-2">
-                        <FaHeadset className="text-2xl text-dark-400" />
-                        <span className="text-xs font-semibold text-dark-500 uppercase tracking-wide">24/7<br />Support</span>
-                    </div>
-                </div>
+            {/* Horizontal Footer Section */}
+            <footer className="mt-auto px-6 py-8 border-t border-dark-200 dark:border-dark-800 bg-[#FDFBF7]/50 dark:bg-dark-950/50">
+                <div className="max-w-5xl mx-auto flex flex-col items-center gap-8">
 
-                {/* Footer Info */}
-                <div className="text-center space-y-8 pb-8">
-                    <div className="space-y-4">
-                        <div className="mx-auto w-10 h-10 flex items-center justify-center">
-                            <img src="/favicon.png" alt="" className="w-full h-full opacity-50 grayscale" />
+                    {/* Trust Badges - Horizontal */}
+                    <div className="flex flex-wrap justify-center gap-8 md:gap-16">
+                        <div className="flex items-center gap-3 text-dark-500">
+                            <FaLock className="text-xl opacity-70" />
+                            <span className="text-xs font-bold tracking-wider uppercase">Secure & Private</span>
                         </div>
-                        <p className="text-xs text-dark-400 leading-relaxed max-w-xs mx-auto">
-                            TheCollabify is an AI-powered influencer marketing platform connecting brands with the right influencers to drive authentic engagement.
+                        <div className="flex items-center gap-3 text-dark-500">
+                            <FaHandshake className="text-xl opacity-70" />
+                            <span className="text-xs font-bold tracking-wider uppercase">Verified Partners</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-dark-500">
+                            <FaHeadset className="text-xl opacity-70" />
+                            <span className="text-xs font-bold tracking-wider uppercase">24/7 Support</span>
+                        </div>
+                    </div>
+
+                    {/* Logo & Description */}
+                    <div className="text-center max-w-lg">
+                        <div className="mx-auto w-8 h-8 flex items-center justify-center mb-3">
+                            <img src="/favicon.png" alt="" className="w-full h-full opacity-40 grayscale" />
+                        </div>
+                        <p className="text-xs text-dark-400">
+                            TheCollabify is an AI-powered influencer marketing platform connecting brands with the right influencers.
                         </p>
                     </div>
 
-                    <div className="flex flex-col gap-3 text-sm font-medium text-dark-500">
-                        <Link to="/for-brands" className="hover:text-primary-500 transition-colors">For Brands</Link>
-                        <Link to="/for-creators" className="hover:text-primary-500 transition-colors">For Influencers</Link>
-                        <Link to="/terms" className="hover:text-primary-500 transition-colors">Terms & Conditions</Link>
-                        <Link to="/privacy" className="hover:text-primary-500 transition-colors">Privacy Policy</Link>
-                    </div>
+                    {/* Links & Socials - Horizontal Row */}
+                    <div className="flex flex-col md:flex-row items-center gap-6 md:gap-12 w-full justify-center text-sm font-medium text-dark-500">
+                        <div className="flex gap-6">
+                            <Link to="/for-brands" className="hover:text-primary-500 transition-colors">For Brands</Link>
+                            <Link to="/for-creators" className="hover:text-primary-500 transition-colors">For Influencers</Link>
+                            <Link to="/terms" className="hover:text-primary-500 transition-colors">Terms</Link>
+                            <Link to="/privacy" className="hover:text-primary-500 transition-colors">Privacy</Link>
+                        </div>
 
-                    <div className="flex justify-center gap-6 text-dark-400">
-                        <a href="#" className="hover:text-primary-500 transition-colors"><FaLinkedin size={20} /></a>
-                        <a href="#" className="hover:text-primary-500 transition-colors"><FaInstagram size={20} /></a>
-                        <a href="#" className="hover:text-primary-500 transition-colors"><FaTwitter size={20} /></a>
-                        <a href="#" className="hover:text-primary-500 transition-colors"><FaFacebook size={20} /></a>
+                        <div className="hidden md:block w-px h-4 bg-dark-300"></div>
+
+                        <div className="flex gap-6 text-dark-400">
+                            <a href="#" className="hover:text-primary-500 transition-colors"><FaLinkedin size={18} /></a>
+                            <a href="#" className="hover:text-primary-500 transition-colors"><FaInstagram size={18} /></a>
+                            <a href="#" className="hover:text-primary-500 transition-colors"><FaTwitter size={18} /></a>
+                            <a href="#" className="hover:text-primary-500 transition-colors"><FaFacebook size={18} /></a>
+                        </div>
                     </div>
                 </div>
-            </main>
+            </footer>
 
             {/* Support Bar */}
-            <div className="bg-dark-900 text-dark-400 py-3 text-[10px] text-center uppercase tracking-widest font-semibold">
+            <div className="bg-dark-900 text-dark-400 py-2 text-[10px] text-center uppercase tracking-widest font-semibold">
                 24x7 Customer Support support@thecollabify.com
             </div>
         </div>
