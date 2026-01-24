@@ -162,4 +162,10 @@ export const teamAPI = {
     checkPermission: (params) => api.get('/team/permissions/check', { params })
 };
 
+// AI API
+export const aiAPI = {
+    generateCaption: (data) => api.post('/ai/generate-caption', data),
+    generateHashtags: (data) => api.post('/ai/generate-hashtags', data)
+};
+
 export default api;

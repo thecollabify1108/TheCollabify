@@ -446,6 +446,10 @@ const EventCard = ({ event, compact, detailed, onEdit, onDelete }) => {
 /**
  * Event Modal Component
  */
+import AIContentGenerator from '../creator/AIContentGenerator'; // Import AI Component
+
+// ... existing code ...
+
 const EventModal = ({ event, onClose, onSave }) => {
     const [formData, setFormData] = useState({
         title: event?.title || '',
@@ -461,9 +465,10 @@ const EventModal = ({ event, onClose, onSave }) => {
     });
 
     const [loading, setLoading] = useState(false);
-    const [conflicts, setConflicts] = useState([]);
+    const [showAI, setShowAI] = useState(false); // State for AI toggle
 
     const handleSubmit = async (e) => {
+        // ... existing submit logic ...
         e.preventDefault();
         setLoading(true);
 
@@ -485,14 +490,22 @@ const EventModal = ({ event, onClose, onSave }) => {
             onSave();
         } catch (error) {
             console.error('Error saving event:', error);
-            if (error.response?.data?.conflicts) {
-                setConflicts(error.response.data.conflicts);
-                toast.error('Scheduling conflict detected!');
-            } else {
-                toast.error('Failed to save event');
-            }
+            toast.error('Failed to save event');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAISelect = (content) => {
+        if (content.startsWith('#')) {
+            // It's likely hashtags
+            setFormData(prev => ({
+                ...prev,
+                hashtags: prev.hashtags ? `${prev.hashtags}, ${content}` : content
+            }));
+        } else {
+            // It's likely a caption
+            setFormData(prev => ({ ...prev, caption: content }));
         }
     };
 
@@ -526,41 +539,128 @@ const EventModal = ({ event, onClose, onSave }) => {
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
-                    {/* Form fields would go here - simplified for brevity */}
-                    <div>
-                        <label className="block text-sm font-semibold text-dark-200 mb-2">
-                            Title *
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.title}
-                            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                            required
-                            className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
-                            placeholder="Content title..."
-                        />
-                    </div>
+                <div className="flex-1 overflow-y-auto p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                        {/* Left Column - Form */}
+                        <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-dark-200 mb-2">Title *</label>
+                                    <input
+                                        type="text"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        required
+                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 focus:border-purple-500 focus:outline-none"
+                                        placeholder="Content title..."
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-dark-200 mb-2">Platform</label>
+                                    <select
+                                        value={formData.platform}
+                                        onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
+                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 focus:border-purple-500 focus:outline-none"
+                                    >
+                                        <option value="instagram">Instagram</option>
+                                        <option value="youtube">YouTube</option>
+                                        <option value="tiktok">TikTok</option>
+                                        <option value="twitter">Twitter</option>
+                                        <option value="linkedin">LinkedIn</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                    {/* More form fields would follow... */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-dark-200 mb-2">Scheduled Date</label>
+                                    <input
+                                        type="date"
+                                        value={formData.scheduledDate}
+                                        onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
+                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 focus:border-purple-500 focus:outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-dark-200 mb-2">Time</label>
+                                    <input
+                                        type="time"
+                                        value={formData.scheduledTime}
+                                        onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
+                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 focus:border-purple-500 focus:outline-none"
+                                    />
+                                </div>
+                            </div>
 
-                    <div className="flex gap-3">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="flex-1 px-6 py-3 bg-dark-800 hover:bg-dark-700 text-dark-300 rounded-xl font-medium transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity disabled:opacity-50"
-                        >
-                            {loading ? 'Saving...' : event ? 'Update' : 'Schedule'}
-                        </button>
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-sm font-semibold text-dark-200">Caption</label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAI(!showAI)}
+                                        className="text-xs flex items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors"
+                                    >
+                                        <HiSparkles />
+                                        {showAI ? 'Hide AI Assistant' : 'Use AI Assistant'}
+                                    </button>
+                                </div>
+                                <textarea
+                                    value={formData.caption}
+                                    onChange={(e) => setFormData({ ...formData, caption: e.target.value })}
+                                    rows={4}
+                                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 focus:border-purple-500 focus:outline-none"
+                                    placeholder="Write your caption here..."
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-dark-200 mb-2">Hashtags</label>
+                                <input
+                                    type="text"
+                                    value={formData.hashtags}
+                                    onChange={(e) => setFormData({ ...formData, hashtags: e.target.value })}
+                                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 focus:border-purple-500 focus:outline-none"
+                                    placeholder="#summer #vibes (comma separated)"
+                                />
+                            </div>
+
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="flex-1 px-6 py-3 bg-dark-800 hover:bg-dark-700 text-dark-300 rounded-xl font-medium transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity disabled:opacity-50"
+                                >
+                                    {loading ? 'Saving...' : event ? 'Update' : 'Schedule'}
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Right Column - AI Assistant */}
+                        <AnimatePresence>
+                            {showAI && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    className="lg:col-span-1"
+                                >
+                                    <AIContentGenerator
+                                        platform={formData.platform}
+                                        onSelect={handleAISelect}
+                                        currentTopic={formData.title}
+                                    />
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
-                </form>
+                </div>
             </motion.div>
         </>
     );

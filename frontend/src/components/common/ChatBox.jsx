@@ -26,7 +26,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
     // WebSocket hooks
     const { isConnected, isUserOnline } = useWebSocket(user);
-    const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversationId);
+    const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversationId, isConnected);
 
     // Get other user ID for online status
     const otherUserId = conversation?.participants?.find(p => p._id !== user?.id)?._id;

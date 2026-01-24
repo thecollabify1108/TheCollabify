@@ -1,62 +1,46 @@
-import { useEffect, useState, useRef } from 'react';
-import { io } from 'socket.io-client';
+import { useEffect, useState } from 'react';
+import webSocketService from '../services/websocket';
 import toast from 'react-hot-toast';
 
 /**
  * useWebSocket - Custom hook for WebSocket connection
- * Handles real-time bidirectional communication
+ * Wrapper around singleton WebSocketService
  */
 const useWebSocket = (userId) => {
-    const [socket, setSocket] = useState(null);
-    const [isConnected, setIsConnected] = useState(false);
+    const [isConnected, setIsConnected] = useState(webSocketService.isConnected);
     const [notifications, setNotifications] = useState([]);
-    const socketRef = useRef(null);
+    const [onlineUsers, setOnlineUsers] = useState(new Set());
 
     useEffect(() => {
         if (!userId) {
-            // Return safe defaults when no userId
+            webSocketService.disconnect();
             setIsConnected(false);
             setNotifications([]);
+            setOnlineUsers(new Set());
             return;
         }
 
-        // Connect to WebSocket server
-        const wsUrl = import.meta.env.VITE_WS_URL;
-        if (!wsUrl) {
-            console.error('❌ VITE_WS_URL not configured!');
-            return;
-        }
-        const newSocket = io(wsUrl, {
-            auth: {
-                userId,
-                token: localStorage.getItem('token')
-            },
-            reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: 5
-        });
+        const token = localStorage.getItem('token');
+        webSocketService.connect(userId, token);
 
-        // Connection events
-        newSocket.on('connect', () => {
+        // Update local state when connection status changes
+        setIsConnected(webSocketService.isConnected);
+
+        // Event listeners
+        const handleConnect = () => {
             if (import.meta.env.DEV) {
                 console.log('✅ WebSocket connected');
             }
             setIsConnected(true);
-        });
-
-        newSocket.on('disconnect', () => {
+        };
+        const handleDisconnect = () => {
             if (import.meta.env.DEV) {
                 console.log('❌ WebSocket disconnected');
             }
             setIsConnected(false);
-        });
+        };
 
-        newSocket.on('connect_error', (error) => {
-            console.error('WebSocket connection error:', error);
-        });
-
-        // Real-time notification handler
-        newSocket.on('notification', (data) => {
+        const handleNotification = (data) => {
             if (import.meta.env.DEV) {
                 console.log('📬 New notification:', data);
             }
@@ -66,7 +50,6 @@ const useWebSocket = (userId) => {
             toast.custom((t) => (
                 <div className={`${t.visible ? 'animate-enter' : 'animate-leave'}
                                 glass-card p-4 flex items-start gap-3 max-w-md`}>
-                    {/* Icon based on type */}
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center
                                     ${data.type === 'success' ? 'bg-emerald-500/20 text-emerald-400' :
                             data.type === 'warning' ? 'bg-amber-500/20 text-amber-400' :
@@ -88,62 +71,91 @@ const useWebSocket = (userId) => {
                 </div>
             ), { duration: 5000 });
 
-            // Play notification sound (optional)
             playNotificationSound();
-        });
+        };
+
+        const handleOnlineUsersList = (data) => {
+            setOnlineUsers(new Set(data.users));
+        };
+
+        const handleUserOnline = (data) => {
+            setOnlineUsers(prev => {
+                const newSet = new Set(prev);
+                newSet.add(data.userId);
+                return newSet;
+            });
+        };
+
+        const handleUserOffline = (data) => {
+            setOnlineUsers(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(data.userId);
+                return newSet;
+            });
+        };
 
         // Campaign update handler
-        newSocket.on('campaign_update', (data) => {
+        const handleCampaignUpdate = (data) => {
             if (import.meta.env.DEV) {
-                if (import.meta.env.DEV) {
-                    console.log('📊 Campaign update:', data);
-                }
+                console.log('📊 Campaign update:', data);
             }
-            // Trigger re-fetch or update local state
             window.dispatchEvent(new CustomEvent('campaign_update', { detail: data }));
-        });
+        };
 
         // New message handler
-        newSocket.on('new_message', (data) => {
+        const handleNewMessage = (data) => {
             if (import.meta.env.DEV) {
                 console.log('💬 New message:', data);
             }
-            // Update unread count
             window.dispatchEvent(new CustomEvent('new_message', { detail: data }));
-        });
+        };
 
-        socketRef.current = newSocket;
-        setSocket(newSocket);
+        // Attach listeners
+        webSocketService.socket.on('connect', handleConnect);
+        webSocketService.socket.on('disconnect', handleDisconnect);
+        webSocketService.socket.on('notification', handleNotification);
+        webSocketService.socket.on('online_users_list', handleOnlineUsersList);
+        webSocketService.socket.on('user_online', handleUserOnline);
+        webSocketService.socket.on('user_offline', handleUserOffline);
+        webSocketService.socket.on('campaign_update', handleCampaignUpdate);
+        webSocketService.socket.on('new_message', handleNewMessage);
+
+
+        // Initial fetch
+        if (webSocketService.isConnected) {
+            webSocketService.getOnlineUsers();
+        }
 
         return () => {
-            newSocket.close();
+            // We do NOT disconnect here to maintain persistent connection across nav
+            // webSocketService.disconnect(); 
+
+            // Clean up listeners
+            if (webSocketService.socket) {
+                webSocketService.socket.off('connect', handleConnect);
+                webSocketService.socket.off('disconnect', handleDisconnect);
+                webSocketService.socket.off('notification', handleNotification);
+                webSocketService.socket.off('online_users_list', handleOnlineUsersList);
+                webSocketService.socket.off('user_online', handleUserOnline);
+                webSocketService.socket.off('user_offline', handleUserOffline);
+                webSocketService.socket.off('campaign_update', handleCampaignUpdate);
+                webSocketService.socket.off('new_message', handleNewMessage);
+            }
         };
     }, [userId]);
 
-    // Helper function to emit events
-    const emit = (event, data) => {
-        if (socketRef.current && isConnected) {
-            socketRef.current.emit(event, data);
-        }
-    };
-
-    // Helper to join a room
-    const joinRoom = (roomId) => {
-        emit('join_room', { roomId });
-    };
-
-    // Helper to leave a room
-    const leaveRoom = (roomId) => {
-        emit('leave_room', { roomId });
-    };
+    // Helper functions
+    const isUserOnline = (targetUserId) => onlineUsers.has(targetUserId);
 
     return {
-        socket,
+        socket: webSocketService.socket,
         isConnected,
         notifications,
-        emit,
-        joinRoom,
-        leaveRoom
+        onlineUsers: Array.from(onlineUsers),
+        isUserOnline,
+        emit: (event, data) => webSocketService.emit(event, data),
+        joinRoom: (roomId) => webSocketService.joinRoom(roomId),
+        leaveRoom: (roomId) => webSocketService.leaveRoom(roomId)
     };
 };
 

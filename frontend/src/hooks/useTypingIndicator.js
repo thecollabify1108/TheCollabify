@@ -4,16 +4,19 @@ import webSocketService from '../services/websocket';
 /**
  * Hook for managing typing indicators in a conversation
  */
-const useTypingIndicator = (conversationId) => {
+const useTypingIndicator = (conversationId, isConnected) => {
     const [typingUsers, setTypingUsers] = useState([]);
     const typingTimeout = useRef(null);
     const lastTypingEmit = useRef(0);
 
     useEffect(() => {
-        if (!conversationId || !webSocketService.connected) return;
+        // Run effect when conversationId changes OR when connection status changes
+        if (!conversationId || (!webSocketService.connected && !isConnected)) return;
 
-        // Join the conversation room
-        webSocketService.joinRoom(conversationId);
+        // Join the conversation room if connected
+        if (webSocketService.connected) {
+            webSocketService.joinRoom(conversationId);
+        }
 
         // Listen for typing events
         const handleUserTyping = (data) => {
@@ -40,18 +43,24 @@ const useTypingIndicator = (conversationId) => {
         return () => {
             webSocketService.off('user_typing', handleUserTyping);
             webSocketService.off('user_stop_typing', handleUserStopTyping);
-            webSocketService.leaveRoom(conversationId);
+
+            // Only leave if still connected (optional, but good practice)
+            if (webSocketService.connected) {
+                webSocketService.leaveRoom(conversationId);
+            }
+
             if (typingTimeout.current) {
                 clearTimeout(typingTimeout.current);
             }
         };
-    }, [conversationId]);
+    }, [conversationId, isConnected]); // Added isConnected dependency
 
     /**
      * Notify others that current user is typing
      * Throttled to prevent excessive socket emissions
      */
     const sendTyping = useCallback(() => {
+        // Check connection status properly
         if (!conversationId || !webSocketService.connected) return;
 
         const now = Date.now();
@@ -69,7 +78,7 @@ const useTypingIndicator = (conversationId) => {
         typingTimeout.current = setTimeout(() => {
             webSocketService.sendStopTyping(conversationId);
         }, 3000);
-    }, [conversationId]);
+    }, [conversationId, isConnected]); // Added isConnected dependency
 
     /**
      * Notify others that current user stopped typing
@@ -83,7 +92,7 @@ const useTypingIndicator = (conversationId) => {
 
         webSocketService.sendStopTyping(conversationId);
         lastTypingEmit.current = 0;
-    }, [conversationId]);
+    }, [conversationId, isConnected]); // Added isConnected dependency
 
     return {
         typingUsers,

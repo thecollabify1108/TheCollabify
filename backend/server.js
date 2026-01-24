@@ -127,6 +127,7 @@ app.use('/api/achievements', require('./routes/achievements'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/calendar', require('./routes/contentCalendar'));
 app.use('/api/team', require('./routes/teamManagement'));
+app.use('/api/ai', require('./routes/ai'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
