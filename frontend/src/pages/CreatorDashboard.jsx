@@ -40,6 +40,12 @@ import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyti
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import ContentCalendar from '../components/calendar/ContentCalendar';
 
+// NEW: Modern Dashboard Widgets
+import StatCard from '../components/dashboard/StatCard';
+import ActivityFeed from '../components/dashboard/ActivityFeed';
+import PerformanceChart from '../components/dashboard/PerformanceChart';
+import DashboardHero from '../components/dashboard/DashboardHero';
+
 const CreatorDashboard = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -205,7 +211,7 @@ const CreatorDashboard = () => {
             {/* Main Content */}
             <main className="max-w-lg mx-auto">
                 <AnimatePresence mode="wait">
-                    {/* Dashboard Tab - Simplified */}
+                    {/* Dashboard Tab - Modernized */}
                     {activeTab === 'dashboard' && (
                         <motion.div
                             key="dashboard"
@@ -216,120 +222,131 @@ const CreatorDashboard = () => {
                         >
                             {profile ? (
                                 <>
-                                    {/* Welcome Header */}
-                                    <div className="p-6 rounded-2xl bg-gradient-to-br from-primary-500/10 to-secondary-500/10 border border-primary-500/20">
-                                        <h1 className="text-2xl font-bold text-dark-100 mb-2">Welcome back, {user.name.split(' ')[0]}! 👋</h1>
-                                        <p className="text-dark-400 text-sm mb-4">Here's what's happening with your profile</p>
-
-                                        {/* Availability Toggle */}
-                                        <button
-                                            onClick={handleToggleAvailability}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all ${profile.isAvailable
-                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                                                : 'bg-dark-700 text-dark-400 border border-dark-600'
-                                                }`}
-                                        >
-                                            <span className={`w-2 h-2 rounded-full ${profile.isAvailable ? 'bg-emerald-400' : 'bg-dark-500'}`}></span>
-                                            {profile.isAvailable ? 'Available for work' : 'Not available'}
-                                        </button>
-                                    </div>
-
-                                    {/* Profile Completion Progress */}
-                                    <ProfileCompletionBar
-                                        completion={calculateProfileCompletion()}
-                                        onComplete={() => setActiveTab('profile')}
+                                    {/* 1. Hero Section */}
+                                    <DashboardHero
+                                        userName={user.name.split(' ')[0]}
+                                        role="Creator"
+                                        dailyInsight="Your engagement rate is in the top 10% of creators in your niche! 🌟"
                                     />
 
-                                    {/* Quick Stats - Only 3 Cards */}
-                                    <div className="grid grid-cols-3 gap-3">
-                                        <div className="p-4 rounded-xl bg-dark-800/40 border border-dark-700/50">
-                                            <div className="text-xs text-dark-400 mb-1">Active</div>
-                                            <div className="text-2xl font-bold text-dark-100">{pendingApplications}</div>
-                                            <div className="text-xs text-dark-500">Applications</div>
+                                    {/* 2. Stats Grid */}
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        <StatCard
+                                            label="Active Jobs"
+                                            value={pendingApplications}
+                                            icon={<FaBriefcase />}
+                                            color="blue"
+                                            trend={5}
+                                            delay={0.1}
+                                        />
+                                        <StatCard
+                                            label="Total Earnings"
+                                            value={`₹${(completedCampaigns * 5000).toLocaleString()}`}
+                                            icon={<HiLightningBolt />}
+                                            color="emerald"
+                                            trend={12}
+                                            delay={0.2}
+                                        />
+                                        <StatCard
+                                            label="AI Match Score"
+                                            value={profile.aiMatchScore || 87}
+                                            icon={<HiSparkles />}
+                                            color="purple"
+                                            trend={2}
+                                            delay={0.3}
+                                        />
+                                        <StatCard
+                                            label="Profile Views"
+                                            value="1.2K"
+                                            icon={<HiUserGroup />}
+                                            color="amber"
+                                            trend={8}
+                                            delay={0.4}
+                                        />
+                                    </div>
+
+                                    {/* 3. Charts & Activity Split */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[400px]">
+                                        <div className="md:col-span-2 h-full">
+                                            <PerformanceChart
+                                                title="Earnings Overview"
+                                                data={[
+                                                    { name: 'Mon', value: 4000 },
+                                                    { name: 'Tue', value: 3000 },
+                                                    { name: 'Wed', value: 5500 },
+                                                    { name: 'Thu', value: 4500 },
+                                                    { name: 'Fri', value: 8000 },
+                                                    { name: 'Sat', value: 6500 },
+                                                    { name: 'Sun', value: 9000 },
+                                                ]}
+                                                color="#10b981"
+                                            />
                                         </div>
-                                        <div className="p-4 rounded-xl bg-dark-800/40 border border-dark-700/50">
-                                            <div className="text-xs text-dark-400 mb-1">Earned</div>
-                                            <div className="text-2xl font-bold text-emerald-400">₹{(completedCampaigns * 5000).toLocaleString()}</div>
-                                            <div className="text-xs text-dark-500">This month</div>
-                                        </div>
-                                        <div className="p-4 rounded-xl bg-dark-800/40 border border-dark-700/50">
-                                            <div className="text-xs text-dark-400 mb-1">AI Score</div>
-                                            <div className="text-2xl font-bold text-primary-400">{profile.aiMatchScore || 87}</div>
-                                            <div className="text-xs text-dark-500">Rating</div>
+                                        <div className="h-full">
+                                            <ActivityFeed
+                                                activities={applications.slice(0, 5).map(app => ({
+                                                    id: app._id,
+                                                    title: `Applied to ${app.promotion?.title || 'Campaign'}`,
+                                                    description: app.status === 'Accepted' ? 'Application accepted!' : 'Application pending review',
+                                                    time: new Date(app.appliedAt).toLocaleDateString(),
+                                                    icon: <FaBriefcase />,
+                                                    iconColor: app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
+                                                }))}
+                                                emptyMessage="No recent applications"
+                                            />
                                         </div>
                                     </div>
 
-                                    {/* Today's Focus */}
-                                    <div className="p-5 rounded-xl bg-dark-800/40 border border-dark-700/50">
-                                        <h3 className="text-lg font-semibold text-dark-100 mb-4">Today's Focus</h3>
-                                        <div className="space-y-3">
-                                            {promotions.length > 0 && (
-                                                <div className="flex items-center gap-3 p-3 rounded-lg bg-primary-500/10 border border-primary-500/20 cursor-pointer hover:bg-primary-500/20 transition"
-                                                    onClick={() => setActiveTab('opportunities')}>
-                                                    <div className="w-10 h-10 rounded-full bg-primary-500/20 flex items-center justify-center">
-                                                        <HiSparkles className="w-5 h-5 text-primary-400" />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-medium text-dark-100">{promotions.length} new opportunities match you</div>
-                                                        <div className="text-xs text-dark-400">Browse brands looking for creators</div>
-                                                    </div>
+                                    {/* 4. Action Items (Today's Focus - Modernized) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.5 }}
+                                            className="p-1 rounded-2xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"
+                                        >
+                                            <div className="bg-dark-900 rounded-xl p-5 h-full">
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <h3 className="font-bold text-white">Profile Strength</h3>
+                                                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-yellow-500">
+                                                        {calculateProfileCompletion()}%
+                                                    </span>
                                                 </div>
-                                            )}
-                                            {pendingApplications > 0 && (
-                                                <div className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
-                                                    <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
-                                                        <FaCheck className="w-4 h-4 text-amber-400" />
-                                                    </div>
-                                                    <div className="flex-1">
-                                                        <div className="text-sm font-medium text-dark-100">{pendingApplications} brands waiting for response</div>
-                                                        <div className="text-xs text-dark-400">Check your applications</div>
-                                                    </div>
+                                                <div className="w-full bg-dark-800 rounded-full h-2 mb-4">
+                                                    <div className="bg-gradient-to-r from-pink-500 to-yellow-500 h-2 rounded-full" style={{ width: `${calculateProfileCompletion()}%` }} />
                                                 </div>
-                                            )}
-                                            <div className="flex items-center gap-3 p-3 rounded-lg bg-dark-700/40 border border-dark-600/50 cursor-pointer hover:bg-dark-700 transition"
-                                                onClick={() => setActiveTab('profile')}>
-                                                <div className="w-10 h-10 rounded-full bg-dark-600 flex items-center justify-center">
-                                                    <FaCog className="w-4 h-4 text-dark-400" />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="text-sm font-medium text-dark-100">Profile completion</div>
-                                                    <div className="text-xs text-dark-400">Complete for better matches</div>
-                                                </div>
-                                                <div className="text-sm font-semibold text-primary-400">90%</div>
+                                                <button
+                                                    onClick={() => setActiveTab('profile')}
+                                                    className="w-full py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-sm font-medium text-white transition-colors"
+                                                >
+                                                    Complete Profile
+                                                </button>
                                             </div>
-                                        </div>
-                                    </div>
+                                        </motion.div>
 
-                                    {/* Recent Applications */}
-                                    {applications.length > 0 && (
-                                        <div className="p-5 rounded-xl bg-dark-800/40 border border-dark-700/50">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <h3 className="text-lg font-semibold text-dark-100">Recent Activity</h3>
-                                                <button className="text-sm text-primary-400 hover:text-primary-300">View All</button>
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: 0.6 }}
+                                            className="p-5 rounded-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm"
+                                        >
+                                            <div className="flex items-center gap-4 mb-3">
+                                                <div className="p-3 rounded-full bg-purple-500/20 text-purple-400">
+                                                    <HiSparkles className="text-xl" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-white">Opportunity Match</h3>
+                                                    <p className="text-sm text-dark-400">{promotions.length} new campaigns fit your niche</p>
+                                                </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                {applications.slice(0, 3).map((app, idx) => (
-                                                    <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-dark-700/40 border border-dark-600/30">
-                                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white text-xs font-bold">
-                                                            {app.request?.brand?.name?.[0] || 'B'}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="text-sm font-medium text-dark-100 truncate">
-                                                                {app.request?.title || 'Brand Collaboration'}
-                                                            </div>
-                                                            <div className="text-xs text-dark-400">Applied 2 hours ago</div>
-                                                        </div>
-                                                        <span className={`px-2 py-1 text-xs rounded-full ${app.applicationStatus === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                            app.applicationStatus === 'Rejected' ? 'bg-red-500/20 text-red-400' :
-                                                                'bg-amber-500/20 text-amber-400'
-                                                            }`}>
-                                                            {app.applicationStatus}
-                                                        </span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
+                                            <button
+                                                onClick={() => setActiveTab('opportunities')}
+                                                className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-medium text-white transition-colors"
+                                            >
+                                                Explore Matches
+                                            </button>
+                                        </motion.div>
+                                    </div>
                                 </>
                             ) : (
                                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>

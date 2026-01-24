@@ -37,6 +37,12 @@ import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import TeamManagement from '../components/team/TeamManagement';
 
+// NEW: Modern Dashboard Widgets
+import StatCard from '../components/dashboard/StatCard';
+import ActivityFeed from '../components/dashboard/ActivityFeed';
+import PerformanceChart from '../components/dashboard/PerformanceChart';
+import DashboardHero from '../components/dashboard/DashboardHero';
+
 const SellerDashboard = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -434,71 +440,157 @@ const SellerDashboard = () => {
                         </motion.div>
                     )}
 
-                    {/* Dashboard Tab */}
+                    {/* Dashboard Tab - Modernized */}
                     {activeTab === 'dashboard' && (
                         <motion.div
                             key="dashboard"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="p-4 space-y-4"
+                            className="space-y-6 p-4"
                         >
-                            {/* Profile Completion Bar */}
-                            <ProfileCompletionBar
-                                completion={user?.companyName && user?.email ? 100 : 60}
-                                onComplete={() => {/* Navigate to profile settings */ }}
+                            {/* 1. Hero Section */}
+                            <DashboardHero
+                                userName={user.companyName || user.name.split(' ')[0]}
+                                role="Seller"
+                                dailyInsight="Campaign 'Summer Launch' has 5 new high-quality applicants! 🚀"
                             />
 
-                            <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
-                                <HiSparkles className="text-primary-400" /> Your Campaigns
-                            </h2>
+                            {/* 2. Campaign Pipeline Stats */}
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <StatCard
+                                    label="Total Budget"
+                                    value="₹1.5L"
+                                    icon={<FaFire />}
+                                    color="orange"
+                                    trend={0}
+                                    delay={0.1}
+                                />
+                                <StatCard
+                                    label="Active Campaigns"
+                                    value={stats.active}
+                                    icon={<HiViewGrid />}
+                                    color="blue"
+                                    trend={2}
+                                    delay={0.2}
+                                />
+                                <StatCard
+                                    label="Pending Applicants"
+                                    value={stats.pending}
+                                    icon={<HiUserGroup />}
+                                    color="purple"
+                                    trend={stats.pending > 0 ? 10 : 0}
+                                    delay={0.3}
+                                />
+                                <StatCard
+                                    label="Total Matches"
+                                    value={stats.totalMatches}
+                                    icon={<HiSparkles />}
+                                    color="emerald"
+                                    trend={5}
+                                    delay={0.4}
+                                />
+                            </div>
 
-                            {requests.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-dark-800/50 flex items-center justify-center">
-                                        <HiViewGrid className="text-4xl text-dark-500" />
-                                    </div>
-                                    <p className="text-dark-400">No campaigns yet</p>
+                            {/* 3. Charts & Applicant Feed */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[400px]">
+                                <div className="md:col-span-2 h-full">
+                                    <PerformanceChart
+                                        title="Campaign Spend & ROI"
+                                        color="#f59e0b"
+                                        data={[
+                                            { name: 'Week 1', value: 12000 },
+                                            { name: 'Week 2', value: 19000 },
+                                            { name: 'Week 3', value: 15000 },
+                                            { name: 'Week 4', value: 25000 },
+                                            { name: 'Week 5', value: 32000 },
+                                        ]}
+                                    />
+                                </div>
+                                <div className="h-full">
+                                    <ActivityFeed
+                                        activities={pendingCreators.slice(0, 5).map(c => ({
+                                            id: c.creatorId,
+                                            title: c.name,
+                                            description: `Applied to ${c.requestTitle}`,
+                                            time: 'Just now',
+                                            icon: <HiUserGroup />,
+                                            iconColor: 'bg-purple-500/20 text-purple-400'
+                                        }))}
+                                        emptyMessage="No pending applicants"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 4. Active Campaigns List (Modernized) */}
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+                                        <HiSparkles className="text-primary-400" /> Active Campaigns
+                                    </h2>
                                     <button
                                         onClick={() => setShowRequestWizard(true)}
-                                        className="mt-4 px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold"
+                                        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors"
                                     >
-                                        Create First Campaign
+                                        + New Campaign
                                     </button>
                                 </div>
-                            ) : (
-                                <div className="space-y-3">
-                                    {requests.map((request, index) => (
-                                        <motion.div
-                                            key={request._id}
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: index * 0.05 }}
-                                            onClick={() => setSelectedRequest(request)}
-                                            className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all"
+
+                                {requests.length === 0 ? (
+                                    <div className="text-center py-12 bg-dark-800/20 rounded-2xl border border-dark-700/50 border-dashed">
+                                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-dark-800/50 flex items-center justify-center">
+                                            <HiViewGrid className="text-2xl text-dark-500" />
+                                        </div>
+                                        <p className="text-dark-400 mb-4">No campaigns yet</p>
+                                        <button
+                                            onClick={() => setShowRequestWizard(true)}
+                                            className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold"
                                         >
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                                            Launch Campaign
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {requests.slice(0, 6).map((request, index) => (
+                                            <motion.div
+                                                key={request._id}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.05 }}
+                                                onClick={() => setSelectedRequest(request)}
+                                                className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800"
+                                            >
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
                                                         request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
                                                             'bg-blue-500/20 text-blue-400'
                                                         }`}>
                                                         {request.title?.charAt(0).toUpperCase()}
                                                     </div>
-                                                    <div>
-                                                        <h3 className="font-semibold text-dark-100">{request.title}</h3>
-                                                        <p className="text-sm text-dark-400">{request.status}</p>
-                                                    </div>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.status === 'Open' ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'
+                                                        }`}>
+                                                        {request.status}
+                                                    </span>
                                                 </div>
-                                                <div className="text-right">
-                                                    <div className="font-bold text-primary-400">₹{request.budget?.toLocaleString()}</div>
-                                                    <div className="text-xs text-dark-500">{request.matchedCreators?.length || 0} matches</div>
+
+                                                <h3 className="font-semibold text-dark-100 mb-1 group-hover:text-primary-400 transition-colors">{request.title}</h3>
+                                                <div className="flex items-center justify-between text-sm text-dark-400">
+                                                    <span>Budget: ₹{request.budget?.toLocaleString()}</span>
+                                                    <span>{request.matchedCreators?.length || 0} Matches</span>
                                                 </div>
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            )}
+
+                                                {/* Progress Bar Simulation */}
+                                                <div className="w-full bg-dark-700 rounded-full h-1.5 mt-4 overflow-hidden">
+                                                    <div
+                                                        className="bg-primary-500 h-full rounded-full"
+                                                        style={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
+                                                    />
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </motion.div>
                     )}
 
