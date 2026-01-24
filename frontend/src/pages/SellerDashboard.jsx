@@ -354,7 +354,7 @@ const SellerDashboard = () => {
             <QuickStatsBar stats={stats} />
 
             {/* Main Content Area */}
-            <main className="max-w-lg mx-auto">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
                 <AnimatePresence mode="wait">
                     {/* Search Tab - Creator Discovery with AI */}
                     {activeTab === 'search' && (
@@ -363,7 +363,7 @@ const SellerDashboard = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="p-4 space-y-4"
+                            className="space-y-4"
                         >
                             {/* Enhanced Creator Search */}
                             <EnhancedCreatorSearch
@@ -398,15 +398,17 @@ const SellerDashboard = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="p-4"
+                            className="flex justify-center"
                         >
                             {/* Swipeable Creator Cards */}
-                            <SwipeableCreatorCard
-                                creators={pendingCreators}
-                                onAccept={handleAcceptCreator}
-                                onReject={handleRejectCreator}
-                                onMessage={handleMessageCreator}
-                            />
+                            <div className="w-full max-w-md">
+                                <SwipeableCreatorCard
+                                    creators={pendingCreators}
+                                    onAccept={handleAcceptCreator}
+                                    onReject={handleRejectCreator}
+                                    onMessage={handleMessageCreator}
+                                />
+                            </div>
                         </motion.div>
                     )}
 
@@ -417,7 +419,6 @@ const SellerDashboard = () => {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="p-4"
                         >
                             <div className="mb-4">
                                 <h2 className="text-xl font-bold text-dark-100 mb-1">Campaign Analytics</h2>
@@ -434,7 +435,6 @@ const SellerDashboard = () => {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="p-4"
                         >
                             <TeamManagement />
                         </motion.div>
@@ -447,7 +447,7 @@ const SellerDashboard = () => {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="space-y-6 p-4"
+                            className="space-y-8 pb-6"
                         >
                             {/* 1. Hero Section */}
                             <DashboardHero
@@ -457,7 +457,7 @@ const SellerDashboard = () => {
                             />
 
                             {/* 2. Campaign Pipeline Stats */}
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                 <StatCard
                                     label="Total Budget"
                                     value="₹1.5L"
@@ -493,8 +493,8 @@ const SellerDashboard = () => {
                             </div>
 
                             {/* 3. Charts & Applicant Feed */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[400px]">
-                                <div className="md:col-span-2 h-full">
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
+                                <div className="lg:col-span-2 h-[300px] lg:h-full">
                                     <PerformanceChart
                                         title="Campaign Spend & ROI"
                                         color="#f59e0b"
@@ -507,7 +507,7 @@ const SellerDashboard = () => {
                                         ]}
                                     />
                                 </div>
-                                <div className="h-full">
+                                <div className="h-[400px] lg:h-full">
                                     <ActivityFeed
                                         activities={pendingCreators.slice(0, 5).map(c => ({
                                             id: c.creatorId,

@@ -209,16 +209,16 @@ const CreatorDashboard = () => {
             <Navbar />
 
             {/* Main Content */}
-            <main className="max-w-lg mx-auto">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
                 <AnimatePresence mode="wait">
                     {/* Dashboard Tab - Modernized */}
                     {activeTab === 'dashboard' && (
                         <motion.div
                             key="dashboard"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            className="space-y-6 p-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="space-y-8 pb-6"
                         >
                             {profile ? (
                                 <>
@@ -230,7 +230,7 @@ const CreatorDashboard = () => {
                                     />
 
                                     {/* 2. Stats Grid */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                         <StatCard
                                             label="Active Jobs"
                                             value={pendingApplications}
@@ -266,8 +266,8 @@ const CreatorDashboard = () => {
                                     </div>
 
                                     {/* 3. Charts & Activity Split */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[400px]">
-                                        <div className="md:col-span-2 h-full">
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
+                                        <div className="lg:col-span-2 h-[300px] lg:h-full">
                                             <PerformanceChart
                                                 title="Earnings Overview"
                                                 data={[
@@ -282,13 +282,12 @@ const CreatorDashboard = () => {
                                                 color="#10b981"
                                             />
                                         </div>
-                                        <div className="h-full">
+                                        <div className="h-[400px] lg:h-full">
                                             <ActivityFeed
                                                 activities={applications.slice(0, 5).map(app => ({
                                                     id: app._id,
                                                     title: `Applied to ${app.promotion?.title || 'Campaign'}`,
                                                     description: app.status === 'Accepted' ? 'Application accepted!' : 'Application pending review',
-                                                    time: new Date(app.appliedAt).toLocaleDateString(),
                                                     icon: <FaBriefcase />,
                                                     iconColor: app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
                                                 }))}
