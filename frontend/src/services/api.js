@@ -101,6 +101,14 @@ export const notificationAPI = {
     deleteNotification: (id) => api.delete(`/notifications/${id}`)
 };
 
+// Calendar API
+export const calendarAPI = {
+    getEvents: (params) => api.get('/calendar', { params }),
+    createEvent: (data) => api.post('/calendar', data),
+    updateEvent: (id, data) => api.put(`/calendar/${id}`, data),
+    deleteEvent: (id) => api.delete(`/calendar/${id}`)
+};
+
 // Chat API
 export const chatAPI = {
     getConversations: () => api.get('/chat/conversations'),
@@ -134,6 +142,24 @@ export const adminAPI = {
 // Public API
 export const publicAPI = {
     getLeaderboard: (params) => api.get('/leaderboard', { params })
+};
+
+// Analytics API
+export const analyticsAPI = {
+    getDashboard: (params) => api.get('/analytics/dashboard', { params }),
+    getSummary: () => api.get('/analytics/summary'),
+    getTopPerformers: (params) => api.get('/analytics/top-performers', { params }),
+    getRange: (params) => api.get('/analytics/range', { params }),
+    recordSnapshot: () => api.post('/analytics/snapshot')
+};
+
+// Team API
+export const teamAPI = {
+    getTeam: (params) => api.get('/team', { params }),
+    inviteMember: (data) => api.post('/team/invite', data),
+    updateRole: (id, role) => api.put(`/team/${id}/role`, { role }),
+    removeMember: (id) => api.delete(`/team/${id}`),
+    checkPermission: (params) => api.get('/team/permissions/check', { params })
 };
 
 export default api;

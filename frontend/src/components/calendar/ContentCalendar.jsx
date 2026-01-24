@@ -17,33 +17,47 @@ import { HiSparkles } from 'react-icons/hi';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
+// Setup the localizer by searching for the global moment instance
+const localizer = momentLocalizer(moment);
+
 /**
  * Content Calendar Component
  * Schedule and manage content across multiple platforms
  */
 const ContentCalendar = () => {
     const [events, setEvents] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showEventModal, setShowEventModal] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(new Date());
-    const [viewMode, setViewMode] = useState('month'); // month, week, day
     const [selectedEvent, setSelectedEvent] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [view, setView] = useState('month');
+    const [loading, setLoading] = useState(true);
 
+    const [newEvent, setNewEvent] = useState({
+        title: '',
+        start: new Date(),
+        end: new Date(),
+        type: 'post',
+        platform: 'instagram',
+        description: '',
+        status: 'planned'
+    });
+
+    // Fetch events on mount
     useEffect(() => {
         fetchEvents();
-    }, [selectedDate, viewMode]);
+    }, []);
 
     const fetchEvents = async () => {
         try {
             setLoading(true);
-            const startDate = getStartDate();
-            const endDate = getEndDate();
-
-            const response = await api.get('/api/calendar', {
-                params: { startDate, endDate }
-            });
-
-            setEvents(response.data.data.events || []);
+            const response = await calendarAPI.getEvents();
+            // Convert string dates back to Date objects for the calendar
+            const formattedEvents = response.data.map(evt => ({
+                ...evt,
+                start: new Date(evt.start),
+                end: new Date(evt.end || evt.start),
+                resource: evt // Keep original data
+            }));
+            setEvents(formattedEvents);
         } catch (error) {
             console.error('Error fetching events:', error);
             toast.error('Failed to load calendar');
@@ -52,127 +66,154 @@ const ContentCalendar = () => {
         }
     };
 
-    const getStartDate = () => {
-        const date = new Date(selectedDate);
-        if (viewMode === 'month') {
-            date.setDate(1);
-        } else if (viewMode === 'week') {
-            date.setDate(date.getDate() - date.getDay());
-        }
-        return date.toISOString();
-    };
-
-    const getEndDate = () => {
-        const date = new Date(selectedDate);
-        if (viewMode === 'month') {
-            date.setMonth(date.getMonth() + 1);
-            date.setDate(0);
-        } else if (viewMode === 'week') {
-            date.setDate(date.getDate() - date.getDay() + 6);
-        }
-        return date.toISOString();
-    };
-
-    const handleCreateEvent = () => {
+    const handleSelectSlot = ({ start, end }) => {
+        setNewEvent({
+            ...newEvent,
+            start,
+            end,
+            title: '',
+            description: ''
+        });
         setSelectedEvent(null);
-        setShowEventModal(true);
+        setShowModal(true);
     };
 
-    const handleEditEvent = (event) => {
+    const handleSelectEvent = (event) => {
         setSelectedEvent(event);
-        setShowEventModal(true);
+        setNewEvent({
+            ...event.resource,
+            start: event.start,
+            end: event.end
+        });
+        setShowModal(true);
     };
 
-    const handleDeleteEvent = async (eventId) => {
-        if (!confirm('Are you sure you want to delete this event?')) return;
+    const handleSaveEvent = async () => {
+        if (!newEvent.title) {
+            toast.error('Please add a title');
+            return;
+        }
 
         try {
-            await api.delete(`/api/calendar/${eventId}`);
-            toast.success('Event deleted successfully');
-            fetchEvents();
+            if (selectedEvent) {
+                // Update existing
+                const response = await calendarAPI.updateEvent(selectedEvent.resource._id, newEvent);
+                const updatedEvent = {
+                    ...response.data,
+                    start: new Date(response.data.start),
+                    end: new Date(response.data.end || response.data.start),
+                    resource: response.data
+                };
+
+                setEvents(events.map(ev => ev.resource._id === response.data._id ? updatedEvent : ev));
+                toast.success('Event updated!');
+            } else {
+                // Create new
+                const response = await calendarAPI.createEvent(newEvent);
+                const savedEvent = {
+                    ...response.data,
+                    start: new Date(response.data.start),
+                    end: new Date(response.data.end || response.data.start),
+                    resource: response.data
+                };
+
+                setEvents([...events, savedEvent]);
+                toast.success('Event scheduled!');
+            }
+            setShowModal(false);
         } catch (error) {
-            console.error('Error deleting event:', error);
-            toast.error('Failed to delete event');
+            console.error('Error saving event:', error);
+            toast.error('Failed to save event');
         }
+    };
+
+    const handleDeleteEvent = async () => {
+        if (!selectedEvent) return;
+
+        if (window.confirm('Are you sure you want to delete this event?')) {
+            try {
+                await calendarAPI.deleteEvent(selectedEvent.resource._id);
+                setEvents(events.filter(ev => ev.resource._id !== selectedEvent.resource._id));
+                toast.success('Event removed');
+                setShowModal(false);
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                toast.error('Failed to delete event');
+            }
+        }
+    };
+
+    // Custom Event Component
+    const EventComponent = ({ event }) => (
+        <div className="flex items-center gap-1 overflow-hidden h-full">
+            {event.resource.platform === 'instagram' && <FaInstagram className="text-pink-500 text-xs" />}
+            {event.resource.platform === 'youtube' && <FaYoutube className="text-red-500 text-xs" />}
+            {event.resource.platform === 'tiktok' && <FaTiktok className="text-black dark:text-white text-xs" />}
+
+            <span className="text-xs truncate">{event.title}</span>
+
+            {event.resource.status === 'published' && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-green-400" title="Published" />
+            )}
+        </div>
+    );
+
+    const eventStyleGetter = (event) => {
+        let backgroundColor = '#3B82F6'; // Default blue
+
+        switch (event.resource.type) {
+            case 'story': backgroundColor = '#EC4899'; break; // Pink
+            case 'reel': backgroundColor = '#8B5CF6'; break; // Purple
+            case 'video': backgroundColor = '#EF4444'; break; // Red
+            default: backgroundColor = '#3B82F6';
+        }
+
+        if (event.resource.status === 'published') {
+            backgroundColor = '#10B981'; // Green
+        }
+
+        return {
+            style: {
+                backgroundColor: `${backgroundColor}dd`,
+                borderRadius: '6px',
+                border: 'none',
+                color: 'white',
+                display: 'block'
+            }
+        };
     };
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-xl overflow-hidden glass-card h-[800px] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="p-6 border-b border-gray-100 dark:border-dark-700 flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-dark-100 flex items-center gap-3">
-                        <FaCalendar className="text-purple-500" />
+                    <h2 className="text-2xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                         Content Calendar
-                    </h1>
-                    <p className="text-dark-400 mt-1">
-                        Schedule and manage your content across platforms
+                    </h2>
+                    <p className="text-gray-500 dark:text-dark-400 text-sm">
+                        Plan and schedule your upcoming content
                     </p>
                 </div>
 
                 <button
-                    onClick={handleCreateEvent}
-                    className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity flex items-center gap-2"
+                    onClick={() => {
+                        setSelectedEvent(null);
+                        setNewEvent({
+                            title: '',
+                            start: new Date(),
+                            end: new Date(),
+                            type: 'post',
+                            platform: 'instagram',
+                            status: 'planned'
+                        });
+                        setShowModal(true);
+                    }}
+                    className="btn-primary flex items-center gap-2"
                 >
                     <FaPlus />
-                    Schedule Content
+                    <span>New Content</span>
                 </button>
-            </div>
-
-            {/* View Controls */}
-            <div className="flex items-center justify-between bg-dark-900 border border-dark-800 rounded-xl p-4">
-                <div className="flex gap-2">
-                    {['month', 'week', 'day'].map((mode) => (
-                        <button
-                            key={mode}
-                            onClick={() => setViewMode(mode)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${viewMode === mode
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
-                                }`}
-                        >
-                            {mode.charAt(0).toUpperCase() + mode.slice(1)}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => {
-                            const newDate = new Date(selectedDate);
-                            newDate.setMonth(newDate.getMonth() - 1);
-                            setSelectedDate(newDate);
-                        }}
-                        className="px-3 py-2 bg-dark-800 hover:bg-dark-700 text-dark-300 rounded-lg transition-colors"
-                    >
-                        ←
-                    </button>
-
-                    <span className="text-dark-100 font-semibold min-w-[200px] text-center">
-                        {selectedDate.toLocaleDateString('en-US', {
-                            month: 'long',
-                            year: 'numeric'
-                        })}
-                    </span>
-
-                    <button
-                        onClick={() => {
-                            const newDate = new Date(selectedDate);
-                            newDate.setMonth(newDate.getMonth() + 1);
-                            setSelectedDate(newDate);
-                        }}
-                        className="px-3 py-2 bg-dark-800 hover:bg-dark-700 text-dark-300 rounded-lg transition-colors"
-                    >
-                        →
-                    </button>
-
-                    <button
-                        onClick={() => setSelectedDate(new Date())}
-                        className="px-4 py-2 bg-dark-800 hover:bg-dark-700 text-dark-300 rounded-lg transition-colors"
-                    >
-                        Today
-                    </button>
-                </div>
             </div>
 
             {/* Calendar Grid */}

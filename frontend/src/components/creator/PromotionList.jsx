@@ -1,9 +1,13 @@
-import { motion } from 'framer-motion';
-import { FaBriefcase, FaRupeeSign, FaUsers, FaCheck } from 'react-icons/fa';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaTag, FaClock, FaDollarSign, FaCheckCircle, FaChartLine } from 'react-icons/fa';
+import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 import EmptyState from '../common/EmptyState';
 import UrgencyBadge from '../common/UrgencyBadge';
 
 const PromotionList = ({ promotions, onApply }) => {
+    const [expandedId, setExpandedId] = useState(null);
+
     if (!promotions || promotions.length === 0) {
         return (
             <EmptyState
@@ -87,26 +91,61 @@ const PromotionList = ({ promotions, onApply }) => {
                             )}
                         </div>
 
-                        {/* Action Button */}
-                        <div className="mt-4 md:mt-0 md:ml-6">
+                        {/* Action Buttons */}
+                        <div className="mt-4 md:mt-0 md:ml-6 flex flex-col gap-2">
+                            <button
+                                onClick={() => setExpandedId(expandedId === promotion._id ? null : promotion._id)}
+                                className="btn-outline flex items-center justify-center text-sm"
+                            >
+                                <FaChartLine className="mr-2" />
+                                {expandedId === promotion._id ? 'Hide Insights' : 'AI Insights'}
+                            </button>
+
                             {promotion.hasApplied ? (
                                 <button
                                     disabled
-                                    className="btn-secondary flex items-center opacity-75 cursor-not-allowed"
+                                    className="btn-secondary flex items-center justify-center opacity-75 cursor-not-allowed"
                                 >
-                                    <FaCheck className="mr-2" />
+                                    <FaCheckCircle className="mr-2" />
                                     Applied
                                 </button>
                             ) : (
                                 <button
                                     onClick={() => onApply(promotion._id)}
-                                    className="btn-3d flex items-center"
+                                    className="btn-3d flex items-center justify-center"
                                 >
                                     Apply Now
                                 </button>
                             )}
                         </div>
                     </div>
+
+                    {/* AI Insights Expansion */}
+                    <AnimatePresence>
+                        {expandedId === promotion._id && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="overflow-hidden mt-4 pt-4 border-t border-dark-700"
+                            >
+                                <PredictiveAnalyticsWidget
+                                    campaignData={{
+                                        budget: promotion.budgetRange?.max || 5000,
+                                        creatorFollowers: promotion.followerRange?.max || 50000,
+                                        creatorEngagementRate: 3.5, // Placeholder - normally from user profile
+                                        promotionType: promotion.promotionType,
+                                        category: promotion.targetCategory,
+                                        duration: 14
+                                    }}
+                                    creatorProfile={{
+                                        followers: 50000, // Placeholder - normally current user stats
+                                        avgEngagementRate: 3.5
+                                    }}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             ))}
         </div>

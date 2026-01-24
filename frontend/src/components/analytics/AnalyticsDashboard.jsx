@@ -26,7 +26,7 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import axios from 'axios';
+import { analyticsAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 // Register ChartJS components
@@ -63,8 +63,8 @@ const AnalyticsDashboard = ({ userType = 'creator' }) => {
 
             // Fetch summary and historical data
             const [summaryRes, analyticsRes] = await Promise.all([
-                axios.get('/api/analytics/summary'),
-                axios.get(`/api/analytics/dashboard?period=${period}&limit=12`)
+                analyticsAPI.getSummary(),
+                analyticsAPI.getDashboard({ period, limit: 12 })
             ]);
 
             setSummary(summaryRes.data.data);

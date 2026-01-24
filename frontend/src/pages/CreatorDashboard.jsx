@@ -530,6 +530,14 @@ const CreatorDashboard = () => {
                 </div>
             </nav>
 
+            {/* AI Assistant Panel (Always available) */}
+            <AIAssistantPanel
+                onUse={(content) => {
+                    toast.success('AI content copied to clipboard!');
+                    navigator.clipboard.writeText(content);
+                }}
+            />
+
             {/* Chat Overlay */}
             <AnimatePresence>
                 {selectedConversation && (

@@ -21,6 +21,10 @@ const matchedCreatorSchema = new mongoose.Schema({
         enum: ['Matched', 'Applied', 'Accepted', 'Rejected'],
         default: 'Matched'
     },
+    agreedAmount: {
+        type: Number,
+        min: 0
+    },
     appliedAt: Date,
     respondedAt: Date
 }, { _id: true });
