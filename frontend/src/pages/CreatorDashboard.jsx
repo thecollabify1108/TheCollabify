@@ -226,7 +226,7 @@ const CreatorDashboard = () => {
                                     <DashboardHero
                                         userName={user.name.split(' ')[0]}
                                         role="Creator"
-                                        dailyInsight="Your engagement rate is in the top 10% of creators in your niche! 🌟"
+                                        dailyInsight="Complete your profile to increase visibility! 🌟"
                                     />
 
                                     {/* 2. Stats Grid */}
@@ -236,31 +236,31 @@ const CreatorDashboard = () => {
                                             value={pendingApplications}
                                             icon={<FaBriefcase />}
                                             color="blue"
-                                            trend={5}
+                                            trend={0}
                                             delay={0.1}
                                         />
                                         <StatCard
                                             label="Total Earnings"
-                                            value={`₹${(completedCampaigns * 5000).toLocaleString()}`}
+                                            value={`₹${(completedCampaigns * 5000).toLocaleString()}`} // Still estimating per campaign, but based on real count
                                             icon={<HiLightningBolt />}
                                             color="emerald"
-                                            trend={12}
+                                            trend={0}
                                             delay={0.2}
                                         />
                                         <StatCard
                                             label="AI Match Score"
-                                            value={profile.aiMatchScore || 87}
+                                            value={profile.aiMatchScore || 0}
                                             icon={<HiSparkles />}
                                             color="purple"
-                                            trend={2}
+                                            trend={0}
                                             delay={0.3}
                                         />
                                         <StatCard
                                             label="Profile Views"
-                                            value="1.2K"
+                                            value={0} // No tracking yet
                                             icon={<HiUserGroup />}
                                             color="amber"
-                                            trend={8}
+                                            trend={0}
                                             delay={0.4}
                                         />
                                     </div>
@@ -270,15 +270,7 @@ const CreatorDashboard = () => {
                                         <div className="lg:col-span-2 h-[300px] lg:h-full">
                                             <PerformanceChart
                                                 title="Earnings Overview"
-                                                data={[
-                                                    { name: 'Mon', value: 4000 },
-                                                    { name: 'Tue', value: 3000 },
-                                                    { name: 'Wed', value: 5500 },
-                                                    { name: 'Thu', value: 4500 },
-                                                    { name: 'Fri', value: 8000 },
-                                                    { name: 'Sat', value: 6500 },
-                                                    { name: 'Sun', value: 9000 },
-                                                ]}
+                                                data={[]} // Empty until analytics
                                                 color="#10b981"
                                             />
                                         </div>

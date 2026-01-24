@@ -453,14 +453,14 @@ const SellerDashboard = () => {
                             <DashboardHero
                                 userName={user.companyName || user.name.split(' ')[0]}
                                 role="Seller"
-                                dailyInsight="Campaign 'Summer Launch' has 5 new high-quality applicants! 🚀"
+                                dailyInsight="Welcome to your campaign dashboard! 🚀"
                             />
 
                             {/* 2. Campaign Pipeline Stats */}
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                                 <StatCard
                                     label="Total Budget"
-                                    value="₹1.5L"
+                                    value="₹0" // Placeholder until real budget logic
                                     icon={<FaFire />}
                                     color="orange"
                                     trend={0}
@@ -471,7 +471,7 @@ const SellerDashboard = () => {
                                     value={stats.active}
                                     icon={<HiViewGrid />}
                                     color="blue"
-                                    trend={2}
+                                    trend={0}
                                     delay={0.2}
                                 />
                                 <StatCard
@@ -479,7 +479,7 @@ const SellerDashboard = () => {
                                     value={stats.pending}
                                     icon={<HiUserGroup />}
                                     color="purple"
-                                    trend={stats.pending > 0 ? 10 : 0}
+                                    trend={0}
                                     delay={0.3}
                                 />
                                 <StatCard
@@ -487,7 +487,7 @@ const SellerDashboard = () => {
                                     value={stats.totalMatches}
                                     icon={<HiSparkles />}
                                     color="emerald"
-                                    trend={5}
+                                    trend={0}
                                     delay={0.4}
                                 />
                             </div>
@@ -498,13 +498,7 @@ const SellerDashboard = () => {
                                     <PerformanceChart
                                         title="Campaign Spend & ROI"
                                         color="#f59e0b"
-                                        data={[
-                                            { name: 'Week 1', value: 12000 },
-                                            { name: 'Week 2', value: 19000 },
-                                            { name: 'Week 3', value: 15000 },
-                                            { name: 'Week 4', value: 25000 },
-                                            { name: 'Week 5', value: 32000 },
-                                        ]}
+                                        data={[]} // Empty data until analytics API is ready
                                     />
                                 </div>
                                 <div className="h-[400px] lg:h-full">
