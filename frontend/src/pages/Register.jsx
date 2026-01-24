@@ -81,6 +81,7 @@ const Register = () => {
 
     const handleRoleSelect = (role) => {
         setFormData(prev => ({ ...prev, role }));
+        setStep(prev => prev + 1);
     };
 
     const handleSubmitDetails = async (e) => {
@@ -236,13 +237,7 @@ const Register = () => {
                             </button>
                         </div>
 
-                        <button
-                            onClick={handleNextStep}
-                            disabled={!formData.role}
-                            className="w-full py-3.5 bg-dark-100 text-dark-950 font-bold rounded-xl hover:bg-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Continue
-                        </button>
+
 
 
 
