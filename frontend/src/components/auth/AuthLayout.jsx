@@ -37,9 +37,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
                     {/* Logo Area */}
                     <div>
                         <Link to="/" className="inline-flex items-center space-x-3 group">
-                            <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-primary-500/50 transition-all duration-300">
-                                <img src="/favicon.png" alt="Logo" className="w-6 h-6 invert brightness-0" />
-                            </div>
+                            <img src="/favicon.png" alt="TheCollabify" className="w-10 h-10 object-contain" />
                             <span className="text-2xl font-bold text-white tracking-tight">TheCollabify</span>
                         </Link>
                     </div>

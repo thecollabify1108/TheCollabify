@@ -37,9 +37,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
             {/* Logo */}
             <div className="p-6 border-b border-dark-800 flex justify-between items-center">
                 <Link to="/" className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center shadow-lg">
-                        <span className="font-bold text-white text-lg">A</span>
-                    </div>
+                    <img src="/favicon.png" alt="TheCollabify" className="w-8 h-8 object-contain" />
                     <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-dark-400">
                         AdminPanel
                     </span>
