@@ -68,54 +68,44 @@ const Login = () => {
         >
             <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
 
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-8">
                 {/* Email Input */}
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-dark-300">Email Address</label>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <FaEnvelope className="text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                        </div>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full pl-11 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                            placeholder="name@company.com"
-                            required
-                        />
-                    </div>
+                <div className="space-y-1 group">
+                    <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Email Address <span className="text-red-400">*</span></label>
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
+                        required
+                    />
                 </div>
 
                 {/* Password Input */}
-                <div className="space-y-2">
+                <div className="space-y-1 group">
                     <div className="flex justify-between items-center">
-                        <label className="text-sm font-medium text-dark-300">Password</label>
+                        <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Password <span className="text-red-400">*</span></label>
                         <Link
                             to="/forgot-password"
-                            className="text-sm text-primary-400 hover:text-primary-300 transition-colors"
+                            className="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors"
                         >
-                            Forgot Password?
+                            Forgot?
                         </Link>
                     </div>
-                    <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <FaLock className="text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                        </div>
+                    <div className="relative">
                         <input
                             type={showPassword ? 'text' : 'password'}
                             name="password"
                             value={formData.password}
                             onChange={handleChange}
-                            className="w-full pl-11 pr-11 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                            placeholder="••••••••"
+                            className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
                             required
                         />
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-dark-400 hover:text-dark-200"
+                            className="absolute inset-y-0 right-0 top-2 pr-0 flex items-start text-dark-400 hover:text-dark-600"
                         >
                             {showPassword ? <FaEyeSlash /> : <FaEye />}
                         </button>
@@ -128,7 +118,7 @@ const Login = () => {
                     whileTap={{ scale: 0.99 }}
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 px-4 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white font-semibold rounded-xl shadow-lg shadow-primary-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-4 bg-dark-900 dark:bg-white text-white dark:text-dark-900 font-bold uppercase tracking-wider text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {loading ? (
                         <span className="flex items-center justify-center gap-2">

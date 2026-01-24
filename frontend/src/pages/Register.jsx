@@ -276,56 +276,46 @@ const Register = () => {
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ duration: 0.3 }}
                 >
-                    <form onSubmit={handleSubmitDetails} className="space-y-5">
+                    <form onSubmit={handleSubmitDetails} className="space-y-8">
                         {/* Name */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Full Name</label>
-                            <div className="relative group">
-                                <FaUser className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    placeholder="John Doe"
-                                    className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                                    required
-                                />
-                            </div>
+                        <div className="space-y-1 group">
+                            <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Full Name <span className="text-red-400">*</span></label>
+                            <input
+                                type="text"
+                                name="name"
+                                value={formData.name}
+                                onChange={handleChange}
+                                className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
+                                required
+                            />
                         </div>
 
                         {/* Email */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Email Address</label>
-                            <div className="relative group">
-                                <FaEnvelope className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    placeholder="name@example.com"
-                                    className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                                    required
-                                />
-                            </div>
+                        <div className="space-y-1 group">
+                            <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Email Address <span className="text-red-400">*</span></label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleChange}
+                                className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
+                                required
+                            />
                         </div>
 
                         {/* Password */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Password</label>
-                            <div className="relative group">
-                                <FaLock className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
+                        <div className="space-y-1 group">
+                            <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Password <span className="text-red-400">*</span></label>
+                            <div className="relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     name="password"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    placeholder="Min 8 chars"
-                                    className="w-full pl-10 pr-10 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
+                                    className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
                                     required
                                 />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-3 text-dark-400 hover:text-dark-200">
+                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-2 text-dark-400 hover:text-dark-600 transition-colors">
                                     {showPassword ? <FaEyeSlash /> : <FaEye />}
                                 </button>
                             </div>
@@ -333,28 +323,24 @@ const Register = () => {
                         </div>
 
                         {/* Confirm Password */}
-                        <div className="space-y-1">
-                            <label className="text-xs font-semibold text-dark-400 uppercase tracking-wider">Confirm Password</label>
-                            <div className="relative group">
-                                <FaLock className="absolute left-4 top-3.5 text-dark-400 group-focus-within:text-primary-500 transition-colors" />
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="confirmPassword"
-                                    value={formData.confirmPassword}
-                                    onChange={handleChange}
-                                    placeholder="Confirm password"
-                                    className="w-full pl-10 pr-4 py-3 bg-dark-900 border border-dark-700 rounded-xl text-dark-100 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                                    required
-                                />
-                            </div>
+                        <div className="space-y-1 group">
+                            <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Confirm Password <span className="text-red-400">*</span></label>
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="confirmPassword"
+                                value={formData.confirmPassword}
+                                onChange={handleChange}
+                                className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
+                                required
+                            />
                         </div>
 
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3.5 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white font-bold rounded-xl shadow-lg shadow-primary-500/20 transition-all disabled:opacity-50"
+                            className="w-full py-4 mt-4 bg-dark-900 dark:bg-white text-white dark:text-dark-900 font-bold uppercase tracking-wider text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
                         >
-                            {loading ? 'Sending Code...' : 'Create Account'}
+                            {loading ? 'Sending Code...' : `Join as a ${formData.role === 'seller' ? 'Brand' : 'Creator'}`}
                         </button>
                     </form>
                 </motion.div>
@@ -376,16 +362,16 @@ const Register = () => {
 
                     <div className="text-center">
                         {otpTimer > 0 ? (
-                            <p className="text-dark-400 text-sm">Resend in <span className="font-mono text-primary-400">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span></p>
+                            <p className="text-dark-400 text-sm">Resend in <span className="font-mono text-primary-500">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span></p>
                         ) : (
-                            <button className="text-primary-400 hover:text-primary-300 text-sm font-medium">Resend Code</button>
+                            <button className="text-primary-500 hover:text-primary-600 text-sm font-medium">Resend Code</button>
                         )}
                     </div>
 
                     <button
                         onClick={handleVerifyOTP}
                         disabled={otpLoading || otp.some(d => !d)}
-                        className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
+                        className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase tracking-wider text-sm transition-all disabled:opacity-50"
                     >
                         {otpLoading ? 'Verifying...' : 'Verify Email'}
                     </button>
