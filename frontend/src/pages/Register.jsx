@@ -195,8 +195,8 @@ const Register = () => {
                             <button
                                 onClick={() => handleRoleSelect('seller')}
                                 className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group ${formData.role === 'seller'
-                                        ? 'border-primary-500 bg-primary-500/5 shadow-lg shadow-primary-500/10'
-                                        : 'border-dark-700 bg-dark-900 hover:border-dark-500'
+                                    ? 'border-primary-500 bg-primary-500/5 shadow-lg shadow-primary-500/10'
+                                    : 'border-dark-700 bg-dark-900 hover:border-dark-500'
                                     }`}
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'seller' ? 'bg-primary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
@@ -217,8 +217,8 @@ const Register = () => {
                             <button
                                 onClick={() => handleRoleSelect('creator')}
                                 className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group ${formData.role === 'creator'
-                                        ? 'border-secondary-500 bg-secondary-500/5 shadow-lg shadow-secondary-500/10'
-                                        : 'border-dark-700 bg-dark-900 hover:border-dark-500'
+                                    ? 'border-secondary-500 bg-secondary-500/5 shadow-lg shadow-secondary-500/10'
+                                    : 'border-dark-700 bg-dark-900 hover:border-dark-500'
                                     }`}
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'creator' ? 'bg-secondary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
@@ -244,7 +244,7 @@ const Register = () => {
                             Continue
                         </button>
 
-                        </div>
+
 
                         <div className="relative my-6">
                             <div className="absolute inset-0 flex items-center">
@@ -255,7 +255,7 @@ const Register = () => {
                             </div>
                         </div>
 
-                         <button
+                        <button
                             type="button"
                             onClick={googleLogin}
                             disabled={loading}
@@ -267,117 +267,117 @@ const Register = () => {
                     </motion.div>
                 )}
 
-            {/* STEP 2: DETAILS FORM */}
-            {step === 2 && (
-                <motion.div
-                    key="step2"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <form onSubmit={handleSubmitDetails} className="space-y-8">
-                        {/* Name */}
-                        <div className="space-y-1 group">
-                            <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Full Name <span className="text-red-400">*</span></label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
-                                required
-                            />
-                        </div>
-
-                        {/* Email */}
-                        <div className="space-y-1 group">
-                            <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Email Address <span className="text-red-400">*</span></label>
-                            <input
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
-                                required
-                            />
-                        </div>
-
-                        {/* Password */}
-                        <div className="space-y-1 group">
-                            <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Password <span className="text-red-400">*</span></label>
-                            <div className="relative">
+                {/* STEP 2: DETAILS FORM */}
+                {step === 2 && (
+                    <motion.div
+                        key="step2"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <form onSubmit={handleSubmitDetails} className="space-y-8">
+                            {/* Name */}
+                            <div className="space-y-1 group">
+                                <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Full Name <span className="text-red-400">*</span></label>
                                 <input
-                                    type={showPassword ? "text" : "password"}
-                                    name="password"
-                                    value={formData.password}
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
                                     onChange={handleChange}
                                     className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
                                     required
                                 />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-2 text-dark-400 hover:text-dark-600 transition-colors">
-                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                                </button>
                             </div>
-                            <PasswordStrengthIndicator password={formData.password} />
+
+                            {/* Email */}
+                            <div className="space-y-1 group">
+                                <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Email Address <span className="text-red-400">*</span></label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
+                                    required
+                                />
+                            </div>
+
+                            {/* Password */}
+                            <div className="space-y-1 group">
+                                <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Password <span className="text-red-400">*</span></label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
+                                        required
+                                    />
+                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-2 text-dark-400 hover:text-dark-600 transition-colors">
+                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                    </button>
+                                </div>
+                                <PasswordStrengthIndicator password={formData.password} />
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div className="space-y-1 group">
+                                <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Confirm Password <span className="text-red-400">*</span></label>
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="confirmPassword"
+                                    value={formData.confirmPassword}
+                                    onChange={handleChange}
+                                    className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full py-4 mt-4 bg-dark-900 dark:bg-white text-white dark:text-dark-900 font-bold uppercase tracking-wider text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                            >
+                                {loading ? 'Sending Code...' : `Join as a ${formData.role === 'seller' ? 'Brand' : 'Creator'}`}
+                            </button>
+                        </form>
+                    </motion.div>
+                )}
+
+                {/* STEP 3: OTP */}
+                {step === 3 && (
+                    <motion.div
+                        key="step3"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-8"
+                    >
+                        <div className="text-center">
+                            <OTPInput value={otp} onChange={setOtp} disabled={otpLoading} />
                         </div>
 
-                        {/* Confirm Password */}
-                        <div className="space-y-1 group">
-                            <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Confirm Password <span className="text-red-400">*</span></label>
-                            <input
-                                type={showPassword ? "text" : "password"}
-                                name="confirmPassword"
-                                value={formData.confirmPassword}
-                                onChange={handleChange}
-                                className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
-                                required
-                            />
+                        <div className="text-center">
+                            {otpTimer > 0 ? (
+                                <p className="text-dark-400 text-sm">Resend in <span className="font-mono text-primary-500">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span></p>
+                            ) : (
+                                <button className="text-primary-500 hover:text-primary-600 text-sm font-medium">Resend Code</button>
+                            )}
                         </div>
 
                         <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full py-4 mt-4 bg-dark-900 dark:bg-white text-white dark:text-dark-900 font-bold uppercase tracking-wider text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                            onClick={handleVerifyOTP}
+                            disabled={otpLoading || otp.some(d => !d)}
+                            className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase tracking-wider text-sm transition-all disabled:opacity-50"
                         >
-                            {loading ? 'Sending Code...' : `Join as a ${formData.role === 'seller' ? 'Brand' : 'Creator'}`}
+                            {otpLoading ? 'Verifying...' : 'Verify Email'}
                         </button>
-                    </form>
-                </motion.div>
-            )}
-
-            {/* STEP 3: OTP */}
-            {step === 3 && (
-                <motion.div
-                    key="step3"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.3 }}
-                    className="space-y-8"
-                >
-                    <div className="text-center">
-                        <OTPInput value={otp} onChange={setOtp} disabled={otpLoading} />
-                    </div>
-
-                    <div className="text-center">
-                        {otpTimer > 0 ? (
-                            <p className="text-dark-400 text-sm">Resend in <span className="font-mono text-primary-500">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span></p>
-                        ) : (
-                            <button className="text-primary-500 hover:text-primary-600 text-sm font-medium">Resend Code</button>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={handleVerifyOTP}
-                        disabled={otpLoading || otp.some(d => !d)}
-                        className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold uppercase tracking-wider text-sm transition-all disabled:opacity-50"
-                    >
-                        {otpLoading ? 'Verifying...' : 'Verify Email'}
-                    </button>
-                </motion.div>
-            )}
-        </AnimatePresence>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </AuthLayout >
     );
 };
