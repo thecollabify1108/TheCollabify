@@ -11,24 +11,20 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-    // Initialize from localStorage or default to 'dark'
+    // Force dark theme always - remove any saved light theme preference
     const [theme, setTheme] = useState(() => {
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme || 'dark';
+        // Clear any light theme from localStorage
+        localStorage.removeItem('theme');
+        return 'dark';
     });
 
     useEffect(() => {
-        // Save to localStorage
-        localStorage.setItem('theme', theme);
+        // Always force dark theme
+        localStorage.setItem('theme', 'dark');
 
-        // Update document class
-        if (theme === 'light') {
-            document.documentElement.classList.add('light-theme');
-            document.documentElement.classList.remove('dark-theme');
-        } else {
-            document.documentElement.classList.add('dark-theme');
-            document.documentElement.classList.remove('light-theme');
-        }
+        // Always use dark theme - remove light theme class if present
+        document.documentElement.classList.add('dark-theme');
+        document.documentElement.classList.remove('light-theme');
     }, [theme]);
 
     const toggleTheme = () => {
