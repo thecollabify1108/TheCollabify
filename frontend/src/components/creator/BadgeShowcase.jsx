@@ -56,7 +56,7 @@ const BadgeShowcase = () => {
     return (
         <div className="space-y-8">
             {/* Progress Header */}
-            <div className="glass-card p-6 bg-gradient-to-r from-dark-800 to-dark-900 border-l-4 border-primary-500">
+            <div className="glass-card p-6 border-l-4 border-primary-500">
                 <div className="flex items-center justify-between mb-4">
                     <div>
                         <h3 className="text-xl font-bold text-dark-100">Your Achievements</h3>
