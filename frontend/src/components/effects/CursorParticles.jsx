@@ -1,12 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 const CursorParticles = () => {
     const canvasRef = useRef(null);
-    const trailPointsRef = useRef([]);
-    const mouseRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+    const nodesRef = useRef([]);
+    const mouseRef = useRef({ x: null, y: null });
     const animationFrameRef = useRef(null);
-    const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
-    const [isHovering, setIsHovering] = useState(false);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -18,92 +16,148 @@ const CursorParticles = () => {
         const resizeCanvas = () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            initNodes();
         };
         resizeCanvas();
 
-        // Trail point class for smooth flowing effect
-        class TrailPoint {
+        // Node class for spider web mesh
+        class Node {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.life = 1; // Start at full opacity
-                this.size = 40; // Size of the glow
+                this.originalX = x;
+                this.originalY = y;
+                this.vx = 0;
+                this.vy = 0;
             }
 
             update() {
-                this.life -= 0.02; // Fade out gradually
-                this.size += 0.5; // Expand slightly
+                // Spring force to return to original position
+                const springStrength = 0.01;
+                const damping = 0.9;
+
+                // Apply spring force
+                this.vx += (this.originalX - this.x) * springStrength;
+                this.vy += (this.originalY - this.y) * springStrength;
+
+                // Repulsion from cursor/touch
+                if (mouseRef.current.x !== null && mouseRef.current.y !== null) {
+                    const dx = this.x - mouseRef.current.x;
+                    const dy = this.y - mouseRef.current.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const repulsionRadius = 150; // Radius of repulsion effect
+
+                    if (distance < repulsionRadius) {
+                        const force = (repulsionRadius - distance) / repulsionRadius;
+                        const angle = Math.atan2(dy, dx);
+                        this.vx += Math.cos(angle) * force * 3;
+                        this.vy += Math.sin(angle) * force * 3;
+                    }
+                }
+
+                // Apply velocity with damping
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= damping;
+                this.vy *= damping;
             }
 
             draw(ctx) {
-                if (this.life <= 0) return;
-
-                ctx.save();
-
-                // Create radial gradient for glow effect
-                const gradient = ctx.createRadialGradient(
-                    this.x, this.y, 0,
-                    this.x, this.y, this.size
-                );
-
-                // Premium gradient colors (purple to pink)
-                const opacity = this.life * 0.3;
-                gradient.addColorStop(0, `rgba(139, 92, 246, ${opacity})`); // Purple
-                gradient.addColorStop(0.5, `rgba(236, 72, 153, ${opacity * 0.7})`); // Pink
-                gradient.addColorStop(1, 'rgba(139, 92, 246, 0)'); // Transparent
-
-                ctx.fillStyle = gradient;
-                ctx.fillRect(this.x - this.size, this.y - this.size, this.size * 2, this.size * 2);
-
-                ctx.restore();
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 1.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(139, 92, 246, 0.3)';
+                ctx.fill();
             }
         }
 
-        // Mouse move handler
-        const handleMouseMove = (e) => {
-            const newX = e.clientX;
-            const newY = e.clientY;
+        // Initialize nodes in a grid pattern
+        const initNodes = () => {
+            nodesRef.current = [];
+            const spacing = 80; // Distance between nodes
+            const cols = Math.ceil(canvas.width / spacing) + 1;
+            const rows = Math.ceil(canvas.height / spacing) + 1;
 
-            mouseRef.current.x = newX;
-            mouseRef.current.y = newY;
-            setCursorPos({ x: newX, y: newY });
-
-            // Add trail points for smooth flowing effect
-            trailPointsRef.current.push(new TrailPoint(newX, newY));
-
-            // Limit trail length for performance
-            if (trailPointsRef.current.length > 30) {
-                trailPointsRef.current = trailPointsRef.current.slice(-30);
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    const x = i * spacing;
+                    const y = j * spacing;
+                    nodesRef.current.push(new Node(x, y));
+                }
             }
+        };
 
-            // Check if hovering over interactive elements
-            const target = e.target;
-            const isInteractive = target.tagName === 'BUTTON' ||
-                target.tagName === 'A' ||
-                target.closest('button') ||
-                target.closest('a') ||
-                target.style.cursor === 'pointer';
-            setIsHovering(isInteractive);
+        // Draw connections between nearby nodes
+        const drawConnections = () => {
+            const maxDistance = 120;
+
+            for (let i = 0; i < nodesRef.current.length; i++) {
+                for (let j = i + 1; j < nodesRef.current.length; j++) {
+                    const nodeA = nodesRef.current[i];
+                    const nodeB = nodesRef.current[j];
+
+                    const dx = nodeA.x - nodeB.x;
+                    const dy = nodeA.y - nodeB.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < maxDistance) {
+                        const opacity = (1 - distance / maxDistance) * 0.15;
+                        ctx.beginPath();
+                        ctx.moveTo(nodeA.x, nodeA.y);
+                        ctx.lineTo(nodeB.x, nodeB.y);
+                        ctx.strokeStyle = `rgba(139, 92, 246, ${opacity})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        };
+
+        // Mouse/Touch move handler
+        const handleMove = (e) => {
+            const rect = canvas.getBoundingClientRect();
+
+            if (e.type === 'touchmove') {
+                e.preventDefault();
+                const touch = e.touches[0];
+                mouseRef.current.x = touch.clientX - rect.left;
+                mouseRef.current.y = touch.clientY - rect.top;
+            } else {
+                mouseRef.current.x = e.clientX - rect.left;
+                mouseRef.current.y = e.clientY - rect.top;
+            }
+        };
+
+        // Mouse/Touch leave handler
+        const handleLeave = () => {
+            mouseRef.current.x = null;
+            mouseRef.current.y = null;
         };
 
         // Animation loop
         const animate = () => {
-            // Clear canvas with slight fade for motion blur effect
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Update and draw trail points
-            trailPointsRef.current = trailPointsRef.current.filter(point => {
-                point.update();
-                point.draw(ctx);
-                return point.life > 0;
+            // Draw connections first (behind nodes)
+            drawConnections();
+
+            // Update and draw nodes
+            nodesRef.current.forEach(node => {
+                node.update();
+                node.draw(ctx);
             });
 
             animationFrameRef.current = requestAnimationFrame(animate);
         };
 
+        // Initialize nodes
+        initNodes();
+
         // Event listeners
-        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('touchmove', handleMove, { passive: false });
+        window.addEventListener('mouseleave', handleLeave);
+        window.addEventListener('touchend', handleLeave);
         window.addEventListener('resize', resizeCanvas);
 
         // Start animation
@@ -111,7 +165,10 @@ const CursorParticles = () => {
 
         // Cleanup
         return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mousemove', handleMove);
+            window.removeEventListener('touchmove', handleMove);
+            window.removeEventListener('mouseleave', handleLeave);
+            window.removeEventListener('touchend', handleLeave);
             window.removeEventListener('resize', resizeCanvas);
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
@@ -120,42 +177,11 @@ const CursorParticles = () => {
     }, []);
 
     return (
-        <>
-            {/* Canvas for glow trail */}
-            <canvas
-                ref={canvasRef}
-                className="fixed inset-0 pointer-events-none z-50"
-                style={{ mixBlendMode: 'screen' }}
-            />
-
-            {/* Custom cursor dot */}
-            <div
-                className="fixed pointer-events-none z-[60] transition-transform duration-100"
-                style={{
-                    left: `${cursorPos.x}px`,
-                    top: `${cursorPos.y}px`,
-                    transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
-                }}
-            >
-                {/* Outer ring */}
-                <div
-                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${isHovering
-                            ? 'border-primary-400 bg-primary-400/20'
-                            : 'border-primary-500/50 bg-primary-500/10'
-                        }`}
-                    style={{
-                        boxShadow: isHovering
-                            ? '0 0 20px rgba(139, 92, 246, 0.6)'
-                            : '0 0 10px rgba(139, 92, 246, 0.3)'
-                    }}
-                />
-                {/* Inner dot */}
-                <div
-                    className="absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full bg-gradient-to-r from-primary-400 to-secondary-400"
-                    style={{ transform: 'translate(-50%, -50%)' }}
-                />
-            </div>
-        </>
+        <canvas
+            ref={canvasRef}
+            className="fixed inset-0 pointer-events-none z-10"
+            style={{ opacity: 0.6 }}
+        />
     );
 };
 

@@ -26,8 +26,6 @@
 
   body {
     @apply bg-dark-950 text-dark-100 font-sans antialiased;
-    cursor: none;
-    /* Hide default cursor for custom cursor effect */
   }
 
   * {
