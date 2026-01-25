@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import ThemeToggle from '../common/ThemeToggle';
+import { useTheme } from '../../context/ThemeContext';
 import { FaLock, FaHandshake, FaHeadset, FaInstagram, FaLinkedin, FaTwitter, FaFacebook } from 'react-icons/fa';
 
 const AuthLayout = ({ children, title, subtitle }) => {
+    const { isDark } = useTheme();
+
     return (
-        <div className="min-h-screen bg-[#FDFBF7] dark:bg-dark-950 text-dark-900 dark:text-dark-100 transition-colors duration-300 flex flex-col font-sans">
+        <div className={`min-h-screen ${isDark ? 'bg-dark-950 text-dark-100' : 'bg-[#FDFBF7] text-dark-900'} transition-colors duration-300 flex flex-col font-sans`}>
             {/* Header */}
-            <header className="px-6 py-4 flex items-center justify-between sticky top-0 bg-[#FDFBF7]/80 dark:bg-dark-950/80 backdrop-blur-md z-50">
+            <header className={`px-6 py-4 flex items-center justify-between sticky top-0 ${isDark ? 'bg-dark-950/80' : 'bg-[#FDFBF7]/80'} backdrop-blur-md z-50`}>
                 <Link to="/" className="flex items-center gap-2">
                     <img src="/favicon.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <span className="font-bold text-lg tracking-tight">TheCollabify</span>
@@ -33,7 +36,7 @@ const AuthLayout = ({ children, title, subtitle }) => {
             </main>
 
             {/* Horizontal Footer Section */}
-            <footer className="mt-auto px-6 py-8 border-t border-dark-200 dark:border-dark-800 bg-[#FDFBF7]/50 dark:bg-dark-950/50">
+            <footer className={`mt-auto px-6 py-8 border-t ${isDark ? 'border-dark-800 bg-dark-950/50' : 'border-dark-200 bg-[#FDFBF7]/50'}`}>
                 <div className="max-w-5xl mx-auto flex flex-col items-center gap-8">
 
                     {/* Trust Badges - Horizontal */}
