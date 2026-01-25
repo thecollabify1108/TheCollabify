@@ -39,10 +39,10 @@ export default {
                     400: '#94a3b8',
                     500: '#64748b',
                     600: '#475569',
-                    700: 'rgba(51, 65, 85, 0.25)',      // 25% opacity - highly transparent
-                    800: 'rgba(30, 41, 59, 0.25)',      // 25% opacity - highly transparent
-                    900: 'rgba(15, 23, 42, 0.25)',      // 25% opacity - highly transparent
-                    950: 'rgba(2, 6, 23, 0.25)',        // 25% opacity - highly transparent
+                    700: '#334155',      // Solid dark slate
+                    800: '#1e293b',      // Solid darker slate
+                    900: '#0f172a',      // Solid very dark slate
+                    950: '#020617',      // Solid almost black
                 }
             },
             fontFamily: {
