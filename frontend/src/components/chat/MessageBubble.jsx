@@ -31,18 +31,18 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl }) =>
             <div className={`max-w-[70%] sm:max-w-[60%] relative group`}>
                 <div
                     className={`px-4 py-3 rounded-2xl shadow-md text-sm sm:text-base break-words ${isOwn
-                            ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-sm'
-                            : 'bg-dark-800 text-dark-100 border border-dark-700 rounded-bl-sm'
+                        ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-sm'
+                        : 'bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 border border-gray-200 dark:border-dark-700 rounded-bl-sm shadow-sm'
                         }`}
                 >
                     {message.content}
                 </div>
 
                 {/* Meta info */}
-                <div className={`flex items-center gap-1 mt-1 text-[10px] sm:text-xs text-dark-400 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                <div className={`flex items-center gap-1 mt-1 text-[10px] sm:text-xs text-gray-500 dark:text-dark-400 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                     <span>{time}</span>
                     {isOwn && (
-                        <span className={message.isRead ? 'text-blue-400' : 'text-dark-400'}>
+                        <span className={message.isRead ? 'text-blue-400' : 'text-gray-400 dark:text-dark-400'}>
                             {message.isRead ? <FaCheckDouble size={10} /> : <FaCheck size={10} />}
                         </span>
                     )}

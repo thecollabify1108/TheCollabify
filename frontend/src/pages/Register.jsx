@@ -244,7 +244,7 @@ const Register = () => {
                                 onClick={() => handleRoleSelect('seller')}
                                 className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'seller'
                                     ? 'border-primary-500 bg-primary-500/10 shadow-lg shadow-primary-500/10'
-                                    : 'border-dark-700 bg-white/5 dark:bg-black/20 hover:bg-white/10 dark:hover:bg-black/30 hover:border-dark-500'
+                                    : 'border-dark-700 bg-white dark:bg-dark-800 hover:border-dark-500 hover:shadow-lg'
                                     }`}
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'seller' ? 'bg-primary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
@@ -266,7 +266,7 @@ const Register = () => {
                                 onClick={() => handleRoleSelect('creator')}
                                 className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'creator'
                                     ? 'border-secondary-500 bg-secondary-500/10 shadow-lg shadow-secondary-500/10'
-                                    : 'border-dark-700 bg-white/5 dark:bg-black/20 hover:bg-white/10 dark:hover:bg-black/30 hover:border-dark-500'
+                                    : 'border-dark-700 bg-white dark:bg-dark-800 hover:border-dark-500 hover:shadow-lg'
                                     }`}
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'creator' ? 'bg-secondary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'

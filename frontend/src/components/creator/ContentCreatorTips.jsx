@@ -119,13 +119,13 @@ const ContentCreatorTips = () => {
         <div className="space-y-4">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-dark-100 flex items-center gap-2">
                     <HiSparkles className="text-primary-400" />
                     Creator Insights
                 </h2>
                 <button
                     onClick={handleRefresh}
-                    className="p-2 rounded-lg bg-dark-800/50 hover:bg-dark-700 transition-colors text-dark-300 hover:text-dark-100"
+                    className="p-2 rounded-lg bg-gray-100 dark:bg-dark-800/50 hover:bg-gray-200 dark:hover:bg-dark-700 transition-colors text-gray-500 dark:text-dark-300 hover:text-gray-900 dark:hover:text-dark-100"
                     title="Next tip"
                 >
                     <FaSync className="w-5 h-5" />
@@ -200,7 +200,7 @@ const ContentCreatorTips = () => {
                     <div className="text-2xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 text-transparent bg-clip-text mb-1">
                         500M+
                     </div>
-                    <div className="text-xs text-dark-400">Daily Active Users</div>
+                    <div className="text-xs text-gray-500 dark:text-dark-400">Daily Active Users</div>
                 </motion.div>
 
                 <motion.div
@@ -212,7 +212,7 @@ const ContentCreatorTips = () => {
                     <div className="text-2xl font-bold bg-gradient-to-r from-primary-400 to-secondary-400 text-transparent bg-clip-text mb-1">
                         81%
                     </div>
-                    <div className="text-xs text-dark-400">Discover Products on IG</div>
+                    <div className="text-xs text-gray-500 dark:text-dark-400">Discover Products on IG</div>
                 </motion.div>
             </div>
 
@@ -221,15 +221,15 @@ const ContentCreatorTips = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="p-4 rounded-2xl bg-dark-800/40 border border-dark-700/50"
+                className="p-4 rounded-2xl bg-gray-50 dark:bg-dark-800/40 border border-gray-100 dark:border-dark-700/50"
             >
                 <div className="flex items-start gap-3">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0">
                         <FaLightbulb className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h4 className="font-semibold text-dark-100 mb-1">Pro Tip</h4>
-                        <p className="text-sm text-dark-400 leading-relaxed">
+                        <h4 className="font-semibold text-gray-900 dark:text-dark-100 mb-1">Pro Tip</h4>
+                        <p className="text-sm text-gray-600 dark:text-dark-400 leading-relaxed">
                             Check the "Browse" tab to discover brand collaboration opportunities tailored to your niche and follower count. Apply early for better chances!
                         </p>
                     </div>

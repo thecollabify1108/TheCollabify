@@ -86,11 +86,11 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     };
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-dark-950/50 backdrop-blur-sm relative">
+        <div className="flex-1 flex flex-col h-full bg-gray-50/50 dark:bg-dark-950/50 backdrop-blur-sm relative">
             {/* Header */}
-            <div className="p-4 border-b border-dark-800 flex items-center justify-between bg-dark-900/80 z-10">
+            <div className="p-4 border-b border-gray-200 dark:border-dark-800 flex items-center justify-between bg-white/80 dark:bg-dark-900/80 z-10">
                 <div className="flex items-center gap-3">
-                    <button onClick={onBack} className="md:hidden text-dark-400 hover:text-white mr-2">
+                    <button onClick={onBack} className="md:hidden text-gray-500 hover:text-gray-900 dark:text-dark-400 dark:hover:text-white mr-2">
                         <FaArrowLeft />
                     </button>
 
@@ -98,19 +98,19 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold">
                             {otherUser.name.charAt(0)}
                         </div>
-                        {isOnline && <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-dark-900" />}
+                        {isOnline && <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-dark-900" />}
                     </div>
 
                     <div>
-                        <h3 className="font-bold text-dark-100">{otherUser.name}</h3>
-                        <div className="flex items-center gap-2 text-xs text-dark-400">
+                        <h3 className="font-bold text-gray-900 dark:text-dark-100">{otherUser.name}</h3>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-400">
                             {isOnline ? <span className="text-emerald-400">Online</span> : <span>Offline</span>}
                             {typingUsers.length > 0 && <span className="text-primary-400 animate-pulse">• typing...</span>}
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-dark-400">
+                <div className="flex items-center gap-4 text-gray-400 dark:text-dark-400">
                     <button className="hover:text-primary-400 transition"><FaPhone /></button>
                     <button className="hover:text-primary-400 transition"><FaVideo /></button>
                     <button className="hover:text-primary-400 transition"><FaInfoCircle /></button>
@@ -118,9 +118,9 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-1 scrollbar-thin scrollbar-thumb-dark-700 scrollbar-track-transparent">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-dark-700 scrollbar-track-transparent">
                 {messages.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center text-dark-400 opacity-50">
+                    <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-dark-400 opacity-50">
                         <div className="text-6xl mb-4">👋</div>
                         <p>Say hello to start the conversation!</p>
                     </div>
@@ -146,9 +146,9 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-dark-900 border-t border-dark-800">
+            <div className="p-4 bg-white dark:bg-dark-900 border-t border-gray-200 dark:border-dark-800">
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3">
-                    <button type="button" className="p-2 text-dark-400 hover:text-primary-400 transition rounded-full hover:bg-dark-800">
+                    <button type="button" className="p-2 text-gray-500 dark:text-dark-400 hover:text-primary-400 transition rounded-full hover:bg-gray-100 dark:hover:bg-dark-800">
                         <FaEllipsisV />
                     </button>
 
@@ -158,7 +158,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
                             value={newMessage}
                             onChange={handleInput}
                             placeholder="Type a message..."
-                            className="w-full bg-dark-800 border border-dark-700 rounded-full px-6 py-3 text-dark-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition placeholder-dark-500"
+                            className="w-full bg-gray-100 dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-full px-6 py-3 text-gray-900 dark:text-dark-100 focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition placeholder-gray-500 dark:placeholder-dark-500"
                         />
                     </div>
 
