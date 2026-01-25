@@ -1,10 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 const CursorParticles = () => {
     const canvasRef = useRef(null);
-    const particlesRef = useRef([]);
-    const mouseRef = useRef({ x: 0, y: 0 });
+    const trailPointsRef = useRef([]);
+    const mouseRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
     const animationFrameRef = useRef(null);
+    const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+    const [isHovering, setIsHovering] = useState(false);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -19,52 +21,39 @@ const CursorParticles = () => {
         };
         resizeCanvas();
 
-        // Particle class
-        class Particle {
+        // Trail point class for smooth flowing effect
+        class TrailPoint {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = Math.random() * 3 + 1; // Size between 1-4px
-                this.speedX = Math.random() * 2 - 1; // Random horizontal drift
-                this.speedY = Math.random() * 2 - 1; // Random vertical drift
-                this.life = 100; // Particle lifespan
-                this.maxLife = 100;
-
-                // Random vibrant colors (Google-style)
-                const colors = [
-                    '#4285F4', // Google Blue
-                    '#EA4335', // Google Red
-                    '#FBBC04', // Google Yellow
-                    '#34A853', // Google Green
-                    '#FF6D00', // Deep Orange
-                    '#9C27B0', // Purple
-                    '#00BCD4', // Cyan
-                    '#E91E63', // Pink
-                    '#FF5722', // Red-Orange
-                    '#8BC34A', // Light Green
-                ];
-                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.life = 1; // Start at full opacity
+                this.size = 40; // Size of the glow
             }
 
             update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                this.life -= 1;
-
-                // Add slight gravity
-                this.speedY += 0.05;
+                this.life -= 0.02; // Fade out gradually
+                this.size += 0.5; // Expand slightly
             }
 
             draw(ctx) {
-                ctx.save();
-                const opacity = this.life / this.maxLife;
-                ctx.globalAlpha = opacity;
-                ctx.fillStyle = this.color;
+                if (this.life <= 0) return;
 
-                // Draw as a small circle
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.save();
+
+                // Create radial gradient for glow effect
+                const gradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.size
+                );
+
+                // Premium gradient colors (purple to pink)
+                const opacity = this.life * 0.3;
+                gradient.addColorStop(0, `rgba(139, 92, 246, ${opacity})`); // Purple
+                gradient.addColorStop(0.5, `rgba(236, 72, 153, ${opacity * 0.7})`); // Pink
+                gradient.addColorStop(1, 'rgba(139, 92, 246, 0)'); // Transparent
+
+                ctx.fillStyle = gradient;
+                ctx.fillRect(this.x - this.size, this.y - this.size, this.size * 2, this.size * 2);
 
                 ctx.restore();
             }
@@ -72,35 +61,42 @@ const CursorParticles = () => {
 
         // Mouse move handler
         const handleMouseMove = (e) => {
-            mouseRef.current.x = e.clientX;
-            mouseRef.current.y = e.clientY;
+            const newX = e.clientX;
+            const newY = e.clientY;
 
-            // Create multiple particles per movement for a denser trail
-            for (let i = 0; i < 3; i++) {
-                particlesRef.current.push(
-                    new Particle(
-                        e.clientX + Math.random() * 10 - 5,
-                        e.clientY + Math.random() * 10 - 5
-                    )
-                );
+            mouseRef.current.x = newX;
+            mouseRef.current.y = newY;
+            setCursorPos({ x: newX, y: newY });
+
+            // Add trail points for smooth flowing effect
+            trailPointsRef.current.push(new TrailPoint(newX, newY));
+
+            // Limit trail length for performance
+            if (trailPointsRef.current.length > 30) {
+                trailPointsRef.current = trailPointsRef.current.slice(-30);
             }
 
-            // Limit the number of particles for performance
-            if (particlesRef.current.length > 300) {
-                particlesRef.current = particlesRef.current.slice(-300);
-            }
+            // Check if hovering over interactive elements
+            const target = e.target;
+            const isInteractive = target.tagName === 'BUTTON' ||
+                target.tagName === 'A' ||
+                target.closest('button') ||
+                target.closest('a') ||
+                target.style.cursor === 'pointer';
+            setIsHovering(isInteractive);
         };
 
         // Animation loop
         const animate = () => {
-            // Clear with slight trail effect
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Clear canvas with slight fade for motion blur effect
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Update and draw particles
-            particlesRef.current = particlesRef.current.filter(particle => {
-                particle.update();
-                particle.draw(ctx);
-                return particle.life > 0;
+            // Update and draw trail points
+            trailPointsRef.current = trailPointsRef.current.filter(point => {
+                point.update();
+                point.draw(ctx);
+                return point.life > 0;
             });
 
             animationFrameRef.current = requestAnimationFrame(animate);
@@ -124,11 +120,42 @@ const CursorParticles = () => {
     }, []);
 
     return (
-        <canvas
-            ref={canvasRef}
-            className="fixed inset-0 pointer-events-none z-50"
-            style={{ mixBlendMode: 'normal' }}
-        />
+        <>
+            {/* Canvas for glow trail */}
+            <canvas
+                ref={canvasRef}
+                className="fixed inset-0 pointer-events-none z-50"
+                style={{ mixBlendMode: 'screen' }}
+            />
+
+            {/* Custom cursor dot */}
+            <div
+                className="fixed pointer-events-none z-[60] transition-transform duration-100"
+                style={{
+                    left: `${cursorPos.x}px`,
+                    top: `${cursorPos.y}px`,
+                    transform: `translate(-50%, -50%) scale(${isHovering ? 1.5 : 1})`,
+                }}
+            >
+                {/* Outer ring */}
+                <div
+                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${isHovering
+                            ? 'border-primary-400 bg-primary-400/20'
+                            : 'border-primary-500/50 bg-primary-500/10'
+                        }`}
+                    style={{
+                        boxShadow: isHovering
+                            ? '0 0 20px rgba(139, 92, 246, 0.6)'
+                            : '0 0 10px rgba(139, 92, 246, 0.3)'
+                    }}
+                />
+                {/* Inner dot */}
+                <div
+                    className="absolute top-1/2 left-1/2 w-1.5 h-1.5 rounded-full bg-gradient-to-r from-primary-400 to-secondary-400"
+                    style={{ transform: 'translate(-50%, -50%)' }}
+                />
+            </div>
+        </>
     );
 };
 
