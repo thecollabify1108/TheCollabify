@@ -382,25 +382,30 @@
   color: #1e293b !important;
 }
 
-/* Dark background elements -> Light Green */
+/* Dark background elements -> Light Green with transparency */
 .light-theme .bg-dark-950 {
-  background-color: #f0f9f4 !important;
+  background-color: rgba(240, 249, 244, 0.85) !important;
+  /* Semi-transparent */
 }
 
 .light-theme .bg-dark-900 {
-  background-color: #e6f4ec !important;
+  background-color: rgba(230, 244, 236, 0.85) !important;
+  /* Semi-transparent */
 }
 
 .light-theme .bg-dark-800 {
-  background-color: #d4ebe0 !important;
+  background-color: rgba(212, 235, 224, 0.85) !important;
+  /* Semi-transparent */
 }
 
 .light-theme .bg-dark-700 {
-  background-color: #c2e0d2 !important;
+  background-color: rgba(194, 224, 210, 0.85) !important;
+  /* Semi-transparent */
 }
 
 .light-theme .bg-dark-600 {
-  background-color: #a8d4be !important;
+  background-color: rgba(168, 212, 190, 0.85) !important;
+  /* Semi-transparent */
 }
 
 /* Backdrop blur with light green background */

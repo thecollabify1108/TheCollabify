@@ -39,10 +39,10 @@ export default {
                     400: '#94a3b8',
                     500: '#64748b',
                     600: '#475569',
-                    700: '#334155',
-                    800: '#1e293b',
-                    900: '#0f172a',
-                    950: '#020617',
+                    700: 'rgba(51, 65, 85, 0.75)',      // Semi-transparent
+                    800: 'rgba(30, 41, 59, 0.75)',      // Semi-transparent
+                    900: 'rgba(15, 23, 42, 0.75)',      // Semi-transparent
+                    950: 'rgba(2, 6, 23, 0.75)',        // Semi-transparent
                 }
             },
             fontFamily: {
