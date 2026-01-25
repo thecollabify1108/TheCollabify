@@ -23,6 +23,7 @@ import NotFound from './pages/NotFound';
 import ServerError from './pages/ServerError';
 import NotificationPrompt from './components/common/NotificationPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import CursorParticles from './components/effects/CursorParticles';
 
 // Lazy load heavy components
 const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
@@ -85,6 +86,9 @@ function App() {
 
     return (
         <ErrorBoundary>
+            {/* Cursor Particle Effect */}
+            <CursorParticles />
+
             {/* 3D Animated Background */}
             <div className="floating-orbs">
                 <div className="floating-orb orb-1"></div>
