@@ -54,9 +54,11 @@
 /* Custom component styles */
 @layer components {
 
-  /* Card with solid background */
+  /* Card with semi-transparent background (watermark visible, no blur) */
   .glass-card {
-    @apply bg-dark-800 border border-dark-700 rounded-2xl;
+    background-color: rgba(30, 41, 59, 0.75) !important;
+    /* Semi-transparent dark-800 */
+    @apply border border-dark-700 rounded-2xl;
   }
 
   /* Gradient text */
@@ -448,9 +450,10 @@
   border-color: #e2e8f0 !important;
 }
 
-/* Glass card in light mode */
+/* Glass card in light mode - semi-transparent */
 .light-theme .glass-card {
-  background-color: #f8fcfa !important;
+  background-color: rgba(248, 252, 250, 0.85) !important;
+  /* Semi-transparent light */
   border-color: #d4ebe0 !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
 }
