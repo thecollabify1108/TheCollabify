@@ -84,7 +84,7 @@ const PaymentModal = ({ plan, onClose, onSuccess }) => {
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-md bg-dark-900 border border-dark-800 rounded-3xl overflow-hidden shadow-2xl"
+                    className="relative w-full max-w-md mx-4 bg-dark-900 border border-dark-800 rounded-3xl overflow-hidden shadow-2xl"
                 >
                     {/* Header */}
                     <div className="p-6 border-b border-dark-800 flex justify-between items-center">
@@ -127,8 +127,8 @@ const PaymentModal = ({ plan, onClose, onSuccess }) => {
                             onClick={handlePayment}
                             disabled={processing}
                             className={`w-full py-4 rounded-2xl font-bold text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] ${processing
-                                    ? 'bg-dark-700 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20'
+                                ? 'bg-dark-700 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20'
                                 }`}
                         >
                             {processing ? (

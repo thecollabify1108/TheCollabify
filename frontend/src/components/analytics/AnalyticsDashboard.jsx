@@ -89,26 +89,26 @@ const AnalyticsDashboard = ({ userType = 'creator' }) => {
     }
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-4 md:p-6">
             {/* Header */}
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-dark-100 flex items-center gap-3">
+                    <h1 className="text-2xl md:text-3xl font-bold text-dark-100 flex items-center gap-3">
                         <HiSparkles className="text-purple-500" />
-                        Analytics Dashboard
+                        Analytics
                     </h1>
-                    <p className="text-dark-400 mt-1">
+                    <p className="text-dark-400 mt-1 text-sm md:text-base">
                         Track your performance and growth
                     </p>
                 </div>
 
                 {/* Period Selector */}
-                <div className="flex gap-2">
+                <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                     {['daily', 'weekly', 'monthly'].map((p) => (
                         <button
                             key={p}
                             onClick={() => setPeriod(p)}
-                            className={`px-4 py-2 rounded-lg font-medium transition-colors ${period === p
+                            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${period === p
                                 ? 'bg-purple-600 text-white'
                                 : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                 }`}
@@ -323,8 +323,8 @@ const EarningsChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-            <div className="h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
+            <div className="h-56 md:h-64">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -370,8 +370,8 @@ const CampaignsChart = ({ analytics, isSeller = false }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-            <div className="h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
+            <div className="h-56 md:h-64">
                 <Bar data={data} options={options} />
             </div>
         </div>
@@ -419,8 +419,8 @@ const EngagementChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-            <div className="h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
+            <div className="h-56 md:h-64">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -464,8 +464,8 @@ const FollowerGrowthChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-            <div className="h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
+            <div className="h-56 md:h-64">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -509,8 +509,8 @@ const SpendingChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-            <div className="h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
+            <div className="h-56 md:h-64">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -554,8 +554,8 @@ const ROIChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-            <div className="h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
+            <div className="h-56 md:h-64">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -597,8 +597,8 @@ const ReachChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
-            <div className="h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
+            <div className="h-56 md:h-64">
                 <Bar data={data} options={options} />
             </div>
         </div>

@@ -13,7 +13,7 @@ const DashboardHero = ({ userName, role, dailyInsight }) => {
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-3xl p-6 md:p-8 bg-gradient-to-r from-violet-600 to-indigo-600 relative overflow-hidden"
+            className="rounded-3xl p-5 md:p-8 bg-gradient-to-r from-violet-600 to-indigo-600 relative overflow-hidden"
         >
             <div className="relative z-10">
                 <div className="flex justify-between items-start">
@@ -28,7 +28,7 @@ const DashboardHero = ({ userName, role, dailyInsight }) => {
                                 {role} Dashboard
                             </span>
                         </motion.div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                        <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 leading-tight">
                             {getGreeting()}, {userName}! 👋
                         </h1>
                         <p className="text-indigo-100 max-w-lg">

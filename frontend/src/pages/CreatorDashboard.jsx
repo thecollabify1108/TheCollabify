@@ -223,7 +223,7 @@ const CreatorDashboard = () => {
             <Navbar />
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-6">
                 <AnimatePresence mode="wait">
                     {/* Dashboard Tab - Modernized */}
                     {activeTab === 'dashboard' && (
@@ -545,13 +545,13 @@ const CreatorDashboard = () => {
 
             {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 right-0 bg-dark-900/95 backdrop-blur-xl border-t border-dark-800 z-50">
-                <div className="max-w-lg mx-auto px-2 py-2">
+                <div className="max-w-lg mx-auto px-1 md:px-2 py-1 md:py-2">
                     <div className="flex items-center justify-around">
                         {tabs.map(tab => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`relative flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-all ${activeTab === tab.id
+                                className={`relative flex flex-col items-center gap-1 px-2 md:px-3 py-1.5 md:py-2 rounded-lg transition-all ${activeTab === tab.id
                                     ? 'text-primary-400'
                                     : 'text-dark-400 hover:text-dark-200'
                                     }`}

@@ -30,7 +30,7 @@ const StatCard = ({ label, value, icon, trend, trendLabel, color = 'primary', de
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay }}
-            className={`p-5 rounded-2xl border backdrop-blur-sm relative overflow-hidden group ${bgColors[color] || bgColors.primary}`}
+            className={`p-4 md:p-5 rounded-2xl border backdrop-blur-sm relative overflow-hidden group ${bgColors[color] || bgColors.primary}`}
         >
             <div className="relative z-10">
                 <div className="flex justify-between items-start mb-4">
@@ -44,7 +44,7 @@ const StatCard = ({ label, value, icon, trend, trendLabel, color = 'primary', de
                     )}
                 </div>
 
-                <h3 className="text-3xl font-bold text-white mb-1 group-hover:scale-105 transition-transform origin-left">
+                <h3 className="text-2xl md:text-3xl font-bold text-white mb-1 group-hover:scale-105 transition-transform origin-left">
                     {value}
                 </h3>
                 <p className="text-dark-400 text-sm">{label}</p>
