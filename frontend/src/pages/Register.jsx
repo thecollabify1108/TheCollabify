@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaStore, FaCamera, FaGoogle, FaArrowLeft, FaCheck, FaArrowRight } from 'react-icons/fa';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import Confetti from '../components/common/Confetti';
@@ -12,6 +13,7 @@ import PasswordStrengthIndicator from '../components/common/PasswordStrengthIndi
 import AuthLayout from '../components/auth/AuthLayout';
 
 const Register = () => {
+    const { isDark } = useTheme();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { register, googleLogin } = useAuth();
@@ -244,7 +246,7 @@ const Register = () => {
                                 onClick={() => handleRoleSelect('seller')}
                                 className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'seller'
                                     ? 'border-primary-500 bg-primary-500/10 shadow-lg shadow-primary-500/10'
-                                    : 'border-dark-700 bg-white dark:bg-dark-800 hover:border-dark-500 hover:shadow-lg'
+                                    : 'border-dark-700 bg-dark-900/40 dark:bg-dark-800/40 hover:border-dark-500 hover:shadow-lg'
                                     }`}
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'seller' ? 'bg-primary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
@@ -266,7 +268,7 @@ const Register = () => {
                                 onClick={() => handleRoleSelect('creator')}
                                 className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'creator'
                                     ? 'border-secondary-500 bg-secondary-500/10 shadow-lg shadow-secondary-500/10'
-                                    : 'border-dark-700 bg-white dark:bg-dark-800 hover:border-dark-500 hover:shadow-lg'
+                                    : 'border-dark-700 bg-dark-900/40 dark:bg-dark-800/40 hover:border-dark-500 hover:shadow-lg'
                                     }`}
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'creator' ? 'bg-secondary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
@@ -293,7 +295,7 @@ const Register = () => {
                                 <div className="w-full border-t border-dark-800"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-dark-950 text-dark-400">or sign up with</span>
+                                <span className={`px-4 ${isDark ? 'bg-dark-950' : 'bg-[#FDFBF7]'} text-dark-400`}>or sign up with</span>
                             </div>
                         </div>
 

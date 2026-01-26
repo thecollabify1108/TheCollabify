@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import Confetti from '../components/common/Confetti';
 import AuthLayout from '../components/auth/AuthLayout';
 
 const Login = () => {
+    const { isDark } = useTheme();
     const navigate = useNavigate();
     const { login, googleLogin } = useAuth();
     const [googleLoading, setGoogleLoading] = useState(false);
@@ -164,7 +166,7 @@ const Login = () => {
                     <div className="w-full border-t border-dark-800"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-dark-950 text-dark-400">or continue with</span>
+                    <span className={`px-4 ${isDark ? 'bg-dark-950' : 'bg-[#FDFBF7]'} text-dark-400`}>or continue with</span>
                 </div>
             </div>
 

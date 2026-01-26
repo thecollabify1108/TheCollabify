@@ -11,20 +11,20 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider = ({ children }) => {
-    // Force dark theme always - remove any saved light theme preference
     const [theme, setTheme] = useState(() => {
-        // Clear any light theme from localStorage
-        localStorage.removeItem('theme');
-        return 'dark';
+        return localStorage.getItem('theme') || 'dark';
     });
 
     useEffect(() => {
-        // Always force dark theme
-        localStorage.setItem('theme', 'dark');
+        localStorage.setItem('theme', theme);
 
-        // Always use dark theme - remove light theme class if present
-        document.documentElement.classList.add('dark-theme');
-        document.documentElement.classList.remove('light-theme');
+        if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+        } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+        }
     }, [theme]);
 
     const toggleTheme = () => {
