@@ -5,6 +5,7 @@ import { FaInstagram, FaEnvelope, FaArrowLeft, FaLock, FaEye, FaEyeSlash } from 
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import OTPInput from '../components/common/OTPInput';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const ForgotPassword = () => {
     const navigate = useNavigate();
@@ -192,7 +193,10 @@ const ForgotPassword = () => {
                     transition={{ duration: 0.5 }}
                 >
                     {/* Header */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-8 relative">
+                        <div className="absolute top-0 right-0">
+                            <ThemeToggle />
+                        </div>
                         <Link to="/" className="inline-flex items-center space-x-2 mb-6">
                             <img src="/favicon.png" alt="" className="w-10 h-10 object-contain" />
                             <span className="text-2xl font-bold gradient-text">TheCollabify</span>

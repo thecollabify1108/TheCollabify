@@ -20,9 +20,9 @@ export const ThemeProvider = ({ children }) => {
 
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
-            document.documentElement.classList.remove('light');
+            document.documentElement.classList.remove('light-theme');
         } else {
-            document.documentElement.classList.add('light');
+            document.documentElement.classList.add('light-theme');
             document.documentElement.classList.remove('dark');
         }
     }, [theme]);

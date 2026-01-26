@@ -2,10 +2,14 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FaHome, FaSearch, FaArrowLeft } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const NotFound = () => {
     return (
-        <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative">
+            <div className="absolute top-4 right-4">
+                <ThemeToggle />
+            </div>
             <div className="text-center max-w-lg">
                 {/* Animated 404 */}
                 <motion.div

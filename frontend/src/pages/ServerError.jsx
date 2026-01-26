@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { FaHome, FaRedo, FaExclamationTriangle } from 'react-icons/fa';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const ServerError = () => {
     const handleRefresh = () => {
@@ -8,7 +9,10 @@ const ServerError = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative">
+            <div className="absolute top-4 right-4">
+                <ThemeToggle />
+            </div>
             <div className="text-center max-w-lg">
                 {/* Animated 500 */}
                 <motion.div

@@ -76,7 +76,19 @@ app.use(cors({
         }
 
         // Allow custom frontend URL from environment
-        if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) {
+        const allowedOrigins = [
+            'https://thecollabify.tech',
+            'https://www.thecollabify.tech'
+        ];
+
+        if (process.env.FRONTEND_URL) {
+            allowedOrigins.push(process.env.FRONTEND_URL);
+        }
+
+        const normalizedOrigin = origin.replace(/\/$/, "");
+        const isAllowed = allowedOrigins.some(ao => ao.replace(/\/$/, "") === normalizedOrigin);
+
+        if (isAllowed) {
             return callback(null, true);
         }
 

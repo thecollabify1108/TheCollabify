@@ -5,6 +5,7 @@ import { FaInstagram, FaLock, FaEye, FaEyeSlash, FaCheck } from 'react-icons/fa'
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Footer from '../components/common/Footer';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const ResetPassword = () => {
     const { token } = useParams();
@@ -62,7 +63,10 @@ const ResetPassword = () => {
                     transition={{ duration: 0.5 }}
                 >
                     {/* Header */}
-                    <div className="text-center mb-8">
+                    <div className="text-center mb-8 relative">
+                        <div className="absolute top-0 right-0">
+                            <ThemeToggle />
+                        </div>
                         <Link to="/" className="inline-flex items-center space-x-2 mb-6">
                             <img src="/favicon.png" alt="" className="w-10 h-10 object-contain" />
                             <span className="text-2xl font-bold gradient-text">TheCollabify</span>

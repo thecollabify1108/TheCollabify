@@ -32,11 +32,11 @@ router.get('/conversations', auth, async (req, res) => {
         const userRole = req.user.role;
 
         const query = userRole === 'seller'
-            ? { sellerUserId: userId }
+            ? { sellerId: userId }
             : { creatorUserId: userId };
 
         const conversations = await Conversation.find(query)
-            .populate('sellerUserId', 'name email')
+            .populate('sellerId', 'name email')
             .populate('creatorUserId', 'name email')
             .sort({ updatedAt: -1 });
 
@@ -68,7 +68,7 @@ router.post('/message-request', auth, async (req, res) => {
 
         // Check if conversation already exists
         let conversation = await Conversation.findOne({
-            sellerUserId: sellerId,
+            sellerId: sellerId,
             creatorUserId: creatorId
         });
 
@@ -84,7 +84,7 @@ router.post('/message-request', auth, async (req, res) => {
 
         // Create new conversation with pending status
         conversation = new Conversation({
-            sellerUserId: sellerId,
+            sellerId: sellerId,
             creatorUserId: creatorId,
             status: 'pending',
             lastMessage: 'Message request sent'
@@ -93,7 +93,7 @@ router.post('/message-request', auth, async (req, res) => {
         await conversation.save();
 
         // Populate user details
-        await conversation.populate('sellerUserId', 'name email');
+        await conversation.populate('sellerId', 'name email');
         await conversation.populate('creatorUserId', 'name email');
 
         res.json({
@@ -140,7 +140,7 @@ router.post('/message-request/:conversationId/accept', auth, async (req, res) =>
         conversation.lastMessage = 'Request accepted';
         await conversation.save();
 
-        await conversation.populate('sellerUserId', 'name email');
+        await conversation.populate('sellerId', 'name email');
         await conversation.populate('creatorUserId', 'name email');
 
         res.json({
