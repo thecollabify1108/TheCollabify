@@ -83,7 +83,6 @@ const Register = () => {
 
     const handleRoleSelect = (role) => {
         setFormData(prev => ({ ...prev, role }));
-        setStep(prev => prev + 1);
     };
 
     const handleSubmitDetails = async (e) => {
@@ -290,24 +289,51 @@ const Register = () => {
 
 
 
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-dark-800"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className={`px-4 ${isDark ? 'bg-dark-950' : 'bg-[#FDFBF7]'} text-dark-400`}>or sign up with</span>
-                            </div>
-                        </div>
+                        {/* Google Signup & Next Button - Conditional on Role Selection */}
+                        <AnimatePresence>
+                            {formData.role && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="pt-6 space-y-6"
+                                >
+                                    <button
+                                        onClick={handleNextStep}
+                                        className="btn-3d w-full py-4 flex items-center justify-center gap-2 group"
+                                    >
+                                        <span>Continue with Details</span>
+                                        <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+                                    </button>
 
-                        <button
-                            type="button"
-                            onClick={googleLoginHandler}
-                            disabled={loading}
-                            className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 hover:bg-white/20 dark:hover:bg-black/20 text-dark-900 dark:text-dark-100 font-medium rounded-xl transition-all shadow-lg"
-                        >
-                            <FaGoogle className="text-lg" />
-                            <span>Google</span>
-                        </button>
+                                    <div className="relative my-6">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <div className="w-full border-t border-dark-800"></div>
+                                        </div>
+                                        <div className="relative flex justify-center text-sm">
+                                            <span className={`px-4 ${isDark ? 'bg-dark-950' : 'bg-[#FDFBF7]'} text-dark-400`}>or sign up with</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={googleLoginHandler}
+                                        disabled={loading}
+                                        className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 hover:bg-white/20 dark:hover:bg-black/20 text-dark-900 dark:text-dark-100 font-medium rounded-xl transition-all shadow-lg"
+                                    >
+                                        <FaGoogle className="text-lg" />
+                                        <span>Signup with Google</span>
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <div className="mt-8 text-center text-sm text-dark-400 border-t border-dark-800 pt-6">
+                            Already have an account?{' '}
+                            <Link to="/login" className="font-semibold text-primary-400 hover:text-primary-300 transition-colors">
+                                Login here
+                            </Link>
+                        </div>
                     </motion.div>
                 )}
 
