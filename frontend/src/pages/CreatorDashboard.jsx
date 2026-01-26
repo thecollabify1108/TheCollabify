@@ -39,6 +39,8 @@ import AIAssistantPanel from '../components/common/AIAssistantPanel';
 import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import ContentCalendar from '../components/calendar/ContentCalendar';
+import PaymentModal from '../components/payment/PaymentModal';
+import { subscriptionPlans } from '../config/subscriptions';
 
 // NEW: Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';
@@ -57,6 +59,8 @@ const CreatorDashboard = () => {
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messageSubTab, setMessageSubTab] = useState('conversations'); // 'conversations' or 'requests'
     const [isEditingProfile, setIsEditingProfile] = useState(false);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
 
     const [searchParams] = useSearchParams();
 
@@ -129,6 +133,16 @@ const CreatorDashboard = () => {
         toast.success('Profile updated successfully!');
         // Navigate to home tab after successful save
         setActiveTab('home');
+    };
+
+    const handleUpgrade = () => {
+        setSelectedPlan(subscriptionPlans.pro);
+        setShowPaymentModal(true);
+    };
+
+    const handlePaymentSuccess = (data) => {
+        fetchData(); // Refresh user data to show new subscription status
+        toast.success('Welcome to Pro!');
     };
 
     const handleApplyToPromotion = async (promotionId) => {
@@ -360,7 +374,11 @@ const CreatorDashboard = () => {
                                 <h2 className="text-xl font-bold text-dark-100 mb-1">Available Opportunities</h2>
                                 <p className="text-sm text-dark-400">{promotions.length} brand collaborations</p>
                             </div>
-                            <PromotionList promotions={promotions} onApply={handleApplyToPromotion} />
+                            <PromotionList
+                                promotions={promotions}
+                                onApply={handleApplyToPromotion}
+                                creatorProfile={profile}
+                            />
                         </motion.div>
                     )}
 
@@ -458,6 +476,25 @@ const CreatorDashboard = () => {
                                 <h2 className="text-xl font-bold text-dark-100 mb-1">Profile Settings</h2>
                                 <p className="text-sm text-dark-400">Manage your creator profile</p>
                             </div>
+
+                            {/* Pro Upgrade Card */}
+                            {user.subscription?.status !== 'active' && (
+                                <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-600 to-indigo-700 shadow-xl shadow-purple-900/20 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700" />
+                                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                        <div>
+                                            <h3 className="text-2xl font-bold text-white mb-2">Unlock Pro Features</h3>
+                                            <p className="text-purple-100 max-w-md">Get AI-powered analytics, custom reports, and priority support to scale your creator career.</p>
+                                        </div>
+                                        <button
+                                            onClick={handleUpgrade}
+                                            className="px-8 py-3 bg-white text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors shadow-lg shadow-black/10"
+                                        >
+                                            Upgrade Now
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Show ProfileCard if profile exists and not editing */}
                             {profile && !isEditingProfile ? (
@@ -558,6 +595,15 @@ const CreatorDashboard = () => {
                     />
                 )}
             </AnimatePresence>
+
+            {/* Payment Modal */}
+            {showPaymentModal && (
+                <PaymentModal
+                    plan={selectedPlan}
+                    onClose={() => setShowPaymentModal(false)}
+                    onSuccess={handlePaymentSuccess}
+                />
+            )}
         </div>
     );
 };

@@ -11,22 +11,32 @@ import toast from 'react-hot-toast';
  * Enhanced Campaign Creation Wizard
  * Step-by-step campaign creation with AI assistance
  */
-const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit }) => {
+const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     const [currentStep, setCurrentStep] = useState(0);
     const [showTemplates, setShowTemplates] = useState(false);
     const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        promotionType: 'Post',
-        budget: '',
-        targetNiche: [],
-        minFollowers: 1000,
-        maxFollowers: 100000,
+        title: initialData?.title || '',
+        description: initialData?.description || '',
+        promotionType: initialData?.promotionType || 'Post',
+        budget: initialData?.budget || '',
+        targetNiche: initialData?.targetNiche || [],
+        minFollowers: initialData?.minFollowers || 1000,
+        maxFollowers: initialData?.maxFollowers || 100000,
         minEngagement: 2.0,
         duration: 14,
-        requirements: '',
+        requirements: initialData?.requirements || '',
         platforms: ['instagram']
     });
+
+    // Pre-populate form data when initialData changes
+    useEffect(() => {
+        if (initialData && isOpen) {
+            setFormData(prev => ({
+                ...prev,
+                ...initialData
+            }));
+        }
+    }, [initialData, isOpen]);
 
     const steps = [
         { id: 'basics', title: 'Campaign Basics', icon: '📝' },
@@ -59,7 +69,28 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit }) => {
             return;
         }
 
-        onSubmit?.(formData);
+        // Transform data to match backend expectations
+        const payload = {
+            title: formData.title,
+            description: formData.description,
+            promotionType: formData.promotionType === 'Story' ? 'Stories' :
+                formData.promotionType === 'Reel' ? 'Reels' :
+                    formData.promotionType === 'Post' ? 'Posts' : formData.promotionType,
+            targetCategory: formData.targetNiche.join(', ') || 'Lifestyle',
+            budgetRange: {
+                min: Number(formData.budget) * 0.8, // 80% of budget as min
+                max: Number(formData.budget)
+            },
+            followerRange: {
+                min: Number(formData.minFollowers),
+                max: Number(formData.maxFollowers)
+            },
+            campaignGoal: 'Reach', // Default goal
+            requirements: formData.requirements || undefined,
+            deadline: new Date(Date.now() + formData.duration * 24 * 60 * 60 * 1000).toISOString()
+        };
+
+        onSubmit?.(payload);
         onClose?.();
         toast.success('Campaign created successfully!');
     };
@@ -196,8 +227,8 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit }) => {
                                                 key={type}
                                                 onClick={() => setFormData({ ...formData, promotionType: type })}
                                                 className={`py-3 rounded-xl font-medium transition-colors ${formData.promotionType === type
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                                     }`}
                                             >
                                                 {type}
@@ -227,8 +258,8 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit }) => {
                                                 key={category}
                                                 onClick={() => toggleCategory(category)}
                                                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${formData.targetNiche.includes(category)
-                                                        ? 'bg-purple-600 text-white'
-                                                        : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                                    ? 'bg-purple-600 text-white'
+                                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                                     }`}
                                             >
                                                 {category}

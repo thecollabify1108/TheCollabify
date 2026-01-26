@@ -382,10 +382,227 @@ const CampaignsChart = ({ analytics, isSeller = false }) => {
  * Additional chart components would go here
  * (EngagementChart, FollowerGrowthChart, SpendingChart, ROIChart, ReachChart)
  */
-const EngagementChart = () => <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 h-64 flex items-center justify-center text-dark-500">Engagement Chart</div>;
-const FollowerGrowthChart = () => <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 h-64 flex items-center justify-center text-dark-500">Follower Growth Chart</div>;
-const SpendingChart = () => <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 h-64 flex items-center justify-center text-dark-500">Spending Chart</div>;
-const ROIChart = () => <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 h-64 flex items-center justify-center text-dark-500">ROI Chart</div>;
-const ReachChart = () => <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6 h-64 flex items-center justify-center text-dark-500">Reach Chart</div>;
+/**
+ * Engagement Chart (Creator)
+ */
+const EngagementChart = ({ analytics }) => {
+    const data = {
+        labels: analytics.map(a => new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+        datasets: [{
+            label: 'Engagement Rate (%)',
+            data: analytics.map(a => a.creatorMetrics?.avgEngagementRate || 0),
+            borderColor: 'rgb(245, 158, 11)',
+            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Engagement Rate', color: '#fff' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            },
+            x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            }
+        }
+    };
+
+    return (
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+            <div className="h-64">
+                <Line data={data} options={options} />
+            </div>
+        </div>
+    );
+};
+
+/**
+ * Follower Growth Chart (Creator)
+ */
+const FollowerGrowthChart = ({ analytics }) => {
+    const data = {
+        labels: analytics.map(a => new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+        datasets: [{
+            label: 'Follower Growth',
+            data: analytics.map(a => a.creatorMetrics?.followerGrowth || 0),
+            borderColor: 'rgb(139, 92, 246)',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Follower Growth', color: '#fff' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            },
+            x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            }
+        }
+    };
+
+    return (
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+            <div className="h-64">
+                <Line data={data} options={options} />
+            </div>
+        </div>
+    );
+};
+
+/**
+ * Spending Chart (Seller)
+ */
+const SpendingChart = ({ analytics }) => {
+    const data = {
+        labels: analytics.map(a => new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+        datasets: [{
+            label: 'Spending',
+            data: analytics.map(a => a.sellerMetrics?.totalSpent || 0),
+            borderColor: 'rgb(239, 68, 68)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Campaign Spending', color: '#fff' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            },
+            x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            }
+        }
+    };
+
+    return (
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+            <div className="h-64">
+                <Line data={data} options={options} />
+            </div>
+        </div>
+    );
+};
+
+/**
+ * ROI Chart (Seller)
+ */
+const ROIChart = ({ analytics }) => {
+    const data = {
+        labels: analytics.map(a => new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+        datasets: [{
+            label: 'ROI (%)',
+            data: analytics.map(a => a.sellerMetrics?.averageROI || 0),
+            borderColor: 'rgb(16, 185, 129)',
+            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+            fill: true,
+            tension: 0.4
+        }]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Average ROI', color: '#fff' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            },
+            x: {
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            }
+        }
+    };
+
+    return (
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+            <div className="h-64">
+                <Line data={data} options={options} />
+            </div>
+        </div>
+    );
+};
+
+/**
+ * Reach Chart (Seller)
+ */
+const ReachChart = ({ analytics }) => {
+    const data = {
+        labels: analytics.map(a => new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
+        datasets: [{
+            label: 'Total Reach',
+            data: analytics.map(a => a.sellerMetrics?.totalReach || 0),
+            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+            borderRadius: 8
+        }]
+    };
+
+    const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            title: { display: true, text: 'Campaign Reach', color: '#fff' }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                ticks: { color: '#9CA3AF' }
+            },
+            x: {
+                grid: { display: false },
+                ticks: { color: '#9CA3AF' }
+            }
+        }
+    };
+
+    return (
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-6">
+            <div className="h-64">
+                <Bar data={data} options={options} />
+            </div>
+        </div>
+    );
+};
 
 export default AnalyticsDashboard;

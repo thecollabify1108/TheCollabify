@@ -5,7 +5,7 @@ import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 import EmptyState from '../common/EmptyState';
 import UrgencyBadge from '../common/UrgencyBadge';
 
-const PromotionList = ({ promotions, onApply }) => {
+const PromotionList = ({ promotions, onApply, creatorProfile = null }) => {
     const [expandedId, setExpandedId] = useState(null);
 
     if (!promotions || promotions.length === 0) {
@@ -132,15 +132,15 @@ const PromotionList = ({ promotions, onApply }) => {
                                 <PredictiveAnalyticsWidget
                                     campaignData={{
                                         budget: promotion.budgetRange?.max || 5000,
-                                        creatorFollowers: promotion.followerRange?.max || 50000,
-                                        creatorEngagementRate: 3.5, // Placeholder - normally from user profile
+                                        creatorFollowers: creatorProfile?.followerCount || promotion.followerRange?.max || 50000,
+                                        creatorEngagementRate: creatorProfile?.engagementRate || 3.5,
                                         promotionType: promotion.promotionType,
                                         category: promotion.targetCategory,
                                         duration: 14
                                     }}
                                     creatorProfile={{
-                                        followers: 50000, // Placeholder - normally current user stats
-                                        avgEngagementRate: 3.5
+                                        followers: creatorProfile?.followerCount || 50000,
+                                        avgEngagementRate: creatorProfile?.engagementRate || 3.5
                                     }}
                                 />
                             </motion.div>

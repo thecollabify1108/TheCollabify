@@ -19,7 +19,6 @@ import Navbar from '../components/common/Navbar';
 import CampaignStories from '../components/seller/CampaignStories';
 import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
 import QuickStatsBar from '../components/seller/QuickStatsBar';
-import RequestWizard from '../components/seller/RequestWizard';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import MessagingPanel from '../components/seller/MessagingPanel';
 import OnboardingTour from '../components/common/OnboardingTour';
@@ -36,6 +35,8 @@ import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyti
 import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import TeamManagement from '../components/team/TeamManagement';
+import PaymentModal from '../components/payment/PaymentModal';
+import { subscriptionPlans } from '../config/subscriptions';
 
 // NEW: Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';
@@ -56,9 +57,10 @@ const SellerDashboard = () => {
     const [aiSuggestionData, setAiSuggestionData] = useState(null);
 
     // NEW: Enhanced features state
-    const [showEnhancedWizard, setShowEnhancedWizard] = useState(false);
     const [showAIRecommendations, setShowAIRecommendations] = useState(false);
     const [allCreators, setAllCreators] = useState([]);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
 
     const fetchMatches = async () => {
         try {
@@ -96,6 +98,16 @@ const SellerDashboard = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleUpgrade = () => {
+        setSelectedPlan(subscriptionPlans.pro);
+        setShowPaymentModal(true);
+    };
+
+    const handlePaymentSuccess = (data) => {
+        fetchRequests(); // Refresh data
+        toast.success('Welcome to Pro!');
     };
 
     const fetchConversations = async () => {
@@ -346,7 +358,7 @@ const SellerDashboard = () => {
             {/* Campaign Stories */}
             <CampaignStories
                 campaigns={requests}
-                onCreateNew={() => setShowEnhancedWizard(true)}
+                onCreateNew={() => setShowRequestWizard(true)}
                 onSelectCampaign={(campaign) => setSelectedRequest(campaign)}
             />
 
@@ -455,6 +467,25 @@ const SellerDashboard = () => {
                                 role="Seller"
                                 dailyInsight="Welcome to your campaign dashboard! 🚀"
                             />
+
+                            {/* Pro Upgrade Card */}
+                            {user.subscription?.status !== 'active' && (
+                                <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-xl shadow-indigo-900/20 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700" />
+                                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                        <div>
+                                            <h3 className="text-2xl font-bold text-white mb-2">Upgrade to Pro</h3>
+                                            <p className="text-indigo-100 max-w-md">Launch unlimited campaigns, get advanced AI matches, and access detailed ROI analytics.</p>
+                                        </div>
+                                        <button
+                                            onClick={handleUpgrade}
+                                            className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 transition-colors shadow-lg shadow-black/10"
+                                        >
+                                            Upgrade Now
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* 2. Campaign Pipeline Stats */}
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -645,7 +676,8 @@ const SellerDashboard = () => {
             </nav>
 
             {/* Modals */}
-            <RequestWizard
+            {/* Enhanced Campaign Wizard (Primary) */}
+            <EnhancedCampaignWizard
                 isOpen={showRequestWizard}
                 onClose={() => {
                     setShowRequestWizard(false);
@@ -667,13 +699,6 @@ const SellerDashboard = () => {
                 />
             )}
 
-            {/* NEW: Enhanced Campaign Wizard */}
-            <EnhancedCampaignWizard
-                isOpen={showEnhancedWizard}
-                onClose={() => setShowEnhancedWizard(false)}
-                onSubmit={handleCreateRequest}
-            />
-
             {/* NEW: AI Assistant Panel (Always available) */}
             <AIAssistantPanel
                 campaign={selectedRequest}
@@ -685,6 +710,15 @@ const SellerDashboard = () => {
 
             {/* Onboarding Tour */}
             <OnboardingTour role="seller" />
+
+            {/* Payment Modal */}
+            {showPaymentModal && (
+                <PaymentModal
+                    plan={selectedPlan}
+                    onClose={() => setShowPaymentModal(false)}
+                    onSuccess={handlePaymentSuccess}
+                />
+            )}
         </div>
     );
 };
