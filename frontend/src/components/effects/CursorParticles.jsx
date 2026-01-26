@@ -88,9 +88,7 @@ const CursorParticles = () => {
             const rect = canvas.getBoundingClientRect();
 
             try {
-                if (e.type === 'touchmove') {
-                    // Check if it's a valid touch event before preventDefault
-                    if (e.cancelable) e.preventDefault();
+                if (e.type === 'touchmove' || e.type === 'touchstart') {
                     const touch = e.touches[0];
                     if (touch) {
                         mouseRef.current.x = touch.clientX - rect.left;
@@ -154,7 +152,8 @@ const CursorParticles = () => {
         animate();
 
         window.addEventListener('mousemove', handleMove);
-        window.addEventListener('touchmove', handleMove, { passive: false });
+        window.addEventListener('touchmove', handleMove, { passive: true });
+        window.addEventListener('touchstart', handleMove, { passive: true });
         window.addEventListener('mouseleave', handleLeave);
         window.addEventListener('touchend', handleLeave);
         window.addEventListener('resize', resizeCanvas);
