@@ -34,7 +34,8 @@ export const subscriptionPlans = {
                 contentGenerator: false,
                 predictiveAnalytics: false,
                 autoMatching: false,
-                sentimentAnalysis: false description: 'No AI features'
+                sentimentAnalysis: false,
+                description: 'No AI features'
             },
             support: {
                 email: true,
