@@ -1,17 +1,37 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID,
-    key_secret: process.env.RAZORPAY_KEY_SECRET
-});
+let razorpay;
+
+if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
+    try {
+        razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_KEY_SECRET
+        });
+        console.log('✅ Razorpay initialized successfully');
+    } catch (error) {
+        console.error('❌ Failed to initialize Razorpay:', error.message);
+    }
+} else {
+    console.warn('⚠️ RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing. Payment features will be disabled.');
+}
+
+// Helper to ensure razorpay is initialized before use
+const ensureRazorpay = () => {
+    if (!razorpay) {
+        throw new Error('Razorpay is not initialized. Please check your environment variables.');
+    }
+    return razorpay;
+};
 
 /**
  * Create subscription
  */
 exports.createSubscription = async (planId, userId) => {
     try {
-        const subscription = await razorpay.subscriptions.create({
+        const rp = ensureRazorpay();
+        const subscription = await rp.subscriptions.create({
             plan_id: planId,
             customer_notify: 1,
             total_count: 12, // 12 months
@@ -31,7 +51,8 @@ exports.createSubscription = async (planId, userId) => {
  */
 exports.createOrder = async (amount, currency = 'INR') => {
     try {
-        const order = await razorpay.orders.create({
+        const rp = ensureRazorpay();
+        const order = await rp.orders.create({
             amount: amount * 100, // Convert to paise
             currency,
             receipt: `receipt_${Date.now()}`,
@@ -76,7 +97,8 @@ exports.verifyWebhook = (body, signature) => {
  */
 exports.refundPayment = async (paymentId, amount = null) => {
     try {
-        const refund = await razorpay.payments.refund(paymentId, {
+        const rp = ensureRazorpay();
+        const refund = await rp.payments.refund(paymentId, {
             amount: amount ? amount * 100 : undefined,
             speed: 'normal'
         });
@@ -92,7 +114,8 @@ exports.refundPayment = async (paymentId, amount = null) => {
  */
 exports.getPaymentDetails = async (paymentId) => {
     try {
-        const payment = await razorpay.payments.fetch(paymentId);
+        const rp = ensureRazorpay();
+        const payment = await rp.payments.fetch(paymentId);
         return payment;
     } catch (error) {
         throw new Error('Failed to fetch payment: ' + error.message);

@@ -2,13 +2,22 @@ const SibApiV3Sdk = require('@sendinblue/client');
 
 // Initialize Brevo (formerly Sendinblue)
 const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
-apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+
+if (process.env.BREVO_API_KEY) {
+    apiInstance.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, process.env.BREVO_API_KEY);
+    console.log('✅ Brevo Email Service initialized');
+} else {
+    console.warn('⚠️ BREVO_API_KEY is missing. OTP emails will fail to send.');
+}
 
 /**
  * Send OTP verification email using Brevo
  */
 const sendOTPEmail = async (email, name, otpCode) => {
     try {
+        if (!process.env.BREVO_API_KEY) {
+            throw new Error('BREVO_API_KEY is missing. Cannot send OTP email.');
+        }
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
         sendSmtpEmail.sender = {
