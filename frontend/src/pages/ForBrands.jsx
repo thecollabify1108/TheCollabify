@@ -54,14 +54,20 @@ const ForBrands = () => {
             <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-950/80 backdrop-blur-xl border-b border-dark-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
-                        <Link to="/" className="flex items-center space-x-3">
-                            <img src="/favicon.png" alt="" className="h-8 w-8 object-contain" />
+                        <Link to="/" className="flex items-center space-x-3 group">
+                            <motion.img
+                                src="/favicon.png"
+                                alt=""
+                                className="h-8 w-8 object-contain"
+                                whileHover={{ rotate: 12, scale: 1.1 }}
+                            />
                             <div className="flex flex-col">
-                                <div className="flex items-baseline">
-                                    <span className="text-lg italic text-dark-100 mr-1">The</span>
-                                    <span className="text-xl font-bold text-dark-100">Collabify</span>
-                                </div>
-                                <span className="text-xs text-dark-400 -mt-1 tracking-wide hidden sm:block">Empowering Influencer Partnerships</span>
+                                <span className="text-xl font-black italic tracking-tighter gradient-text">
+                                    TheCollabify
+                                </span>
+                                <span className="text-[10px] text-dark-400 uppercase tracking-widest font-bold -mt-0.5 hidden sm:block">
+                                    Empowering Partnerships
+                                </span>
                             </div>
                         </Link>
 

@@ -55,14 +55,20 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-3">
-                        <img src="/favicon.png" alt="" className="h-8 w-8 object-contain" />
+                    <Link to="/" className="flex items-center space-x-3 group">
+                        <motion.img
+                            src="/favicon.png"
+                            alt="Logo"
+                            className="h-9 w-9 object-contain"
+                            whileHover={{ rotate: 12, scale: 1.1 }}
+                        />
                         <div className="flex flex-col">
-                            <div className="flex items-baseline">
-                                <span className="text-lg italic text-dark-100 mr-1">The</span>
-                                <span className="text-xl font-bold text-dark-100">Collabify</span>
-                            </div>
-                            <span className="text-xs text-dark-400 -mt-1 tracking-wide hidden md:block">Empowering Influencer Partnerships</span>
+                            <span className="text-2xl font-black italic tracking-tighter gradient-text">
+                                TheCollabify
+                            </span>
+                            <span className="text-[10px] text-dark-400 uppercase tracking-[0.2em] font-bold -mt-1 hidden md:block">
+                                Marketing Ecosystem
+                            </span>
                         </div>
                     </Link>
 
