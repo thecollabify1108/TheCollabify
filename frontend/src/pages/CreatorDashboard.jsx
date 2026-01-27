@@ -185,7 +185,7 @@ const CreatorDashboard = () => {
         {
             id: 'opportunities',
             label: 'Jobs',
-            icon: <FaBriefcase />,
+            icon: <HiBriefcase />,
             badge: promotions.length,
             description: 'Browse Brands'
         },
