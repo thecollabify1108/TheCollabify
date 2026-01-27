@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaRocket, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
