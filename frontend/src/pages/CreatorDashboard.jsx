@@ -2,14 +2,14 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    FaBriefcase,
-    FaCheck,
-    FaTrophy,
-    FaComments,
-    FaCog,
-    FaCalendar
-} from 'react-icons/fa';
-import { HiHome, HiSparkles, HiUserGroup, HiLightningBolt, HiViewGrid, HiChat } from 'react-icons/hi';
+import {
+        FaCheck,
+        FaTrophy,
+        FaComments,
+        FaCog,
+        FaCalendar
+    } from 'react-icons/fa';
+import { HiHome, HiSparkles, HiUserGroup, HiLightningBolt, HiViewGrid, HiChat, HiBriefcase } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
 import { creatorAPI } from '../services/api';
 import toast from 'react-hot-toast';

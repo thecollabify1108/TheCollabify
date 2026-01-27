@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTag, FaClock, FaDollarSign, FaCheckCircle, FaChartLine, FaRupeeSign, FaUsers, FaBriefcase } from 'react-icons/fa';
+import { FaTag, FaClock, FaDollarSign, FaCheckCircle, FaChartLine, FaRupeeSign, FaUsers } from 'react-icons/fa';
+import { HiBriefcase } from 'react-icons/hi';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 import EmptyState from '../common/EmptyState';
 import UrgencyBadge from '../common/UrgencyBadge';
@@ -11,7 +12,7 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null }) => {
     if (!promotions || promotions.length === 0) {
         return (
             <EmptyState
-                icon={<FaBriefcase className="text-5xl text-dark-500" />}
+                icon={<HiBriefcase />}
                 title="No matching opportunities yet"
                 description="We'll notify you when new campaigns match your profile. Make sure your profile is complete and you're marked as available for work."
             />
