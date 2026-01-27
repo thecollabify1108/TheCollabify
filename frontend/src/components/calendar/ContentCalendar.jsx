@@ -14,11 +14,11 @@ import {
     FaExclamationTriangle
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
-import api from '../../services/api';
+import api, { calendarAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
-// Setup the localizer by searching for the global moment instance
-const localizer = momentLocalizer(moment);
+// Setup the localizer - Removed broken momentLocalizer
+
 
 /**
  * Content Calendar Component
@@ -224,27 +224,29 @@ const ContentCalendar = () => {
                         <p className="text-dark-400">Loading calendar...</p>
                     </div>
                 </div>
-            ) : viewMode === 'month' ? (
-                <MonthView events={events} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} />
-            ) : viewMode === 'week' ? (
-                <WeekView events={events} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} />
+            ) : view === 'month' ? (
+                <MonthView events={events} onEditEvent={handleSelectEvent} onDeleteEvent={handleDeleteEvent} />
+            ) : view === 'week' ? (
+                <WeekView events={events} onEditEvent={handleSelectEvent} onDeleteEvent={handleDeleteEvent} />
             ) : (
-                <DayView events={events} onEditEvent={handleEditEvent} onDeleteEvent={handleDeleteEvent} />
+                <DayView events={events} onEditEvent={handleSelectEvent} onDeleteEvent={handleDeleteEvent} />
             )}
+
 
             {/* Event Modal */}
             <AnimatePresence>
-                {showEventModal && (
+                {showModal && (
                     <EventModal
                         event={selectedEvent}
-                        onClose={() => setShowEventModal(false)}
+                        onClose={() => setShowModal(false)}
                         onSave={() => {
-                            setShowEventModal(false);
+                            setShowModal(false);
                             fetchEvents();
                         }}
                     />
                 )}
             </AnimatePresence>
+
         </div>
     );
 };
@@ -480,12 +482,13 @@ const EventModal = ({ event, onClose, onSave }) => {
             };
 
             if (event?._id) {
-                await api.put(`/api/calendar/${event._id}`, payload);
+                await calendarAPI.updateEvent(event._id, payload);
                 toast.success('Event updated successfully');
             } else {
-                await api.post('/api/calendar', payload);
+                await calendarAPI.createEvent(payload);
                 toast.success('Event scheduled successfully');
             }
+
 
             onSave();
         } catch (error) {
