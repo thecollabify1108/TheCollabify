@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTag, FaClock, FaDollarSign, FaCheckCircle, FaChartLine } from 'react-icons/fa';
+import { FaTag, FaClock, FaDollarSign, FaCheckCircle, FaChartLine, FaRupeeSign, FaUsers, FaBriefcase } from 'react-icons/fa';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 import EmptyState from '../common/EmptyState';
 import UrgencyBadge from '../common/UrgencyBadge';
