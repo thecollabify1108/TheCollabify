@@ -212,7 +212,7 @@ const SellerSummaryCards = ({ summary }) => {
             title: 'Campaigns Created',
             value: current.campaignsCreated || 0,
             growth: growth.campaignsGrowth || 0,
-            icon: FaBriefcase,
+            icon: HiBriefcase,
             color: 'blue'
         },
         {
