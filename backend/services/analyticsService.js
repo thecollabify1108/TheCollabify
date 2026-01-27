@@ -72,8 +72,8 @@ class AnalyticsService {
             totalEarnings,
             campaignsCompleted: completedCampaigns.length,
             campaignsActive: campaigns.filter(c => c.status === 'Accepted').length,
-            averageRating: 4.5, // Calculate from reviews
-            profileViews: Math.floor(Math.random() * 100), // Track separately
+            averageRating: 0, // Calculate from reviews
+            profileViews: 0, // Track separately
             applicationsSent: campaigns.length,
             acceptanceRate: campaigns.length > 0 ? (completedCampaigns.length / campaigns.length) * 100 : 0
         };

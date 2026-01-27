@@ -167,7 +167,7 @@ const CreatorSummaryCards = ({ summary }) => {
             title: 'Campaigns Completed',
             value: current.campaignsCompleted || 0,
             growth: growth.campaignsGrowth || 0,
-            icon: FaBriefcase,
+            icon: HiBriefcase,
             color: 'blue'
         },
         {

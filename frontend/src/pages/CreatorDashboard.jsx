@@ -247,14 +247,14 @@ const CreatorDashboard = () => {
                                         <StatCard
                                             label="Active Jobs"
                                             value={pendingApplications}
-                                            icon={<FaBriefcase />}
+                                            icon={<HiBriefcase />}
                                             color="blue"
                                             trend={0}
                                             delay={0.1}
                                         />
                                         <StatCard
                                             label="Total Earnings"
-                                            value={`₹${(completedCampaigns * 5000).toLocaleString()}`} // Still estimating per campaign, but based on real count
+                                            value={`₹${(profile?.totalEarnings || 0).toLocaleString()}`}
                                             icon={<HiLightningBolt />}
                                             color="emerald"
                                             trend={0}
@@ -270,7 +270,7 @@ const CreatorDashboard = () => {
                                         />
                                         <StatCard
                                             label="Profile Views"
-                                            value={0} // No tracking yet
+                                            value={profile?.profileViews || 0}
                                             icon={<HiUserGroup />}
                                             color="amber"
                                             trend={0}
