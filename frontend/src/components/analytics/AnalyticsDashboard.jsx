@@ -4,14 +4,13 @@ import {
     FaDollarSign,
     FaArrowUp,
     FaArrowDown,
-    FaBriefcase,
     FaStar,
     FaEye,
     FaUsers,
     FaChartLine,
     FaCalendar
 } from 'react-icons/fa';
-import { HiSparkles } from 'react-icons/hi';
+import { HiSparkles, HiBriefcase } from 'react-icons/hi';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS,

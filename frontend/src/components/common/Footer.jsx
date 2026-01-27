@@ -81,6 +81,9 @@ const Footer = () => {
                                 <span className={`text-2xl font-black italic tracking-tighter bg-gradient-to-r from-primary-400 via-secondary-400 to-pink-400 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]`}>
                                     TheCollabify
                                 </span>
+                                <span className="text-[10px] text-dark-400 uppercase tracking-[0.2em] font-bold -mt-1 hidden md:block">
+                                    Marketing Ecosystem
+                                </span>
                             </div>
                         </Link>
                         <p className={`text-sm leading-relaxed mb-6 ${isDark ? 'text-dark-400' : 'text-gray-600'}`}>
