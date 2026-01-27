@@ -16,7 +16,7 @@ const Register = () => {
     const { isDark } = useTheme();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { register, googleLogin } = useAuth();
+    const { register, googleLogin, verifyOTP } = useAuth();
 
     // Steps: 1=Role, 2=Details, 3=OTP
     const [step, setStep] = useState(1);
@@ -125,19 +125,14 @@ const Register = () => {
 
         setOtpLoading(true);
         try {
-            const response = await axios.post('/api/auth/register/verify-otp', {
-                tempUserId,
-                otp: otpCode
-            });
+            const userData = await verifyOTP(tempUserId, otpCode);
 
-            if (response.data.success) {
-                setShowConfetti(true);
-                toast.success('Welcome to TheCollabify!');
-                localStorage.setItem('token', response.data.data.token);
-                setTimeout(() => {
-                    navigate(response.data.data.user.role === 'creator' ? '/creator/dashboard' : '/seller/dashboard');
-                }, 1000);
-            }
+            setShowConfetti(true);
+            toast.success('Welcome to TheCollabify!');
+
+            setTimeout(() => {
+                navigate(userData.role === 'creator' ? '/creator/dashboard' : '/seller/dashboard');
+            }, 1000);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Invalid code');
             setOtp(['', '', '', '', '', '']);

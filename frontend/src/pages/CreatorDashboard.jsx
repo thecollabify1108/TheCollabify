@@ -238,7 +238,7 @@ const CreatorDashboard = () => {
                                 <>
                                     {/* 1. Hero Section */}
                                     <DashboardHero
-                                        userName={user.name.split(' ')[0]}
+                                        userName={user?.name?.split(' ')[0] || 'Creator'}
                                         role="Creator"
                                         dailyInsight="Complete your profile to increase visibility! 🌟"
                                     />

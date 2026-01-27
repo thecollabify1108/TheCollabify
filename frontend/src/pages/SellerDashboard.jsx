@@ -463,7 +463,7 @@ const SellerDashboard = () => {
                         >
                             {/* 1. Hero Section */}
                             <DashboardHero
-                                userName={user.companyName || user.name.split(' ')[0]}
+                                userName={(user?.companyName || user?.name || '').split(' ')[0] || 'Seller'}
                                 role="Seller"
                                 dailyInsight="Welcome to your campaign dashboard! 🚀"
                             />

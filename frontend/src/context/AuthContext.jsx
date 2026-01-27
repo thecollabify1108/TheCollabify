@@ -63,6 +63,21 @@ export const AuthProvider = ({ children }) => {
         return userData;
     };
 
+    const verifyOTP = async (tempUserId, otpCode) => {
+        const response = await api.post('/auth/register/verify-otp', {
+            tempUserId,
+            otp: otpCode
+        });
+
+        const { token: newToken, user: userData } = response.data.data;
+
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+        setUser(userData);
+
+        return userData;
+    };
+
     const logout = async () => {
         try {
             // Call backend to clear HTTPOnly cookie
@@ -142,6 +157,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         login,
         register,
+        verifyOTP,
         logout,
         updateProfile,
         forgotPassword,
