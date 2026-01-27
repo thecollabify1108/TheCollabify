@@ -15,7 +15,7 @@ import { FaInstagram, FaBuilding, FaUserAlt, FaHandshake, FaChartLine, FaLock, F
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedCounter from '../components/common/AnimatedCounter';
-import TestimonialsCarousel from '../components/common/TestimonialsCarousel';
+// import TestimonialsCarousel from '../components/common/TestimonialsCarousel';
 import FAQAccordion from '../components/common/FAQAccordion';
 import Leaderboard from '../components/common/Leaderboard';
 import SocialProofWidget from '../components/common/SocialProofWidget';
@@ -113,6 +113,33 @@ const Landing = () => {
             badgeColor: 'bg-amber-500/20 text-amber-400 border-amber-500/30'
         }
     ];
+
+    const [stats, setStats] = useState({
+        totalCreators: '500+',
+        totalBrands: '100+',
+        activeCampaigns: '1000+',
+        successRate: '98%'
+    });
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/public/stats`);
+                const result = await response.json();
+                if (result.success) {
+                    setStats({
+                        totalCreators: result.data.totalCreators > 0 ? `${result.data.totalCreators}+` : '100+',
+                        totalBrands: result.data.totalBrands > 0 ? `${result.data.totalBrands}+` : '50+',
+                        activeCampaigns: result.data.activeCampaigns > 0 ? `${result.data.activeCampaigns}+` : '100+',
+                        successRate: `${result.data.successRate}%`
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to fetch public stats:', error);
+            }
+        };
+        fetchStats();
+    }, []);
 
     // How it works steps with large numbers
     const steps = [
@@ -478,8 +505,8 @@ const Landing = () => {
                 {/* Leaderboard Section */}
                 <Leaderboard />
 
-                {/* Testimonials Carousel */}
-                <TestimonialsCarousel />
+                {/* Testimonials Carousel - Hidden until real testimonials are collected */}
+                {/* <TestimonialsCarousel /> */}
 
                 {/* FAQ Accordion */}
                 <FAQAccordion />
@@ -562,15 +589,15 @@ const Landing = () => {
                                 </p>
                                 <div className="flex flex-wrap gap-6">
                                     <div className="text-center">
-                                        <div className="text-3xl font-bold text-primary-400">500+</div>
+                                        <div className="text-3xl font-bold text-primary-400">{stats.totalCreators}</div>
                                         <div className="text-dark-400 text-sm">Creators</div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-3xl font-bold text-secondary-400">100+</div>
+                                        <div className="text-3xl font-bold text-secondary-400">{stats.totalBrands}</div>
                                         <div className="text-dark-400 text-sm">Brands</div>
                                     </div>
                                     <div className="text-center">
-                                        <div className="text-3xl font-bold text-pink-400">1000+</div>
+                                        <div className="text-3xl font-bold text-pink-400">{stats.activeCampaigns}</div>
                                         <div className="text-dark-400 text-sm">Campaigns</div>
                                     </div>
                                 </div>

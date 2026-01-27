@@ -4,10 +4,10 @@ const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const User = require('../models/User');
 const { auth, generateToken } = require('../middleware/auth');
-const { sendPasswordResetEmail } = require('../utils/emailService');
 const { notifyWelcome } = require('../services/notificationService');
 const { createAndSendOTP, verifyOTP } = require('../services/otpService');
 const { sendEmail } = require('../services/emailTemplates');
+// Removed legacy emailService
 
 /**
  * Validation middleware
@@ -691,112 +691,8 @@ router.post('/password-reset/reset', [
     }
 });
 
-/**
- * @route   POST /api/auth/forgot-password
- * @desc    Send password reset email (OLD - Token-based, kept for backward compatibility)
- * @access  Public
- */
-router.post('/forgot-password', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-    handleValidation
-], async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        const user = await User.findOne({ email });
-
-        // Always respond with success to prevent email enumeration
-        if (!user) {
-            return res.json({
-                success: true,
-                message: 'If an account with that email exists, we sent a password reset link.'
-            });
-        }
-
-        // Generate reset token
-        const resetToken = user.generateResetToken();
-        await user.save();
-
-        // Send email
-        await sendPasswordResetEmail(email, resetToken, user.name);
-
-        res.json({
-            success: true,
-            message: 'If an account with that email exists, we sent a password reset link.'
-        });
-    } catch (error) {
-        console.error('Forgot password error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to process password reset request'
-        });
-    }
-});
-
-/**
- * @route   POST /api/auth/reset-password/:token
- * @desc    Reset password with token
- * @access  Public
- */
-router.post('/reset-password/:token', [
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    handleValidation
-], async (req, res) => {
-    try {
-        const { token } = req.params;
-        const { password } = req.body;
-
-        // Hash the token to compare with stored hash
-        const hashedToken = crypto
-            .createHash('sha256')
-            .update(token)
-            .digest('hex');
-
-        // Find user with valid reset token
-        const user = await User.findOne({
-            resetPasswordToken: hashedToken,
-            resetPasswordExpires: { $gt: Date.now() }
-        });
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid or expired reset token'
-            });
-        }
-
-        // Update password
-        user.password = password;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-        await user.save();
-
-        // Generate new token for auto-login
-        const authToken = generateToken(user._id);
-
-        // Set HTTPOnly cookie
-        res.cookie('token', authToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
-
-        res.json({
-            success: true,
-            message: 'Password reset successful',
-            data: {
-                token: authToken // Still send token for backward compatibility
-            }
-        });
-    } catch (error) {
-        console.error('Reset password error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to reset password'
-        });
-    }
-});
+// DELETED legacy token-based handles: /forgot-password and /reset-password/:token
+// Use /password-reset/send-otp and /password-reset/reset instead
 
 /**
  * @route   POST /api/auth/change-password

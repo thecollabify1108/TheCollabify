@@ -21,7 +21,7 @@ import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
 import QuickStatsBar from '../components/seller/QuickStatsBar';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import MessagingPanel from '../components/seller/MessagingPanel';
-import OnboardingTour from '../components/common/OnboardingTour';
+
 import CreatorSearch from '../components/seller/CreatorSearch';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import ProfileCompletionBar from '../components/common/ProfileCompletionBar';

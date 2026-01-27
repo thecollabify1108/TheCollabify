@@ -10,44 +10,53 @@ import { FaFire } from 'react-icons/fa';
 const SocialProofWidget = () => {
     const [recentActivity, setRecentActivity] = useState([]);
     const [stats, setStats] = useState({
-        totalCreators: 10000,
-        totalBrands: 5000,
-        activeCampaigns: 1234,
+        totalCreators: 0,
+        totalBrands: 0,
+        activeCampaigns: 0,
         successRate: 98
     });
     const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
 
-    // Simulated recent activities (in production, fetch from API)
-    const activities = [
-        { type: 'signup', user: 'Priya S.', role: 'creator', location: 'Mumbai', time: '2 min ago' },
-        { type: 'campaign', brand: 'TechStyle Co.', title: 'launched a new campaign', time: '5 min ago' },
-        { type: 'match', creator: 'Rahul M.', brand: 'FitLife', time: '8 min ago' },
-        { type: 'payment', amount: '₹25,000', creator: 'Sneha K.', time: '12 min ago' },
-        { type: 'signup', user: 'Arjun B.', role: 'seller', location: 'Bangalore', time: '15 min ago' },
-        { type: 'campaign', brand: 'BeautyHub', title: 'accepted 5 creators', time: '18 min ago' },
-        { type: 'match', creator: 'Meera P.', brand: 'EcoStore', time: '22 min ago' },
-        { type: 'payment', amount: '₹15,000', creator: 'Vikram S.', time: '25 min ago' }
-    ];
+    // Recent activities (initially empty, fetched from API)
+    const [activities, setActivities] = useState([]);
 
     useEffect(() => {
-        setRecentActivity(activities);
+        const fetchStats = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/public/stats`);
+                const result = await response.json();
+                if (result.success) {
+                    setStats(prev => ({ ...prev, ...result.data }));
+                    if (result.data.activities) {
+                        setActivities(result.data.activities);
+                        setRecentActivity(result.data.activities);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch public stats:', error);
+            }
+        };
+
+        fetchStats();
 
         // Rotate through activities
         const interval = setInterval(() => {
-            setCurrentActivityIndex(prev => (prev + 1) % activities.length);
-        }, 4000); // Change every 4 seconds
+            if (activities.length > 0) {
+                setCurrentActivityIndex(prev => (prev + 1) % activities.length);
+            }
+        }, 4000);
 
         return () => clearInterval(interval);
-    }, []);
+    }, [activities.length]);
 
-    // Increment stats animation
+    // Increment stats animation (keep for visual dynamism)
     useEffect(() => {
         const interval = setInterval(() => {
             setStats(prev => ({
                 ...prev,
-                activeCampaigns: prev.activeCampaigns + Math.floor(Math.random() * 3)
+                activeCampaigns: prev.activeCampaigns + Math.floor(Math.random() * 2)
             }));
-        }, 10000); // Update every 10 seconds
+        }, 15000);
 
         return () => clearInterval(interval);
     }, []);
@@ -72,7 +81,7 @@ const SocialProofWidget = () => {
             case 'signup':
                 return (
                     <>
-                        <strong>{activity.user}</strong> from {activity.location} joined as a {activity.role}
+                        <strong>{activity.user}</strong> joined as a {activity.role}
                     </>
                 );
             case 'campaign':

@@ -72,6 +72,102 @@ const sendOTPEmail = async (email, name, otpCode) => {
     }
 };
 
+/**
+ * Send notification when creator applies to promotion
+ */
+const sendCreatorAppliedEmail = async (sellerEmail, sellerName, creatorName, promotionTitle) => {
+    try {
+        if (!process.env.BREVO_API_KEY) return { success: true, mocked: true };
+        const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        sendSmtpEmail.sender = { name: "TheCollabify", email: "thecollabify1108@gmail.com" };
+        sendSmtpEmail.to = [{ email: sellerEmail, name: sellerName }];
+        sendSmtpEmail.subject = `🎉 New Creator Application: ${creatorName}`;
+        sendSmtpEmail.htmlContent = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
+                    <h2 style="color: #8b5cf6;">🎯 New Application!</h2>
+                    <p>Hi ${sellerName},</p>
+                    <p><strong>${creatorName}</strong> has applied to your promotion: <strong>"${promotionTitle}"</strong></p>
+                    <p>Log in to your dashboard to review their profile.</p>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="https://thecollabify.tech/seller/dashboard" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">View Application</a>
+                    </div>
+                </div>
+            </div>
+        `;
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
+        return { success: true };
+    } catch (error) {
+        console.error('Brevo applied email error:', error);
+        return { success: false };
+    }
+};
+
+/**
+ * Send notification when creator is accepted
+ */
+const sendCreatorAcceptedEmail = async (creatorEmail, creatorName, promotionTitle, sellerName) => {
+    try {
+        if (!process.env.BREVO_API_KEY) return { success: true, mocked: true };
+        const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        sendSmtpEmail.sender = { name: "TheCollabify", email: "thecollabify1108@gmail.com" };
+        sendSmtpEmail.to = [{ email: creatorEmail, name: creatorName }];
+        sendSmtpEmail.subject = `🎉 Congratulations! You've been accepted!`;
+        sendSmtpEmail.htmlContent = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
+                    <h2 style="color: #10b981;">🎊 You're Accepted!</h2>
+                    <p>Hi ${creatorName},</p>
+                    <p>Great news! <strong>${sellerName}</strong> has accepted your application for: <strong>"${promotionTitle}"</strong></p>
+                    <p>You can now start collaborating!</p>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="https://thecollabify.tech/creator/dashboard" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Start Working</a>
+                    </div>
+                </div>
+            </div>
+        `;
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
+        return { success: true };
+    } catch (error) {
+        console.error('Brevo accepted email error:', error);
+        return { success: false };
+    }
+};
+
+/**
+ * Send notification about new matching promotion
+ */
+const sendNewMatchEmail = async (creatorEmail, creatorName, promotionTitle, matchScore, category) => {
+    try {
+        if (!process.env.BREVO_API_KEY) return { success: true, mocked: true };
+        const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+        sendSmtpEmail.sender = { name: "TheCollabify", email: "thecollabify1108@gmail.com" };
+        sendSmtpEmail.to = [{ email: creatorEmail, name: creatorName }];
+        sendSmtpEmail.subject = `🔥 New Opportunity: ${matchScore}% Match!`;
+        sendSmtpEmail.htmlContent = `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
+                    <h2 style="color: #8b5cf6;">🚀 New Match!</h2>
+                    <p>Hi ${creatorName},</p>
+                    <p>A new ${category} promotion matches your profile with a <strong>${matchScore}% score</strong>:</p>
+                    <p><strong>"${promotionTitle}"</strong></p>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="https://thecollabify.tech/creator/dashboard" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+        `;
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
+        return { success: true };
+    } catch (error) {
+        console.error('Brevo match email error:', error);
+        return { success: false };
+    }
+};
+
 module.exports = {
-    sendOTPEmail
+    sendOTPEmail,
+    sendCreatorAppliedEmail,
+    sendCreatorAcceptedEmail,
+    sendNewMatchEmail
 };

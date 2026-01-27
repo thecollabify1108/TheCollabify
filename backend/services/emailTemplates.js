@@ -58,7 +58,7 @@ const templates = {
             </p>
 
             <center>
-                <a href="https://thecollabify.vercel.app/creator/dashboard" class="button">
+                <a href="https://thecollabify.tech/creator/dashboard" class="button">
                     Complete Your Profile →
                 </a>
             </center>
@@ -70,8 +70,8 @@ const templates = {
         <div class="footer">
             <p>TheCollabify - Empowering Influencer Partnerships</p>
             <p>
-                <a href="https://thecollabify.vercel.app" style="color: #8b5cf6; text-decoration: none;">Website</a> | 
-                <a href="https://thecollabify.vercel.app/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy</a> | 
+                <a href="https://thecollabify.tech" style="color: #8b5cf6; text-decoration: none;">Website</a> | 
+                <a href="https://thecollabify.tech/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy</a> | 
                 <a href="mailto:support@thecollabify.com" style="color: #8b5cf6; text-decoration: none;">Support</a>
             </p>
         </div>
@@ -126,7 +126,7 @@ const templates = {
             </div>
 
             <center>
-                <a href="https://thecollabify.vercel.app/seller/dashboard" class="button">
+                <a href="https://thecollabify.tech/seller/dashboard" class="button">
                     Create Your First Campaign →
                 </a>
             </center>
@@ -138,8 +138,8 @@ const templates = {
         <div class="footer">
             <p>TheCollabify - Empowering Influencer Partnerships</p>
             <p>
-                <a href="https://thecollabify.vercel.app" style="color: #8b5cf6; text-decoration: none;">Website</a> | 
-                <a href="https://thecollabify.vercel.app/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy</a> | 
+                <a href="https://thecollabify.tech" style="color: #8b5cf6; text-decoration: none;">Website</a> | 
+                <a href="https://thecollabify.tech/privacy" style="color: #8b5cf6; text-decoration: none;">Privacy</a> | 
                 <a href="mailto:support@thecollabify.com" style="color: #8b5cf6; text-decoration: none;">Support</a>
             </p>
         </div>
@@ -180,7 +180,7 @@ const templates = {
             </p>
             
             <center>
-                <a href="https://thecollabify.vercel.app/seller/dashboard" class="button">
+                <a href="https://thecollabify.tech/seller/dashboard" class="button">
                     Review Application →
                 </a>
             </center>
@@ -233,7 +233,7 @@ const templates = {
                     <br>3. Start creating amazing content!
                 </p>
                 <center>
-                    <a href="https://thecollabify.vercel.app/creator/dashboard" class="button">
+                    <a href="https://thecollabify.tech/creator/dashboard" class="button">
                         View Campaign Details →
                     </a>
                 </center>
@@ -242,7 +242,7 @@ const templates = {
                     Your application to <strong>"${campaignTitle}"</strong> by ${brandName} has been updated to: <strong>${status}</strong>.
                 </p>
                 <center>
-                    <a href="https://thecollabify.vercel.app/creator/dashboard" class="button">
+                    <a href="https://thecollabify.tech/creator/dashboard" class="button">
                         View All Applications →
                     </a>
                 </center>
@@ -293,7 +293,7 @@ const templates = {
             </p>
 
             <center>
-                <a href="https://thecollabify.vercel.app/creator/dashboard" class="button">
+                <a href="https://thecollabify.tech/creator/dashboard" class="button">
                     View Earnings Dashboard →
                 </a>
             </center>
@@ -358,7 +358,7 @@ const templates = {
             </div>
 
             <center>
-                <a href="https://thecollabify.vercel.app" class="button">
+                <a href="https://thecollabify.tech" class="button">
                     View Full Dashboard →
                 </a>
             </center>

@@ -8,7 +8,7 @@ const { auth } = require('../middleware/auth');
 const { isCreator } = require('../middleware/roleCheck');
 const { generateInsights } = require('../services/aiInsights');
 const { notifyProfileInsights, notifySellerCreatorApplied } = require('../services/notificationService');
-const { sendCreatorAppliedEmail } = require('../utils/emailService');
+const { sendCreatorAppliedEmail } = require('../utils/brevoEmailService');
 
 /**
  * Validation middleware

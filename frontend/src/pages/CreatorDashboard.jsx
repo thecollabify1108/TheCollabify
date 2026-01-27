@@ -21,7 +21,7 @@ import PromotionList from '../components/creator/PromotionList';
 import ChatBox from '../components/common/ChatBox';
 import ConversationList from '../components/common/ConversationList';
 import SkeletonLoader from '../components/common/SkeletonLoader';
-import OnboardingTour from '../components/common/OnboardingTour';
+
 import CreatorAnalytics from '../components/creator/CreatorAnalytics';
 import AIOpportunitySuggestions from '../components/creator/AIOpportunitySuggestions';
 import ProfileProgress from '../components/creator/ProfileProgress';
@@ -219,7 +219,7 @@ const CreatorDashboard = () => {
 
     return (
         <div className="min-h-screen bg-dark-950 pb-20">
-            <OnboardingTour role="creator" />
+
             <Navbar />
 
             {/* Main Content */}

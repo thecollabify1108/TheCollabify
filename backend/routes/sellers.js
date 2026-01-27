@@ -14,7 +14,7 @@ const {
     notifyRequestUpdate,
     notifyRequestDeleted
 } = require('../services/notificationService');
-const { sendCreatorAcceptedEmail, sendNewMatchEmail } = require('../utils/emailService');
+const { sendCreatorAcceptedEmail, sendNewMatchEmail } = require('../utils/brevoEmailService');
 const User = require('../models/User');
 
 /**

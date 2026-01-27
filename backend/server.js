@@ -67,8 +67,10 @@ app.use(cors({
         // Allow requests with no origin (like mobile apps or Postman)
         if (!origin) return callback(null, true);
 
-        // Allow localhost for development
-        if (origin.includes('localhost')) return callback(null, true);
+        // Allow localhost only in development mode
+        if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+            return callback(null, true);
+        }
 
         // Allow ALL Vercel deployments (*.vercel.app)
         if (origin.match(/https:\/\/.*\.vercel\.app$/)) {
@@ -134,6 +136,7 @@ app.use('/api/admin', require('./routes/admin'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/leaderboard', require('./routes/leaderboard'));
 app.use('/api/achievements', require('./routes/achievements'));
+app.use('/api/public', require('./routes/public'));
 
 // NEW ROUTES - Phase 2 Backend Integration
 app.use('/api/analytics', require('./routes/analytics'));
