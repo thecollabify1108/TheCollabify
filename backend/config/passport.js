@@ -1,6 +1,6 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const User = require('../models/User');
+const prisma = require('./prisma');
 
 // Only configure Google OAuth if credentials are available
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
@@ -13,30 +13,39 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         async (accessToken, refreshToken, profile, done) => {
             try {
                 // Check if user already exists with this Google ID
-                let user = await User.findOne({ googleId: profile.id });
+                let user = await prisma.user.findUnique({
+                    where: { googleId: profile.id }
+                });
 
                 if (user) {
                     // User exists, update last login
-                    user.lastLogin = new Date();
-                    await user.save();
+                    user = await prisma.user.update({
+                        where: { id: user.id },
+                        data: { lastLogin: new Date() }
+                    });
                     return done(null, user);
                 }
 
                 // Check if user exists with same email (link accounts)
-                user = await User.findOne({ email: profile.emails[0].value });
+                user = await prisma.user.findUnique({
+                    where: { email: profile.emails[0].value }
+                });
 
                 if (user) {
                     // Link Google account to existing user
-                    user.googleId = profile.id;
-                    user.authProvider = 'google';
-                    user.avatar = profile.photos[0]?.value || user.avatar;
-                    user.lastLogin = new Date();
-                    await user.save();
+                    user = await prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            googleId: profile.id,
+                            authProvider: 'GOOGLE',
+                            avatar: profile.photos[0]?.value || user.avatar,
+                            lastLogin: new Date()
+                        }
+                    });
                     return done(null, user);
                 }
 
                 // New user - store profile data in session for registration completion
-                // We'll create the user after they select a role and optionally set a password
                 return done(null, {
                     isNewUser: true,
                     googleId: profile.id,
@@ -63,7 +72,7 @@ passport.serializeUser((user, done) => {
         done(null, { isNewUser: true, profileData: user });
     } else {
         // For existing users, serialize the user ID
-        done(null, user._id);
+        done(null, user.id);
     }
 });
 
@@ -75,7 +84,17 @@ passport.deserializeUser(async (data, done) => {
             done(null, data.profileData);
         } else {
             // Fetch user from database for existing users
-            const user = await User.findById(data).select('-password');
+            const user = await prisma.user.findUnique({
+                where: { id: data },
+                select: {
+                    id: true,
+                    email: true,
+                    name: true,
+                    role: true,
+                    avatar: true,
+                    isActive: true
+                }
+            });
             done(null, user);
         }
     } catch (error) {

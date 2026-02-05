@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs');
-const OTP = require('../models/OTP');
+const prisma = require('../config/prisma');
 const { sendOTPEmail } = require('../utils/brevoEmailService');
 
 /**
@@ -17,10 +17,12 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
     try {
         // Check rate limiting - max 5 OTPs per hour
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-        const recentOTPs = await OTP.countDocuments({
-            email,
-            purpose,
-            createdAt: { $gte: oneHourAgo }
+        const recentOTPs = await prisma.oTP.count({
+            where: {
+                email: email.toLowerCase(),
+                purpose,
+                createdAt: { gte: oneHourAgo }
+            }
         });
 
         if (recentOTPs >= 5) {
@@ -28,7 +30,9 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
         }
 
         // Delete any existing OTPs for this email and purpose
-        await OTP.deleteMany({ email, purpose });
+        await prisma.oTP.deleteMany({
+            where: { email: email.toLowerCase(), purpose }
+        });
 
         // Generate new OTP
         const otpCode = generateOTP();
@@ -38,11 +42,13 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
         // Store OTP in database
-        const otpDoc = await OTP.create({
-            email,
-            otp: hashedOTP,
-            purpose,
-            expiresAt
+        const otpDoc = await prisma.oTP.create({
+            data: {
+                email: email.toLowerCase(),
+                otp: hashedOTP,
+                purpose,
+                expiresAt
+            }
         });
 
         // Send OTP via email
@@ -50,7 +56,7 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
 
         return {
             success: true,
-            otpId: otpDoc._id,
+            otpId: otpDoc.id,
             expiresIn: 600 // seconds
         };
     } catch (error) {
@@ -63,7 +69,14 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
 const verifyOTP = async (email, otpCode, purpose = 'registration') => {
     try {
         // Find valid OTP
-        const otpDoc = await OTP.findValidOTP(email, purpose);
+        const otpDoc = await prisma.oTP.findFirst({
+            where: {
+                email: email.toLowerCase(),
+                purpose,
+                expiresAt: { gt: new Date() }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
 
         if (!otpDoc) {
             return {
@@ -72,40 +85,20 @@ const verifyOTP = async (email, otpCode, purpose = 'registration') => {
             };
         }
 
-        // Check if OTP is expired
-        if (otpDoc.isExpired()) {
-            await otpDoc.deleteOne();
-            return {
-                success: false,
-                message: 'OTP has expired. Please request a new one.'
-            };
-        }
-
-        // Check attempts
-        if (otpDoc.attempts >= 3) {
-            await otpDoc.deleteOne();
-            return {
-                success: false,
-                message: 'Too many failed attempts. Please request a new OTP.'
-            };
-        }
-
         // Verify OTP
         const isValid = await bcrypt.compare(otpCode, otpDoc.otp);
 
         if (!isValid) {
-            // Increment attempts
-            await otpDoc.incrementAttempts();
-
-            const attemptsLeft = 3 - otpDoc.attempts;
             return {
                 success: false,
-                message: `Invalid OTP. ${attemptsLeft} attempt(s) remaining.`
+                message: `Invalid OTP. Please check your email and try again.`
             };
         }
 
         // OTP is valid - delete it
-        await otpDoc.deleteOne();
+        await prisma.oTP.delete({
+            where: { id: otpDoc.id }
+        });
 
         return {
             success: true,
@@ -120,7 +113,14 @@ const verifyOTP = async (email, otpCode, purpose = 'registration') => {
 // Check if OTP exists and get remaining time
 const getOTPStatus = async (email, purpose = 'registration') => {
     try {
-        const otpDoc = await OTP.findValidOTP(email, purpose);
+        const otpDoc = await prisma.oTP.findFirst({
+            where: {
+                email: email.toLowerCase(),
+                purpose,
+                expiresAt: { gt: new Date() }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
 
         if (!otpDoc) {
             return {
@@ -133,8 +133,7 @@ const getOTPStatus = async (email, purpose = 'registration') => {
 
         return {
             exists: true,
-            remainingSeconds,
-            attemptsLeft: 3 - otpDoc.attempts
+            remainingSeconds
         };
     } catch (error) {
         console.error('Error getting OTP status:', error);
@@ -142,14 +141,14 @@ const getOTPStatus = async (email, purpose = 'registration') => {
     }
 };
 
-// Cleanup expired OTPs (can be run periodically)
+// Cleanup expired OTPs
 const cleanupExpiredOTPs = async () => {
     try {
-        const result = await OTP.deleteMany({
-            expiresAt: { $lt: new Date() }
+        const result = await prisma.oTP.deleteMany({
+            where: { expiresAt: { lt: new Date() } }
         });
-        console.log(`Cleaned up ${result.deletedCount} expired OTPs`);
-        return result.deletedCount;
+        console.log(`Cleaned up expired OTPs`);
+        return result.count;
     } catch (error) {
         console.error('Error cleaning up OTPs:', error);
         throw error;

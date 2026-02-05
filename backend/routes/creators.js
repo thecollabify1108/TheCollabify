@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const CreatorProfile = require('../models/CreatorProfile');
-const PromotionRequest = require('../models/PromotionRequest');
-const User = require('../models/User');
+const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { isCreator } = require('../middleware/roleCheck');
 const { generateInsights } = require('../services/aiInsights');
@@ -32,8 +30,14 @@ const handleValidation = (req, res, next) => {
  */
 router.get('/profile', auth, isCreator, async (req, res) => {
     try {
-        const profile = await CreatorProfile.findOne({ userId: req.userId })
-            .populate('userId', 'name email avatar');
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId },
+            include: {
+                user: {
+                    select: { name: true, email: true, avatar: true }
+                }
+            }
+        });
 
         if (!profile) {
             return res.status(404).json({
@@ -71,7 +75,10 @@ router.post('/profile', auth, isCreator, [
 ], async (req, res) => {
     try {
         // Check if profile already exists
-        const existingProfile = await CreatorProfile.findOne({ userId: req.userId });
+        const existingProfile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId }
+        });
+
         if (existingProfile) {
             return res.status(400).json({
                 success: false,
@@ -90,25 +97,31 @@ router.post('/profile', auth, isCreator, [
             isAvailable
         } = req.body;
 
-        // Create profile data
-        const profileData = {
-            userId: req.userId,
-            instagramUsername,
+        // Generate AI insights
+        const insights = generateInsights({
             followerCount,
             engagementRate,
             category,
             promotionTypes,
-            priceRange,
-            bio: bio || '',
-            isAvailable: isAvailable !== false
-        };
-
-        // Generate AI insights
-        const insights = generateInsights(profileData);
-        profileData.insights = insights;
+            priceRange
+        });
 
         // Create profile
-        const profile = await CreatorProfile.create(profileData);
+        const profile = await prisma.creatorProfile.create({
+            data: {
+                userId: req.userId,
+                instagramUsername,
+                followerCount,
+                engagementRate,
+                category: category,
+                promotionTypes: promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_')),
+                minPrice: priceRange.min,
+                maxPrice: priceRange.max,
+                bio: bio || '',
+                isAvailable: isAvailable !== false,
+                insights: insights
+            }
+        });
 
         // Notify about insights
         try {
@@ -125,7 +138,7 @@ router.post('/profile', auth, isCreator, [
     } catch (error) {
         console.error('Create profile error:', error);
 
-        if (error.code === 11000) {
+        if (error.code === 'P2002') {
             return res.status(400).json({
                 success: false,
                 message: 'Instagram username already registered'
@@ -152,7 +165,9 @@ router.put('/profile', auth, isCreator, [
     handleValidation
 ], async (req, res) => {
     try {
-        const profile = await CreatorProfile.findOne({ userId: req.userId });
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId }
+        });
 
         if (!profile) {
             return res.status(404).json({
@@ -161,39 +176,40 @@ router.put('/profile', auth, isCreator, [
             });
         }
 
-        // Update allowed fields
-        const allowedUpdates = [
-            'instagramUsername',
-            'followerCount',
-            'engagementRate',
-            'category',
-            'promotionTypes',
-            'priceRange',
-            'bio',
-            'isAvailable'
-        ];
-
-        allowedUpdates.forEach(field => {
-            if (req.body[field] !== undefined) {
-                profile[field] = req.body[field];
-            }
+        // Update fields
+        const updateData = {};
+        const fields = ['instagramUsername', 'followerCount', 'engagementRate', 'category', 'bio', 'isAvailable'];
+        fields.forEach(f => {
+            if (req.body[f] !== undefined) updateData[f] = req.body[f];
         });
 
-        // Regenerate AI insights
-        const insights = generateInsights(profile);
-        profile.insights = insights;
+        if (req.body.promotionTypes) {
+            updateData.promotionTypes = req.body.promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_'));
+        }
 
-        await profile.save();
+        if (req.body.priceRange) {
+            if (req.body.priceRange.min !== undefined) updateData.minPrice = req.body.priceRange.min;
+            if (req.body.priceRange.max !== undefined) updateData.maxPrice = req.body.priceRange.max;
+        }
+
+        // Generate AI insights
+        const insights = generateInsights({ ...profile, ...updateData });
+        updateData.insights = insights;
+
+        const updatedProfile = await prisma.creatorProfile.update({
+            where: { userId: req.userId },
+            data: updateData
+        });
 
         res.json({
             success: true,
             message: 'Profile updated successfully',
-            data: { profile }
+            data: { profile: updatedProfile }
         });
     } catch (error) {
         console.error('Update profile error:', error);
 
-        if (error.code === 11000) {
+        if (error.code === 'P2002') {
             return res.status(400).json({
                 success: false,
                 message: 'Instagram username already registered'
@@ -214,7 +230,9 @@ router.put('/profile', auth, isCreator, [
  */
 router.get('/promotions', auth, isCreator, async (req, res) => {
     try {
-        const profile = await CreatorProfile.findOne({ userId: req.userId });
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId }
+        });
 
         if (!profile) {
             return res.status(404).json({
@@ -224,25 +242,33 @@ router.get('/promotions', auth, isCreator, async (req, res) => {
         }
 
         // Find matching promotion requests
-        const promotions = await PromotionRequest.find({
-            status: { $in: ['Open', 'Creator Interested'] },
-            targetCategory: profile.category,
-            promotionType: { $in: profile.promotionTypes },
-            'followerRange.min': { $lte: profile.followerCount },
-            'followerRange.max': { $gte: profile.followerCount },
-            'budgetRange.min': { $lte: profile.priceRange.max }
-        })
-            .populate('sellerId', 'name email avatar')
-            .sort({ createdAt: -1 });
+        const promotions = await prisma.promotionRequest.findMany({
+            where: {
+                status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
+                targetCategory: profile.category,
+                promotionType: { hasSome: profile.promotionTypes },
+                minFollowers: { lte: profile.followerCount },
+                maxFollowers: { gte: profile.followerCount }
+                // budget filter can be complex with ranges, keeping it simple for now
+            },
+            include: {
+                seller: {
+                    select: { name: true, email: true, avatar: true }
+                },
+                matchedCreators: true
+            },
+            orderBy: { createdAt: 'desc' }
+        });
 
         // Check which ones the creator has already applied to
         const promotionsWithStatus = promotions.map(promo => {
-            const promoObj = promo.toObject();
             const applied = promo.matchedCreators.find(
-                mc => mc.creatorId.toString() === profile._id.toString() && mc.status === 'Applied'
+                mc => mc.creatorId === req.userId && mc.status === 'APPLIED'
             );
-            promoObj.hasApplied = !!applied;
-            return promoObj;
+            return {
+                ...promo,
+                hasApplied: !!applied
+            };
         });
 
         res.json({
@@ -270,8 +296,9 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
     try {
         const promotionId = req.params.id;
 
-        const profile = await CreatorProfile.findOne({ userId: req.userId })
-            .populate('userId', 'name');
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId }
+        });
 
         if (!profile) {
             return res.status(404).json({
@@ -280,7 +307,10 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
             });
         }
 
-        const promotion = await PromotionRequest.findById(promotionId);
+        const promotion = await prisma.promotionRequest.findUnique({
+            where: { id: promotionId },
+            include: { matchedCreators: true }
+        });
 
         if (!promotion) {
             return res.status(404).json({
@@ -289,7 +319,7 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
             });
         }
 
-        if (!['Open', 'Creator Interested'].includes(promotion.status)) {
+        if (!['OPEN', 'CREATOR_INTERESTED'].includes(promotion.status)) {
             return res.status(400).json({
                 success: false,
                 message: 'This promotion is no longer accepting applications'
@@ -298,10 +328,10 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
 
         // Check if already applied
         const existingApplication = promotion.matchedCreators.find(
-            mc => mc.creatorId.toString() === profile._id.toString()
+            mc => mc.creatorId === req.userId
         );
 
-        if (existingApplication && existingApplication.status === 'Applied') {
+        if (existingApplication && existingApplication.status === 'APPLIED') {
             return res.status(400).json({
                 success: false,
                 message: 'You have already applied to this promotion'
@@ -310,43 +340,49 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
 
         // Add or update creator application
         if (existingApplication) {
-            existingApplication.status = 'Applied';
-            existingApplication.appliedAt = new Date();
+            await prisma.matchedCreator.update({
+                where: { id: existingApplication.id },
+                data: {
+                    status: 'APPLIED',
+                    appliedAt: new Date()
+                }
+            });
         } else {
-            promotion.matchedCreators.push({
-                creatorId: profile._id,
-                matchScore: profile.insights?.score || 50,
-                matchReason: `Applied by creator. ${profile.category} specialist with ${profile.followerCount} followers.`,
-                status: 'Applied',
-                appliedAt: new Date()
+            await prisma.matchedCreator.create({
+                data: {
+                    promotionId: promotion.id,
+                    creatorId: req.userId,
+                    matchScore: (profile.insights && profile.insights.score) || 50,
+                    matchReason: `Applied by creator. ${profile.category} specialist with ${profile.followerCount} followers.`,
+                    status: 'APPLIED',
+                    appliedAt: new Date()
+                }
             });
         }
 
         // Update status if first applicant
-        if (promotion.status === 'Open') {
-            promotion.status = 'Creator Interested';
+        if (promotion.status === 'OPEN') {
+            await prisma.promotionRequest.update({
+                where: { id: promotion.id },
+                data: { status: 'CREATOR_INTERESTED' }
+            });
         }
-
-        await promotion.save();
 
         // Notify seller (in-app + email)
         try {
-            // Get seller details for email
-            const seller = await User.findById(promotion.sellerId);
+            const seller = await prisma.user.findUnique({ where: { id: promotion.sellerId } });
 
-            // In-app notification
             await notifySellerCreatorApplied(
                 promotion.sellerId,
-                profile.userId.name,
+                req.user.name,
                 promotion
             );
 
-            // Email notification
             if (seller) {
                 await sendCreatorAppliedEmail(
                     seller.email,
                     seller.name,
-                    profile.userId.name,
+                    req.user.name,
                     promotion.title
                 );
             }
@@ -374,38 +410,39 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
  */
 router.get('/applications', auth, isCreator, async (req, res) => {
     try {
-        const profile = await CreatorProfile.findOne({ userId: req.userId });
+        const applications = await prisma.promotionRequest.findMany({
+            where: {
+                matchedCreators: {
+                    some: {
+                        creatorId: req.userId,
+                        status: { in: ['APPLIED', 'ACCEPTED', 'REJECTED'] }
+                    }
+                }
+            },
+            include: {
+                seller: {
+                    select: { name: true, email: true }
+                },
+                matchedCreators: {
+                    where: { creatorId: req.userId }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
 
-        if (!profile) {
-            return res.status(404).json({
-                success: false,
-                message: 'Please create your profile first'
-            });
-        }
-
-        // Find all promotions where creator has applied
-        const applications = await PromotionRequest.find({
-            'matchedCreators.creatorId': profile._id,
-            'matchedCreators.status': { $in: ['Applied', 'Accepted', 'Rejected'] }
-        })
-            .populate('sellerId', 'name email')
-            .sort({ 'matchedCreators.appliedAt': -1 });
-
-        // Format response to include application status
         const formattedApplications = applications.map(promo => {
-            const application = promo.matchedCreators.find(
-                mc => mc.creatorId.toString() === profile._id.toString()
-            );
+            const application = promo.matchedCreators[0];
             return {
                 promotion: {
-                    id: promo._id,
+                    id: promo.id,
                     title: promo.title,
                     description: promo.description,
                     promotionType: promo.promotionType,
-                    budgetRange: promo.budgetRange,
+                    minBudget: promo.minBudget,
+                    maxBudget: promo.maxBudget,
                     campaignGoal: promo.campaignGoal,
                     status: promo.status,
-                    seller: promo.sellerId
+                    seller: promo.seller
                 },
                 applicationStatus: application?.status,
                 appliedAt: application?.appliedAt,

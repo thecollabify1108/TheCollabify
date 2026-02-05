@@ -4,11 +4,16 @@ import MessageBubble from './MessageBubble';
 import { chatAPI } from '../../services/api';
 import useTypingIndicator from '../../hooks/useTypingIndicator';
 import TypingIndicator from '../realtime/TypingIndicator';
+import encryptionService from '../../services/encryptionService';
+import { FaLock, FaShieldAlt } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 
 const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onBack }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [isSecure, setIsSecure] = useState(false);
+    const [otherUserPublicKey, setOtherUserPublicKey] = useState(null);
     const messagesEndRef = useRef(null);
 
     const otherUser = conversation.otherUser;
@@ -18,9 +23,32 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
     useEffect(() => {
         if (conversation._id) {
+            setupEncryption();
             fetchMessages();
         }
     }, [conversation._id]);
+
+    const setupEncryption = async () => {
+        try {
+            // 1. Ensure current user has a key pair
+            if (!encryptionService.hasPrivateKey(currentUser.id)) {
+                console.log('Generating new Guardian Elite PGP keys...');
+                const { privateKey, publicKey } = await encryptionService.generateKeyPair(currentUser.name, currentUser.email);
+                encryptionService.savePrivateKey(currentUser.id, privateKey);
+                await chatAPI.updatePGPKey(publicKey);
+            }
+
+            // 2. Try to fetch other user's public key
+            const res = await chatAPI.getPGPKey(otherUser._id);
+            if (res.data.success && res.data.data.publicKey) {
+                setOtherUserPublicKey(res.data.data.publicKey);
+                setIsSecure(true);
+            }
+        } catch (error) {
+            console.log('E2EE not available for this session yet');
+            setIsSecure(false);
+        }
+    };
 
     // Real-time listener for THIS conversation
     useEffect(() => {
@@ -38,7 +66,21 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const fetchMessages = async () => {
         try {
             const res = await chatAPI.getMessages(conversation._id);
-            setMessages(res.data.data.messages);
+            const rawMessages = res.data.data.messages;
+
+            // Decrypt messages if they are encrypted
+            const decryptedMessages = await Promise.all(rawMessages.map(async (msg) => {
+                if (msg.isEncrypted && encryptionService.hasPrivateKey(currentUser.id)) {
+                    const decryptedContent = await encryptionService.decryptMessage(
+                        msg.content,
+                        encryptionService.getPrivateKey(currentUser.id)
+                    );
+                    return { ...msg, content: decryptedContent };
+                }
+                return msg;
+            }));
+
+            setMessages(decryptedMessages);
             scrollToBottom();
         } catch (error) {
             console.error('Failed to load messages', error);
@@ -59,21 +101,36 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
         sendStopTyping();
 
         try {
+            let contentToSend = newMessage;
+            let isEncrypted = false;
+
+            // Apply E2EE if recipient key is available
+            if (isSecure && otherUserPublicKey) {
+                contentToSend = await encryptionService.encryptMessage(newMessage, otherUserPublicKey);
+                isEncrypted = true;
+            }
+
             // Save via REST API
-            const res = await chatAPI.sendMessage(conversation._id, newMessage);
+            const res = await chatAPI.sendMessage(conversation._id, {
+                content: contentToSend,
+                isEncrypted,
+                encryptionVersion: '1.0'
+            });
             const savedMsg = res.data.data.message;
 
-            setMessages(prev => [...prev, savedMsg]);
+            // For local UI, show the decrypted version
+            const displayMsg = { ...savedMsg, content: newMessage };
+
+            setMessages(prev => [...prev, displayMsg]);
             setNewMessage('');
             scrollToBottom();
 
-            // Broadcast via Socket (handled by REST controller -> Socket Server, or manual emit if REST doesn't default)
-            // Ideally, our refactored backend sends to recipient automatically.
-            // But we also emit here just in case we need immediate local echo if using optimistic UI
-            socketService.sendMessage(conversation._id, newMessage, otherUser._id);
+            // Broadcast via Socket
+            socketService.sendMessage(conversation._id, displayMsg, otherUser._id);
 
         } catch (error) {
             console.error('Failed to send', error);
+            toast.error('Failed to send encrypted message');
         } finally {
             setSending(false);
         }
@@ -102,7 +159,10 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
                     </div>
 
                     <div>
-                        <h3 className="font-bold text-gray-900 dark:text-dark-100">{otherUser.name}</h3>
+                        <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-gray-900 dark:text-dark-100">{otherUser.name}</h3>
+                            {isSecure && <FaShieldAlt className="text-emerald-500 text-xs" title="Guardian Elite Encrypted Session" />}
+                        </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-400">
                             {isOnline ? <span className="text-emerald-400">Online</span> : <span>Offline</span>}
                             {typingUsers.length > 0 && <span className="text-primary-400 animate-pulse">• typing...</span>}

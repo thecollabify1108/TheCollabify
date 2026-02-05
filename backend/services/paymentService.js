@@ -1,5 +1,6 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const stripeService = require('./stripeService');
 
 let razorpay;
 
@@ -9,115 +10,54 @@ if (process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET) {
             key_id: process.env.RAZORPAY_KEY_ID,
             key_secret: process.env.RAZORPAY_KEY_SECRET
         });
-        console.log('✅ Razorpay initialized successfully');
+        console.log('✅ Razorpay initialized (Legacy Mode)');
     } catch (error) {
-        console.error('❌ Failed to initialize Razorpay:', error.message);
+        console.warn('⚠️ Razorpay initialization failed');
     }
-} else {
-    console.warn('⚠️ RAZORPAY_KEY_ID or RAZORPAY_KEY_SECRET is missing. Payment features will be disabled.');
 }
 
-// Helper to ensure razorpay is initialized before use
+/**
+ * Modern Payment Service (Stripe + Razorpay Fallback)
+ */
+
+// 1. Stripe Methods (Preferred for Guardian Elite)
+exports.stripe = stripeService;
+
+// 2. Legacy Razorpay Methods
 const ensureRazorpay = () => {
-    if (!razorpay) {
-        throw new Error('Razorpay is not initialized. Please check your environment variables.');
-    }
+    if (!razorpay) throw new Error('Razorpay not initialized');
     return razorpay;
 };
 
-/**
- * Create subscription
- */
-exports.createSubscription = async (planId, userId) => {
-    try {
-        const rp = ensureRazorpay();
-        const subscription = await rp.subscriptions.create({
-            plan_id: planId,
-            customer_notify: 1,
-            total_count: 12, // 12 months
-            notes: {
-                userId: userId
-            }
-        });
-
-        return subscription;
-    } catch (error) {
-        throw new Error('Subscription creation failed: ' + error.message);
-    }
+exports.createRazorpayOrder = async (amount, currency = 'INR') => {
+    const rp = ensureRazorpay();
+    const order = await rp.orders.create({
+        amount: amount * 100,
+        currency,
+        receipt: `receipt_${Date.now()}`
+    });
+    return order;
 };
 
-/**
- * Create order for one-time payment
- */
-exports.createOrder = async (amount, currency = 'INR') => {
-    try {
-        const rp = ensureRazorpay();
-        const order = await rp.orders.create({
-            amount: amount * 100, // Convert to paise
-            currency,
-            receipt: `receipt_${Date.now()}`,
-            notes: {
-                description: 'TheCollabify payment'
-            }
-        });
-
-        return order;
-    } catch (error) {
-        throw new Error('Order creation failed: ' + error.message);
-    }
-};
-
-/**
- * Verify payment signature
- */
-exports.verifyPayment = (orderId, paymentId, signature) => {
+exports.verifyRazorpayPayment = (orderId, paymentId, signature) => {
     const text = orderId + '|' + paymentId;
     const generatedSignature = crypto
         .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
         .update(text)
         .digest('hex');
-
     return generatedSignature === signature;
 };
 
-/**
- * Verify webhook signature
- */
-exports.verifyWebhook = (body, signature) => {
-    const expectedSignature = crypto
-        .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
-        .update(JSON.stringify(body))
-        .digest('hex');
-
-    return expectedSignature === signature;
-};
-
-/**
- * Refund payment
- */
 exports.refundPayment = async (paymentId, amount = null) => {
+    // We'll need to check if it's a Stripe or Razorpay payment in a higher-level logic
+    // For now, keep the Razorpay logic here
     try {
         const rp = ensureRazorpay();
-        const refund = await rp.payments.refund(paymentId, {
+        return await rp.payments.refund(paymentId, {
             amount: amount ? amount * 100 : undefined,
             speed: 'normal'
         });
-
-        return refund;
     } catch (error) {
         throw new Error('Refund failed: ' + error.message);
-    }
-};
-
-/**
- * Get payment details
- */
-exports.getPaymentDetails = async (paymentId) => {
-    try {
-        const rp = ensureRazorpay();
-        const payment = await rp.payments.fetch(paymentId);
-        return payment;
-    } catch (error) {
-        throw new Error('Failed to fetch payment: ' + error.message);
     }
 };

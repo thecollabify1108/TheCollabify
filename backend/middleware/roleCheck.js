@@ -16,7 +16,10 @@ const roleCheck = (...roles) => {
             });
         }
 
-        if (!roles.includes(req.user.role)) {
+        const userRole = req.user.activeRole ? req.user.activeRole.toUpperCase() : null;
+        const requiredRoles = roles.map(r => r.toUpperCase());
+
+        if (!userRole || !requiredRoles.includes(userRole)) {
             return res.status(403).json({
                 success: false,
                 message: `Access denied. This action requires one of the following roles: ${roles.join(', ')}`
@@ -30,11 +33,11 @@ const roleCheck = (...roles) => {
 /**
  * Shorthand middleware for common role checks
  */
-const isCreator = roleCheck('creator');
-const isSeller = roleCheck('seller');
-const isAdmin = roleCheck('admin');
-const isAdminOrSeller = roleCheck('admin', 'seller');
-const isAdminOrCreator = roleCheck('admin', 'creator');
+const isCreator = roleCheck('CREATOR');
+const isSeller = roleCheck('SELLER');
+const isAdmin = roleCheck('ADMIN');
+const isAdminOrSeller = roleCheck('ADMIN', 'SELLER');
+const isAdminOrCreator = roleCheck('ADMIN', 'CREATOR');
 
 module.exports = {
     roleCheck,

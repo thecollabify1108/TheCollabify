@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
-const ContentCalendar = require('../models/ContentCalendar');
+const prisma = require('../config/prisma');
 
 /**
  * @route   GET /api/calendar
@@ -12,22 +12,28 @@ router.get('/', auth, async (req, res) => {
     try {
         const { startDate, endDate, status } = req.query;
 
-        const query = { creatorId: req.user.id };
+        const where = { creatorId: req.user.id };
 
         if (startDate && endDate) {
-            query.scheduledDate = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate)
+            where.scheduledDate = {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
             };
         }
 
         if (status) {
-            query.status = status;
+            where.status = status;
         }
 
-        const events = await ContentCalendar.find(query)
-            .sort({ scheduledDate: 1 })
-            .populate('campaignId', 'title status');
+        const events = await prisma.contentCalendar.findMany({
+            where,
+            include: {
+                campaign: {
+                    select: { title: true, status: true }
+                }
+            },
+            orderBy: { scheduledDate: 'asc' }
+        });
 
         res.json({
             success: true,
@@ -64,11 +70,21 @@ router.post('/', auth, async (req, res) => {
         } = req.body;
 
         // Check for conflicts
-        const conflicts = await ContentCalendar.checkConflicts(
-            req.user.id,
-            new Date(scheduledDate),
-            platform
-        );
+        const schedDate = new Date(scheduledDate);
+        const thirtyMinsBefore = new Date(schedDate.getTime() - 30 * 60000);
+        const thirtyMinsAfter = new Date(schedDate.getTime() + 30 * 60000);
+
+        const conflicts = await prisma.contentCalendar.findMany({
+            where: {
+                creatorId: req.user.id,
+                platform,
+                status: 'scheduled',
+                scheduledDate: {
+                    gte: thirtyMinsBefore,
+                    lte: thirtyMinsAfter
+                }
+            }
+        });
 
         if (conflicts.length > 0) {
             return res.status(400).json({
@@ -78,30 +94,31 @@ router.post('/', auth, async (req, res) => {
             });
         }
 
-        const event = new ContentCalendar({
-            creatorId: req.user.id,
-            title,
-            description,
-            platform,
-            contentType,
-            scheduledDate: new Date(scheduledDate),
-            scheduledTime,
-            campaignId,
-            caption,
-            hashtags,
-            tags,
-            notes
-        });
-
         // Generate reminders
         const scheduledDateTime = new Date(scheduledDate);
-        event.reminders = [
-            { time: new Date(scheduledDateTime.getTime() - 24 * 60 * 60 * 1000), type: '24h' },
-            { time: new Date(scheduledDateTime.getTime() - 60 * 60 * 1000), type: '1h' },
-            { time: new Date(scheduledDateTime.getTime() - 15 * 60 * 1000), type: '15m' }
+        const reminders = [
+            { time: new Date(scheduledDateTime.getTime() - 24 * 60 * 60 * 1000), type: '24h', sent: false },
+            { time: new Date(scheduledDateTime.getTime() - 60 * 60 * 1000), type: '1h', sent: false },
+            { time: new Date(scheduledDateTime.getTime() - 15 * 60 * 1000), type: '15m', sent: false }
         ];
 
-        await event.save();
+        const event = await prisma.contentCalendar.create({
+            data: {
+                creatorId: req.user.id,
+                title,
+                description,
+                platform,
+                contentType,
+                scheduledDate: new Date(scheduledDate),
+                scheduledTime,
+                campaignId: campaignId || null,
+                caption,
+                hashtags: hashtags || [],
+                tags: tags || [],
+                notes,
+                reminders
+            }
+        });
 
         res.status(201).json({
             success: true,
@@ -123,28 +140,25 @@ router.post('/', auth, async (req, res) => {
  */
 router.put('/:id', auth, async (req, res) => {
     try {
-        const event = await ContentCalendar.findOne({
-            _id: req.params.id,
-            creatorId: req.user.id
+        const event = await prisma.contentCalendar.findUnique({
+            where: { id: req.params.id }
         });
 
-        if (!event) {
+        if (!event || event.creatorId !== req.user.id) {
             return res.status(404).json({
                 success: false,
-                message: 'Event not found'
+                message: 'Event not found or unauthorized'
             });
         }
 
-        const updates = req.body;
-        Object.keys(updates).forEach(key => {
-            event[key] = updates[key];
+        const updatedEvent = await prisma.contentCalendar.update({
+            where: { id: req.params.id },
+            data: req.body
         });
-
-        await event.save();
 
         res.json({
             success: true,
-            data: { event }
+            data: { event: updatedEvent }
         });
     } catch (error) {
         console.error('Error updating event:', error);
@@ -162,17 +176,20 @@ router.put('/:id', auth, async (req, res) => {
  */
 router.delete('/:id', auth, async (req, res) => {
     try {
-        const event = await ContentCalendar.findOneAndDelete({
-            _id: req.params.id,
-            creatorId: req.user.id
+        const event = await prisma.contentCalendar.findUnique({
+            where: { id: req.params.id }
         });
 
-        if (!event) {
+        if (!event || event.creatorId !== req.user.id) {
             return res.status(404).json({
                 success: false,
-                message: 'Event not found'
+                message: 'Event not found or unauthorized'
             });
         }
+
+        await prisma.contentCalendar.delete({
+            where: { id: req.params.id }
+        });
 
         res.json({
             success: true,
@@ -196,30 +213,30 @@ router.post('/:id/mark-posted', auth, async (req, res) => {
     try {
         const { postUrl, performance } = req.body;
 
-        const event = await ContentCalendar.findOne({
-            _id: req.params.id,
-            creatorId: req.user.id
+        const event = await prisma.contentCalendar.findUnique({
+            where: { id: req.params.id }
         });
 
-        if (!event) {
+        if (!event || event.creatorId !== req.user.id) {
             return res.status(404).json({
                 success: false,
-                message: 'Event not found'
+                message: 'Event not found or unauthorized'
             });
         }
 
-        event.status = 'posted';
-        event.postedAt = new Date();
-        event.postUrl = postUrl;
-        if (performance) {
-            event.performance = performance;
-        }
-
-        await event.save();
+        const updatedEvent = await prisma.contentCalendar.update({
+            where: { id: req.params.id },
+            data: {
+                status: 'posted',
+                postedAt: new Date(),
+                postUrl: postUrl,
+                performance: performance || {}
+            }
+        });
 
         res.json({
             success: true,
-            data: { event }
+            data: { event: updatedEvent }
         });
     } catch (error) {
         console.error('Error marking as posted:', error);

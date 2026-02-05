@@ -14,7 +14,8 @@ import {
     FaExclamationTriangle
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
-import api, { calendarAPI } from '../../services/api';
+import api, { calendarAPI, aiAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
 // Setup the localizer - Removed broken momentLocalizer
@@ -453,6 +454,7 @@ import AIContentGenerator from '../creator/AIContentGenerator'; // Import AI Com
 // ... existing code ...
 
 const EventModal = ({ event, onClose, onSave }) => {
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         title: event?.title || '',
         description: event?.description || '',
@@ -467,7 +469,9 @@ const EventModal = ({ event, onClose, onSave }) => {
     });
 
     const [loading, setLoading] = useState(false);
-    const [showAI, setShowAI] = useState(false); // State for AI toggle
+    const [fetchingTime, setFetchingTime] = useState(false);
+    const [showAI, setShowAI] = useState(false);
+    const [optimalTime, setOptimalTime] = useState(null);
 
     const handleSubmit = async (e) => {
         // ... existing submit logic ...
@@ -585,13 +589,49 @@ const EventModal = ({ event, onClose, onSave }) => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">Time</label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-sm font-semibold text-dark-200">Time</label>
+                                        <button
+                                            type="button"
+                                            onClick={async () => {
+                                                setFetchingTime(true);
+                                                try {
+                                                    const res = await aiAPI.getOptimalTime(user.id);
+                                                    if (res.data.success) {
+                                                        const suggestion = res.data.data;
+                                                        setOptimalTime(suggestion);
+                                                        // Extract start time from window e.g. "6:00 PM - 9:00 PM" -> "18:00"
+                                                        const timeStr = suggestion.window.split(' - ')[0];
+                                                        const [time, modifier] = timeStr.split(' ');
+                                                        let [hours, minutes] = time.split(':');
+                                                        if (modifier === 'PM' && hours !== '12') hours = parseInt(hours) + 12;
+                                                        if (modifier === 'AM' && hours === '12') hours = '00';
+                                                        const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}`;
+                                                        setFormData(prev => ({ ...prev, scheduledTime: formattedTime }));
+                                                        toast.success(`AI suggested: ${suggestion.window} (${suggestion.bestDay})`);
+                                                    }
+                                                } catch (err) {
+                                                    toast.error('Could not get AI suggestion');
+                                                } finally {
+                                                    setFetchingTime(false);
+                                                }
+                                            }}
+                                            className="text-[10px] flex items-center gap-1 text-amber-500 font-bold hover:text-amber-400"
+                                        >
+                                            <HiSparkles /> {fetchingTime ? 'Analyzing...' : 'Golden Hour'}
+                                        </button>
+                                    </div>
                                     <input
                                         type="time"
                                         value={formData.scheduledTime}
                                         onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
                                         className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 focus:border-purple-500 focus:outline-none"
                                     />
+                                    {optimalTime && (
+                                        <p className="mt-1 text-[10px] text-amber-500 font-medium italic">
+                                            Recommended: {optimalTime.window} based on peak interactions.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 

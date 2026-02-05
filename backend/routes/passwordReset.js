@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const User = require('../models/User');
+const prisma = require('../config/prisma');
 const { generateToken } = require('../middleware/auth');
 const { createAndSendOTP, verifyOTP } = require('../services/otpService');
+const bcrypt = require('bcryptjs');
 
 /**
  * Validation middleware
@@ -32,7 +33,7 @@ router.post('/send-otp', [
     try {
         const { email } = req.body;
 
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({ where: { email } });
 
         // Always respond with success to prevent email enumeration
         if (!user) {
@@ -143,7 +144,7 @@ router.post('/reset', [
         const { email } = userData;
 
         // Find user
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({ where: { email } });
 
         if (!user) {
             return res.status(404).json({
@@ -153,11 +154,14 @@ router.post('/reset', [
         }
 
         // Update password
-        user.password = newPassword;
-        await user.save();
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword }
+        });
 
         // Generate token for auto-login
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         // Set HTTPOnly cookie
         res.cookie('token', token, {
@@ -172,7 +176,7 @@ router.post('/reset', [
             message: 'Password reset successful! You are now logged in.',
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
                     role: user.role

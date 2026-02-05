@@ -1,5 +1,5 @@
 const webpush = require('web-push');
-const User = require('../models/User');
+const prisma = require('../config/prisma');
 
 // Configure web-push with VAPID keys
 const vapidKeys = {
@@ -19,20 +19,14 @@ class PushNotificationService {
      */
     async sendToUser(userId, notification) {
         try {
-            const user = await User.findById(userId);
+            const user = await prisma.user.findUnique({ where: { id: userId } });
 
-            if (!user || !user.pushSubscription || !user.pushSubscription.endpoint) {
+            if (!user || !user.pushSubscription) {
                 console.log(`User ${userId} has no push subscription`);
                 return { success: false, reason: 'no_subscription' };
             }
 
-            const pushSubscription = {
-                endpoint: user.pushSubscription.endpoint,
-                keys: {
-                    p256dh: user.pushSubscription.keys.p256dh,
-                    auth: user.pushSubscription.keys.auth
-                }
-            };
+            const subscription = user.pushSubscription;
 
             const payload = JSON.stringify({
                 title: notification.title,
@@ -44,7 +38,7 @@ class PushNotificationService {
                 requireInteraction: notification.requireInteraction || false
             });
 
-            await webpush.sendNotification(pushSubscription, payload);
+            await webpush.sendNotification(subscription, payload);
 
             console.log(`✅ Push notification sent to user ${userId}`);
             return { success: true };
@@ -54,7 +48,10 @@ class PushNotificationService {
 
             // If subscription is no longer valid, remove it
             if (error.statusCode === 410 || error.statusCode === 404) {
-                await User.findByIdAndUpdate(userId, { $unset: { pushSubscription: 1 } });
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: { pushSubscription: null }
+                });
                 console.log(`Removed invalid subscription for user ${userId}`);
             }
 

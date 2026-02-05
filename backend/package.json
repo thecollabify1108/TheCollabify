@@ -16,6 +16,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@1password/op-js": "^0.1.13",
+    "@prisma/client": "5.22.0",
     "@sendinblue/client": "^3.3.1",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.1",
@@ -28,13 +30,15 @@
     "express-validator": "^7.0.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.0.3",
     "morgan": "^1.10.1",
     "nodemailer": "^6.9.7",
+    "openpgp": "^6.3.0",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
+    "prisma": "5.22.0",
     "razorpay": "^2.9.6",
     "socket.io": "^4.8.3",
+    "stripe": "^20.3.0",
     "web-push": "^3.6.7"
   },
   "devDependencies": {

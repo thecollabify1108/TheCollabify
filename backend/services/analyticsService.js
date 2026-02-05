@@ -1,6 +1,4 @@
-const Analytics = require('../models/Analytics');
-const PromotionRequest = require('../models/PromotionRequest');
-const User = require('../models/User');
+const prisma = require('../config/prisma');
 
 /**
  * Service for analytics data aggregation and calculations
@@ -15,11 +13,13 @@ class AnalyticsService {
             today.setHours(0, 0, 0, 0);
 
             // Check if snapshot already exists
-            const existing = await Analytics.findOne({
-                userId,
-                type,
-                period: 'daily',
-                date: today
+            const existing = await prisma.analytics.findFirst({
+                where: {
+                    userId,
+                    type,
+                    period: 'daily',
+                    date: today
+                }
             });
 
             if (existing) {
@@ -31,15 +31,16 @@ class AnalyticsService {
                 ? await this.calculateCreatorMetrics(userId)
                 : await this.calculateSellerMetrics(userId);
 
-            const analytics = new Analytics({
-                userId,
-                type,
-                period: 'daily',
-                date: today,
-                ...(type === 'creator' ? { creatorMetrics: metrics } : { sellerMetrics: metrics })
+            const analytics = await prisma.analytics.create({
+                data: {
+                    userId,
+                    type,
+                    period: 'daily',
+                    date: today,
+                    metrics: metrics
+                }
             });
 
-            await analytics.save();
             return analytics;
         } catch (error) {
             console.error('Error recording analytics:', error);
@@ -51,29 +52,36 @@ class AnalyticsService {
      * Calculate creator metrics
      */
     static async calculateCreatorMetrics(userId) {
-        const campaigns = await PromotionRequest.find({
-            'matchedCreators.creatorId': userId
+        const campaigns = await prisma.promotionRequest.findMany({
+            where: {
+                matchedCreators: {
+                    some: { creatorId: userId }
+                }
+            },
+            include: {
+                matchedCreators: true
+            }
         });
 
         const completedCampaigns = campaigns.filter(c =>
             c.matchedCreators.some(mc =>
-                mc.creatorId.toString() === userId.toString() && mc.status === 'Accepted'
+                mc.creatorId === userId && mc.status === 'ACCEPTED'
             )
         );
 
         const totalEarnings = completedCampaigns.reduce((sum, c) => {
-            const creator = c.matchedCreators.find(mc =>
-                mc.creatorId.toString() === userId.toString()
+            const creatorMatch = c.matchedCreators.find(mc =>
+                mc.creatorId === userId
             );
-            return sum + (creator?.agreedAmount || 0);
+            return sum + (creatorMatch?.agreedAmount || 0);
         }, 0);
 
         return {
             totalEarnings,
             campaignsCompleted: completedCampaigns.length,
-            campaignsActive: campaigns.filter(c => c.status === 'Accepted').length,
-            averageRating: 0, // Calculate from reviews
-            profileViews: 0, // Track separately
+            campaignsActive: campaigns.filter(c => c.status === 'ACCEPTED').length,
+            averageRating: 0,
+            profileViews: 0,
             applicationsSent: campaigns.length,
             acceptanceRate: campaigns.length > 0 ? (completedCampaigns.length / campaigns.length) * 100 : 0
         };
@@ -83,18 +91,21 @@ class AnalyticsService {
      * Calculate seller metrics
      */
     static async calculateSellerMetrics(userId) {
-        const campaigns = await PromotionRequest.find({ sellerId: userId });
+        const campaigns = await prisma.promotionRequest.findMany({
+            where: { sellerId: userId },
+            include: { matchedCreators: true }
+        });
 
         const totalSpent = campaigns.reduce((sum, c) => {
-            const acceptedCreators = c.matchedCreators.filter(mc => mc.status === 'Accepted');
+            const acceptedCreators = c.matchedCreators.filter(mc => mc.status === 'ACCEPTED');
             return sum + acceptedCreators.reduce((s, mc) => s + (mc.agreedAmount || 0), 0);
         }, 0);
 
         const campaignsByStatus = {
-            open: campaigns.filter(c => c.status === 'Open').length,
-            active: campaigns.filter(c => c.status === 'Accepted').length,
-            completed: campaigns.filter(c => c.status === 'Completed').length,
-            cancelled: campaigns.filter(c => c.status === 'Cancelled').length
+            open: campaigns.filter(c => c.status === 'OPEN').length,
+            active: campaigns.filter(c => c.status === 'ACCEPTED').length,
+            completed: campaigns.filter(c => c.status === 'COMPLETED').length,
+            cancelled: campaigns.filter(c => c.status === 'CANCELLED').length
         };
 
         return {
@@ -103,7 +114,7 @@ class AnalyticsService {
             campaignsActive: campaignsByStatus.active,
             campaignsCompleted: campaignsByStatus.completed,
             creatorsHired: campaigns.reduce((sum, c) =>
-                sum + c.matchedCreators.filter(mc => mc.status === 'Accepted').length, 0
+                sum + c.matchedCreators.filter(mc => mc.status === 'ACCEPTED').length, 0
             ),
             campaignsByStatus
         };
@@ -113,12 +124,19 @@ class AnalyticsService {
      * Get analytics dashboard data
      */
     static async getDashboardAnalytics(userId, type, period = 'monthly', limit = 12) {
-        const analytics = await Analytics.getUserAnalytics(userId, period, limit);
+        const analytics = await prisma.analytics.findMany({
+            where: { userId, period },
+            orderBy: { date: 'desc' },
+            take: limit
+        });
 
         if (analytics.length === 0) {
-            // Generate first snapshot
             await this.recordDailySnapshot(userId, type);
-            return await Analytics.getUserAnalytics(userId, period, limit);
+            return await prisma.analytics.findMany({
+                where: { userId, period },
+                orderBy: { date: 'desc' },
+                take: limit
+            });
         }
 
         return analytics;
@@ -131,11 +149,14 @@ class AnalyticsService {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-        const analytics = await Analytics.find({
-            userId,
-            type,
-            date: { $gte: thirtyDaysAgo }
-        }).sort({ date: 1 });
+        const analytics = await prisma.analytics.findMany({
+            where: {
+                userId,
+                type,
+                date: { gte: thirtyDaysAgo }
+            },
+            orderBy: { date: 'asc' }
+        });
 
         if (analytics.length === 0) {
             return {
@@ -149,29 +170,20 @@ class AnalyticsService {
         const previous = analytics.length > 1 ? analytics[analytics.length - 2] : null;
 
         const growth = {};
-        if (previous && type === 'creator') {
+        if (previous) {
             growth.earningsGrowth = this.calculateGrowth(
-                current.creatorMetrics.totalEarnings,
-                previous.creatorMetrics.totalEarnings
+                type === 'creator' ? current.metrics.totalEarnings : current.metrics.totalSpent,
+                type === 'creator' ? previous.metrics.totalEarnings : previous.metrics.totalSpent
             );
             growth.campaignsGrowth = this.calculateGrowth(
-                current.creatorMetrics.campaignsCompleted,
-                previous.creatorMetrics.campaignsCompleted
-            );
-        } else if (previous && type === 'seller') {
-            growth.spentGrowth = this.calculateGrowth(
-                current.sellerMetrics.totalSpent,
-                previous.sellerMetrics.totalSpent
-            );
-            growth.campaignsGrowth = this.calculateGrowth(
-                current.sellerMetrics.campaignsCreated,
-                previous.sellerMetrics.campaignsCreated
+                type === 'creator' ? current.metrics.campaignsCompleted : current.metrics.campaignsCreated,
+                type === 'creator' ? previous.metrics.campaignsCompleted : previous.metrics.campaignsCreated
             );
         }
 
         return {
-            current: type === 'creator' ? current.creatorMetrics : current.sellerMetrics,
-            previous: previous ? (type === 'creator' ? previous.creatorMetrics : previous.sellerMetrics) : null,
+            current: current.metrics,
+            previous: previous ? previous.metrics : null,
             growth
         };
     }
@@ -188,14 +200,25 @@ class AnalyticsService {
      * Get top performers
      */
     static async getTopPerformers(type, limit = 10) {
-        const field = type === 'creator' ? 'creatorMetrics.totalEarnings' : 'sellerMetrics.totalSpent';
+        // Since metrics is a JSON field, sorting by nested fields in Prisma varies by DB.
+        // For PostgreSQL, we can use raw query or findMany with limited results if list is small.
+        // We'll use findMany and manual sort for now, or raw SQL for better performance.
+        const analytics = await prisma.analytics.findMany({
+            where: { type },
+            include: {
+                user: {
+                    select: { name: true, email: true, avatar: true }
+                }
+            }
+        });
 
-        const topAnalytics = await Analytics.find({ type })
-            .sort({ [field]: -1 })
-            .limit(limit)
-            .populate('userId', 'name email profilePicture');
-
-        return topAnalytics;
+        return analytics
+            .sort((a, b) => {
+                const valA = type === 'creator' ? (a.metrics.totalEarnings || 0) : (a.metrics.totalSpent || 0);
+                const valB = type === 'creator' ? (b.metrics.totalEarnings || 0) : (b.metrics.totalSpent || 0);
+                return valB - valA;
+            })
+            .slice(0, limit);
     }
 }
 

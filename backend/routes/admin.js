@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, query, validationResult } = require('express-validator');
-const User = require('../models/User');
-const CreatorProfile = require('../models/CreatorProfile');
-const PromotionRequest = require('../models/PromotionRequest');
+const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/roleCheck');
 
@@ -37,12 +35,12 @@ router.get('/stats', auth, isAdmin, async (req, res) => {
             activeRequests,
             completedRequests
         ] = await Promise.all([
-            User.countDocuments({ isActive: true }),
-            User.countDocuments({ role: 'creator', isActive: true }),
-            User.countDocuments({ role: 'seller', isActive: true }),
-            PromotionRequest.countDocuments(),
-            PromotionRequest.countDocuments({ status: { $in: ['Open', 'Creator Interested', 'Accepted'] } }),
-            PromotionRequest.countDocuments({ status: 'Completed' })
+            prisma.user.count({ where: { isActive: true } }),
+            prisma.user.count({ where: { role: 'CREATOR', isActive: true } }),
+            prisma.user.count({ where: { role: 'SELLER', isActive: true } }),
+            prisma.promotionRequest.count(),
+            prisma.promotionRequest.count({ where: { status: { in: ['OPEN', 'INTERESTED', 'ACCEPTED'] } } }),
+            prisma.promotionRequest.count({ where: { status: 'COMPLETED' } })
         ]);
 
         res.json({
@@ -85,29 +83,40 @@ router.get('/users', auth, isAdmin, async (req, res) => {
             sortOrder = 'desc'
         } = req.query;
 
-        const query = {};
+        const where = {};
 
         if (role && role !== 'all') {
-            query.role = role;
+            where.role = role.toUpperCase();
         }
 
         if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: 'i' } },
-                { email: { $regex: search, $options: 'i' } }
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } }
             ];
         }
 
-        const skip = (page - 1) * limit;
-        const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const orderBy = { [sortBy]: sortOrder.toLowerCase() };
 
         const [users, total] = await Promise.all([
-            User.find(query)
-                .select('-password')
-                .sort(sort)
-                .skip(skip)
-                .limit(parseInt(limit)),
-            User.countDocuments(query)
+            prisma.user.findMany({
+                where,
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    role: true,
+                    activeRole: true,
+                    isActive: true,
+                    avatar: true,
+                    createdAt: true
+                },
+                orderBy,
+                skip,
+                take: parseInt(limit)
+            }),
+            prisma.user.count({ where })
         ]);
 
         res.json({
@@ -118,7 +127,7 @@ router.get('/users', auth, isAdmin, async (req, res) => {
                     page: parseInt(page),
                     limit: parseInt(limit),
                     total,
-                    pages: Math.ceil(total / limit)
+                    pages: Math.ceil(total / parseInt(limit))
                 }
             }
         });
@@ -138,7 +147,20 @@ router.get('/users', auth, isAdmin, async (req, res) => {
  */
 router.get('/users/:id', auth, isAdmin, async (req, res) => {
     try {
-        const user = await User.findById(req.params.id).select('-password');
+        const user = await prisma.user.findUnique({
+            where: { id: req.params.id },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+                activeRole: true,
+                isActive: true,
+                avatar: true,
+                createdAt: true,
+                updatedAt: true
+            }
+        });
 
         if (!user) {
             return res.status(404).json({
@@ -148,8 +170,10 @@ router.get('/users/:id', auth, isAdmin, async (req, res) => {
         }
 
         let profile = null;
-        if (user.role === 'creator') {
-            profile = await CreatorProfile.findOne({ userId: user._id });
+        if (user.role === 'CREATOR') {
+            profile = await prisma.creatorProfile.findUnique({
+                where: { userId: user.id }
+            });
         }
 
         res.json({
@@ -177,18 +201,16 @@ router.put('/users/:id/status', auth, isAdmin, [
     try {
         const { isActive } = req.body;
 
-        const user = await User.findByIdAndUpdate(
-            req.params.id,
-            { isActive },
-            { new: true }
-        ).select('-password');
-
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
+        const user = await prisma.user.update({
+            where: { id: req.params.id },
+            data: { isActive },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                isActive: true
+            }
+        });
 
         res.json({
             success: true,
@@ -197,6 +219,9 @@ router.put('/users/:id/status', auth, isAdmin, [
         });
     } catch (error) {
         console.error('Update user status error:', error);
+        if (error.code === 'P2025') {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
         res.status(500).json({
             success: false,
             message: 'Failed to update user status'
@@ -206,12 +231,14 @@ router.put('/users/:id/status', auth, isAdmin, [
 
 /**
  * @route   DELETE /api/admin/users/:id
- * @desc    Delete user with comprehensive data cleanup (production-ready)
+ * @desc    Delete user with comprehensive data cleanup
  * @access  Private (Admin)
  */
 router.delete('/users/:id', auth, isAdmin, async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
+        const user = await prisma.user.findUnique({
+            where: { id: req.params.id }
+        });
 
         if (!user) {
             return res.status(404).json({
@@ -221,7 +248,7 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
         }
 
         // Prevent deleting admin accounts
-        if (user.role === 'admin') {
+        if (user.role === 'ADMIN') {
             return res.status(403).json({
                 success: false,
                 message: 'Cannot delete admin accounts'
@@ -230,71 +257,48 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
 
         console.log(`Starting comprehensive deletion for user: ${user.email} (${user.role})`);
 
-        // Import required models
-        const Notification = require('../models/Notification');
-        const Conversation = require('../models/Conversation');
-        const Message = require('../models/Message');
+        // With Prisma and PostgreSQL CASCADE, many deletions might be handled by DB.
+        // But for safety and explicit cleanup of linked relationships in different tables:
 
-        // 1. Delete role-specific data
-        if (user.role === 'creator') {
-            // Delete creator profile
-            await CreatorProfile.deleteOne({ userId: user._id });
-            console.log('✓ Deleted creator profile');
+        await prisma.$transaction(async (tx) => {
+            // 1. Role-specific cleanup
+            if (user.role === 'CREATOR') {
+                await tx.creatorProfile.deleteMany({ where: { userId: user.id } });
+                // Applications are matchedCreator in our schema
+                await tx.matchedCreator.deleteMany({ where: { creatorId: user.id } });
+            } else if (user.role === 'SELLER') {
+                // Delete conversations and messages linked to promotion requests
+                const prompts = await tx.promotionRequest.findMany({ where: { sellerId: user.id } });
+                const promptIds = prompts.map(p => p.id);
 
-            // Delete all applications by this creator
-            const Application = require('../models/PromotionRequest');
-            await Application.updateMany(
-                { 'applications.creatorId': user._id },
-                { $pull: { applications: { creatorId: user._id } } }
-            );
-            console.log('✓ Removed creator applications from promotions');
+                await tx.message.deleteMany({
+                    where: { conversation: { promotionId: { in: promptIds } } }
+                });
+                await tx.conversation.deleteMany({ where: { promotionId: { in: promptIds } } });
+                await tx.matchedCreator.deleteMany({ where: { promotionId: { in: promptIds } } });
+                await tx.promotionRequest.deleteMany({ where: { sellerId: user.id } });
+            }
 
-        } else if (user.role === 'seller') {
-            // Delete all promotions created by this seller
-            const deletedPromotions = await PromotionRequest.deleteMany({ sellerId: user._id });
-            console.log(`✓ Deleted ${deletedPromotions.deletedCount} promotions`);
-        }
-
-        // 2. Delete all notifications for this user
-        const deletedNotifications = await Notification.deleteMany({ userId: user._id });
-        console.log(`✓ Deleted ${deletedNotifications.deletedCount} notifications`);
-
-        // 3. Delete all conversations involving this user
-        const conversations = await Conversation.find({
-            $or: [
-                { creatorId: user._id },
-                { sellerId: user._id }
-            ]
-        });
-
-        if (conversations.length > 0) {
-            // Delete all messages in these conversations
-            const conversationIds = conversations.map(c => c._id);
-            const deletedMessages = await Message.deleteMany({ conversationId: { $in: conversationIds } });
-            console.log(`✓ Deleted ${deletedMessages.deletedCount} messages`);
-
-            // Delete the conversations
-            const deletedConversations = await Conversation.deleteMany({
-                $or: [
-                    { creatorId: user._id },
-                    { sellerId: user._id }
-                ]
+            // 2. Generic cleanup
+            await tx.notification.deleteMany({ where: { userId: user.id } });
+            await tx.message.deleteMany({
+                where: { OR: [{ senderId: user.id }, { receiverId: user.id }] }
             });
-            console.log(`✓ Deleted ${deletedConversations.deletedCount} conversations`);
-        }
+            await tx.conversation.deleteMany({
+                where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] }
+            });
 
-        // 4. Delete user account
-        await User.deleteOne({ _id: user._id });
-        console.log('✓ Deleted user account');
+            // 3. Delete user account
+            await tx.user.delete({ where: { id: user.id } });
+        });
 
         res.json({
             success: true,
             message: 'User and all associated data deleted successfully',
             details: {
-                userId: user._id,
+                userId: user.id,
                 email: user.email,
-                role: user.role,
-                deletedAt: new Date().toISOString()
+                role: user.role
             }
         });
     } catch (error) {
@@ -314,14 +318,14 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
  */
 router.post('/bulk-delete', auth, isAdmin, [
     body('userIds').isArray({ min: 1 }).withMessage('userIds must be a non-empty array'),
-    body('userIds.*').isMongoId().withMessage('Invalid user ID format'),
     handleValidation
 ], async (req, res) => {
     try {
         const { userIds } = req.body;
 
-        // Fetch all users to be deleted
-        const users = await User.find({ _id: { $in: userIds } });
+        const users = await prisma.user.findMany({
+            where: { id: { in: userIds } }
+        });
 
         if (users.length === 0) {
             return res.status(404).json({
@@ -330,8 +334,7 @@ router.post('/bulk-delete', auth, isAdmin, [
             });
         }
 
-        // Prevent deleting admin accounts
-        const adminUsers = users.filter(u => u.role === 'admin');
+        const adminUsers = users.filter(u => u.role === 'ADMIN');
         if (adminUsers.length > 0) {
             return res.status(403).json({
                 success: false,
@@ -342,81 +345,37 @@ router.post('/bulk-delete', auth, isAdmin, [
 
         console.log(`Starting bulk deletion for ${users.length} users`);
 
-        // Import required models
-        const Notification = require('../models/Notification');
-        const Conversation = require('../models/Conversation');
-        const Message = require('../models/Message');
+        const deletedCount = await prisma.$transaction(async (tx) => {
+            let count = 0;
+            for (const user of users) {
+                // Same logic as single delete but in loop or optimized queries
+                if (user.role === 'CREATOR') {
+                    await tx.creatorProfile.deleteMany({ where: { userId: user.id } });
+                    await tx.matchedCreator.deleteMany({ where: { creatorId: user.id } });
+                } else if (user.role === 'SELLER') {
+                    const promptIds = (await tx.promotionRequest.findMany({
+                        where: { sellerId: user.id },
+                        select: { id: true }
+                    })).map(p => p.id);
 
-        let deletedCount = {
-            users: 0,
-            creatorProfiles: 0,
-            promotions: 0,
-            notifications: 0,
-            conversations: 0,
-            messages: 0
-        };
-
-        // Process each user
-        for (const user of users) {
-            try {
-                // 1. Delete role-specific data
-                if (user.role === 'creator') {
-                    const profileResult = await CreatorProfile.deleteOne({ userId: user._id });
-                    deletedCount.creatorProfiles += profileResult.deletedCount || 0;
-
-                    // Remove creator applications from promotions
-                    await PromotionRequest.updateMany(
-                        { 'applications.creatorId': user._id },
-                        { $pull: { applications: { creatorId: user._id } } }
-                    );
-
-                } else if (user.role === 'seller') {
-                    const promoResult = await PromotionRequest.deleteMany({ sellerId: user._id });
-                    deletedCount.promotions += promoResult.deletedCount || 0;
+                    await tx.message.deleteMany({ where: { conversation: { promotionId: { in: promptIds } } } });
+                    await tx.conversation.deleteMany({ where: { promotionId: { in: promptIds } } });
+                    await tx.matchedCreator.deleteMany({ where: { promotionId: { in: promptIds } } });
+                    await tx.promotionRequest.deleteMany({ where: { sellerId: user.id } });
                 }
 
-                // 2. Delete notifications
-                const notifResult = await Notification.deleteMany({ userId: user._id });
-                deletedCount.notifications += notifResult.deletedCount || 0;
-
-                // 3. Delete conversations and messages
-                const conversations = await Conversation.find({
-                    $or: [
-                        { creatorId: user._id },
-                        { sellerId: user._id }
-                    ]
-                });
-
-                if (conversations.length > 0) {
-                    const conversationIds = conversations.map(c => c._id);
-                    const msgResult = await Message.deleteMany({ conversationId: { $in: conversationIds } });
-                    deletedCount.messages += msgResult.deletedCount || 0;
-
-                    const convResult = await Conversation.deleteMany({
-                        $or: [
-                            { creatorId: user._id },
-                            { sellerId: user._id }
-                        ]
-                    });
-                    deletedCount.conversations += convResult.deletedCount || 0;
-                }
-
-                // 4. Delete user account
-                await User.deleteOne({ _id: user._id });
-                deletedCount.users++;
-
-                console.log(`✓ Deleted user: ${user.email}`);
-            } catch (userError) {
-                console.error(`Error deleting user ${user.email}:`, userError);
+                await tx.notification.deleteMany({ where: { userId: user.id } });
+                await tx.message.deleteMany({ where: { OR: [{ senderId: user.id }, { receiverId: user.id }] } });
+                await tx.conversation.deleteMany({ where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] } });
+                await tx.user.delete({ where: { id: user.id } });
+                count++;
             }
-        }
-
-        console.log('Bulk deletion completed:', deletedCount);
+            return count;
+        });
 
         res.json({
             success: true,
-            message: `Successfully deleted ${deletedCount.users} user(s)`,
-            details: deletedCount
+            message: `Successfully deleted ${deletedCount} user(s)`
         });
     } catch (error) {
         console.error('Bulk delete error:', error);
@@ -442,25 +401,29 @@ router.get('/requests', auth, isAdmin, async (req, res) => {
             search
         } = req.query;
 
-        const query = {};
+        const where = {};
 
         if (status && status !== 'all') {
-            query.status = status;
+            where.status = status.toUpperCase();
         }
 
         if (search) {
-            query.title = { $regex: search, $options: 'i' };
+            where.title = { contains: search, mode: 'insensitive' };
         }
 
-        const skip = (page - 1) * limit;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const [requests, total] = await Promise.all([
-            PromotionRequest.find(query)
-                .populate('sellerId', 'name email')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(parseInt(limit)),
-            PromotionRequest.countDocuments(query)
+            prisma.promotionRequest.findMany({
+                where,
+                include: {
+                    seller: { select: { name: true, email: true } }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: parseInt(limit)
+            }),
+            prisma.promotionRequest.count({ where })
         ]);
 
         res.json({
@@ -471,7 +434,7 @@ router.get('/requests', auth, isAdmin, async (req, res) => {
                     page: parseInt(page),
                     limit: parseInt(limit),
                     total,
-                    pages: Math.ceil(total / limit)
+                    pages: Math.ceil(total / parseInt(limit))
                 }
             }
         });
@@ -486,19 +449,14 @@ router.get('/requests', auth, isAdmin, async (req, res) => {
 
 /**
  * @route   DELETE /api/admin/requests/:id
- * @desc    Delete promotion request (fake requests)
+ * @desc    Delete promotion request
  * @access  Private (Admin)
  */
 router.delete('/requests/:id', auth, isAdmin, async (req, res) => {
     try {
-        const request = await PromotionRequest.findByIdAndDelete(req.params.id);
-
-        if (!request) {
-            return res.status(404).json({
-                success: false,
-                message: 'Promotion request not found'
-            });
-        }
+        await prisma.promotionRequest.delete({
+            where: { id: req.params.id }
+        });
 
         res.json({
             success: true,
@@ -515,7 +473,7 @@ router.delete('/requests/:id', auth, isAdmin, async (req, res) => {
 
 /**
  * @route   POST /api/admin/create-admin
- * @desc    Create admin account (use with caution)
+ * @desc    Create admin account
  * @access  Private (Admin)
  */
 router.post('/create-admin', auth, isAdmin, [
@@ -526,8 +484,9 @@ router.post('/create-admin', auth, isAdmin, [
 ], async (req, res) => {
     try {
         const { email, password, name } = req.body;
+        const bcrypt = require('bcryptjs');
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -535,11 +494,16 @@ router.post('/create-admin', auth, isAdmin, [
             });
         }
 
-        const admin = await User.create({
-            email,
-            password,
-            name,
-            role: 'admin'
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const admin = await prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+                name,
+                role: 'ADMIN',
+                activeRole: 'ADMIN'
+            }
         });
 
         res.status(201).json({
@@ -547,7 +511,7 @@ router.post('/create-admin', auth, isAdmin, [
             message: 'Admin account created successfully',
             data: {
                 user: {
-                    id: admin._id,
+                    id: admin.id,
                     email: admin.email,
                     name: admin.name,
                     role: admin.role

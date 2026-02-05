@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('../config/passport');
-const User = require('../models/User');
+const prisma = require('../config/prisma');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
 
 /**
  * @route   GET /api/oauth/google
@@ -52,7 +53,7 @@ router.get('/google/callback',
 
             // Existing user - generate JWT and redirect to dashboard
             const token = jwt.sign(
-                { userId: user._id, role: user.role },
+                { userId: user.id, role: user.role },
                 process.env.JWT_SECRET,
                 { expiresIn: '7d' }
             );
@@ -66,9 +67,9 @@ router.get('/google/callback',
             });
 
             // Redirect to appropriate dashboard
-            const dashboardUrl = user.role === 'creator'
+            const dashboardUrl = user.role === 'CREATOR'
                 ? '/creator/dashboard'
-                : user.role === 'seller'
+                : user.role === 'SELLER'
                     ? '/seller/dashboard'
                     : '/admin';
 
@@ -112,12 +113,14 @@ router.post('/complete-registration', [
         const { role, password } = req.body;
         const googleProfile = req.session.googleProfile;
 
-        // Check if user already exists (shouldn't happen, but safety check)
-        let existingUser = await User.findOne({
-            $or: [
-                { email: googleProfile.email },
-                { googleId: googleProfile.googleId }
-            ]
+        // Check if user already exists
+        let existingUser = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: googleProfile.email },
+                    { googleId: googleProfile.googleId }
+                ]
+            }
         });
 
         if (existingUser) {
@@ -127,13 +130,14 @@ router.post('/complete-registration', [
             });
         }
 
-        // Create new user
+        // Prepare user data
         const userData = {
             googleId: googleProfile.googleId,
             email: googleProfile.email,
             name: googleProfile.name,
-            role,
-            authProvider: 'google',
+            role: role.toUpperCase(),
+            activeRole: role.toUpperCase(),
+            authProvider: 'GOOGLE',
             avatar: googleProfile.avatar,
             isActive: true,
             lastLogin: new Date()
@@ -141,14 +145,25 @@ router.post('/complete-registration', [
 
         // Add password if provided
         if (password) {
-            userData.password = password;
+            userData.password = await bcrypt.hash(password, 10);
         }
 
-        const user = await User.create(userData);
+        const user = await prisma.user.create({
+            data: userData
+        });
+
+        // Add role to UserRole if applicable (for legacy parity)
+        await prisma.userRole.create({
+            data: {
+                userId: user.id,
+                type: role.toUpperCase(),
+                password: password ? userData.password : ""
+            }
+        });
 
         // Generate JWT
         const token = jwt.sign(
-            { userId: user._id, role: user.role },
+            { userId: user.id, role: user.role },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -171,7 +186,7 @@ router.post('/complete-registration', [
             data: {
                 token,
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
                     role: user.role,

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const AIContentService = require('../services/aiContentService');
+const PredictiveService = require('../services/predictiveService');
 
 /**
  * @route   POST /api/ai/generate-caption
@@ -68,6 +69,67 @@ router.post('/generate-hashtags', auth, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to generate hashtags'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/ai/predict-roi
+ * @desc    Predict ROI for a campaign-creator match
+ * @access  Private
+ */
+router.post('/predict-roi', auth, async (req, res) => {
+    try {
+        const { creatorId, budget, promotionType, targetCategory } = req.body;
+
+        if (!creatorId || !budget) {
+            return res.status(400).json({
+                success: false,
+                message: 'Creator ID and budget are required'
+            });
+        }
+
+        const mockRequest = {
+            minBudget: budget,
+            maxBudget: budget,
+            promotionType: promotionType || 'POSTS',
+            targetCategory: targetCategory || 'Lifestyle'
+        };
+
+        const prediction = await PredictiveService.predictROI(creatorId, mockRequest);
+
+        res.json({
+            success: true,
+            data: prediction
+        });
+    } catch (error) {
+        console.error('Error predicting ROI:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to predict ROI'
+        });
+    }
+});
+
+/**
+ * @route   GET /api/ai/optimal-time/:creatorId
+ * @desc    Get optimal posting time for a creator
+ * @access  Private
+ */
+router.get('/optimal-time/:creatorId', auth, async (req, res) => {
+    try {
+        const { creatorId } = req.params;
+        const suggestion = await PredictiveService.getOptimalPostingTime(creatorId);
+
+        res.json({
+            success: true,
+            data: suggestion
+        });
+    } catch (error) {
+        console.error('Error getting optimal time:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get optimal time'
         });
     }
 });

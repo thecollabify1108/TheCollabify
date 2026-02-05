@@ -2,163 +2,231 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const paymentService = require('../services/paymentService');
-const Payment = require('../models/Payment');
-const User = require('../models/User');
+const prisma = require('../config/prisma');
 
 /**
- * Create order
+ * @route   POST /api/payments/onboard
+ * @desc    Start Stripe Connect onboarding for Creator
  */
-router.post('/create-order', auth, async (req, res) => {
+router.post('/onboard', auth, async (req, res) => {
     try {
-        const { amount, planId } = req.body;
+        if (req.user.activeRole !== 'CREATOR') {
+            return res.status(403).json({ success: false, message: 'Only creators can onboard for payments' });
+        }
 
-        const order = await paymentService.createOrder(amount);
+        const user = await prisma.user.findUnique({ where: { id: req.userId } });
+        const accountId = await paymentService.stripe.createConnectAccount(user);
 
-        // Save order to database
-        const payment = new Payment({
-            userId: req.user.id,
-            orderId: order.id,
-            amount: amount,
-            currency: 'INR',
-            status: 'created',
-            planId
+        // Save account ID
+        await prisma.user.update({
+            where: { id: req.userId },
+            data: { stripeAccountId: accountId }
         });
 
-        await payment.save();
+        const onboardingUrl = await paymentService.stripe.createAccountLink(accountId);
 
         res.json({
             success: true,
-            data: {
-                orderId: order.id,
-                amount: order.amount,
-                currency: order.currency,
-                keyId: process.env.RAZORPAY_KEY_ID
-            }
+            data: { onboardingUrl }
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        console.error('Stripe onboarding error:', error);
+        res.status(500).json({ success: false, message: 'Failed to start onboarding' });
     }
 });
 
 /**
- * Verify payment
+ * @route   POST /api/payments/create-escrow-session
+ * @desc    Create Stripe Checkout session for Campaign Escrow
  */
-router.post('/verify-payment', auth, async (req, res) => {
+router.post('/create-escrow-session', auth, async (req, res) => {
     try {
-        const { orderId, paymentId, signature } = req.body;
+        const { amount, promotionId, creatorId } = req.body;
 
-        const isValid = paymentService.verifyPayment(orderId, paymentId, signature);
-
-        if (!isValid) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid payment signature'
-            });
+        if (req.user.activeRole !== 'SELLER') {
+            return res.status(403).json({ success: false, message: 'Only sellers can initiate payments' });
         }
 
-        // Update payment status
-        const payment = await Payment.findOne({ orderId });
+        const creator = await prisma.user.findUnique({ where: { id: creatorId } });
+        if (!creator || !creator.stripeAccountId) {
+            return res.status(400).json({ success: false, message: 'Creator is not onboarded for payments' });
+        }
+
+        const promotion = await prisma.promotionRequest.findUnique({ where: { id: promotionId } });
+
+        const session = await paymentService.stripe.createEscrowSession(
+            amount,
+            req.userId,
+            creator.stripeAccountId,
+            { promotionId, campaignTitle: promotion.title }
+        );
+
+        // Create pending payment record
+        await prisma.payment.create({
+            data: {
+                userId: req.userId,
+                amount: amount,
+                currency: 'INR',
+                status: 'PENDING',
+                stripeSessionId: session.id,
+                orderId: `stripe_${session.id.substring(0, 10)}`, // Link to unique order field
+                metadata: { promotionId, creatorId }
+            }
+        });
+
+        res.json({
+            success: true,
+            data: {
+                sessionId: session.id,
+                url: session.url
+            }
+        });
+    } catch (error) {
+        console.error('Escrow session error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/payments/verify-session/:sessionId
+ * @desc    Verify Stripe session status
+ */
+router.get('/verify-session/:sessionId', auth, async (req, res) => {
+    try {
+        const payment = await prisma.payment.findUnique({
+            where: { stripeSessionId: req.params.sessionId }
+        });
+
         if (!payment) {
-            return res.status(404).json({
-                success: false,
-                message: 'Payment not found'
-            });
+            return res.status(404).json({ success: false, message: 'Payment record not found' });
         }
 
-        payment.paymentId = paymentId;
-        payment.status = 'completed';
-        payment.completedAt = new Date();
-        await payment.save();
-
-        // Update user subscription
-        const user = await User.findById(req.user.id);
-        user.subscription = {
-            plan: payment.planId,
-            status: 'active',
-            startDate: new Date(),
-            endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
-        };
-        await user.save();
-
+        // Webhooks will handle the actual completion, 
+        // this is just for UI to check if it's already done.
         res.json({
             success: true,
-            message: 'Payment verified successfully',
-            data: {
-                paymentId,
-                subscription: user.subscription
-            }
+            data: { status: payment.status }
         });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
 /**
- * Webhook handler
+ * @route   POST /api/payments/release-escrow/:paymentId
+ * @desc    Release funds to creator (Platform/Seller action)
+ */
+router.post('/release-escrow/:paymentId', auth, async (req, res) => {
+    try {
+        const payment = await prisma.payment.findUnique({
+            where: { id: req.params.paymentId },
+            include: { user: true }
+        });
+
+        if (!payment || payment.status !== 'COMPLETED') {
+            return res.status(400).json({ success: false, message: 'Invalid payment or payment not completed yet' });
+        }
+
+        const { promotionId, creatorId } = payment.metadata;
+        const creator = await prisma.user.findUnique({ where: { id: creatorId } });
+
+        if (!creator || !creator.stripeAccountId) {
+            return res.status(400).json({ success: false, message: 'Creator Stripe account not found' });
+        }
+
+        // Release funds
+        const transfer = await paymentService.stripe.releaseEscrow(
+            payment.stripePaymentIntentId,
+            creator.stripeAccountId,
+            payment.amount * 0.9 // Platform takes 10% fee
+        );
+
+        // Update payment and promotion status
+        await prisma.$transaction([
+            prisma.payment.update({
+                where: { id: payment.id },
+                data: {
+                    stripeTransferId: transfer.id,
+                    status: 'RELEASED'
+                }
+            }),
+            prisma.promotionRequest.update({
+                where: { id: promotionId },
+                data: { status: 'COMPLETED' }
+            })
+        ]);
+
+        res.json({
+            success: true,
+            message: 'Funds released to creator successfully',
+            data: { transferId: transfer.id }
+        });
+    } catch (error) {
+        console.error('Release escrow error:', error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * @route   POST /api/payments/webhook
+ * @desc    Stripe Webhook Handler
  */
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+
     try {
-        const signature = req.headers['x-razorpay-signature'];
+        const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.error('Webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
 
-        const isValid = paymentService.verifyWebhook(req.body, signature);
-
-        if (!isValid) {
-            return res.status(400).json({ success: false });
-        }
-
-        const event = req.body.event;
-        const payload = req.body.payload;
-
-        // Handle different events
-        switch (event) {
-            case 'payment.captured':
-                // Handle successful payment
-                // We typically verify via the frontend route too, but webhook is backup
+    // Handle the event
+    try {
+        switch (event.type) {
+            case 'checkout.session.completed':
+                const session = event.data.object;
+                await prisma.payment.update({
+                    where: { stripeSessionId: session.id },
+                    data: {
+                        status: 'COMPLETED',
+                        stripePaymentIntentId: session.payment_intent,
+                        completedAt: new Date()
+                    }
+                });
                 break;
 
-            case 'payment.failed':
-                // Handle failed payment
+            case 'payment_intent.payment_failed':
+                const failedIntent = event.data.object;
+                await prisma.payment.update({
+                    where: { stripePaymentIntentId: failedIntent.id },
+                    data: {
+                        status: 'FAILED',
+                        failureReason: failedIntent.last_payment_error?.message
+                    }
+                });
                 break;
 
-            case 'subscription.charged':
-                // Handle subscription renewal
+            case 'account.updated':
+                const account = event.data.object;
+                if (account.details_submitted) {
+                    await prisma.user.update({
+                        where: { stripeAccountId: account.id },
+                        data: { stripeOnboardingComplete: true }
+                    });
+                }
                 break;
 
             default:
-                console.log(`Unhandled event: ${event}`);
+                console.log(`Unhandled event type ${event.type}`);
         }
 
-        res.json({ success: true });
+        res.json({ received: true });
     } catch (error) {
-        console.error('Webhook error:', error);
+        console.error('Webhook processing error:', error);
         res.status(500).json({ success: false });
-    }
-});
-
-/**
- * Get payment history
- */
-router.get('/history', auth, async (req, res) => {
-    try {
-        const payments = await Payment.find({ userId: req.user.id })
-            .sort({ createdAt: -1 })
-            .limit(50);
-
-        res.json({
-            success: true,
-            data: { payments }
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
     }
 });
 

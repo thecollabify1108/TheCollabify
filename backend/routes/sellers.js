@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const PromotionRequest = require('../models/PromotionRequest');
-const CreatorProfile = require('../models/CreatorProfile');
-const Conversation = require('../models/Conversation');
+const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { isSeller } = require('../middleware/roleCheck');
 const { findMatchingCreators, explainMatch } = require('../services/aiMatching');
@@ -15,7 +13,6 @@ const {
     notifyRequestDeleted
 } = require('../services/notificationService');
 const { sendCreatorAcceptedEmail, sendNewMatchEmail } = require('../utils/brevoEmailService');
-const User = require('../models/User');
 
 /**
  * Validation middleware
@@ -40,25 +37,34 @@ const handleValidation = (req, res, next) => {
 router.get('/requests', auth, isSeller, async (req, res) => {
     try {
         const { status, page = 1, limit = 10 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const query = { sellerId: req.userId };
-
+        const where = { sellerId: req.userId };
         if (status) {
-            query.status = status;
+            where.status = status.toUpperCase();
         }
 
-        const skip = (page - 1) * limit;
-
         const [requests, total] = await Promise.all([
-            PromotionRequest.find(query)
-                .populate({
-                    path: 'matchedCreators.creatorId',
-                    populate: { path: 'userId', select: 'name email avatar' }
-                })
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(parseInt(limit)),
-            PromotionRequest.countDocuments(query)
+            prisma.promotionRequest.findMany({
+                where,
+                include: {
+                    matchedCreators: {
+                        include: {
+                            creator: {
+                                include: {
+                                    user: {
+                                        select: { name: true, email: true, avatar: true }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: parseInt(limit)
+            }),
+            prisma.promotionRequest.count({ where })
         ]);
 
         res.json({
@@ -69,7 +75,7 @@ router.get('/requests', auth, isSeller, async (req, res) => {
                     page: parseInt(page),
                     limit: parseInt(limit),
                     total,
-                    pages: Math.ceil(total / limit)
+                    pages: Math.ceil(total / parseInt(limit))
                 }
             }
         });
@@ -112,44 +118,51 @@ router.post('/requests', auth, isSeller, [
         } = req.body;
 
         // Create promotion request
-        const request = await PromotionRequest.create({
-            sellerId: req.userId,
-            title,
-            description,
-            budgetRange,
-            promotionType,
-            targetCategory,
-            followerRange,
-            campaignGoal,
-            deadline: deadline ? new Date(deadline) : undefined,
-            status: 'Open'
+        const request = await prisma.promotionRequest.create({
+            data: {
+                sellerId: req.userId,
+                title,
+                description,
+                minBudget: budgetRange.min,
+                maxBudget: budgetRange.max,
+                promotionType: [promotionType.toUpperCase().replace(/\s+/g, '_')],
+                targetCategory: targetCategory,
+                minFollowers: followerRange.min,
+                maxFollowers: followerRange.max,
+                campaignGoal: campaignGoal.toUpperCase(),
+                deadline: deadline ? new Date(deadline) : undefined,
+                status: 'OPEN'
+            }
         });
 
         // Find matching creators using AI matching service
-        const matchedCreators = await findMatchingCreators(request);
+        const matchedCreatorsResults = await findMatchingCreators(request);
 
         // Store matched creators in request
-        request.matchedCreators = matchedCreators.map(match => ({
-            creatorId: match.creatorId,
-            matchScore: match.matchScore,
-            matchReason: match.matchReason,
-            status: 'Matched'
-        }));
-
-        await request.save();
+        const matchedCreators = await Promise.all(matchedCreatorsResults.map(match =>
+            prisma.matchedCreator.create({
+                data: {
+                    promotionId: request.id,
+                    creatorId: match.creatorId,
+                    matchScore: match.matchScore,
+                    matchReason: match.matchReason,
+                    status: 'MATCHED'
+                }
+            })
+        ));
 
         // Notify matched creators
-        for (const match of matchedCreators.slice(0, 10)) { // Notify top 10
+        for (const match of matchedCreatorsResults.slice(0, 10)) {
             try {
-                const creator = await CreatorProfile.findById(match.creatorId).populate('userId', 'name email');
-                if (creator && creator.userId) {
-                    // In-app notification
-                    await notifyCreatorNewMatch(creator.userId._id, request, match.matchScore);
-
-                    // Email notification
+                const creator = await prisma.creatorProfile.findUnique({
+                    where: { id: match.creatorId },
+                    include: { user: { select: { id: true, name: true, email: true } } }
+                });
+                if (creator && creator.user) {
+                    await notifyCreatorNewMatch(creator.user.id, request, match.matchScore);
                     await sendNewMatchEmail(
-                        creator.userId.email,
-                        creator.userId.name,
+                        creator.user.email,
+                        creator.user.name,
                         request.title,
                         match.matchScore,
                         request.targetCategory
@@ -164,7 +177,7 @@ router.post('/requests', auth, isSeller, [
             success: true,
             message: 'Promotion request created successfully',
             data: {
-                request,
+                request: { ...request, matchedCreators },
                 matchedCreatorsCount: matchedCreators.length
             }
         });
@@ -184,15 +197,24 @@ router.post('/requests', auth, isSeller, [
  */
 router.get('/requests/:id', auth, isSeller, async (req, res) => {
     try {
-        const request = await PromotionRequest.findOne({
-            _id: req.params.id,
-            sellerId: req.userId
-        }).populate({
-            path: 'matchedCreators.creatorId',
-            populate: { path: 'userId', select: 'name email avatar' }
+        const request = await prisma.promotionRequest.findUnique({
+            where: { id: req.params.id },
+            include: {
+                matchedCreators: {
+                    include: {
+                        creator: {
+                            include: {
+                                user: {
+                                    select: { name: true, email: true, avatar: true }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         });
 
-        if (!request) {
+        if (!request || request.sellerId !== req.userId) {
             return res.status(404).json({
                 success: false,
                 message: 'Promotion request not found'
@@ -219,12 +241,11 @@ router.get('/requests/:id', auth, isSeller, async (req, res) => {
  */
 router.put('/requests/:id', auth, isSeller, async (req, res) => {
     try {
-        const request = await PromotionRequest.findOne({
-            _id: req.params.id,
-            sellerId: req.userId
+        const request = await prisma.promotionRequest.findUnique({
+            where: { id: req.params.id }
         });
 
-        if (!request) {
+        if (!request || request.sellerId !== req.userId) {
             return res.status(404).json({
                 success: false,
                 message: 'Promotion request not found'
@@ -232,47 +253,64 @@ router.put('/requests/:id', auth, isSeller, async (req, res) => {
         }
 
         // Only allow updates if status is Open
-        if (request.status !== 'Open') {
+        if (request.status !== 'OPEN') {
             return res.status(400).json({
                 success: false,
                 message: 'Cannot update request after creators have shown interest'
             });
         }
 
-        const allowedUpdates = [
-            'title',
-            'description',
-            'budgetRange',
-            'promotionType',
-            'targetCategory',
-            'followerRange',
-            'campaignGoal',
-            'deadline'
-        ];
-
-        allowedUpdates.forEach(field => {
-            if (req.body[field] !== undefined) {
-                request[field] = req.body[field];
-            }
+        const updateData = {};
+        const fields = ['title', 'description', 'targetCategory', 'deadline'];
+        fields.forEach(f => {
+            if (req.body[f] !== undefined) updateData[f] = req.body[f];
         });
 
-        await request.save();
+        if (req.body.budgetRange) {
+            if (req.body.budgetRange.min !== undefined) updateData.minBudget = req.body.budgetRange.min;
+            if (req.body.budgetRange.max !== undefined) updateData.maxBudget = req.body.budgetRange.max;
+        }
 
-        // Re-run matching if criteria changed
-        const matchedCreators = await findMatchingCreators(request);
-        request.matchedCreators = matchedCreators.map(match => ({
-            creatorId: match.creatorId,
-            matchScore: match.matchScore,
-            matchReason: match.matchReason,
-            status: 'Matched'
-        }));
+        if (req.body.promotionType) {
+            updateData.promotionType = [req.body.promotionType.toUpperCase().replace(/\s+/g, '_')];
+        }
 
-        await request.save();
+        if (req.body.followerRange) {
+            if (req.body.followerRange.min !== undefined) updateData.minFollowers = req.body.followerRange.min;
+            if (req.body.followerRange.max !== undefined) updateData.maxFollowers = req.body.followerRange.max;
+        }
+
+        if (req.body.campaignGoal) {
+            updateData.campaignGoal = req.body.campaignGoal.toUpperCase();
+        }
+
+        const updatedRequest = await prisma.promotionRequest.update({
+            where: { id: req.params.id },
+            data: updateData
+        });
+
+        // Re-run matching
+        const matchedCreatorsResults = await findMatchingCreators(updatedRequest);
+
+        // Update matched creators
+        await prisma.matchedCreator.deleteMany({ where: { promotionId: updatedRequest.id, status: 'MATCHED' } });
+
+        const matchedCreators = await Promise.all(matchedCreatorsResults.map(match =>
+            prisma.matchedCreator.create({
+                data: {
+                    promotionId: updatedRequest.id,
+                    creatorId: match.creatorId,
+                    matchScore: match.matchScore,
+                    matchReason: match.matchReason,
+                    status: 'MATCHED'
+                }
+            })
+        ));
 
         res.json({
             success: true,
             message: 'Promotion request updated successfully',
-            data: { request }
+            data: { request: { ...updatedRequest, matchedCreators } }
         });
     } catch (error) {
         console.error('Update request error:', error);
@@ -290,12 +328,12 @@ router.put('/requests/:id', auth, isSeller, async (req, res) => {
  */
 router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) => {
     try {
-        const request = await PromotionRequest.findOne({
-            _id: req.params.id,
-            sellerId: req.userId
+        const request = await prisma.promotionRequest.findUnique({
+            where: { id: req.params.id },
+            include: { matchedCreators: true }
         });
 
-        if (!request) {
+        if (!request || request.sellerId !== req.userId) {
             return res.status(404).json({
                 success: false,
                 message: 'Promotion request not found'
@@ -303,7 +341,7 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
         }
 
         const matchedCreator = request.matchedCreators.find(
-            mc => mc.creatorId.toString() === req.params.creatorId
+            mc => mc.creatorId === req.params.creatorId
         );
 
         if (!matchedCreator) {
@@ -313,7 +351,7 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
             });
         }
 
-        if (matchedCreator.status !== 'Applied') {
+        if (matchedCreator.status !== 'APPLIED') {
             return res.status(400).json({
                 success: false,
                 message: 'Can only accept creators who have applied'
@@ -321,36 +359,31 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
         }
 
         // Accept this creator
-        matchedCreator.status = 'Accepted';
-        matchedCreator.respondedAt = new Date();
+        await prisma.matchedCreator.update({
+            where: { id: matchedCreator.id },
+            data: { status: 'ACCEPTED', respondedAt: new Date() }
+        });
 
         // Update request status
-        request.status = 'Accepted';
-        request.acceptedCreator = req.params.creatorId;
+        await prisma.promotionRequest.update({
+            where: { id: request.id },
+            data: { status: 'ACCEPTED', acceptedCreatorId: req.params.creatorId }
+        });
 
-        await request.save();
+        // Get creator details
+        const creatorProfile = await prisma.creatorProfile.findUnique({
+            where: { id: req.params.creatorId },
+            include: { user: { select: { id: true, name: true, email: true } } }
+        });
+        const seller = req.user;
 
-        // Get creator profile and seller info to find user details
-        const creatorProfile = await CreatorProfile.findById(req.params.creatorId).populate('userId', 'name email');
-        const seller = await User.findById(req.userId);
-
-        // Notify creator (in-app + email)
-        if (creatorProfile && creatorProfile.userId) {
+        // Notify creator
+        if (creatorProfile && creatorProfile.user) {
             try {
-                // In-app notification
-                await notifyCreatorAccepted(creatorProfile.userId._id, request);
-
-                // Push notification
-                const pushService = require('../services/pushNotificationService');
-                await pushService.sendToUser(
-                    creatorProfile.userId._id,
-                    pushService.notifyCampaignAccepted(request.title, request._id)
-                );
-
-                // Email notification
+                await notifyCreatorAccepted(creatorProfile.user.id, request);
                 await sendCreatorAcceptedEmail(
-                    creatorProfile.userId.email,
-                    creatorProfile.userId.name,
+                    creatorProfile.user.email,
+                    creatorProfile.user.name,
                     request.title,
                     seller?.name || 'A brand'
                 );
@@ -360,17 +393,22 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
 
             // Create a conversation for chat
             try {
-                await Conversation.findOneAndUpdate(
-                    { promotionId: request._id, creatorUserId: creatorProfile.userId._id },
-                    {
-                        promotionId: request._id,
-                        sellerId: req.userId,
-                        creatorUserId: creatorProfile.userId._id,
-                        creatorProfileId: creatorProfile._id,
-                        status: 'active'
+                await prisma.conversation.upsert({
+                    where: {
+                        promotionId_creatorUserId: {
+                            promotionId: request.id,
+                            creatorUserId: creatorProfile.user.id
+                        }
                     },
-                    { upsert: true, new: true }
-                );
+                    update: { status: 'ACTIVE' },
+                    create: {
+                        promotionId: request.id,
+                        sellerId: req.userId,
+                        creatorUserId: creatorProfile.user.id,
+                        creatorProfileId: creatorProfile.id,
+                        status: 'ACTIVE'
+                    }
+                });
             } catch (err) {
                 console.error('Failed to create conversation:', err);
             }
@@ -396,12 +434,12 @@ router.post('/requests/:id/accept/:creatorId', auth, isSeller, async (req, res) 
  */
 router.post('/requests/:id/reject/:creatorId', auth, isSeller, async (req, res) => {
     try {
-        const request = await PromotionRequest.findOne({
-            _id: req.params.id,
-            sellerId: req.userId
+        const request = await prisma.promotionRequest.findUnique({
+            where: { id: req.params.id },
+            include: { matchedCreators: true }
         });
 
-        if (!request) {
+        if (!request || request.sellerId !== req.userId) {
             return res.status(404).json({
                 success: false,
                 message: 'Promotion request not found'
@@ -409,7 +447,7 @@ router.post('/requests/:id/reject/:creatorId', auth, isSeller, async (req, res) 
         }
 
         const matchedCreator = request.matchedCreators.find(
-            mc => mc.creatorId.toString() === req.params.creatorId
+            mc => mc.creatorId === req.params.creatorId
         );
 
         if (!matchedCreator) {
@@ -420,15 +458,13 @@ router.post('/requests/:id/reject/:creatorId', auth, isSeller, async (req, res) 
         }
 
         // Reject creator
-        matchedCreator.status = 'Rejected';
-        matchedCreator.respondedAt = new Date();
-
-        await request.save();
-
-        // Get creator profile to find user ID
-        const creatorProfile = await CreatorProfile.findById(req.params.creatorId);
+        await prisma.matchedCreator.update({
+            where: { id: matchedCreator.id },
+            data: { status: 'REJECTED', respondedAt: new Date() }
+        });
 
         // Notify creator
+        const creatorProfile = await prisma.creatorProfile.findUnique({ where: { id: req.params.creatorId } });
         if (creatorProfile) {
             try {
                 await notifyCreatorRejected(creatorProfile.userId, request);
@@ -457,39 +493,35 @@ router.post('/requests/:id/reject/:creatorId', auth, isSeller, async (req, res) 
  */
 router.delete('/requests/:id', auth, isSeller, async (req, res) => {
     try {
-        const request = await PromotionRequest.findOne({
-            _id: req.params.id,
-            sellerId: req.userId
+        const request = await prisma.promotionRequest.findUnique({
+            where: { id: req.params.id },
+            include: { matchedCreators: true }
         });
 
-        if (!request) {
+        if (!request || request.sellerId !== req.userId) {
             return res.status(404).json({
                 success: false,
                 message: 'Promotion request not found'
             });
         }
 
-        // Notify all creators who applied to this request
-        const appliedCreators = request.matchedCreators.filter(mc =>
-            ['Applied', 'Matched'].includes(mc.status)
-        );
-
-        for (const match of appliedCreators) {
-            try {
-                const creatorProfile = await CreatorProfile.findById(match.creatorId);
-                if (creatorProfile) {
-                    await notifyRequestDeleted(creatorProfile.userId, request);
+        // Notify creators
+        for (const match of request.matchedCreators) {
+            if (['APPLIED', 'MATCHED'].includes(match.status)) {
+                try {
+                    const creatorProfile = await prisma.creatorProfile.findUnique({ where: { id: match.creatorId } });
+                    if (creatorProfile) {
+                        await notifyRequestDeleted(creatorProfile.userId, request);
+                    }
+                } catch (err) {
+                    console.error('Failed to notify creator about deletion:', err);
                 }
-            } catch (err) {
-                console.error('Failed to notify creator about deletion:', err);
             }
         }
 
-        // Also delete any conversations related to this request
-        await Conversation.deleteMany({ promotionId: request._id });
-
-        // Delete the request
-        await PromotionRequest.findByIdAndDelete(req.params.id);
+        // Delete conversations and request
+        await prisma.conversation.deleteMany({ where: { promotionId: request.id } });
+        await prisma.promotionRequest.delete({ where: { id: request.id } });
 
         res.json({
             success: true,
@@ -514,12 +546,11 @@ router.put('/requests/:id/status', auth, isSeller, [
     handleValidation
 ], async (req, res) => {
     try {
-        const request = await PromotionRequest.findOne({
-            _id: req.params.id,
-            sellerId: req.userId
+        const request = await prisma.promotionRequest.findUnique({
+            where: { id: req.params.id }
         });
 
-        if (!request) {
+        if (!request || request.sellerId !== req.userId) {
             return res.status(404).json({
                 success: false,
                 message: 'Promotion request not found'
@@ -527,36 +558,39 @@ router.put('/requests/:id/status', auth, isSeller, [
         }
 
         const { status } = req.body;
+        const upperStatus = status.toUpperCase();
 
-        // Validate status transition
-        if (status === 'Completed' && request.status !== 'Accepted') {
+        if (upperStatus === 'COMPLETED' && request.status !== 'ACCEPTED') {
             return res.status(400).json({
                 success: false,
                 message: 'Can only complete an accepted campaign'
             });
         }
 
-        request.status = status;
-
-        if (status === 'Completed') {
-            request.completedAt = new Date();
-
-            // Update creator's stats
-            if (request.acceptedCreator) {
-                await CreatorProfile.findByIdAndUpdate(request.acceptedCreator, {
-                    $inc: { totalPromotions: 1, successfulPromotions: 1 }
-                });
-            }
+        const data = { status: upperStatus };
+        if (upperStatus === 'COMPLETED') {
+            data.completedAt = new Date();
         }
 
-        await request.save();
+        const updatedRequest = await prisma.promotionRequest.update({
+            where: { id: request.id },
+            data
+        });
 
-        // Notify all relevant parties
-        if (request.acceptedCreator) {
-            const creatorProfile = await CreatorProfile.findById(request.acceptedCreator);
+        // Update creator's stats
+        if (upperStatus === 'COMPLETED' && request.acceptedCreatorId) {
+            await prisma.creatorProfile.update({
+                where: { id: request.acceptedCreatorId },
+                data: {
+                    totalPromotions: { increment: 1 },
+                    successfulPromotions: { increment: 1 }
+                }
+            });
+
+            const creatorProfile = await prisma.creatorProfile.findUnique({ where: { id: request.acceptedCreatorId } });
             if (creatorProfile) {
                 try {
-                    await notifyRequestUpdate(creatorProfile.userId, request, status);
+                    await notifyRequestUpdate(creatorProfile.userId, updatedRequest, status);
                 } catch (err) {
                     console.error('Failed to notify creator:', err);
                 }
@@ -583,12 +617,11 @@ router.put('/requests/:id/status', auth, isSeller, [
  */
 router.get('/requests/:id/match-details/:creatorId', auth, isSeller, async (req, res) => {
     try {
-        const request = await PromotionRequest.findOne({
-            _id: req.params.id,
-            sellerId: req.userId
+        const request = await prisma.promotionRequest.findUnique({
+            where: { id: req.params.id }
         });
 
-        if (!request) {
+        if (!request || request.sellerId !== req.userId) {
             return res.status(404).json({
                 success: false,
                 message: 'Promotion request not found'
@@ -604,8 +637,10 @@ router.get('/requests/:id/match-details/:creatorId', auth, isSeller, async (req,
             });
         }
 
-        const creatorProfile = await CreatorProfile.findById(req.params.creatorId)
-            .populate('userId', 'name email avatar');
+        const creatorProfile = await prisma.creatorProfile.findUnique({
+            where: { id: req.params.creatorId },
+            include: { user: { select: { name: true, email: true, avatar: true } } }
+        });
 
         res.json({
             success: true,

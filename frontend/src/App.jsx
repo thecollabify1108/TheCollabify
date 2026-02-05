@@ -30,6 +30,7 @@ const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
 const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
 const Messages = lazy(() => import('./pages/Messages'));
+const PaymentVerification = lazy(() => import('./pages/PaymentVerification'));
 
 
 // Protected route wrapper
@@ -202,6 +203,20 @@ function App() {
                                 <PageTransition>
                                     <Suspense fallback={<AppLoader />}>
                                         <AdminPanel />
+                                    </Suspense>
+                                </PageTransition>
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    {/* Payment Verification Route */}
+                    <Route
+                        path="/payment-verification"
+                        element={
+                            <ProtectedRoute allowedRoles={['seller']}>
+                                <PageTransition>
+                                    <Suspense fallback={<AppLoader />}>
+                                        <PaymentVerification />
                                     </Suspense>
                                 </PageTransition>
                             </ProtectedRoute>

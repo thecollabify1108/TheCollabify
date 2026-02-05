@@ -8,7 +8,9 @@ import {
     FaTimes,
     FaFlag
 } from 'react-icons/fa';
-import { HiSparkles } from 'react-icons/hi';
+import { HiSparkles, HiCreditCard } from 'react-icons/hi';
+import { paymentAPI } from '../../services/api';
+import toast from 'react-hot-toast';
 import CreatorCard from './CreatorCard';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 
@@ -219,7 +221,29 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         matchReason={mc.matchReason}
                         status={mc.status}
                         onMessage={() => onMessage && onMessage(request._id, mc.creatorId._id || mc.creatorId, mc.creatorId?.userId?.name || 'Creator')}
-                    />
+                    >
+                        <div className="mt-4 pt-4 border-t border-dark-700">
+                            <button
+                                onClick={async () => {
+                                    try {
+                                        const res = await paymentAPI.createEscrowSession({
+                                            promotionId: request._id,
+                                            creatorId: mc.creatorId._id || mc.creatorId,
+                                            amount: request.budgetRange?.max || 5000
+                                        });
+                                        if (res.data.success && res.data.data.url) {
+                                            window.location.href = res.data.data.url;
+                                        }
+                                    } catch (error) {
+                                        toast.error('Failed to initiate checkout');
+                                    }
+                                }}
+                                className="w-full btn-3d bg-emerald-600 hover:bg-emerald-700 py-3 flex items-center justify-center gap-2 text-sm"
+                            >
+                                <HiCreditCard /> Secure Checkout
+                            </button>
+                        </div>
+                    </CreatorCard>
                 ))}
             </div>
         </div>

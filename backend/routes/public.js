@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
-const PromotionRequest = require('../models/PromotionRequest');
+const prisma = require('../config/prisma');
 
 /**
  * @route   GET /api/public/stats
@@ -16,13 +15,15 @@ router.get('/stats', async (req, res) => {
             activeCampaigns,
             recentUsers
         ] = await Promise.all([
-            User.countDocuments({ role: 'creator', isActive: true }),
-            User.countDocuments({ role: 'seller', isActive: true }),
-            PromotionRequest.countDocuments({ status: 'Open' }),
-            User.find({ isActive: true })
-                .sort({ createdAt: -1 })
-                .limit(5)
-                .select('name role createdAt')
+            prisma.user.count({ where: { role: 'CREATOR', isActive: true } }),
+            prisma.user.count({ where: { role: 'SELLER', isActive: true } }),
+            prisma.promotionRequest.count({ where: { status: 'OPEN' } }),
+            prisma.user.findMany({
+                where: { isActive: true },
+                orderBy: { createdAt: 'desc' },
+                take: 5,
+                select: { name: true, role: true, createdAt: true }
+            })
         ]);
 
         const activities = recentUsers.map(u => ({

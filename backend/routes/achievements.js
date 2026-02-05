@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const { isCreator } = require('../middleware/roleCheck');
-const CreatorProfile = require('../models/CreatorProfile');
+const prisma = require('../config/prisma');
 
 // Badge Definitions
 const BADGES = [
@@ -63,7 +63,9 @@ const BADGES = [
  */
 router.get('/', auth, isCreator, async (req, res) => {
     try {
-        const profile = await CreatorProfile.findOne({ userId: req.userId });
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId }
+        });
 
         if (!profile) {
             return res.status(404).json({
@@ -72,9 +74,11 @@ router.get('/', auth, isCreator, async (req, res) => {
             });
         }
 
+        const userAchievements = profile.achievements || [];
+
         // Map badges to include 'earned' status
         const achievements = BADGES.map(badge => {
-            const earned = profile.achievements.find(a => a.badgeId === badge.id);
+            const earned = userAchievements.find(a => a.badgeId === badge.id);
             return {
                 ...badge,
                 earned: !!earned,
@@ -82,8 +86,6 @@ router.get('/', auth, isCreator, async (req, res) => {
             };
         });
 
-        // Calculate progress towards next badge (mock logic for demo)
-        // In real app, we'd check stats against criteria
         const totalEarned = achievements.filter(a => a.earned).length;
         const completionPercentage = Math.round((totalEarned / BADGES.length) * 100);
 
@@ -115,40 +117,45 @@ router.get('/', auth, isCreator, async (req, res) => {
  */
 router.post('/check', auth, isCreator, async (req, res) => {
     try {
-        const profile = await CreatorProfile.findOne({ userId: req.userId });
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId }
+        });
+
         if (!profile) {
             return res.status(404).json({ success: false, message: 'Profile not found' });
         }
 
+        const userAchievements = profile.achievements || [];
         const newBadges = [];
-        const currentBadges = profile.achievements.map(a => a.badgeId);
+        const currentBadges = userAchievements.map(a => a.badgeId);
 
         // Check logic
-        // 1. First Campaign
         if (profile.successfulPromotions >= 1 && !currentBadges.includes('first_campaign')) {
             newBadges.push('first_campaign');
         }
 
-        // 2. Rising Star (Mocked limit for ease of testing: 1000)
         if (profile.followerCount >= 50000 && !currentBadges.includes('rising_star')) {
             newBadges.push('rising_star');
         }
 
-        // 3. Top Performer
         if (profile.successfulPromotions >= 5 && !currentBadges.includes('top_performer')) {
             newBadges.push('top_performer');
         }
 
-        // 4. Content Pro (Mock: if they selected all 4 types)
         if (profile.promotionTypes && profile.promotionTypes.length >= 4 && !currentBadges.includes('content_pro')) {
             newBadges.push('content_pro');
         }
 
         if (newBadges.length > 0) {
-            newBadges.forEach(id => {
-                profile.achievements.push({ badgeId: id });
+            const updatedAchievements = [
+                ...userAchievements,
+                ...newBadges.map(id => ({ badgeId: id, earnedAt: new Date() }))
+            ];
+
+            await prisma.creatorProfile.update({
+                where: { id: profile.id },
+                data: { achievements: updatedAchievements }
             });
-            await profile.save();
         }
 
         res.json({

@@ -1,23 +1,19 @@
-/**
- * Notification Service
- * 
- * Handles creating and dispatching in-app notifications
- */
-
-const Notification = require('../models/Notification');
+const prisma = require('../config/prisma');
 
 /**
  * Create a notification for a user
  */
 const createNotification = async ({ userId, type, title, message, relatedRequest, relatedCreator }) => {
     try {
-        const notification = await Notification.create({
-            userId,
-            type,
-            title,
-            message,
-            relatedRequest,
-            relatedCreator
+        const notification = await prisma.notification.create({
+            data: {
+                userId,
+                type,
+                title,
+                message,
+                relatedRequestId: relatedRequest,
+                relatedCreatorId: relatedCreator
+            }
         });
 
         return notification;
@@ -31,12 +27,13 @@ const createNotification = async ({ userId, type, title, message, relatedRequest
  * Notify creator about a new matching promotion request
  */
 const notifyCreatorNewMatch = async (creatorUserId, promotionRequest, matchScore) => {
+    const type = promotionRequest.promotionType?.[0] || 'Promotion';
     return createNotification({
         userId: creatorUserId,
         type: 'NEW_MATCH',
         title: 'New Promotion Opportunity!',
-        message: `A new ${promotionRequest.promotionType} promotion in ${promotionRequest.targetCategory} matches your profile with a ${matchScore}% match score!`,
-        relatedRequest: promotionRequest._id
+        message: `A new ${type} promotion in ${promotionRequest.targetCategory} matches your profile with a ${matchScore}% match score!`,
+        relatedRequest: promotionRequest.id
     });
 };
 
@@ -49,7 +46,7 @@ const notifySellerCreatorApplied = async (sellerId, creatorName, promotionReques
         type: 'CREATOR_APPLIED',
         title: 'Creator Interested!',
         message: `${creatorName} has applied to your "${promotionRequest.title}" promotion request.`,
-        relatedRequest: promotionRequest._id
+        relatedRequest: promotionRequest.id
     });
 };
 
@@ -62,7 +59,7 @@ const notifyCreatorAccepted = async (creatorUserId, promotionRequest) => {
         type: 'CREATOR_ACCEPTED',
         title: 'Application Accepted!',
         message: `Your application for "${promotionRequest.title}" has been accepted. The campaign is ready to begin!`,
-        relatedRequest: promotionRequest._id
+        relatedRequest: promotionRequest.id
     });
 };
 
@@ -75,7 +72,7 @@ const notifyCreatorRejected = async (creatorUserId, promotionRequest) => {
         type: 'CREATOR_REJECTED',
         title: 'Application Update',
         message: `Your application for "${promotionRequest.title}" was not selected this time. Keep exploring new opportunities!`,
-        relatedRequest: promotionRequest._id
+        relatedRequest: promotionRequest.id
     });
 };
 
@@ -84,19 +81,21 @@ const notifyCreatorRejected = async (creatorUserId, promotionRequest) => {
  */
 const notifyRequestUpdate = async (userId, promotionRequest, newStatus) => {
     const statusMessages = {
-        'Open': 'Your promotion request is now open for creators.',
-        'Creator Interested': 'A creator has shown interest in your promotion.',
-        'Accepted': 'The campaign has been accepted and is ready to start.',
-        'Completed': 'Congratulations! Your campaign has been completed.',
-        'Cancelled': 'The promotion request has been cancelled.'
+        'OPEN': 'Your promotion request is now open for creators.',
+        'CREATOR_INTERESTED': 'A creator has shown interest in your promotion.',
+        'ACCEPTED': 'The campaign has been accepted and is ready to start.',
+        'COMPLETED': 'Congratulations! Your campaign has been completed.',
+        'CANCELLED': 'The promotion request has been cancelled.'
     };
+
+    const upperStatus = newStatus.toUpperCase();
 
     return createNotification({
         userId,
         type: 'REQUEST_UPDATE',
         title: 'Campaign Update',
-        message: statusMessages[newStatus] || `Your campaign "${promotionRequest.title}" status has been updated to ${newStatus}.`,
-        relatedRequest: promotionRequest._id
+        message: statusMessages[upperStatus] || `Your campaign "${promotionRequest.title}" status has been updated to ${newStatus}.`,
+        relatedRequest: promotionRequest.id
     });
 };
 
@@ -109,7 +108,7 @@ const notifyRequestDeleted = async (creatorUserId, promotionRequest) => {
         type: 'REQUEST_UPDATE',
         title: 'Request Deleted',
         message: `The promotion request "${promotionRequest.title}" that you applied to has been deleted by the seller.`,
-        relatedRequest: promotionRequest._id
+        relatedRequest: promotionRequest.id
     });
 };
 
@@ -126,7 +125,7 @@ const notifyWelcome = async (userId, role) => {
         userId,
         type: 'WELCOME',
         title: 'Welcome to Creator Marketplace!',
-        message: messages[role] || 'Welcome! Start exploring the platform.'
+        message: messages[role.toLowerCase()] || 'Welcome! Start exploring the platform.'
     });
 };
 
@@ -146,20 +145,21 @@ const notifyProfileInsights = async (creatorUserId, insights) => {
  * Get notifications for a user
  */
 const getUserNotifications = async (userId, { limit = 20, skip = 0, unreadOnly = false } = {}) => {
-    const query = { userId };
-
+    const where = { userId };
     if (unreadOnly) {
-        query.isRead = false;
+        where.isRead = false;
     }
 
-    const notifications = await Notification.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean();
-
-    const total = await Notification.countDocuments(query);
-    const unreadCount = await Notification.getUnreadCount(userId);
+    const [notifications, total, unreadCount] = await Promise.all([
+        prisma.notification.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            skip,
+            take: limit
+        }),
+        prisma.notification.count({ where }),
+        prisma.notification.count({ where: { userId, isRead: false } })
+    ]);
 
     return {
         notifications,
@@ -172,11 +172,10 @@ const getUserNotifications = async (userId, { limit = 20, skip = 0, unreadOnly =
  * Mark notification as read
  */
 const markAsRead = async (notificationId, userId) => {
-    const notification = await Notification.findOneAndUpdate(
-        { _id: notificationId, userId },
-        { isRead: true, readAt: new Date() },
-        { new: true }
-    );
+    const notification = await prisma.notification.update({
+        where: { id: notificationId },
+        data: { isRead: true, readAt: new Date() }
+    });
 
     return notification;
 };
@@ -185,10 +184,10 @@ const markAsRead = async (notificationId, userId) => {
  * Mark all notifications as read for a user
  */
 const markAllAsRead = async (userId) => {
-    await Notification.updateMany(
-        { userId, isRead: false },
-        { isRead: true, readAt: new Date() }
-    );
+    await prisma.notification.updateMany({
+        where: { userId, isRead: false },
+        data: { isRead: true, readAt: new Date() }
+    });
 
     return { success: true };
 };

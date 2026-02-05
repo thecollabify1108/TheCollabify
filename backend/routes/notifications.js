@@ -6,7 +6,7 @@ const {
     markAsRead,
     markAllAsRead
 } = require('../services/notificationService');
-const Notification = require('../models/Notification');
+const prisma = require('../config/prisma');
 
 /**
  * @route   GET /api/notifications
@@ -43,7 +43,12 @@ router.get('/', auth, async (req, res) => {
  */
 router.get('/unread-count', auth, async (req, res) => {
     try {
-        const count = await Notification.getUnreadCount(req.userId);
+        const count = await prisma.notification.count({
+            where: {
+                userId: req.userId,
+                isRead: false
+            }
+        });
 
         res.json({
             success: true,
@@ -116,7 +121,9 @@ router.put('/read-all', auth, async (req, res) => {
  */
 router.delete('/clear-all', auth, async (req, res) => {
     try {
-        await Notification.deleteMany({ userId: req.userId });
+        await prisma.notification.deleteMany({
+            where: { userId: req.userId }
+        });
 
         res.json({
             success: true,
@@ -138,9 +145,11 @@ router.delete('/clear-all', auth, async (req, res) => {
  */
 router.delete('/:id', auth, async (req, res) => {
     try {
-        const notification = await Notification.findOneAndDelete({
-            _id: req.params.id,
-            userId: req.userId
+        const notification = await prisma.notification.delete({
+            where: {
+                id: req.params.id,
+                userId: req.userId
+            }
         });
 
         if (!notification) {
@@ -180,13 +189,10 @@ router.post('/push/subscribe', auth, async (req, res) => {
         }
 
         // Update user with push subscription
-        await require('../models/User').findByIdAndUpdate(req.userId, {
-            pushSubscription: {
-                endpoint: subscription.endpoint,
-                keys: {
-                    p256dh: subscription.keys.p256dh,
-                    auth: subscription.keys.auth
-                }
+        await prisma.user.update({
+            where: { id: req.userId },
+            data: {
+                pushSubscription: subscription
             }
         });
 
@@ -212,8 +218,11 @@ router.post('/push/subscribe', auth, async (req, res) => {
  */
 router.post('/push/unsubscribe', auth, async (req, res) => {
     try {
-        await require('../models/User').findByIdAndUpdate(req.userId, {
-            $unset: { pushSubscription: 1 }
+        await prisma.user.update({
+            where: { id: req.userId },
+            data: {
+                pushSubscription: null
+            }
         });
 
         console.log(`User ${req.userId} unsubscribed from push notifications`);
@@ -238,12 +247,15 @@ router.post('/push/unsubscribe', auth, async (req, res) => {
  */
 router.get('/push/subscription', auth, async (req, res) => {
     try {
-        const user = await require('../models/User').findById(req.userId).select('pushSubscription');
+        const user = await prisma.user.findUnique({
+            where: { id: req.userId },
+            select: { pushSubscription: true }
+        });
 
         res.json({
             success: true,
             data: {
-                subscribed: !!(user && user.pushSubscription && user.pushSubscription.endpoint)
+                subscribed: !!(user && user.pushSubscription)
             }
         });
     } catch (error) {

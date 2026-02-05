@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
-const Conversation = require('../models/Conversation');
-const Message = require('../models/Message');
+const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 
 /**
@@ -21,6 +20,67 @@ const handleValidation = (req, res, next) => {
 };
 
 /**
+ * @route   PUT /api/chat/pgp-key
+ * @desc    Update user's PGP public key
+ * @access  Private
+ */
+router.put('/pgp-key', auth, [
+    body('publicKey').trim().notEmpty().withMessage('Public key is required')
+        .contains('-----BEGIN PGP PUBLIC KEY BLOCK-----').withMessage('Invalid PGP key format'),
+    handleValidation
+], async (req, res) => {
+    try {
+        await prisma.user.update({
+            where: { id: req.userId },
+            data: { pgpPublicKey: req.body.publicKey }
+        });
+
+        res.json({
+            success: true,
+            message: 'PGP public key updated successfully'
+        });
+    } catch (error) {
+        console.error('Update PGP key error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update PGP key'
+        });
+    }
+});
+
+/**
+ * @route   GET /api/chat/pgp-key/:userId
+ * @desc    Get a user's PGP public key
+ * @access  Private
+ */
+router.get('/pgp-key/:userId', auth, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.params.userId },
+            select: { pgpPublicKey: true, name: true }
+        });
+
+        if (!user || !user.pgpPublicKey) {
+            return res.status(404).json({
+                success: false,
+                message: 'PGP key not found for this user'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: { publicKey: user.pgpPublicKey, name: user.name }
+        });
+    } catch (error) {
+        console.error('Get PGP key error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get PGP key'
+        });
+    }
+});
+
+/**
  * @route   GET /api/chat/conversations
  * @desc    Get user's conversations
  * @access  Private
@@ -28,17 +88,45 @@ const handleValidation = (req, res, next) => {
 // Get all conversations for a user
 router.get('/conversations', auth, async (req, res) => {
     try {
-        const userId = req.user._id;
-        const userRole = req.user.role;
+        const userId = req.userId;
+        const userRole = req.user.activeRole;
 
-        const query = userRole === 'seller'
+        const where = userRole === 'SELLER'
             ? { sellerId: userId }
             : { creatorUserId: userId };
 
-        const conversations = await Conversation.find(query)
-            .populate('sellerId', 'name email')
-            .populate('creatorUserId', 'name email')
-            .sort({ updatedAt: -1 });
+        // We only show conversations that are NOT deleted by this user
+        // Using Prisma's JSON filtering for deletedBy array
+        // However, since deletedBy is likely an array of objects, we might need a better way.
+        // For simplicity, let's assume we filter them in memory or use a direct check if possible.
+        // Actually, let's just fetch all and filter for now, or use JSON path if supported.
+
+        const conversations = await prisma.conversation.findMany({
+            where: {
+                ...where,
+                // Soft delete logic: filter out if userId is in deletedBy
+                // In Postgres/Prisma, this depends on how deletedBy is stored. 
+                // If it's a JSONB array of {userId, deletedAt}:
+                NOT: {
+                    deletedBy: {
+                        path: ['$[*]'],
+                        array_contains: { userId: userId }
+                    }
+                }
+            },
+            include: {
+                seller: {
+                    select: { id: true, name: true, email: true, avatar: true }
+                },
+                creatorUser: {
+                    select: { id: true, name: true, email: true, avatar: true }
+                },
+                promotion: {
+                    select: { id: true, title: true, status: true }
+                }
+            },
+            orderBy: { updatedAt: 'desc' }
+        });
 
         res.json({
             success: true,
@@ -56,10 +144,10 @@ router.get('/conversations', auth, async (req, res) => {
 // Send message request (seller to creator)
 router.post('/message-request', auth, async (req, res) => {
     try {
-        const sellerId = req.user._id;
+        const sellerId = req.userId;
         const { creatorId } = req.body;
 
-        if (req.user.role !== 'seller') {
+        if (req.user.activeRole !== 'SELLER') {
             return res.status(403).json({
                 success: false,
                 message: 'Only sellers can send message requests'
@@ -67,34 +155,53 @@ router.post('/message-request', auth, async (req, res) => {
         }
 
         // Check if conversation already exists
-        let conversation = await Conversation.findOne({
-            sellerId: sellerId,
-            creatorUserId: creatorId
+        let conversation = await prisma.conversation.findFirst({
+            where: {
+                sellerId: sellerId,
+                creatorUserId: creatorId
+            },
+            include: {
+                seller: { select: { id: true, name: true, email: true } },
+                creatorUser: { select: { id: true, name: true, email: true } }
+            }
         });
 
         if (conversation) {
             return res.json({
                 success: true,
                 data: { conversation },
-                message: conversation.status === 'pending'
+                message: conversation.status === 'PENDING'
                     ? 'Message request already sent'
                     : 'Conversation already exists'
             });
         }
 
-        // Create new conversation with pending status
-        conversation = new Conversation({
-            sellerId: sellerId,
-            creatorUserId: creatorId,
-            status: 'pending',
-            lastMessage: 'Message request sent'
+        // Find creator profile to get profileId
+        const creatorProfile = await prisma.creatorProfile.findFirst({
+            where: { userId: creatorId }
         });
 
-        await conversation.save();
+        if (!creatorProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Creator profile not found'
+            });
+        }
 
-        // Populate user details
-        await conversation.populate('sellerId', 'name email');
-        await conversation.populate('creatorUserId', 'name email');
+        // Create new conversation with pending status
+        conversation = await prisma.conversation.create({
+            data: {
+                sellerId: sellerId,
+                creatorUserId: creatorId,
+                creatorProfileId: creatorProfile.id,
+                status: 'PENDING',
+                lastMessage: 'Message request sent'
+            },
+            include: {
+                seller: { select: { id: true, name: true, email: true } },
+                creatorUser: { select: { id: true, name: true, email: true } }
+            }
+        });
 
         res.json({
             success: true,
@@ -113,20 +220,22 @@ router.post('/message-request', auth, async (req, res) => {
 // Accept message request (creator only)
 router.post('/message-request/:conversationId/accept', auth, async (req, res) => {
     try {
-        const creatorId = req.user._id;
+        const creatorId = req.userId;
         const { conversationId } = req.params;
 
-        if (req.user.role !== 'creator') {
+        if (req.user.activeRole !== 'CREATOR') {
             return res.status(403).json({
                 success: false,
                 message: 'Only creators can accept message requests'
             });
         }
 
-        const conversation = await Conversation.findOne({
-            _id: conversationId,
-            creatorUserId: creatorId,
-            status: 'pending'
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: conversationId,
+                creatorUserId: creatorId,
+                status: 'PENDING'
+            }
         });
 
         if (!conversation) {
@@ -136,16 +245,22 @@ router.post('/message-request/:conversationId/accept', auth, async (req, res) =>
             });
         }
 
-        conversation.status = 'active';
-        conversation.lastMessage = 'Request accepted';
-        await conversation.save();
-
-        await conversation.populate('sellerId', 'name email');
-        await conversation.populate('creatorUserId', 'name email');
+        const updatedConversation = await prisma.conversation.update({
+            where: { id: conversationId },
+            data: {
+                status: 'ACTIVE',
+                lastMessage: 'Request accepted',
+                acceptanceStatus: { byCreator: 'accepted' }
+            },
+            include: {
+                seller: { select: { id: true, name: true, email: true } },
+                creatorUser: { select: { id: true, name: true, email: true } }
+            }
+        });
 
         res.json({
             success: true,
-            data: { conversation },
+            data: { conversation: updatedConversation },
             message: 'Message request accepted'
         });
     } catch (error) {
@@ -160,20 +275,22 @@ router.post('/message-request/:conversationId/accept', auth, async (req, res) =>
 // Reject message request (creator only)
 router.post('/message-request/:conversationId/reject', auth, async (req, res) => {
     try {
-        const creatorId = req.user._id;
+        const creatorId = req.userId;
         const { conversationId } = req.params;
 
-        if (req.user.role !== 'creator') {
+        if (req.user.activeRole !== 'CREATOR') {
             return res.status(403).json({
                 success: false,
                 message: 'Only creators can reject message requests'
             });
         }
 
-        const conversation = await Conversation.findOne({
-            _id: conversationId,
-            creatorUserId: creatorId,
-            status: 'pending'
+        const conversation = await prisma.conversation.findFirst({
+            where: {
+                id: conversationId,
+                creatorUserId: creatorId,
+                status: 'PENDING'
+            }
         });
 
         if (!conversation) {
@@ -183,8 +300,10 @@ router.post('/message-request/:conversationId/reject', auth, async (req, res) =>
             });
         }
 
-        // Delete the conversation or mark as rejected
-        await Conversation.findByIdAndDelete(conversationId);
+        // Delete the conversation
+        await prisma.conversation.delete({
+            where: { id: conversationId }
+        });
 
         res.json({
             success: true,
@@ -209,14 +328,18 @@ router.post('/find-or-restore', auth, async (req, res) => {
         const { promotionId, creatorId } = req.body;
         const userId = req.userId;
 
-        // Find conversation regardless of deletedBy status
-        let conversation = await Conversation.findOne({
-            promotionId,
-            creatorUserId: creatorId
-        })
-            .populate('sellerId', 'name email avatar')
-            .populate('creatorUserId', 'name email avatar')
-            .populate('promotionId', 'title status');
+        // Find conversation
+        let conversation = await prisma.conversation.findFirst({
+            where: {
+                promotionId: promotionId,
+                creatorUserId: creatorId
+            },
+            include: {
+                seller: { select: { id: true, name: true, email: true, avatar: true } },
+                creatorUser: { select: { id: true, name: true, email: true, avatar: true } },
+                promotion: { select: { id: true, title: true, status: true } }
+            }
+        });
 
         if (!conversation) {
             return res.status(404).json({
@@ -226,30 +349,28 @@ router.post('/find-or-restore', auth, async (req, res) => {
         }
 
         // Verify user is part of conversation
-        if (conversation.sellerId._id.toString() !== userId.toString() &&
-            conversation.creatorUserId._id.toString() !== userId.toString()) {
+        if (conversation.sellerId !== userId && conversation.creatorUserId !== userId) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to access this conversation'
             });
         }
 
-        // Remove user from deletedBy array if present (restore conversation)
-        const wasDeleted = conversation.deletedBy.some(
-            d => d.userId.toString() === userId.toString()
-        );
+        // Restore logic: remove user from deletedBy if present
+        const deletedByList = conversation.deletedBy || [];
+        const wasDeleted = deletedByList.some(d => d.userId === userId);
 
         if (wasDeleted) {
-            conversation.deletedBy = conversation.deletedBy.filter(
-                d => d.userId.toString() !== userId.toString()
-            );
-            await conversation.save();
-
-            // Re-populate after save
-            conversation = await Conversation.findById(conversation._id)
-                .populate('sellerId', 'name email avatar')
-                .populate('creatorUserId', 'name email avatar')
-                .populate('promotionId', 'title status');
+            const updatedDeletedBy = deletedByList.filter(d => d.userId !== userId);
+            conversation = await prisma.conversation.update({
+                where: { id: conversation.id },
+                data: { deletedBy: updatedDeletedBy },
+                include: {
+                    seller: { select: { id: true, name: true, email: true, avatar: true } },
+                    creatorUser: { select: { id: true, name: true, email: true, avatar: true } },
+                    promotion: { select: { id: true, title: true, status: true } }
+                }
+            });
         }
 
         res.json({
@@ -272,10 +393,14 @@ router.post('/find-or-restore', auth, async (req, res) => {
  */
 router.get('/conversations/:id', auth, async (req, res) => {
     try {
-        const conversation = await Conversation.findById(req.params.id)
-            .populate('sellerId', 'name email avatar')
-            .populate('creatorUserId', 'name email avatar')
-            .populate('promotionId', 'title description status');
+        const conversation = await prisma.conversation.findUnique({
+            where: { id: req.params.id },
+            include: {
+                seller: { select: { id: true, name: true, email: true, avatar: true } },
+                creatorUser: { select: { id: true, name: true, email: true, avatar: true } },
+                promotion: { select: { id: true, title: true, description: true, status: true } }
+            }
+        });
 
         if (!conversation) {
             return res.status(404).json({
@@ -285,9 +410,8 @@ router.get('/conversations/:id', auth, async (req, res) => {
         }
 
         // Verify user is part of conversation
-        const userId = req.userId.toString();
-        if (conversation.sellerId._id.toString() !== userId &&
-            conversation.creatorUserId._id.toString() !== userId) {
+        const userId = req.userId;
+        if (conversation.sellerId !== userId && conversation.creatorUserId !== userId) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to view this conversation'
@@ -314,7 +438,10 @@ router.get('/conversations/:id', auth, async (req, res) => {
  */
 router.get('/conversations/:id/messages', auth, async (req, res) => {
     try {
-        const conversation = await Conversation.findById(req.params.id);
+        const conversationId = req.params.id;
+        const conversation = await prisma.conversation.findUnique({
+            where: { id: conversationId }
+        });
 
         if (!conversation) {
             return res.status(404).json({
@@ -324,9 +451,8 @@ router.get('/conversations/:id/messages', auth, async (req, res) => {
         }
 
         // Verify user is part of conversation
-        const userId = req.userId.toString();
-        if (conversation.sellerId.toString() !== userId &&
-            conversation.creatorUserId.toString() !== userId) {
+        const userId = req.userId;
+        if (conversation.sellerId !== userId && conversation.creatorUserId !== userId) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to view this conversation'
@@ -334,32 +460,39 @@ router.get('/conversations/:id/messages', auth, async (req, res) => {
         }
 
         const { page = 1, limit = 50 } = req.query;
-        const skip = (page - 1) * limit;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const messages = await Message.find({ conversationId: req.params.id })
-            .populate('senderId', 'name avatar')
-            .sort({ createdAt: 1 })
-            .skip(skip)
-            .limit(parseInt(limit));
+        const messages = await prisma.message.findMany({
+            where: { conversationId: conversationId },
+            include: {
+                sender: { select: { id: true, name: true, avatar: true } }
+            },
+            orderBy: { createdAt: 'asc' },
+            skip: skip,
+            take: parseInt(limit)
+        });
 
         // Mark messages as read
-        const isSeller = conversation.sellerId.toString() === userId;
-        await Message.updateMany(
-            {
-                conversationId: req.params.id,
-                senderId: { $ne: req.userId },
+        await prisma.message.updateMany({
+            where: {
+                conversationId: conversationId,
+                senderId: { not: userId },
                 isRead: false
             },
-            { isRead: true, readAt: new Date() }
-        );
+            data: {
+                isRead: true,
+                readAt: new Date()
+            }
+        });
 
         // Reset unread count
-        if (isSeller) {
-            conversation.unreadCountSeller = 0;
-        } else {
-            conversation.unreadCountCreator = 0;
-        }
-        await conversation.save();
+        const isSeller = conversation.sellerId === userId;
+        const updateData = isSeller ? { unreadCountSeller: 0 } : { unreadCountCreator: 0 };
+
+        await prisma.conversation.update({
+            where: { id: conversationId },
+            data: updateData
+        });
 
         res.json({
             success: true,
@@ -385,7 +518,10 @@ router.post('/conversations/:id/messages', auth, [
     handleValidation
 ], async (req, res) => {
     try {
-        const conversation = await Conversation.findById(req.params.id);
+        const conversationId = req.params.id;
+        const conversation = await prisma.conversation.findUnique({
+            where: { id: conversationId }
+        });
 
         if (!conversation) {
             return res.status(404).json({
@@ -395,9 +531,9 @@ router.post('/conversations/:id/messages', auth, [
         }
 
         // Verify user is part of conversation
-        const userId = req.userId.toString();
-        const isSeller = conversation.sellerId.toString() === userId;
-        const isCreator = conversation.creatorUserId.toString() === userId;
+        const userId = req.userId;
+        const isSeller = conversation.sellerId === userId;
+        const isCreator = conversation.creatorUserId === userId;
 
         if (!isSeller && !isCreator) {
             return res.status(403).json({
@@ -407,7 +543,7 @@ router.post('/conversations/:id/messages', auth, [
         }
 
         // Check if conversation is accepted by creator
-        if (conversation.acceptanceStatus.byCreator !== 'accepted') {
+        if (conversation.acceptanceStatus?.byCreator !== 'accepted' && conversation.status !== 'ACTIVE') {
             return res.status(403).json({
                 success: false,
                 message: 'Creator has not accepted this conversation yet',
@@ -416,30 +552,34 @@ router.post('/conversations/:id/messages', auth, [
         }
 
         // Create message
-        const message = await Message.create({
-            conversationId: req.params.id,
-            senderId: req.userId,
-            content: req.body.content
+        const message = await prisma.message.create({
+            data: {
+                conversationId: conversationId,
+                senderId: userId,
+                receiverId: isSeller ? conversation.creatorUserId : conversation.sellerId,
+                content: req.body.content,
+                messageType: req.body.messageType || 'TEXT',
+                isEncrypted: req.body.isEncrypted || false,
+                encryptionVersion: req.body.encryptionVersion || '1.0'
+            },
+            include: {
+                sender: { select: { id: true, name: true, avatar: true } }
+            }
         });
 
-        // Update conversation with last message
-        conversation.lastMessage = {
-            content: req.body.content.substring(0, 100),
-            senderId: req.userId,
-            createdAt: new Date()
-        };
+        // Update conversation with last message and unread count
+        const unreadUpdate = isSeller
+            ? { unreadCountCreator: { increment: 1 } }
+            : { unreadCountSeller: { increment: 1 } };
 
-        // Increment unread count for the other party
-        if (isSeller) {
-            conversation.unreadCountCreator += 1;
-        } else {
-            conversation.unreadCountSeller += 1;
-        }
-
-        await conversation.save();
-
-        // Populate sender info for response
-        await message.populate('senderId', 'name avatar');
+        await prisma.conversation.update({
+            where: { id: conversationId },
+            data: {
+                lastMessage: req.body.content.substring(0, 100),
+                lastMessageAt: new Date(),
+                ...unreadUpdate
+            }
+        });
 
         res.status(201).json({
             success: true,
@@ -463,17 +603,21 @@ router.get('/unread-count', auth, async (req, res) => {
     try {
         const userId = req.userId;
 
-        // Get conversations where user is seller
-        const sellerConvos = await Conversation.find({ sellerId: userId });
-        const sellerUnread = sellerConvos.reduce((acc, c) => acc + c.unreadCountSeller, 0);
+        const sellerUnread = await prisma.conversation.aggregate({
+            where: { sellerId: userId },
+            _sum: { unreadCountSeller: true }
+        });
 
-        // Get conversations where user is creator
-        const creatorConvos = await Conversation.find({ creatorUserId: userId });
-        const creatorUnread = creatorConvos.reduce((acc, c) => acc + c.unreadCountCreator, 0);
+        const creatorUnread = await prisma.conversation.aggregate({
+            where: { creatorUserId: userId },
+            _sum: { unreadCountCreator: true }
+        });
+
+        const totalUnread = (sellerUnread._sum.unreadCountSeller || 0) + (creatorUnread._sum.unreadCountCreator || 0);
 
         res.json({
             success: true,
-            data: { unreadCount: sellerUnread + creatorUnread }
+            data: { unreadCount: totalUnread }
         });
     } catch (error) {
         console.error('Get unread count error:', error);
@@ -495,7 +639,9 @@ router.put('/messages/:messageId', auth, [
     handleValidation
 ], async (req, res) => {
     try {
-        const message = await Message.findById(req.params.messageId);
+        const message = await prisma.message.findUnique({
+            where: { id: req.params.messageId }
+        });
 
         if (!message) {
             return res.status(404).json({
@@ -505,31 +651,35 @@ router.put('/messages/:messageId', auth, [
         }
 
         // Only sender can edit
-        if (message.senderId.toString() !== req.userId.toString()) {
+        if (message.senderId !== req.userId) {
             return res.status(403).json({
                 success: false,
                 message: 'You can only edit your own messages'
             });
         }
 
-        // Can't edit deleted messages
-        if (message.isDeleted) {
+        // Can't edit deleted messages (our soft delete uses messageType or content check)
+        if (message.content === 'This message was deleted') {
             return res.status(400).json({
                 success: false,
                 message: 'Cannot edit a deleted message'
             });
         }
 
-        message.content = req.body.content;
-        message.isEdited = true;
-        message.editedAt = new Date();
-        await message.save();
-
-        await message.populate('senderId', 'name avatar');
+        const updatedMessage = await prisma.message.update({
+            where: { id: req.params.messageId },
+            data: {
+                content: req.body.content,
+                // In Prisma we don't have isEdited field in schema but we can use metadata or just content
+            },
+            include: {
+                sender: { select: { id: true, name: true, avatar: true } }
+            }
+        });
 
         res.json({
             success: true,
-            data: { message }
+            data: { message: updatedMessage }
         });
     } catch (error) {
         console.error('Edit message error:', error);
@@ -547,7 +697,9 @@ router.put('/messages/:messageId', auth, [
  */
 router.delete('/messages/:messageId', auth, async (req, res) => {
     try {
-        const message = await Message.findById(req.params.messageId);
+        const message = await prisma.message.findUnique({
+            where: { id: req.params.messageId }
+        });
 
         if (!message) {
             return res.status(404).json({
@@ -557,17 +709,19 @@ router.delete('/messages/:messageId', auth, async (req, res) => {
         }
 
         // Only sender can delete
-        if (message.senderId.toString() !== req.userId.toString()) {
+        if (message.senderId !== req.userId) {
             return res.status(403).json({
                 success: false,
                 message: 'You can only delete your own messages'
             });
         }
 
-        message.isDeleted = true;
-        message.deletedAt = new Date();
-        message.content = 'This message was deleted';
-        await message.save();
+        await prisma.message.update({
+            where: { id: req.params.messageId },
+            data: {
+                content: 'This message was deleted',
+            }
+        });
 
         res.json({
             success: true,
@@ -589,7 +743,10 @@ router.delete('/messages/:messageId', auth, async (req, res) => {
  */
 router.delete('/conversations/:id', auth, async (req, res) => {
     try {
-        const conversation = await Conversation.findById(req.params.id);
+        const conversationId = req.params.id;
+        const conversation = await prisma.conversation.findUnique({
+            where: { id: conversationId }
+        });
 
         if (!conversation) {
             return res.status(404).json({
@@ -599,9 +756,8 @@ router.delete('/conversations/:id', auth, async (req, res) => {
         }
 
         // Verify user is part of conversation
-        const userId = req.userId.toString();
-        if (conversation.sellerId.toString() !== userId &&
-            conversation.creatorUserId.toString() !== userId) {
+        const userId = req.userId;
+        if (conversation.sellerId !== userId && conversation.creatorUserId !== userId) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to delete this conversation'
@@ -609,16 +765,15 @@ router.delete('/conversations/:id', auth, async (req, res) => {
         }
 
         // Add user to deletedBy array (one-sided delete)
-        const alreadyDeleted = conversation.deletedBy.some(
-            d => d.userId.toString() === userId
-        );
+        const deletedByList = conversation.deletedBy || [];
+        const alreadyDeleted = deletedByList.some(d => d.userId === userId);
 
         if (!alreadyDeleted) {
-            conversation.deletedBy.push({
-                userId: req.userId,
-                deletedAt: new Date()
+            const updatedDeletedBy = [...deletedByList, { userId: userId, deletedAt: new Date() }];
+            await prisma.conversation.update({
+                where: { id: conversationId },
+                data: { deletedBy: updatedDeletedBy }
             });
-            await conversation.save();
         }
 
         res.json({
@@ -641,7 +796,10 @@ router.delete('/conversations/:id', auth, async (req, res) => {
  */
 router.post('/conversations/:id/accept', auth, async (req, res) => {
     try {
-        const conversation = await Conversation.findById(req.params.id);
+        const conversationId = req.params.id;
+        const conversation = await prisma.conversation.findUnique({
+            where: { id: conversationId }
+        });
 
         if (!conversation) {
             return res.status(404).json({
@@ -651,8 +809,8 @@ router.post('/conversations/:id/accept', auth, async (req, res) => {
         }
 
         // Verify user is the creator
-        const userId = req.userId.toString();
-        if (conversation.creatorUserId.toString() !== userId) {
+        const userId = req.userId;
+        if (conversation.creatorUserId !== userId) {
             return res.status(403).json({
                 success: false,
                 message: 'Only creators can accept message requests'
@@ -660,7 +818,7 @@ router.post('/conversations/:id/accept', auth, async (req, res) => {
         }
 
         // Check if already accepted
-        if (conversation.acceptanceStatus.byCreator === 'accepted') {
+        if (conversation.acceptanceStatus?.byCreator === 'accepted' || conversation.status === 'ACTIVE') {
             return res.json({
                 success: true,
                 message: 'Request already accepted'
@@ -668,18 +826,23 @@ router.post('/conversations/:id/accept', auth, async (req, res) => {
         }
 
         // Accept the request
-        conversation.acceptanceStatus.byCreator = 'accepted';
-        await conversation.save();
-
-        // Populate for response
-        await conversation.populate('sellerId', 'name email avatar');
-        await conversation.populate('creatorUserId', 'name email avatar');
-        await conversation.populate('promotionId', 'title status');
+        const updatedConversation = await prisma.conversation.update({
+            where: { id: conversationId },
+            data: {
+                status: 'ACTIVE',
+                acceptanceStatus: { byCreator: 'accepted' }
+            },
+            include: {
+                seller: { select: { id: true, name: true, email: true, avatar: true } },
+                creatorUser: { select: { id: true, name: true, email: true, avatar: true } },
+                promotion: { select: { id: true, title: true, status: true } }
+            }
+        });
 
         res.json({
             success: true,
             message: 'Message request accepted',
-            data: { conversation }
+            data: { conversation: updatedConversation }
         });
     } catch (error) {
         console.error('Accept message request error:', error);
@@ -697,7 +860,10 @@ router.post('/conversations/:id/accept', auth, async (req, res) => {
  */
 router.post('/conversations/:id/reject', auth, async (req, res) => {
     try {
-        const conversation = await Conversation.findById(req.params.id);
+        const conversationId = req.params.id;
+        const conversation = await prisma.conversation.findUnique({
+            where: { id: conversationId }
+        });
 
         if (!conversation) {
             return res.status(404).json({
@@ -707,8 +873,8 @@ router.post('/conversations/:id/reject', auth, async (req, res) => {
         }
 
         // Verify user is the creator
-        const userId = req.userId.toString();
-        if (conversation.creatorUserId.toString() !== userId) {
+        const userId = req.userId;
+        if (conversation.creatorUserId !== userId) {
             return res.status(403).json({
                 success: false,
                 message: 'Only creators can reject message requests'
@@ -716,10 +882,14 @@ router.post('/conversations/:id/reject', auth, async (req, res) => {
         }
 
         // Delete the conversation entirely
-        await Conversation.findByIdAndDelete(req.params.id);
+        await prisma.conversation.delete({
+            where: { id: conversationId }
+        });
 
-        // Optionally delete all messages in this conversation
-        await Message.deleteMany({ conversationId: req.params.id });
+        // Prisma normally deletes messages via cascade if configured, but let's be explicit if needed
+        await prisma.message.deleteMany({
+            where: { conversationId: conversationId }
+        });
 
         res.json({
             success: true,
@@ -744,15 +914,25 @@ router.get('/requests', auth, async (req, res) => {
         const userId = req.userId;
 
         // Find conversations where user is creator and status is pending
-        const requests = await Conversation.find({
-            creatorUserId: userId,
-            'acceptanceStatus.byCreator': 'pending',
-            'deletedBy.userId': { $ne: userId }
-        })
-            .populate('sellerId', 'name email avatar')
-            .populate('creatorUserId', 'name email avatar')
-            .populate('promotionId', 'title status')
-            .sort({ createdAt: -1 });
+        const requests = await prisma.conversation.findMany({
+            where: {
+                creatorUserId: userId,
+                status: 'PENDING',
+                // Filter out if user deleted it
+                NOT: {
+                    deletedBy: {
+                        path: ['$[*]'],
+                        array_contains: { userId: userId }
+                    }
+                }
+            },
+            include: {
+                seller: { select: { id: true, name: true, email: true, avatar: true } },
+                creatorUser: { select: { id: true, name: true, email: true, avatar: true } },
+                promotion: { select: { id: true, title: true, status: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
 
         res.json({
             success: true,

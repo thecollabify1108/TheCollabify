@@ -1,0 +1,493 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CREATOR
+  SELLER
+  ADMIN
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum PromotionType {
+  REELS
+  STORIES
+  POSTS
+  WEBSITE_VISIT
+}
+
+enum Category {
+  Fashion
+  Tech
+  Fitness
+  Food
+  Travel
+  Lifestyle
+  Beauty
+  Gaming
+  Education
+  Entertainment
+  Health
+  Business
+  Art
+  Music
+  Sports
+  Other
+}
+
+enum CampaignGoal {
+  REACH
+  TRAFFIC
+  SALES
+}
+
+enum CampaignStatus {
+  OPEN
+  CREATOR_INTERESTED
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+enum MatchStatus {
+  MATCHED
+  APPLIED
+  ACCEPTED
+  REJECTED
+}
+
+enum ConversationStatus {
+  PENDING
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MANAGER
+  CONTRIBUTOR
+  VIEWER
+}
+
+enum TeamStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+model User {
+  id                    String         @id @default(uuid())
+  email                 String         @unique
+  password              String?        // Null for Google OAuth
+  name                  String
+  avatar                String?        @default("")
+  googleId              String?        @unique
+  authProvider          AuthProvider   @default(LOCAL)
+  emailVerified         Boolean        @default(false)
+  isActive              Boolean        @default(true)
+  resetPasswordToken    String?
+  resetPasswordExpires  DateTime?
+  lastLogin             DateTime?
+  activeRole            Role?
+  
+  // Relations
+  roles                 UserRole[]
+  creatorProfile        CreatorProfile?
+  sellerCampaigns       PromotionRequest[] @relation("SellerCampaigns")
+  analytics             Analytics[]
+  payments              Payment[]
+  notifications         Notification[]
+  sentMessages          Message[]          @relation("Sender")
+  conversationsSeller   Conversation[]     @relation("Seller")
+  conversationsCreator  Conversation[]     @relation("CreatorUser")
+  teamMemberships       TeamMember[]       @relation("MemberUser")
+  organizations         TeamMember[]       @relation("OrgUser")
+  calendarEvents        CalendarEvent[]
+  // E2EE Messaging
+  pgpPublicKey          String?        @db.Text
+  
+  // Stripe Integration
+  stripeCustomerId      String?        @unique
+  stripeAccountId       String?        @unique // For Connect (Creators)
+  stripeOnboardingComplete Boolean     @default(false)
+
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+}
+
+model UserRole {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      Role
+  password  String   // Specific password for this role
+  addedAt   DateTime @default(now())
+
+  @@unique([userId, type])
+}
+
+model CreatorProfile {
+  id                    String           @id @default(uuid())
+  userId                String           @unique
+  user                  User             @relation(fields: [userId], references: [id])
+  
+  instagramUsername     String?          @default("")
+  instagramProfileUrl   String?          @default("")
+  instagramVerified     Boolean          @default(false)
+  lastVerifiedAt        DateTime?
+  
+  followerCount         Int              @default(0)
+  engagementRate        Float            @default(0)
+  category              Category
+  promotionTypes        PromotionType[]
+  
+  minPrice              Float
+  maxPrice              Float
+  bio                   String?          @db.Text
+  isAvailable           Boolean          @default(true)
+  
+  // AI Insights
+  engagementQuality     String?          @default("Medium") // Low, Medium, High
+  audienceAuthenticity  String?          @default("Medium")
+  strengths             String[]
+  profileSummary        String?          @db.Text
+  aiScore               Int              @default(50)
+  lastAnalyzed          DateTime?        @default(now())
+  
+  // Stats
+  totalEarnings        Float            @default(0)
+  profileViews         Int              @default(0)
+  totalPromotions      Int              @default(0)
+  successfulPromotions Int              @default(0)
+  averageRating        Float            @default(0)
+  leaderboardScore     Float            @default(0)
+  lastScoreUpdate       DateTime?        @default(now())
+  
+  // Relations
+  achievements         Achievement[]
+  matchedCampaigns     MatchedCreator[]
+  acceptedCampaigns    PromotionRequest[]
+  conversations        Conversation[]
+
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+}
+
+model Achievement {
+  id               String         @id @default(uuid())
+  creatorProfileId String
+  creatorProfile   CreatorProfile @relation(fields: [creatorProfileId], references: [id])
+  badgeId          String
+  earnedAt         DateTime       @default(now())
+}
+
+model PromotionRequest {
+  id                String           @id @default(uuid())
+  sellerId          String
+  seller            User             @relation("SellerCampaigns", fields: [sellerId], references: [id])
+  
+  title             String
+  description       String           @db.Text
+  minBudget         Float
+  maxBudget         Float
+  promotionType     PromotionType
+  targetCategory    Category
+  minFollowers      Int
+  maxFollowers      Int
+  campaignGoal      CampaignGoal
+  status            CampaignStatus   @default(OPEN)
+  
+  deadline          DateTime?
+  completedAt       DateTime?
+  
+  // Relations
+  matchedCreators   MatchedCreator[]
+  acceptedCreatorId String?
+  acceptedCreator   CreatorProfile?  @relation(fields: [acceptedCreatorId], references: [id])
+  conversations     Conversation[]
+  calendarEvents    CalendarEvent[]
+  contentCalendarEvents ContentCalendar[]
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+}
+
+model MatchedCreator {
+  id                 String           @id @default(uuid())
+  promotionId        String
+  promotion          PromotionRequest @relation(fields: [promotionId], references: [id])
+  creatorId          String
+  creator            CreatorProfile   @relation(fields: [creatorId], references: [id])
+  
+  matchScore         Int
+  matchReason        String           @db.Text
+  status             MatchStatus      @default(MATCHED)
+  agreedAmount       Float?
+  
+  appliedAt          DateTime?
+  respondedAt        DateTime?
+
+  @@unique([promotionId, creatorId])
+}
+
+model Conversation {
+  id                String             @id @default(uuid())
+  promotionId       String
+  promotion         PromotionRequest   @relation(fields: [promotionId], references: [id])
+  sellerId          String
+  seller            User               @relation("Seller", fields: [sellerId], references: [id])
+  creatorUserId     String
+  creatorUser       User               @relation("CreatorUser", fields: [creatorUserId], references: [id])
+  creatorProfileId  String?
+  creatorProfile    CreatorProfile?    @relation(fields: [creatorProfileId], references: [id])
+  
+  status            ConversationStatus @default(ACTIVE)
+  
+  // Acceptance Status
+  creatorAccepted   String             @default("pending") // pending, accepted, rejected
+  sellerAccepted    String             @default("accepted")
+  
+  lastMessageContent String?
+  lastMessageSenderId String?
+  lastMessageCreatedAt DateTime?
+  
+  unreadCountSeller  Int                @default(0)
+  unreadCountCreator Int                @default(0)
+  
+  // Relations
+  messages           Message[]
+  deletions          ConversationDeletion[]
+
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@unique([promotionId, creatorUserId])
+}
+
+model ConversationDeletion {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  userId         String
+  deletedAt      DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  senderId       String
+  sender         User         @relation("Sender", fields: [senderId], references: [id])
+  content        String       @db.Text
+  
+  isRead         Boolean      @default(false)
+  readAt         DateTime?
+  
+  isEdited       Boolean      @default(false)
+  editedAt       DateTime?
+  isDeleted      Boolean      @default(false)
+  deletedAt      DateTime?
+
+  // E2EE fields
+  isEncrypted      Boolean     @default(false)
+  encryptionVersion String?     @default("1.0")
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Analytics {
+  id                    String   @id @default(uuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id])
+  type                  String   // creator, seller
+  period                String   // daily, weekly, monthly, yearly
+  date                  DateTime
+  
+  // We'll store metrics as JSON for flexibility in analytics snapshots
+  metrics               Json
+  
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  amount        Float
+  currency      String        @default("INR")
+  status        PaymentStatus @default(CREATED)
+  
+  // Razorpay (Legacy)
+  orderId       String        @unique
+  paymentId     String?
+  
+  // Stripe (Guardian Elite)
+  stripePaymentIntentId String? @unique
+  stripeTransferId      String? @unique
+  stripeSessionId       String? @unique
+
+  planId        String?
+  refundId      String?
+  refundAmount  Float?
+  completedAt   DateTime?
+  failedAt      DateTime?
+  refundedAt    DateTime?
+  failureReason String?
+  metadata      Json?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model TeamMember {
+  id               String       @id @default(uuid())
+  organizationId   String
+  organization     User         @relation("OrgUser", fields: [organizationId], references: [id])
+  userId           String
+  user             User         @relation("MemberUser", fields: [userId], references: [id])
+  
+  role             TeamRole     @default(CONTRIBUTOR)
+  status           TeamStatus   @default(PENDING)
+  
+  // Permissions stored as JSON
+  permissions      Json
+  
+  invitedByUserId  String?
+  invitedAt        DateTime?
+  acceptedAt       DateTime?
+  
+  lastActive       DateTime?
+  loginCount       Int          @default(0)
+  
+  // Notification Preferences as JSON
+  notificationPrefs Json
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+}
+
+model OTP {
+  id        String   @id @default(uuid())
+  email     String
+  otp       String
+  purpose   String   // registration, reset-password, email-verification
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  title     String
+  message   String
+  type      String   // info, success, warning, error, message, campaign
+  link      String?
+  isRead    Boolean  @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model CalendarEvent {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  
+  title       String
+  description String?
+  startDate   DateTime @map("start")
+  endDate     DateTime @map("end")
+  
+  type        String?  // post, story, reel, video, other
+  platform    String?  // instagram, youtube, tiktok, other
+  status      String?  // planned, created, scheduled, published
+  
+  campaignId  String?
+  campaign    PromotionRequest? @relation(fields: [campaignId], references: [id])
+  
+  url         String?
+  meta        Json?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, startDate])
+}
+
+model ContentCalendar {
+  id               String           @id @default(uuid())
+  creatorId        String
+  creator          User             @relation(fields: [creatorId], references: [id])
+  campaignId       String?
+  campaign         PromotionRequest? @relation(fields: [campaignId], references: [id])
+  
+  title            String
+  description      String?          @db.Text
+  platform         String           // instagram, youtube, tiktok, twitter, linkedin
+  contentType      String           // Post, Story, Reel, Video, Short, etc.
+  
+  scheduledDate    DateTime
+  scheduledTime    String?
+  
+  status           String           @default("scheduled") // scheduled, posted, cancelled, failed
+  
+  caption          String?          @db.Text
+  hashtags         String[]
+  mediaUrls        String[]
+  
+  tags             String[]
+  notes            String?          @db.Text
+  
+  reminders        Json?            // Array of reminder objects
+  performance      Json?            // Snapshot of metrics after posting
+  
+  postedAt         DateTime?
+  postUrl          String?
+  
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([creatorId, scheduledDate])
+}
+
+model Subscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

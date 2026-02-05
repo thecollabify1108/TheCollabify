@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const AnalyticsService = require('../services/analyticsService');
-const Analytics = require('../models/Analytics');
+const prisma = require('../config/prisma');
 
 /**
  * @route   GET /api/analytics/dashboard
@@ -12,10 +12,10 @@ const Analytics = require('../models/Analytics');
 router.get('/dashboard', auth, async (req, res) => {
     try {
         const { period = 'monthly', limit = 12 } = req.query;
-        const userType = req.user.role; // 'creator' or 'seller'
+        const userType = req.user.activeRole; // 'CREATOR' or 'SELLER'
 
         const analytics = await AnalyticsService.getDashboardAnalytics(
-            req.user.id,
+            req.userId,
             userType,
             period,
             parseInt(limit)
@@ -41,10 +41,10 @@ router.get('/dashboard', auth, async (req, res) => {
  */
 router.get('/summary', auth, async (req, res) => {
     try {
-        const userType = req.user.role;
+        const userType = req.user.activeRole;
 
         const summary = await AnalyticsService.getAnalyticsSummary(
-            req.user.id,
+            req.userId,
             userType
         );
 
@@ -68,10 +68,10 @@ router.get('/summary', auth, async (req, res) => {
  */
 router.post('/snapshot', auth, async (req, res) => {
     try {
-        const userType = req.user.role;
+        const userType = req.user.activeRole;
 
         const snapshot = await AnalyticsService.recordDailySnapshot(
-            req.user.id,
+            req.userId,
             userType
         );
 
@@ -98,7 +98,7 @@ router.get('/top-performers', auth, async (req, res) => {
         const { type = 'creator', limit = 10 } = req.query;
 
         const topPerformers = await AnalyticsService.getTopPerformers(
-            type,
+            type.toUpperCase(),
             parseInt(limit)
         );
 
@@ -123,7 +123,7 @@ router.get('/top-performers', auth, async (req, res) => {
 router.get('/range', auth, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
-        const userType = req.user.role;
+        const userType = req.user.activeRole;
 
         if (!startDate || !endDate) {
             return res.status(400).json({
@@ -132,14 +132,19 @@ router.get('/range', auth, async (req, res) => {
             });
         }
 
-        const analytics = await Analytics.find({
-            userId: req.user.id,
-            type: userType,
-            date: {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate)
-            }
-        }).sort({ date: 1 });
+        const analytics = await prisma.analytics.findMany({
+            where: {
+                OR: [
+                    { creatorId: req.userId },
+                    { sellerId: req.userId }
+                ],
+                timestamp: {
+                    gte: new Date(startDate),
+                    lte: new Date(endDate)
+                }
+            },
+            orderBy: { timestamp: 'asc' }
+        });
 
         res.json({
             success: true,

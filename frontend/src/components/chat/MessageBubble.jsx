@@ -41,8 +41,9 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl }) =>
                 {/* Meta info */}
                 <div className={`flex items-center gap-1 mt-1 text-[10px] sm:text-xs text-gray-500 dark:text-dark-400 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                     <span>{time}</span>
+                    {message.isEncrypted && <span className="text-emerald-500 ml-1" title="End-to-end encrypted"><FaLock size={8} /></span>}
                     {isOwn && (
-                        <span className={message.isRead ? 'text-blue-400' : 'text-gray-400 dark:text-dark-400'}>
+                        <span className={`ml-1 ${message.isRead ? 'text-blue-400' : 'text-gray-400 dark:text-dark-400'}`}>
                             {message.isRead ? <FaCheckDouble size={10} /> : <FaCheck size={10} />}
                         </span>
                     )}

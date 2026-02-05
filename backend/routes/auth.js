@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
-const User = require('../models/User');
+const prisma = require('../config/prisma');
+const bcrypt = require('bcryptjs');
 const { auth, generateToken } = require('../middleware/auth');
 const { notifyWelcome } = require('../services/notificationService');
 const { createAndSendOTP, verifyOTP } = require('../services/otpService');
@@ -40,14 +41,17 @@ router.post('/register/send-otp', [
         const { email, name, password, role } = req.body;
 
         // Check if user already exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await prisma.user.findUnique({
+            where: { email },
+            include: { roles: true }
+        });
 
         let isAddingRole = false;
 
         if (existingUser) {
             // Check if user already has this role
             if (existingUser.roles && existingUser.roles.length > 0) {
-                const hasRole = existingUser.roles.some(r => r.type === role);
+                const hasRole = existingUser.roles.some(r => r.type === role.toUpperCase());
                 if (hasRole) {
                     return res.status(400).json({
                         success: false,
@@ -55,7 +59,7 @@ router.post('/register/send-otp', [
                     });
                 }
                 isAddingRole = true;
-            } else if (existingUser.role === role) {
+            } else if (existingUser.activeRole === role.toUpperCase()) {
                 return res.status(400).json({
                     success: false,
                     message: `You already have a ${role} account with this email`
@@ -129,49 +133,52 @@ router.post('/register/verify-otp', [
         }
 
         // Check if adding to existing user or creating new
-        let user = await User.findOne({ email });
+        let user = await prisma.user.findUnique({
+            where: { email },
+            include: { roles: true }
+        });
         let token;
 
+        // Hash password manually before creating/updating
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
         if (isAddingRole && user) {
-            // Add new role to existing user
-            if (!user.roles) {
-                user.roles = [];
-            }
-
-            // Migrate legacy user to roles array if needed
-            if (user.role && user.password) {
-                user.roles.push({
-                    type: user.role,
-                    password: user.password
-                });
-            }
-
-            // Add new role with new password
-            user.roles.push({
-                type: role,
-                password: password  // Will be hashed by pre-save hook
+            // Update existing user with new role
+            user = await prisma.user.update({
+                where: { email },
+                data: {
+                    activeRole: role.toUpperCase(),
+                    emailVerified: true,
+                    roles: {
+                        create: {
+                            type: role.toUpperCase(),
+                            password: hashedPassword
+                        }
+                    }
+                }
             });
 
-            user.activeRole = role;
-            user.emailVerified = true;
-            await user.save();
-
-            token = generateToken(user._id);
+            token = generateToken(user.id);
 
         } else {
             // Create new user
-            user = await User.create({
-                email,
-                name,
-                roles: [{
-                    type: role,
-                    password: password  // Will be hashed by pre-save hook
-                }],
-                activeRole: role,
-                emailVerified: true
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    name,
+                    activeRole: role.toUpperCase(),
+                    emailVerified: true,
+                    roles: {
+                        create: {
+                            type: role.toUpperCase(),
+                            password: hashedPassword
+                        }
+                    }
+                }
             });
 
-            token = generateToken(user._id);
+            token = generateToken(user.id);
         }
 
         // Send welcome notification
@@ -201,10 +208,10 @@ router.post('/register/verify-otp', [
             message: 'Email verified! Registration successful',
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role,
+                    role: role.toUpperCase(),
                     emailVerified: user.emailVerified
                 },
                 token
@@ -319,10 +326,10 @@ router.post('/register', [
             message: 'Registration successful',
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role
+                    role: role.toUpperCase()
                 },
                 token // Still send token for backward compatibility during transition
             }
@@ -350,8 +357,11 @@ router.post('/login', [
     try {
         const { email, password, role } = req.body;
 
-        // Find user and include password for comparison
-        const user = await User.findOne({ email }).select('+password');
+        // Find user and include roles
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: { roles: true }
+        });
 
         if (!user) {
             return res.status(401).json({
@@ -369,31 +379,27 @@ router.post('/login', [
         }
 
         // Compare password based on role
-        let isMatch;
-        let userRole;
+        let isMatch = false;
+        let matchedRole = null;
 
         if (user.roles && user.roles.length > 0) {
-            // Multi-role user
             if (role) {
-                // Specific role requested
-                isMatch = await user.comparePassword(password, role);
-                if (isMatch) {
-                    userRole = role;
+                const roleObj = user.roles.find(r => r.type === role.toUpperCase());
+                if (roleObj) {
+                    isMatch = await bcrypt.compare(password, roleObj.password);
+                    matchedRole = role.toUpperCase();
                 }
             } else {
-                // No role specified, try all
-                const result = await user.comparePassword(password);
-                if (result && result.match) {
-                    isMatch = true;
-                    userRole = result.role;
-                } else {
-                    isMatch = false;
+                // Try all roles
+                for (const roleObj of user.roles) {
+                    const match = await bcrypt.compare(password, roleObj.password);
+                    if (match) {
+                        isMatch = true;
+                        matchedRole = roleObj.type;
+                        break;
+                    }
                 }
             }
-        } else {
-            // Legacy single-role user
-            isMatch = await user.comparePassword(password);
-            userRole = user.role;
         }
 
         if (!isMatch) {
@@ -406,11 +412,13 @@ router.post('/login', [
         }
 
         // Update last login
-        user.lastLogin = new Date();
-        await user.save();
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLogin: new Date() }
+        });
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         // Set HTTPOnly cookie
         res.cookie('token', token, {
@@ -425,12 +433,12 @@ router.post('/login', [
             message: 'Login successful',
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: userRole,
+                    role: matchedRole,
                     avatar: user.avatar,
-                    availableRoles: user.roles ? user.roles.map(r => r.type) : [user.role]
+                    availableRoles: user.roles.map(r => r.type)
                 },
                 token
             }
@@ -451,16 +459,18 @@ router.post('/login', [
  */
 router.get('/me', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.userId);
+        const user = await prisma.user.findUnique({
+            where: { id: req.userId }
+        });
 
         res.json({
             success: true,
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role,
+                    role: user.activeRole,
                     avatar: user.avatar,
                     createdAt: user.createdAt
                 }
@@ -492,21 +502,20 @@ router.put('/update', auth, [
         if (name) updateData.name = name;
         if (avatar) updateData.avatar = avatar;
 
-        const user = await User.findByIdAndUpdate(
-            req.userId,
-            updateData,
-            { new: true, runValidators: true }
-        );
+        const user = await prisma.user.update({
+            where: { id: req.userId },
+            data: updateData
+        });
 
         res.json({
             success: true,
             message: 'Profile updated successfully',
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role,
+                    role: user.activeRole,
                     avatar: user.avatar
                 }
             }
@@ -532,7 +541,9 @@ router.post('/password-reset/send-otp', [
     try {
         const { email } = req.body;
 
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
 
         // Always respond with success to prevent email enumeration
         if (!user) {
@@ -645,7 +656,10 @@ router.post('/password-reset/reset', [
         }
 
         // Find user
-        const user = await User.findOne({ email });
+        const user = await prisma.user.findUnique({
+            where: { email },
+            include: { roles: true }
+        });
 
         if (!user) {
             return res.status(400).json({
@@ -654,12 +668,24 @@ router.post('/password-reset/reset', [
             });
         }
 
-        // Update password
-        user.password = newPassword;
-        await user.save();
+        // Hash password manually
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update password for ALL roles of this user for consistency during reset
+        await prisma.userRole.updateMany({
+            where: { userId: user.id },
+            data: { password: hashedPassword }
+        });
+
+        // Also update legacy password field if needed (though we primarily use roles)
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword }
+        });
 
         // Generate token for auto-login
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         // Set HTTPOnly cookie
         res.cookie('token', token, {
@@ -675,10 +701,10 @@ router.post('/password-reset/reset', [
             data: {
                 token,
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role
+                    role: user.activeRole
                 }
             }
         });
@@ -707,10 +733,24 @@ router.post('/change-password', auth, [
     try {
         const { currentPassword, newPassword } = req.body;
 
-        const user = await User.findById(req.userId).select('+password');
+        const user = await prisma.user.findUnique({
+            where: { id: req.userId },
+            include: { roles: true }
+        });
+
+        // Find the role password to compare against (using activeRole or primary role)
+        const roleToMatch = user.activeRole || 'CREATOR';
+        const roleObj = user.roles.find(r => r.type === roleToMatch);
+
+        if (!roleObj) {
+            return res.status(400).json({
+                success: false,
+                message: 'User role not found'
+            });
+        }
 
         // Verify current password
-        const isMatch = await user.comparePassword(currentPassword);
+        const isMatch = await bcrypt.compare(currentPassword, roleObj.password);
 
         if (!isMatch) {
             return res.status(400).json({
@@ -720,8 +760,18 @@ router.post('/change-password', auth, [
         }
 
         // Update password
-        user.password = newPassword;
-        await user.save();
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        await prisma.userRole.updateMany({
+            where: { userId: user.id },
+            data: { password: hashedPassword }
+        });
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword }
+        });
 
         res.json({
             success: true,
@@ -754,22 +804,24 @@ router.post('/set-password', auth, [
     try {
         const { password } = req.body;
 
-        const user = await User.findById(req.userId).select('+password');
-
-        // Check if user already has a password set
-        // Google OAuth users have random hex password, check if it's hex format
-        const hasRealPassword = user.password && !/^[a-f0-9]{64}$/.test(user.password);
-
-        if (hasRealPassword) {
-            return res.status(400).json({
-                success: false,
-                message: 'Password already set. Use change password instead.'
-            });
-        }
+        const user = await prisma.user.findUnique({
+            where: { id: req.userId }
+        });
 
         // Set new password
-        user.password = password;
-        await user.save();
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword }
+        });
+
+        // Ensure roles have this password too
+        await prisma.userRole.updateMany({
+            where: { userId: user.id },
+            data: { password: hashedPassword }
+        });
 
         res.json({
             success: true,
@@ -800,17 +852,24 @@ router.post('/google', async (req, res) => {
             });
         }
 
-        // Check if user exists with this email
-        let user = await User.findOne({ email });
+        // Find or create user
+        let user = await prisma.user.findUnique({
+            where: { email },
+            include: { roles: true }
+        });
 
         if (user) {
             // User exists - update Google ID if not set
             if (!user.googleId) {
-                user.googleId = googleId;
-                if (avatar && !user.avatar) {
-                    user.avatar = avatar;
-                }
-                await user.save();
+                user = await prisma.user.update({
+                    where: { email },
+                    data: {
+                        googleId,
+                        authProvider: 'GOOGLE',
+                        avatar: avatar || user.avatar
+                    },
+                    include: { roles: true }
+                });
             }
 
             // Check if account is active
@@ -821,32 +880,45 @@ router.post('/google', async (req, res) => {
                 });
             }
         } else {
-            // New user - need to ask for role
-            // For now, default to 'creator' - can be changed later
-            // In production, you might want to redirect to a role selection page
-            user = await User.create({
-                email,
-                name,
-                googleId,
-                avatar,
-                role: 'creator', // Default role for Google sign-ups
-                password: crypto.randomBytes(32).toString('hex') // Random password for Google users
+            // New user - default to 'CREATOR'
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    name,
+                    googleId,
+                    avatar: avatar || "",
+                    authProvider: 'GOOGLE',
+                    emailVerified: true,
+                    activeRole: 'CREATOR',
+                    roles: {
+                        create: {
+                            type: 'CREATOR',
+                            password: crypto.randomBytes(32).toString('hex')
+                        }
+                    }
+                },
+                include: { roles: true }
             });
 
             // Send welcome notification
             try {
-                await notifyWelcome(user._id, user.role);
+                await notifyWelcome(user.id, 'CREATOR');
             } catch (err) {
                 console.error('Failed to send welcome notification:', err);
             }
         }
 
         // Update last login
-        user.lastLogin = new Date();
-        await user.save();
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLogin: new Date() }
+        });
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
+
+        // Use activeRole or first role
+        const userRole = user.activeRole || (user.roles[0] ? user.roles[0].type : 'CREATOR');
 
         // Set HTTPOnly cookie
         res.cookie('token', token, {
@@ -858,16 +930,17 @@ router.post('/google', async (req, res) => {
 
         res.json({
             success: true,
-            message: user.createdAt === user.updatedAt ? 'Registration successful' : 'Login successful',
+            message: 'Google login successful',
             data: {
                 user: {
-                    id: user._id,
+                    id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role,
-                    avatar: user.avatar
+                    role: userRole,
+                    avatar: user.avatar,
+                    availableRoles: user.roles.map(r => r.type)
                 },
-                token // Still send token for backward compatibility
+                token
             }
         });
     } catch (error) {

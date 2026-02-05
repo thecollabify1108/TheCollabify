@@ -124,7 +124,19 @@ export const chatAPI = {
     sendMessageRequest: (creatorId) => api.post('/chat/message-request', { creatorId }),
     getRequests: () => api.get('/chat/requests'),
     acceptRequest: (conversationId) => api.post(`/chat/message-request/${conversationId}/accept`),
-    rejectRequest: (conversationId) => api.post(`/chat/message-request/${conversationId}/reject`)
+    rejectRequest: (conversationId) => api.post(`/chat/message-request/${conversationId}/reject`),
+    // PGP Key Management
+    updatePGPKey: (publicKey) => api.put('/chat/pgp-key', { publicKey }),
+    getPGPKey: (userId) => api.get(`/chat/pgp-key/${userId}`)
+};
+
+// Payment API
+export const paymentAPI = {
+    onboard: () => api.post('/payments/onboard'),
+    createEscrowSession: (data) => api.post('/payments/create-escrow-session', data),
+    verifySession: (sessionId) => api.get(`/payments/verify-session/${sessionId}`),
+    getHistory: () => api.get('/payments/history'),
+    releaseEscrow: (paymentId) => api.post(`/payments/release-escrow/${paymentId}`)
 };
 
 // Admin API
@@ -165,7 +177,9 @@ export const teamAPI = {
 // AI API
 export const aiAPI = {
     generateCaption: (data) => api.post('/ai/generate-caption', data),
-    generateHashtags: (data) => api.post('/ai/generate-hashtags', data)
+    generateHashtags: (data) => api.post('/ai/generate-hashtags', data),
+    predictROI: (data) => api.post('/ai/predict-roi', data),
+    getOptimalTime: (creatorId) => api.get(`/ai/optimal-time/${creatorId}`)
 };
 
 export default api;
