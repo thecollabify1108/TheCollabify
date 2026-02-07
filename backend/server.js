@@ -18,6 +18,9 @@ const apiKeyAuth = require('./middleware/apiKeyAuth');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandlers');
 
+// Sentry Error Monitoring
+const { initSentry, sentryErrorHandler } = require('./config/sentry');
+
 // Load environment variables FIRST
 dotenv.config();
 
@@ -26,6 +29,9 @@ setupProcessHandlers();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+// CRITICAL: Initialize Sentry FIRST (before any middleware)
+initSentry(app);
 
 // CRITICAL: Early health check for Azure - runs before complex modules
 app.get('/health', (req, res) => {
@@ -239,6 +245,9 @@ app.get('/', (req, res) => {
 
 // 404 Not Found Handler - catches undefined routes
 app.use(notFoundHandler);
+
+// Sentry Error Handler - captures 5xx errors for monitoring (BEFORE custom handler)
+app.use(sentryErrorHandler);
 
 // Global Error Handler - catches all errors
 app.use(errorHandler);
