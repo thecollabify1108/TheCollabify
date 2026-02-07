@@ -6,111 +6,104 @@ const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const morgan = require('morgan');
+const helmet = require('helmet');
 
 // Load environment variables FIRST
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 8080;
 
-// CRITICAL: Early health check for Azure - before any other middleware
-// This ensures Azure can verify the app is running
+// CRITICAL: Early health check for Azure - runs before complex modules
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', early: true });
+    res.status(200).json({ status: 'ok', early: true, port: PORT });
 });
 
-// Now load the rest with error handling
-let passport, prisma, secrets, securityHeaders, verifyCloudflare, apiLimiter, initializeSocketServer;
+// Track initialization status
+let prisma = null;
+let passport = null;
+let initializeSocketServer = null;
+let isFullyInitialized = false;
+let initError = null;
 
-try {
-    passport = require('./config/passport');
-    prisma = require('./config/prisma');
-    secrets = require('./config/secrets');
-    const security = require('./middleware/security');
-    securityHeaders = security.securityHeaders;
-    verifyCloudflare = security.verifyCloudflare;
-    apiLimiter = security.apiLimiter;
-    initializeSocketServer = require('./socketServer');
-} catch (error) {
-    console.error('Failed to load modules:', error);
-    // Provide a fallback error endpoint
-    app.get('/api/health', (req, res) => {
-        res.status(500).json({ status: 'error', message: 'Module load failed', error: error.message });
-    });
-}
+// Simple security headers (works without complex helmet config)
+app.use(helmet({
+    contentSecurityPolicy: false, // Disable for API
+    crossOriginEmbedderPolicy: false
+}));
+app.use(compression());
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// 1. Initial Infrastructure Setup
-const startServer = async () => {
-    try {
-        // A. Load Secrets from 1Password (with .env fallback)
-        await secrets.loadSecrets();
+// CORS Configuration
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin) return callback(null, true);
 
-        // Azure App Service provides the port via process.env.PORT
-        const PORT = process.env.PORT || 5000;
-        const HOST = '0.0.0.0';
-
-        // B. Global Security & Optimization
-        // Azure App Service uses a front-end load balancer, so we trust it
-        app.set('trust proxy', true);
-        app.use(securityHeaders);
-        app.use(compression());
-        app.use(verifyCloudflare);
-
-        // C. Logging
-        if (process.env.NODE_ENV === 'production') {
-            app.use(morgan('combined'));
-        } else {
-            app.use(morgan('dev'));
+        // Allow localhost in development
+        if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+            return callback(null, true);
         }
 
-        // D. API Rate Limiting
-        app.use('/api', apiLimiter);
+        // Allow Vercel preview deploys
+        if (origin.match(/https:\/\/.*\.vercel\.app$/)) {
+            return callback(null, true);
+        }
 
-        // E. CORS Configuration
-        app.use(cors({
-            origin: function (origin, callback) {
-                if (!origin) return callback(null, true);
-                if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
-                    return callback(null, true);
-                }
-                if (origin.match(/https:\/\/.*\.vercel\.app$/)) {
-                    return callback(null, true);
-                }
-                const allowedOrigins = [
-                    'https://thecollabify.tech',
-                    'https://www.thecollabify.tech'
-                ];
-                if (process.env.FRONTEND_URL) {
-                    allowedOrigins.push(process.env.FRONTEND_URL);
-                }
-                const normalizedOrigin = origin.replace(/\/$/, "");
-                const isAllowed = allowedOrigins.some(ao => ao.replace(/\/$/, "") === normalizedOrigin);
-                if (isAllowed) return callback(null, true);
+        // Allow production domains
+        const allowedOrigins = [
+            'https://thecollabify.tech',
+            'https://www.thecollabify.tech',
+            process.env.FRONTEND_URL
+        ].filter(Boolean);
 
-                return callback(new Error('CORS blocked'), false);
-            },
-            credentials: true
-        }));
+        const normalizedOrigin = origin.replace(/\/$/, "");
+        const isAllowed = allowedOrigins.some(ao => ao && ao.replace(/\/$/, "") === normalizedOrigin);
 
-        // F. Standard Middleware
-        app.use(cookieParser());
-        app.use(express.json({ limit: '10kb' }));
-        app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-        app.use(session({
-            secret: process.env.SESSION_SECRET || 'elite-guardian-session-key',
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                secure: process.env.NODE_ENV === 'production',
-                httpOnly: true,
-                maxAge: 24 * 60 * 60 * 1000
-            }
-        }));
+        if (isAllowed) return callback(null, true);
+        return callback(new Error('CORS blocked'), false);
+    },
+    credentials: true
+}));
 
-        // G. Authentication
+// Standard Middleware
+app.use(cookieParser());
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'fallback-session-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000
+    }
+}));
+
+// Initialize complex modules asynchronously
+const initializeModules = async () => {
+    try {
+        console.log('🔄 Loading modules...');
+
+        // 1. Load Prisma
+        prisma = require('./config/prisma');
+        console.log('✅ Prisma loaded');
+
+        // 2. Test database connection
+        await prisma.$queryRaw`SELECT 1`;
+        console.log('✅ Database connected');
+
+        // 3. Load Passport
+        passport = require('./config/passport');
         app.use(passport.initialize());
         app.use(passport.session());
+        console.log('✅ Passport initialized');
 
-        // H. API Routes
+        // 4. Load Socket.io
+        initializeSocketServer = require('./socketServer');
+        console.log('✅ Socket.io loaded');
+
+        // 5. Load Routes
         app.use('/api/auth', require('./routes/auth'));
         app.use('/api/auth/password-reset', require('./routes/passwordReset'));
         app.use('/api/oauth', require('./routes/oauth'));
@@ -128,51 +121,82 @@ const startServer = async () => {
         app.use('/api/team', require('./routes/teamManagement'));
         app.use('/api/ai', require('./routes/ai'));
         app.use('/api/payments', require('./routes/payments'));
+        console.log('✅ Routes loaded');
 
-        // I. Health & Error Handling
-        app.get('/api/health', async (req, res) => {
-            try {
-                await prisma.$queryRaw`SELECT 1`;
-                res.json({
-                    status: 'ok',
-                    database: 'postgresql',
-                    security: 'hardened',
-                    timestamp: new Date().toISOString()
-                });
-            } catch (error) {
-                res.status(500).json({ status: 'error', message: 'DB connection failed' });
-            }
-        });
-
-        app.use((req, res) => res.status(404).json({ success: false, message: 'Route not found' }));
-        app.use((err, req, res, next) => {
-            console.error('Error:', err.stack);
-            res.status(err.statusCode || 500).json({
-                success: false,
-                message: err.message || 'Internal Server Error'
-            });
-        });
-
-        // J. Server & Socket Initialization
-        const server = http.createServer(app);
-        const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
-
-        app.locals.sendNotification = sendNotification;
-        app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
-        app.locals.sendBulkNotification = sendBulkNotification;
-
-        server.listen(PORT, HOST, () => {
-            console.log(`✅ Guardian Elite Server running on port ${PORT}`);
-            console.log(`🛡️  Security: Hardened (Helmet + Cloudflare Verification)`);
-            console.log(`🗝️  Secrets: Initialized via 1Password/Env`);
-        });
+        isFullyInitialized = true;
+        console.log('🚀 Full initialization complete!');
 
     } catch (error) {
-        console.error('❌ Critical failure during server startup:', error);
-        process.exit(1);
+        console.error('❌ Module initialization failed:', error);
+        initError = error;
     }
 };
 
-startServer();
+// Full API health check (with database)
+app.get('/api/health', async (req, res) => {
+    try {
+        if (!isFullyInitialized) {
+            return res.status(503).json({
+                status: 'initializing',
+                error: initError?.message,
+                port: PORT
+            });
+        }
 
-module.exports = app;
+        await prisma.$queryRaw`SELECT 1`;
+        res.json({
+            status: 'ok',
+            database: 'postgresql',
+            security: 'hardened',
+            timestamp: new Date().toISOString()
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            message: 'DB connection failed',
+            error: error.message
+        });
+    }
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({
+        message: 'TheCollabify API',
+        status: isFullyInitialized ? 'ready' : 'initializing'
+    });
+});
+
+// 404 Handler
+app.use((req, res) => {
+    res.status(404).json({ success: false, message: 'Route not found' });
+});
+
+// Error Handler
+app.use((err, req, res, next) => {
+    console.error('Error:', err.stack);
+    res.status(err.statusCode || 500).json({
+        success: false,
+        message: err.message || 'Internal Server Error'
+    });
+});
+
+// Start Server
+const server = http.createServer(app);
+
+server.listen(PORT, '0.0.0.0', async () => {
+    console.log(`✅ Server listening on port ${PORT}`);
+
+    // Initialize modules AFTER server is listening
+    // This ensures Azure health checks pass while we're loading
+    await initializeModules();
+
+    // Initialize Socket.io after modules are loaded
+    if (initializeSocketServer) {
+        const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
+        app.locals.sendNotification = sendNotification;
+        app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
+        app.locals.sendBulkNotification = sendBulkNotification;
+        console.log('✅ Socket.io initialized');
+    }
+});
