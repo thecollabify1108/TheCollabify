@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+// Production Azure URL as fallback if env var not set
+const AZURE_API_URL = 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net';
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? AZURE_API_URL : '/api');
 
 const api = axios.create({
     baseURL: API_URL,
@@ -178,8 +180,13 @@ export const teamAPI = {
 export const aiAPI = {
     generateCaption: (data) => api.post('/ai/generate-caption', data),
     generateHashtags: (data) => api.post('/ai/generate-hashtags', data),
+    generateIdeas: (data) => api.post('/ai/generate-ideas', data),
+    generateSchedule: (data) => api.post('/ai/generate-schedule', data),
     predictROI: (data) => api.post('/ai/predict-roi', data),
-    getOptimalTime: (creatorId) => api.get(`/ai/optimal-time/${creatorId}`)
+    getOptimalTime: (creatorId) => api.get(`/ai/optimal-time/${creatorId}`),
+    getRecommendations: (campaignId) => api.get(`/ai/recommendations/${campaignId}`),
+    getMarketInsights: () => api.get('/ai/market-insights'),
+    getProfileTips: (data) => api.post('/ai/profile-tips', data)
 };
 
 export default api;
