@@ -27,12 +27,29 @@ const securityHeaders = helmet({
 // 2. Cloudflare Verification Middleware
 // Ensures the request is coming through the Cloudflare WAF
 const verifyCloudflare = (req, res, next) => {
+    // Skip verification for health checks (Azure probes need direct access)
+    if (req.path === '/api/health' || req.path === '/health') {
+        return next();
+    }
+
+    // Skip in development
+    if (process.env.NODE_ENV !== 'production') {
+        return next();
+    }
+
     // In production, we should check for CF-Connecting-IP and optionally a custom secret header
     // set in Cloudflare Workers/Rules to prevent bypassing the WAF.
     const cfConnectingIP = req.headers['cf-connecting-ip'];
     const cfRay = req.headers['cf-ray'];
 
-    if (process.env.NODE_ENV === 'production' && !cfConnectingIP) {
+    // Allow Azure health probes (they have specific user-agent patterns)
+    const userAgent = req.headers['user-agent'] || '';
+    const isAzureProbe = userAgent.includes('AlwaysOn') ||
+        userAgent.includes('HealthCheck') ||
+        userAgent.includes('ReadyForRequest');
+
+    if (!cfConnectingIP && !isAzureProbe) {
+        console.warn(`[Security] Direct access attempt blocked from ${req.ip}`);
         return res.status(403).json({
             success: false,
             message: 'Direct access to the origin server is prohibited. Please use the official domain.'
