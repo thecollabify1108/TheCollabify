@@ -14,8 +14,15 @@ const { globalLimiter, authLimiter, apiLimiter, strictLimiter } = require('./mid
 const ipAllowlist = require('./middleware/ipAllowlist');
 const apiKeyAuth = require('./middleware/apiKeyAuth');
 
+// Error Handling Middleware
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
+const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandlers');
+
 // Load environment variables FIRST
 dotenv.config();
+
+// Setup process-level error handlers (unhandled rejections, exceptions)
+setupProcessHandlers();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -228,19 +235,13 @@ app.get('/', (req, res) => {
     });
 });
 
-// 404 Handler
-app.use((req, res) => {
-    res.status(404).json({ success: false, message: 'Route not found' });
-});
+// ===== ERROR HANDLING (MUST BE LAST) =====
 
-// Error Handler
-app.use((err, req, res, next) => {
-    console.error('Error:', err.stack);
-    res.status(err.statusCode || 500).json({
-        success: false,
-        message: err.message || 'Internal Server Error'
-    });
-});
+// 404 Not Found Handler - catches undefined routes
+app.use(notFoundHandler);
+
+// Global Error Handler - catches all errors
+app.use(errorHandler);
 
 // Start Server
 const server = http.createServer(app);
@@ -261,3 +262,7 @@ server.listen(PORT, '0.0.0.0', async () => {
         console.log('✅ Socket.io initialized');
     }
 });
+
+// Graceful shutdown handlers
+process.on('SIGTERM', () => gracefulShutdown(server, prisma));
+process.on('SIGINT', () => gracefulShutdown(server, prisma));
