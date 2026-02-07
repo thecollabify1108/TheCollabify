@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaClock, FaCopy } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
-import { generateCaption, generateHashtags, generateContentIdeas, generatePostingSchedule } from '../../services/aiContentGenerator';
+import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 /**
@@ -15,61 +15,83 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
     const [generatedContent, setGeneratedContent] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
-    const [captionParams, setCaptionParams] = useState({
-        productName: campaign.title || '',
-        brandName: campaign.brand || '',
-        category: campaign.category || 'Lifestyle',
-        style: 'casual',
-        tone: 'excited',
-        length: 'medium'
+    const [params, setParams] = useState({
+        topic: campaign.title || '',
+        niche: campaign.category || 'Lifestyle',
+        platform: 'Instagram',
+        tone: 'professional'
     });
 
-    const handleGenerateCaption = () => {
+    const handleGenerateCaption = async () => {
         setIsGenerating(true);
-        setTimeout(() => {
-            const caption = generateCaption(captionParams);
-            setGeneratedContent({ type: 'caption', content: caption });
-            setIsGenerating(false);
-            toast.success('Caption generated!');
-        }, 1000);
-    };
-
-    const handleGenerateHashtags = () => {
-        setIsGenerating(true);
-        setTimeout(() => {
-            const hashtags = generateHashtags({
-                category: captionParams.category,
-                count: 20,
-                brandName: captionParams.brandName
+        try {
+            const res = await aiAPI.generateCaption({
+                topic: params.topic,
+                platform: params.platform,
+                tone: params.tone
             });
-            setGeneratedContent({ type: 'hashtags', content: hashtags });
+            if (res.data.success) {
+                setGeneratedContent({ type: 'caption', content: res.data.data.caption });
+                toast.success('Caption generated!');
+            }
+        } catch (err) {
+            toast.error('Failed to generate caption');
+        } finally {
             setIsGenerating(false);
-            toast.success('Hashtags generated!');
-        }, 800);
+        }
     };
 
-    const handleGenerateIdeas = () => {
+    const handleGenerateHashtags = async () => {
         setIsGenerating(true);
-        setTimeout(() => {
-            const ideas = generateContentIdeas({
-                productType: 'Product',
-                category: captionParams.category,
-                promotionType: campaign.type || 'Post'
+        try {
+            const res = await aiAPI.generateHashtags({
+                topic: params.topic,
+                niche: params.niche
             });
-            setGeneratedContent({ type: 'ideas', content: ideas });
+            if (res.data.success) {
+                setGeneratedContent({ type: 'hashtags', content: res.data.data.hashtags });
+                toast.success('Hashtags generated!');
+            }
+        } catch (err) {
+            toast.error('Failed to generate hashtags');
+        } finally {
             setIsGenerating(false);
-            toast.success('Ideas generated!');
-        }, 1000);
+        }
     };
 
-    const handleGenerateSchedule = () => {
+    const handleGenerateIdeas = async () => {
         setIsGenerating(true);
-        setTimeout(() => {
-            const schedule = generatePostingSchedule(captionParams.category);
-            setGeneratedContent({ type: 'schedule', content: schedule });
+        try {
+            const res = await aiAPI.generateIdeas({
+                category: params.niche,
+                platform: params.platform
+            });
+            if (res.data.success) {
+                setGeneratedContent({ type: 'ideas', content: res.data.data.ideas });
+                toast.success('Ideas generated!');
+            }
+        } catch (err) {
+            toast.error('Failed to generate ideas');
+        } finally {
             setIsGenerating(false);
-            toast.success('Schedule generated!');
-        }, 800);
+        }
+    };
+
+    const handleGenerateSchedule = async () => {
+        setIsGenerating(true);
+        try {
+            const res = await aiAPI.generateSchedule({
+                category: params.niche
+            });
+            if (res.data.success) {
+                setGeneratedContent({ type: 'schedule', content: res.data.data.schedule });
+                toast.success('Schedule generated!');
+            }
+        } catch (err) {
+            toast.error('Failed to generate schedule');
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const copyToClipboard = (text) => {

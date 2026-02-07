@@ -134,4 +134,99 @@ router.get('/optimal-time/:creatorId', auth, async (req, res) => {
     }
 });
 
+const AIMatching = require('../services/aiMatching');
+
+/**
+ * @route   GET /api/ai/recommendations/:campaignId
+ * @desc    Get AI-powered creator recommendations for a campaign
+ * @access  Private
+ */
+router.get('/recommendations/:campaignId', auth, async (req, res) => {
+    try {
+        const { campaignId } = req.params;
+
+        const campaign = await prisma.promotionRequest.findUnique({
+            where: { id: campaignId }
+        });
+
+        if (!campaign) {
+            return res.status(404).json({
+                success: false,
+                message: 'Campaign not found'
+            });
+        }
+
+        const recommendations = await AIMatching.findMatchingCreators(campaign);
+
+        res.json({
+            success: true,
+            data: recommendations
+        });
+    } catch (error) {
+        console.error('Error getting recommendations:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get recommendations'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/ai/generate-ideas
+ * @desc    Generate content ideas using AI
+ * @access  Private
+ */
+router.post('/generate-ideas', auth, async (req, res) => {
+    try {
+        const { category, platform } = req.body;
+        const ideas = await AIContentService.generateContentIdeas(category, platform);
+        res.json({ success: true, data: { ideas } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to generate ideas' });
+    }
+});
+
+/**
+ * @route   POST /api/ai/generate-schedule
+ * @desc    Generate optimal schedule using AI
+ * @access  Private
+ */
+router.post('/generate-schedule', auth, async (req, res) => {
+    try {
+        const { category } = req.body;
+        const schedule = await AIContentService.generatePostingSchedule(category);
+        res.json({ success: true, data: { schedule } });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to generate schedule' });
+    }
+});
+
+/**
+ * @route   GET /api/ai/market-insights
+ * @desc    Get AI-powered market insights
+ * @access  Private
+ */
+router.get('/market-insights', auth, async (req, res) => {
+    try {
+        const insights = await AIContentService.getMarketInsights(req.query);
+        res.json({ success: true, data: insights });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to get insights' });
+    }
+});
+
+/**
+ * @route   POST /api/ai/profile-tips
+ * @desc    Get AI-powered profile tips
+ * @access  Private
+ */
+router.post('/profile-tips', auth, async (req, res) => {
+    try {
+        const tips = await AIContentService.getProfileTips(req.body);
+        res.json({ success: true, data: tips });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Failed to get tips' });
+    }
+});
+
 module.exports = router;

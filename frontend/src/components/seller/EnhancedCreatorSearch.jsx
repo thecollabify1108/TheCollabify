@@ -1,8 +1,4 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { FaSearch, FaTimes } from 'react-icons/fa';
-import AdvancedSearchFilters from './AdvancedSearchFilters';
-import SmartRecommendationsPanel from './SmartRecommendationsPanel';
+import { creatorAPI } from '../../services/api';
 
 /**
  * Enhanced Creator Search Interface
@@ -13,25 +9,25 @@ const EnhancedCreatorSearch = ({ onSearch, onSelect }) => {
     const [filters, setFilters] = useState({});
     const [results, setResults] = useState([]);
     const [showRecommendations, setShowRecommendations] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-    const handleSearch = (newFilters) => {
+    const handleSearch = async (newFilters) => {
         setFilters(newFilters);
-        // Mock search results
-        const mockResults = Array.from({ length: 8 }, (_, i) => ({
-            _id: `creator_${i}`,
-            name: `Creator ${i + 1}`,
-            category: newFilters.categories?.[0] || 'Lifestyle',
-            followerCount: Math.floor(Math.random() * 100000) + 10000,
-            engagementRate: (Math.random() * 5 + 2).toFixed(1),
-            rating: (Math.random() * 2 + 3).toFixed(1),
-            isVerified: Math.random() > 0.5,
-            pricing: {
-                min: Math.floor(Math.random() * 5000) + 1000
-            },
-            isAvailable: Math.random() > 0.3
-        }));
-        setResults(mockResults);
-        onSearch?.(mockResults);
+        setLoading(true);
+        try {
+            const res = await creatorAPI.searchCreators({
+                q: searchQuery,
+                ...newFilters
+            });
+            if (res.data.success) {
+                setResults(res.data.data.creators || []);
+                onSearch?.(res.data.data.creators || []);
+            }
+        } catch (err) {
+            console.error('Search failed:', err);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -73,7 +69,7 @@ const EnhancedCreatorSearch = ({ onSearch, onSelect }) => {
             )}
 
             {/* Search Results Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 ${loading ? 'opacity-50 pointer-events-none' : ''}`}>
                 {results.map((creator, index) => (
                     <motion.div
                         key={creator._id}

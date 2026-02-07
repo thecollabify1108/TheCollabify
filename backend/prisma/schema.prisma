@@ -130,6 +130,9 @@ model User {
   // E2EE Messaging
   pgpPublicKey          String?        @db.Text
   
+  // API Keys for rotation system
+  apiKeys               ApiKey[]
+  
   // Stripe Integration
   stripeCustomerId      String?        @unique
   stripeAccountId       String?        @unique // For Connect (Creators)
@@ -492,3 +495,23 @@ model Subscriber {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+// API Key Rotation System
+model ApiKey {
+  id            String    @id @default(uuid())
+  key           String    @unique
+  userId        String?
+  serviceName   String    // Name of service/admin using this key
+  description   String?   // Optional description
+  isActive      Boolean   @default(true)
+  expiresAt     DateTime  // Expiration date (90 days from creation)
+  createdAt     DateTime  @default(now())
+  lastUsedAt    DateTime?
+  rotatedFrom   String?   // Previous key ID (for grace period tracking)
+  
+  user          User?     @relation(fields: [userId], references: [id])
+  
+  @@index([key, isActive])
+  @@index([expiresAt])
+}
+

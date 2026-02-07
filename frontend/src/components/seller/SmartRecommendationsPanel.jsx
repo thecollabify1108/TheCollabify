@@ -2,31 +2,44 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaRobot, FaStar, FaCheckCircle, FaEnvelope } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
-import { calculateMatchScore, getAutomatedRecommendations, getSmartSuggestions } from '../../services/automatedMatching';
+import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 /**
  * Smart Recommendations Panel
  * AI-powered creator recommendations for campaigns
  */
-const SmartRecommendationsPanel = ({ campaign, allCreators, onInvite }) => {
+const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedCreators, setSelectedCreators] = useState([]);
 
     useEffect(() => {
-        if (campaign && allCreators) {
+        if (campaign?.id) {
             loadRecommendations();
         }
-    }, [campaign, allCreators]);
+    }, [campaign?.id]);
 
-    const loadRecommendations = () => {
+    const loadRecommendations = async () => {
         setLoading(true);
-        setTimeout(() => {
-            const recs = getAutomatedRecommendations(campaign, allCreators, 10);
-            setRecommendations(recs);
+        try {
+            const res = await aiAPI.getRecommendations(campaign.id);
+            if (res.data.success) {
+                // Map backend creator data to format used by panel if different
+                const formattedRecs = res.data.data.map(match => ({
+                    ...match.creator,
+                    _id: match.creatorId,
+                    matchScore: match.matchScore,
+                    reasons: match.matchReason.split(' • ')
+                }));
+                setRecommendations(formattedRecs);
+            }
+        } catch (err) {
+            console.error('Failed to load AI recommendations:', err);
+            toast.error('Could not fetch AI recommendations');
+        } finally {
             setLoading(false);
-        }, 1000);
+        }
     };
 
     const toggleCreator = (creatorId) => {
@@ -95,8 +108,8 @@ const SmartRecommendationsPanel = ({ campaign, allCreators, onInvite }) => {
                         transition={{ delay: index * 0.05 }}
                         onClick={() => toggleCreator(creator._id)}
                         className={`bg-dark-900 border-2 ${selectedCreators.includes(creator._id)
-                                ? 'border-purple-500 bg-purple-500/5'
-                                : 'border-dark-800 hover:border-dark-700'
+                            ? 'border-purple-500 bg-purple-500/5'
+                            : 'border-dark-800 hover:border-dark-700'
                             } rounded-xl p-4 cursor-pointer transition-all`}
                     >
                         <div className="flex items-start gap-4">

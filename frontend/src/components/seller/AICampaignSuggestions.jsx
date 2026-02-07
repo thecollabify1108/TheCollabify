@@ -11,7 +11,7 @@ import {
     FaMagic,
     FaArrowRight
 } from 'react-icons/fa';
-import { HiSparkles, HiTrendingUp, HiLightningBolt } from 'react-icons/hi';
+import { aiAPI } from '../../services/api';
 
 /**
  * AI Campaign Suggestions
@@ -27,132 +27,43 @@ const AICampaignSuggestions = ({ requests = [], onCreateCampaign, onApplySuggest
         generateSuggestions();
     }, [requests]);
 
-    const generateSuggestions = () => {
+    const generateSuggestions = async () => {
         setLoading(true);
-
-        // Simulate AI processing
-        setTimeout(() => {
-            const newSuggestions = [];
-
-            // Analyze past campaign data
-            const completedCampaigns = requests.filter(r => r.status === 'Completed');
-            const activeCampaigns = requests.filter(r => ['Open', 'Creator Interested', 'Accepted'].includes(r.status));
-            const avgMatchScore = requests.length > 0
-                ? requests.flatMap(r => r.matchedCreators?.map(mc => mc.matchScore) || []).reduce((a, b, _, arr) => a + b / arr.length, 0)
-                : 0;
-
-            // Suggestion 1: Best time to post
-            newSuggestions.push({
-                id: 1,
-                type: 'timing',
-                title: '🕐 Best Time to Launch',
-                description: 'Based on creator activity patterns, launching campaigns between 6-9 PM gets 40% more applications.',
-                action: 'Schedule for evening',
-                icon: FaClock,
-                color: 'from-blue-500 to-cyan-500',
-                confidence: 87,
-                impact: 'high'
-            });
-
-            // Suggestion 2: Category recommendation
-            const popularCategories = ['Fashion', 'Beauty', 'Tech', 'Fitness', 'Food'];
-            const currentCategories = requests.map(r => r.targetCategory);
-            const underusedCategories = popularCategories.filter(c => !currentCategories.includes(c));
-
-            if (underusedCategories.length > 0) {
-                newSuggestions.push({
-                    id: 2,
-                    type: 'category',
-                    title: '🎯 Untapped Market',
-                    description: `${underusedCategories[0]} category has high creator supply but low campaign demand. Great opportunity!`,
-                    action: `Try ${underusedCategories[0]} campaign`,
-                    icon: HiTrendingUp,
-                    color: 'from-green-500 to-emerald-500',
-                    confidence: 82,
-                    impact: 'high',
-                    data: { category: underusedCategories[0] }
-                });
+        try {
+            const res = await aiAPI.getMarketInsights();
+            if (res.data.success) {
+                const formattedSuggestions = res.data.data.map(s => ({
+                    ...s,
+                    icon: getIconForType(s.type),
+                    color: getColorForType(s.type)
+                }));
+                setSuggestions(formattedSuggestions);
             }
-
-            // Suggestion 3: Budget optimization
-            const avgBudget = requests.length > 0
-                ? requests.reduce((sum, r) => sum + ((r.budgetRange?.min || 0) + (r.budgetRange?.max || 0)) / 2, 0) / requests.length
-                : 0;
-
-            if (avgBudget > 0) {
-                newSuggestions.push({
-                    id: 3,
-                    type: 'budget',
-                    title: '💰 Budget Sweet Spot',
-                    description: `Campaigns with ₹${Math.round(avgBudget * 0.8).toLocaleString()}-₹${Math.round(avgBudget * 1.2).toLocaleString()} budget get 50% more quality applicants.`,
-                    action: 'Optimize budget range',
-                    icon: FaChartLine,
-                    color: 'from-amber-500 to-orange-500',
-                    confidence: 79,
-                    impact: 'medium',
-                    data: { min: Math.round(avgBudget * 0.8), max: Math.round(avgBudget * 1.2) }
-                });
-            } else {
-                newSuggestions.push({
-                    id: 3,
-                    type: 'budget',
-                    title: '💰 Recommended Budget',
-                    description: 'Based on market trends, ₹2,000-₹5,000 is the sweet spot for Reels campaigns.',
-                    action: 'Start with ₹3,000',
-                    icon: FaChartLine,
-                    color: 'from-amber-500 to-orange-500',
-                    confidence: 75,
-                    impact: 'medium',
-                    data: { min: 2000, max: 5000 }
-                });
-            }
-
-            // Suggestion 4: Promotion type
-            newSuggestions.push({
-                id: 4,
-                type: 'promotion',
-                title: '📱 Reels Trend Alert',
-                description: 'Reels campaigns are getting 3x more engagement than Stories right now. Consider switching!',
-                action: 'Create Reels campaign',
-                icon: HiLightningBolt,
-                color: 'from-purple-500 to-pink-500',
-                confidence: 91,
-                impact: 'high',
-                data: { promotionType: 'Reels' }
-            });
-
-            // Suggestion 5: Follower range
-            newSuggestions.push({
-                id: 5,
-                type: 'followers',
-                title: '👥 Micro-Influencers Win',
-                description: 'Creators with 5K-25K followers have 8x higher engagement rates. Perfect for authentic promotions!',
-                action: 'Target micro-influencers',
-                icon: FaUsers,
-                color: 'from-indigo-500 to-violet-500',
-                confidence: 88,
-                impact: 'high',
-                data: { followerMin: 5000, followerMax: 25000 }
-            });
-
-            // Suggestion 6: Quick win
-            if (activeCampaigns.length === 0) {
-                newSuggestions.push({
-                    id: 6,
-                    type: 'quickstart',
-                    title: '🚀 Quick Start Campaign',
-                    description: 'Launch your first campaign in under 2 minutes with our AI-optimized settings!',
-                    action: 'Quick start now',
-                    icon: FaRocket,
-                    color: 'from-rose-500 to-red-500',
-                    confidence: 95,
-                    impact: 'high'
-                });
-            }
-
-            setSuggestions(newSuggestions);
+        } catch (err) {
+            console.error('Failed to load market insights:', err);
+        } finally {
             setLoading(false);
-        }, 1000);
+        }
+    };
+
+    const getIconForType = (type) => {
+        switch (type) {
+            case 'timing': return FaClock;
+            case 'category': return HiTrendingUp;
+            case 'promotion': return HiLightningBolt;
+            case 'budget': return FaChartLine;
+            default: return FaLightbulb;
+        }
+    };
+
+    const getColorForType = (type) => {
+        switch (type) {
+            case 'timing': return 'from-blue-500 to-cyan-500';
+            case 'category': return 'from-green-500 to-emerald-500';
+            case 'promotion': return 'from-purple-500 to-pink-500';
+            case 'budget': return 'from-amber-500 to-orange-500';
+            default: return 'from-primary-500 to-secondary-500';
+        }
     };
 
     const handleApplySuggestion = (suggestion) => {

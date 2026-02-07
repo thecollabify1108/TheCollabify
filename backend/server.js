@@ -8,6 +8,12 @@ const session = require('express-session');
 const morgan = require('morgan');
 const helmet = require('helmet');
 
+// Advanced Security Middleware
+const requestTracker = require('./middleware/requestTracker');
+const { globalLimiter, authLimiter, apiLimiter, strictLimiter } = require('./middleware/rateLimiter');
+const ipAllowlist = require('./middleware/ipAllowlist');
+const apiKeyAuth = require('./middleware/apiKeyAuth');
+
 // Load environment variables FIRST
 dotenv.config();
 
@@ -26,7 +32,12 @@ let initializeSocketServer = null;
 let isFullyInitialized = false;
 let initError = null;
 
-// Production-grade security headers
+// ===== SECURITY MIDDLEWARE STACK =====
+
+// 1. Request ID Tracking (FIRST - for audit trails)
+app.use(requestTracker);
+
+// 2. Production-grade security headers
 app.use(helmet({
     // Content Security Policy for API endpoints
     contentSecurityPolicy: {
@@ -69,8 +80,13 @@ app.use(helmet({
         policy: 'same-site'
     }
 }));
+
+// 3. Compression & Logging
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// 4. Global Rate Limiting (100 req/15min per IP)
+app.use(globalLimiter);
 
 // CORS Configuration
 app.use(cors({
@@ -141,15 +157,22 @@ const initializeModules = async () => {
         initializeSocketServer = require('./socketServer');
         console.log('✅ Socket.io loaded');
 
-        // 5. Load Routes
-        app.use('/api/auth', require('./routes/auth'));
-        app.use('/api/auth/password-reset', require('./routes/passwordReset'));
+        // 5. Load Routes with specialized security
+        // Auth routes: strict rate limiting (5 req/15min)
+        app.use('/api/auth', authLimiter, require('./routes/auth'));
+        app.use('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset'));
         app.use('/api/oauth', require('./routes/oauth'));
+
+        // Standard API routes
         app.use('/api/creators', require('./routes/creators'));
         app.use('/api/sellers', require('./routes/sellers'));
         app.use('/api/notifications', require('./routes/notifications'));
         app.use('/api/chat', require('./routes/chat'));
-        app.use('/api/admin', require('./routes/admin'));
+
+        // Admin routes: IP allowlisting required
+        app.use('/api/admin', ipAllowlist, require('./routes/admin'));
+
+        // Public routes
         app.use('/api/search', require('./routes/search'));
         app.use('/api/leaderboard', require('./routes/leaderboard'));
         app.use('/api/achievements', require('./routes/achievements'));
@@ -159,7 +182,7 @@ const initializeModules = async () => {
         app.use('/api/team', require('./routes/teamManagement'));
         app.use('/api/ai', require('./routes/ai'));
         app.use('/api/payments', require('./routes/payments'));
-        console.log('✅ Routes loaded');
+        console.log('✅ Routes loaded with security middleware');
 
         isFullyInitialized = true;
         console.log('🚀 Full initialization complete!');

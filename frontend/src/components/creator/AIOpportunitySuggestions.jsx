@@ -13,7 +13,7 @@ import {
     FaHashtag,
     FaStar
 } from 'react-icons/fa';
-import { HiSparkles, HiTrendingUp, HiLightningBolt, HiPhotograph } from 'react-icons/hi';
+import { aiAPI } from '../../services/api';
 
 /**
  * AI Opportunity Suggestions for Creators
@@ -29,128 +29,46 @@ const AIOpportunitySuggestions = ({ profile, promotions = [], onApplySuggestion 
         generateSuggestions();
     }, [profile, promotions]);
 
-    const generateSuggestions = () => {
+    const generateSuggestions = async () => {
+        if (!profile) return;
         setLoading(true);
 
-        // Simulate AI processing
-        setTimeout(() => {
-            const newSuggestions = [];
-
-            if (!profile) {
-                setSuggestions([]);
-                setLoading(false);
-                return;
+        try {
+            const res = await aiAPI.getProfileTips(profile);
+            if (res.data.success) {
+                const formattedTips = res.data.data.map(tip => ({
+                    ...tip,
+                    icon: getIconForType(tip.id),
+                    color: getColorForType(tip.id)
+                }));
+                // Combine with basic opportunities logic if needed
+                setSuggestions(formattedTips);
             }
-
-            // Suggestion 1: Profile optimization
-            if (profile.engagementRate < 5) {
-                newSuggestions.push({
-                    id: 1,
-                    type: 'engagement',
-                    title: '📈 Boost Your Engagement',
-                    description: 'Your engagement rate is below average. Post during peak hours (6-9 PM) and use more interactive stories!',
-                    action: 'Learn tips',
-                    icon: HiTrendingUp,
-                    color: 'from-amber-500 to-orange-500',
-                    confidence: 85,
-                    impact: 'high'
-                });
-            } else {
-                newSuggestions.push({
-                    id: 1,
-                    type: 'engagement',
-                    title: '🔥 Great Engagement!',
-                    description: `Your ${profile.engagementRate}% engagement is above average. You're more likely to get accepted for campaigns!`,
-                    action: 'Keep it up',
-                    icon: HiLightningBolt,
-                    color: 'from-green-500 to-emerald-500',
-                    confidence: 92,
-                    impact: 'high'
-                });
-            }
-
-            // Suggestion 2: Best matching promotions
-            const matchingPromos = promotions.filter(p => !p.hasApplied).slice(0, 3);
-            if (matchingPromos.length > 0) {
-                newSuggestions.push({
-                    id: 2,
-                    type: 'opportunity',
-                    title: '🎯 Hot Opportunities',
-                    description: `${matchingPromos.length} new promotions match your profile perfectly. Don't miss out!`,
-                    action: 'Apply now',
-                    icon: FaRocket,
-                    color: 'from-primary-500 to-secondary-500',
-                    confidence: 88,
-                    impact: 'high',
-                    data: { promotions: matchingPromos }
-                });
-            }
-
-            // Suggestion 3: Category expansion
-            const popularCategories = ['Fashion', 'Beauty', 'Tech', 'Fitness', 'Food', 'Travel'];
-            const otherCategories = popularCategories.filter(c => c !== profile.category);
-            newSuggestions.push({
-                id: 3,
-                type: 'category',
-                title: '🌟 Expand Your Niche',
-                description: `Consider adding ${otherCategories[0]} to your skills. Cross-niche creators earn 30% more!`,
-                action: 'Update profile',
-                icon: FaHashtag,
-                color: 'from-purple-500 to-pink-500',
-                confidence: 76,
-                impact: 'medium'
-            });
-
-            // Suggestion 4: Reels focus
-            if (!profile.promotionTypes?.includes('Reels')) {
-                newSuggestions.push({
-                    id: 4,
-                    type: 'content',
-                    title: '📱 Add Reels to Your Skills',
-                    description: 'Reels campaigns pay 40% more on average. Add Reels to attract higher-paying brands!',
-                    action: 'Add Reels',
-                    icon: HiPhotograph,
-                    color: 'from-rose-500 to-red-500',
-                    confidence: 91,
-                    impact: 'high',
-                    data: { promotionType: 'Reels' }
-                });
-            }
-
-            // Suggestion 5: Pricing optimization
-            const suggestedMin = Math.round(profile.followerCount * 0.0005);
-            const suggestedMax = Math.round(profile.followerCount * 0.001);
-            if (profile.priceRange?.max < suggestedMin) {
-                newSuggestions.push({
-                    id: 5,
-                    type: 'pricing',
-                    title: '💰 Increase Your Rates',
-                    description: `Based on your followers, you could charge ₹${suggestedMin.toLocaleString()}-₹${suggestedMax.toLocaleString()} per post!`,
-                    action: 'Update pricing',
-                    icon: FaChartLine,
-                    color: 'from-amber-500 to-yellow-500',
-                    confidence: 83,
-                    impact: 'high',
-                    data: { min: suggestedMin, max: suggestedMax }
-                });
-            }
-
-            // Suggestion 6: Apply faster
-            newSuggestions.push({
-                id: 6,
-                type: 'timing',
-                title: '⚡ Apply Within 24 Hours',
-                description: 'Creators who apply within 24 hours are 3x more likely to get selected!',
-                action: 'Check new opportunities',
-                icon: FaClock,
-                color: 'from-blue-500 to-cyan-500',
-                confidence: 89,
-                impact: 'medium'
-            });
-
-            setSuggestions(newSuggestions);
+        } catch (err) {
+            console.error('Failed to load profile tips:', err);
+        } finally {
             setLoading(false);
-        }, 800);
+        }
+    };
+
+    const getIconForType = (id) => {
+        switch (id) {
+            case 'engagement': return HiTrendingUp;
+            case 'niche': return FaHashtag;
+            case 'pricing': return FaChartLine;
+            case 'timing': return FaClock;
+            default: return FaLightbulb;
+        }
+    };
+
+    const getColorForType = (id) => {
+        switch (id) {
+            case 'engagement': return 'from-amber-500 to-orange-500';
+            case 'niche': return 'from-purple-500 to-pink-500';
+            case 'pricing': return 'from-amber-500 to-yellow-500';
+            case 'timing': return 'from-blue-500 to-cyan-500';
+            default: return 'from-primary-500 to-secondary-500';
+        }
     };
 
     const handleApplySuggestion = (suggestion) => {
