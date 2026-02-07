@@ -17,16 +17,30 @@ import {
 import { FaUsers, FaArrowUp, FaArrowDown, FaMoneyBillWave, FaBullhorn, FaCheckCircle } from 'react-icons/fa';
 import AnimatedCounter from '../common/AnimatedCounter';
 
+import { Skeleton, SkeletonStats } from '../../components/common/Skeleton';
+
 const AdminDashboard = ({ stats, loading }) => {
     if (loading || !stats) {
-        return <div className="animate-pulse space-y-4">
-            <div className="h-32 bg-dark-800 rounded-2xl"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="h-40 bg-dark-800 rounded-2xl"></div>
-                <div className="h-40 bg-dark-800 rounded-2xl"></div>
-                <div className="h-40 bg-dark-800 rounded-2xl"></div>
+        return (
+            <div className="space-y-8">
+                {/* Stats Grid Skeleton */}
+                <SkeletonStats />
+
+                {/* Charts Skeleton */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="glass-card p-6 lg:col-span-2 space-y-4">
+                        <Skeleton variant="title" width="30%" height={28} />
+                        <Skeleton variant="rectangular" width="100%" height={300} className="rounded-xl" />
+                    </div>
+                    <div className="glass-card p-6 space-y-4">
+                        <Skeleton variant="title" width="40%" height={28} />
+                        <div className="flex items-center justify-center h-[300px]">
+                            <Skeleton variant="circular" width={200} height={200} />
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>;
+        );
     }
 
     // Use real stats or default to 0/empty

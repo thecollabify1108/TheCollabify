@@ -332,17 +332,53 @@ const SellerDashboard = () => {
         }
     ];
 
+    // Imported Skeleton components
+    import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
+
     if (loading) {
         return (
-            <div className="min-h-screen bg-dark-950">
+            <div className="min-h-screen bg-dark-950 pb-20">
                 <Navbar />
-                <div className="max-w-lg mx-auto p-4 space-y-4">
-                    <div className="flex gap-4 overflow-x-auto pb-4">
-                        {[1, 2, 3, 4, 5].map(i => (
-                            <div key={i} className="w-20 h-20 rounded-full bg-dark-800 animate-pulse shimmer flex-shrink-0"></div>
-                        ))}
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
+                    {/* Hero Skeleton */}
+                    <div className="glass-card p-8 rounded-3xl relative overflow-hidden">
+                        <div className="relative z-10 space-y-4">
+                            <Skeleton variant="title" width="40%" height={40} />
+                            <Skeleton variant="text" width="60%" height={24} />
+                            <div className="flex gap-4 mt-6">
+                                <Skeleton width={120} height={48} className="rounded-xl" />
+                                <Skeleton width={120} height={48} className="rounded-xl" />
+                            </div>
+                        </div>
                     </div>
-                    <div className="h-96 bg-dark-800 rounded-3xl animate-pulse shimmer"></div>
+
+                    {/* Stats Skeleton */}
+                    <SkeletonStats />
+
+                    {/* Charts Skeleton */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+                        <div className="lg:col-span-2 glass-card p-6">
+                            <Skeleton variant="title" width="30%" height={28} className="mb-6" />
+                            <Skeleton variant="rectangular" width="100%" height="80%" />
+                        </div>
+                        <div className="glass-card p-6">
+                            <Skeleton variant="title" width="40%" height={28} className="mb-6" />
+                            <SkeletonList count={4} />
+                        </div>
+                    </div>
+
+                    {/* Active Campaigns Skeleton */}
+                    <div>
+                        <div className="flex justify-between items-center mb-6">
+                            <Skeleton variant="title" width={200} height={32} />
+                            <Skeleton width={140} height={40} className="rounded-xl" />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <SkeletonCard />
+                            <SkeletonCard />
+                            <SkeletonCard />
+                        </div>
+                    </div>
                 </div>
             </div>
         );

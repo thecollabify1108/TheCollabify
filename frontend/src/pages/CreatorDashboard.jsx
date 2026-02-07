@@ -19,7 +19,6 @@ import ProfileForm from '../components/creator/ProfileForm';
 import PromotionList from '../components/creator/PromotionList';
 import ChatBox from '../components/common/ChatBox';
 import ConversationList from '../components/common/ConversationList';
-import SkeletonLoader from '../components/common/SkeletonLoader';
 
 import CreatorAnalytics from '../components/creator/CreatorAnalytics';
 import AIOpportunitySuggestions from '../components/creator/AIOpportunitySuggestions';
@@ -166,8 +165,62 @@ const CreatorDashboard = () => {
         }
     };
 
+    // Imported Skeleton components
+    import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
+
     if (loading) {
-        return <SkeletonLoader />;
+        return (
+            <div className="min-h-screen bg-dark-950 pb-20">
+                <Navbar />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
+                    {/* Hero Skeleton */}
+                    <div className="glass-card p-8 rounded-3xl relative overflow-hidden">
+                        <div className="relative z-10 space-y-4">
+                            <Skeleton variant="title" width="40%" height={40} />
+                            <Skeleton variant="text" width="60%" height={24} />
+                            <div className="flex gap-4 mt-6">
+                                <Skeleton width={120} height={48} className="rounded-xl" />
+                                <Skeleton width={120} height={48} className="rounded-xl" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stats Skeleton */}
+                    <SkeletonStats />
+
+                    {/* Charts Skeleton */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+                        <div className="lg:col-span-2 glass-card p-6">
+                            <Skeleton variant="title" width="30%" height={28} className="mb-6" />
+                            <Skeleton variant="rectangular" width="100%" height="80%" />
+                        </div>
+                        <div className="glass-card p-6">
+                            <Skeleton variant="title" width="40%" height={28} className="mb-6" />
+                            <SkeletonList count={4} />
+                        </div>
+                    </div>
+
+                    {/* Action Items Skeleton */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="glass-card p-6 h-40">
+                            <Skeleton variant="title" width="50%" height={24} className="mb-4" />
+                            <Skeleton variant="rectangular" width="100%" height={8} className="rounded-full mb-4" />
+                            <Skeleton width="100%" height={40} className="rounded-lg" />
+                        </div>
+                        <div className="glass-card p-6 h-40">
+                            <div className="flex gap-4 items-center mb-4">
+                                <Skeleton variant="circular" width={48} height={48} />
+                                <div className="space-y-2">
+                                    <Skeleton width={120} height={20} />
+                                    <Skeleton width={180} height={16} />
+                                </div>
+                            </div>
+                            <Skeleton width="100%" height={40} className="rounded-lg" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     const pendingApplications = applications.filter(a => a.applicationStatus === 'Pending').length;
