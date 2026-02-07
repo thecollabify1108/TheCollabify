@@ -26,10 +26,48 @@ let initializeSocketServer = null;
 let isFullyInitialized = false;
 let initError = null;
 
-// Simple security headers (works without complex helmet config)
+// Production-grade security headers
 app.use(helmet({
-    contentSecurityPolicy: false, // Disable for API
-    crossOriginEmbedderPolicy: false
+    // Content Security Policy for API endpoints
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'none'"],
+            connectSrc: ["'self'"],
+            frameSrc: ["'none'"],
+            frameAncestors: ["'none'"],
+            scriptSrc: ["'none'"],
+            styleSrc: ["'none'"],
+            imgSrc: ["'none'"],
+            fontSrc: ["'none'"],
+            objectSrc: ["'none'"],
+            mediaSrc: ["'none'"],
+            manifestSrc: ["'none'"]
+        }
+    },
+    // HTTP Strict Transport Security (HSTS)
+    hsts: {
+        maxAge: 31536000, // 1 year
+        includeSubDomains: true,
+        preload: true
+    },
+    // Prevent clickjacking
+    frameguard: {
+        action: 'deny'
+    },
+    // Prevent MIME type sniffing
+    noSniff: true,
+    // Disable X-Powered-By header
+    hidePoweredBy: true,
+    // Referrer Policy
+    referrerPolicy: {
+        policy: 'strict-origin-when-cross-origin'
+    },
+    // Cross-Origin embedder policy
+    crossOriginEmbedderPolicy: false, // Not needed for API
+    // Cross-Origin resource policy
+    crossOriginResourcePolicy: {
+        policy: 'same-site'
+    }
 }));
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
