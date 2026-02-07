@@ -3,29 +3,32 @@ import { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
 
-// Pages
-import Landing from './pages/Landing';
-import ForBrands from './pages/ForBrands';
-import ForCreators from './pages/ForCreators';
+// Pages - Marketing (lazy loaded for better performance)
+const Landing = lazy(() => import('./pages/Landing'));
+const ForBrands = lazy(() => import('./pages/ForBrands'));
+const ForCreators = lazy(() => import('./pages/ForCreators'));
+const TermsConditions = lazy(() => import('./pages/TermsConditions'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+
+// Pages - Auth (lightweight, load immediately)
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-// import CreatorDashboard from './pages/CreatorDashboard'; // Removed for lazy loading
-// import SellerDashboard from './pages/SellerDashboard'; // Removed for lazy loading
-// import AdminPanel from './pages/AdminPanel'; // Removed for lazy loading
-import TermsConditions from './pages/TermsConditions';
-import PrivacyPolicy from './pages/PrivacyPolicy';
+
+// Pages - Errors (load immediately for better UX)
+import NotFound from './pages/NotFound';
+import ServerError from './pages/ServerError';
+
+// Components
 import ScrollToTop from './components/common/ScrollToTop';
 import PageTransition from './components/common/PageTransition';
 import AppLoader from './components/common/AppLoader';
-import NotFound from './pages/NotFound';
-import ServerError from './pages/ServerError';
 import NotificationPrompt from './components/common/NotificationPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import CursorParticles from './components/effects/CursorParticles';
 
-// Lazy load heavy components
+// Lazy load heavy dashboard components (already optimized)
 const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
 const SellerDashboard = lazy(() => import('./pages/SellerDashboard'));
 const AdminPanel = lazy(() => import('./pages/AdminPanel'));
