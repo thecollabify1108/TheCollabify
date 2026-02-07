@@ -11,6 +11,45 @@ const { sendEmail } = require('../services/emailTemplates');
 // Removed legacy emailService
 
 /**
+ * SECURITY: Secure cookie configuration helper
+ * Sets HttpOnly, Secure, and SameSite=Strict for production
+ */
+const setCookieToken = (res, token) => {
+    res.cookie('token', token, {
+        httpOnly: true,                    // Prevents XSS access via JavaScript
+        secure: process.env.NODE_ENV === 'production',  // HTTPS only in production
+        sameSite: 'strict',                // CSRF protection (strict for same-site only)
+        maxAge: 7 * 24 * 60 * 60 * 1000   // 7 days
+    });
+};
+
+/**
+ * SECURITY: Sanitize user object - remove sensitive fields
+ * Never return passwords, tokens, or sensitive data in API responses
+ */
+const sanitizeUser = (user) => {
+    const sanitized = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar || null,
+        activeRole: user.activeRole,
+        emailVerified: user.emailVerified,
+        createdAt: user.createdAt
+    };
+
+    // Add optional fields if they exist
+    if (user.roles) {
+        sanitized.availableRoles = user.roles.map(r => r.type);
+    }
+    if (user.stripeOnboardingComplete !== undefined) {
+        sanitized.stripeOnboardingComplete = user.stripeOnboardingComplete;
+    }
+
+    return sanitized;
+};
+
+/**
  * Validation middleware
  */
 const handleValidation = (req, res, next) => {
@@ -195,26 +234,14 @@ router.post('/register/verify-otp', [
             console.error('Failed to send welcome notification/email:', err);
         }
 
-        // Set HTTPOnly cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
+        // Set secure HTTPOnly cookie (token NOT in response body)
+        setCookieToken(res, token);
 
         res.status(201).json({
             success: true,
             message: 'Email verified! Registration successful',
             data: {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: role.toUpperCase(),
-                    emailVerified: user.emailVerified
-                },
-                token
+                user: sanitizeUser({ ...user, activeRole: role.toUpperCase() })
             }
         });
     } catch (error) {
@@ -313,25 +340,14 @@ router.post('/register', [
             console.error('Failed to send welcome notification:', err);
         }
 
-        // Set HTTPOnly cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
+        // Set secure HTTPOnly cookie (token NOT in response body)
+        setCookieToken(res, token);
 
         res.status(201).json({
             success: true,
             message: 'Registration successful',
             data: {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: role.toUpperCase()
-                },
-                token // Still send token for backward compatibility during transition
+                user: sanitizeUser({ ...user, activeRole: role.toUpperCase() })
             }
         });
     } catch (error) {
@@ -420,27 +436,14 @@ router.post('/login', [
         // Generate token
         const token = generateToken(user.id);
 
-        // Set HTTPOnly cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
+        // Set secure HTTPOnly cookie (token NOT in response body)
+        setCookieToken(res, token);
 
         res.json({
             success: true,
             message: 'Login successful',
             data: {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: matchedRole,
-                    avatar: user.avatar,
-                    availableRoles: user.roles.map(r => r.type)
-                },
-                token
+                user: sanitizeUser({ ...user, activeRole: matchedRole })
             }
         });
     } catch (error) {
@@ -466,14 +469,7 @@ router.get('/me', auth, async (req, res) => {
         res.json({
             success: true,
             data: {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.activeRole,
-                    avatar: user.avatar,
-                    createdAt: user.createdAt
-                }
+                user: sanitizeUser(user)
             }
         });
     } catch (error) {

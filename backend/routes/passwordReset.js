@@ -7,6 +7,19 @@ const { createAndSendOTP, verifyOTP } = require('../services/otpService');
 const bcrypt = require('bcryptjs');
 
 /**
+ * SECURITY: Sanitize user object
+ */
+const sanitizeUser = (user) => {
+    return {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar || null,
+        activeRole: user.activeRole
+    };
+};
+
+/**
  * Validation middleware
  */
 const handleValidation = (req, res, next) => {
@@ -153,8 +166,8 @@ router.post('/reset', [
             });
         }
 
-        // Update password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        // SECURITY: Hash password with 12 salt rounds (production standard)
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
         await prisma.user.update({
             where: { id: user.id },
             data: { password: hashedPassword }
@@ -163,7 +176,7 @@ router.post('/reset', [
         // Generate token for auto-login
         const token = generateToken(user.id);
 
-        // Set HTTPOnly cookie
+        // Set secure HTTPOnly cookie (token NOT in response body)
         res.cookie('token', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
@@ -175,13 +188,7 @@ router.post('/reset', [
             success: true,
             message: 'Password reset successful! You are now logged in.',
             data: {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role
-                },
-                token
+                user: sanitizeUser(user)
             }
         });
     } catch (error) {

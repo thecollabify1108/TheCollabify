@@ -10,6 +10,18 @@ const bcrypt = require('bcryptjs');
 const FRONTEND_URL = process.env.FRONTEND_URL || 'https://thecollabify.tech';
 
 /**
+ * SECURITY: Secure cookie helper for OAuth
+ */
+const setCookieToken = (res, token) => {
+    res.cookie('token', token, {
+        httpOnly: true,                    // Prevents XSS
+        secure: process.env.NODE_ENV === 'production',  // HTTPS only
+        sameSite: 'strict',                // CSRF protection
+        maxAge: 7 * 24 * 60 * 60 * 1000   // 7 days
+    });
+};
+
+/**
  * @route   GET /api/oauth/google
  * @desc    Initiate Google OAuth
  * @access  Public
@@ -61,23 +73,17 @@ router.get('/google/callback',
                 { expiresIn: '7d' }
             );
 
-            // Set HTTP-only cookie
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-                maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-            });
+            // Set secure HTTPOnly cookie (NO token in URL)
+            setCookieToken(res, token);
 
-            // Redirect to appropriate dashboard on frontend
+            // Redirect to appropriate dashboard (token in cookie, NOT URL)
             const dashboardPath = user.role === 'CREATOR'
                 ? '/creator/dashboard'
                 : user.role === 'SELLER'
                     ? '/seller/dashboard'
                     : '/admin';
 
-            // Pass token as query param for cross-domain auth
-            res.redirect(`${FRONTEND_URL}${dashboardPath}?token=${token}`);
+            res.redirect(`${FRONTEND_URL}${dashboardPath}`);
 
         } catch (error) {
             console.error('OAuth callback error:', error);
