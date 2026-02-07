@@ -6,6 +6,9 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 
+// Frontend URL for redirects (cross-domain OAuth flow)
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://thecollabify.tech';
+
 /**
  * @route   GET /api/oauth/google
  * @desc    Initiate Google OAuth
@@ -29,7 +32,7 @@ router.get('/google', (req, res, next) => {
  */
 router.get('/google/callback',
     passport.authenticate('google', {
-        failureRedirect: '/login?error=oauth_failed',
+        failureRedirect: `${FRONTEND_URL}/login?error=oauth_failed`,
         session: true
     }),
     async (req, res) => {
@@ -48,7 +51,7 @@ router.get('/google/callback',
 
                 // Redirect to registration completion page with role if specified
                 const role = req.session.pendingRole || '';
-                return res.redirect(`/oauth/complete-registration?role=${role}`);
+                return res.redirect(`${FRONTEND_URL}/oauth/complete-registration?role=${role}`);
             }
 
             // Existing user - generate JWT and redirect to dashboard
@@ -66,18 +69,19 @@ router.get('/google/callback',
                 maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
             });
 
-            // Redirect to appropriate dashboard
-            const dashboardUrl = user.role === 'CREATOR'
+            // Redirect to appropriate dashboard on frontend
+            const dashboardPath = user.role === 'CREATOR'
                 ? '/creator/dashboard'
                 : user.role === 'SELLER'
                     ? '/seller/dashboard'
                     : '/admin';
 
-            res.redirect(dashboardUrl);
+            // Pass token as query param for cross-domain auth
+            res.redirect(`${FRONTEND_URL}${dashboardPath}?token=${token}`);
 
         } catch (error) {
             console.error('OAuth callback error:', error);
-            res.redirect('/login?error=oauth_error');
+            res.redirect(`${FRONTEND_URL}/login?error=oauth_error`);
         }
     }
 );
