@@ -14,6 +14,10 @@ const { globalLimiter, authLimiter, apiLimiter, strictLimiter } = require('./mid
 const ipAllowlist = require('./middleware/ipAllowlist');
 const apiKeyAuth = require('./middleware/apiKeyAuth');
 
+// Resilience Middleware
+const { timeoutMiddleware, timeoutErrorHandler } = require('./middleware/timeout');
+const { cacheMiddleware } = require('./middleware/cache');
+
 // Error Handling Middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandlers');
@@ -45,12 +49,15 @@ let initializeSocketServer = null;
 let isFullyInitialized = false;
 let initError = null;
 
-// ===== SECURITY MIDDLEWARE STACK =====
+// ===== SECURITY & RESILIENCE MIDDLEWARE STACK =====
 
 // 1. Request ID Tracking (FIRST - for audit trails)
 app.use(requestTracker);
 
-// 2. Production-grade security headers
+// 2. Global Timeout (Prevents hanging requests)
+app.use(timeoutMiddleware);
+
+// 3. Production-grade security headers
 app.use(helmet({
     // Content Security Policy for API endpoints
     contentSecurityPolicy: {
@@ -94,11 +101,11 @@ app.use(helmet({
     }
 }));
 
-// 3. Compression & Logging
+// 4. Compression & Logging
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// 4. Global Rate Limiting (100 req/15min per IP)
+// 5. Global Rate Limiting (100 req/15min per IP)
 app.use(globalLimiter);
 
 // CORS Configuration
@@ -177,6 +184,13 @@ const initializeModules = async () => {
         app.use('/api/oauth', require('./routes/oauth'));
 
         // Standard API routes
+        // Cache these heavy, public, rarely-changing routes (5 mins)
+        app.use('/api/search', cacheMiddleware(300), require('./routes/search'));
+        app.use('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard'));
+        app.use('/api/achievements', cacheMiddleware(300), require('./routes/achievements'));
+        app.use('/api/public', cacheMiddleware(300), require('./routes/public'));
+
+        // No cache for dynamic/private routes
         app.use('/api/creators', require('./routes/creators'));
         app.use('/api/sellers', require('./routes/sellers'));
         app.use('/api/notifications', require('./routes/notifications'));
@@ -185,11 +199,7 @@ const initializeModules = async () => {
         // Admin routes: IP allowlisting required
         app.use('/api/admin', ipAllowlist, require('./routes/admin'));
 
-        // Public routes
-        app.use('/api/search', require('./routes/search'));
-        app.use('/api/leaderboard', require('./routes/leaderboard'));
-        app.use('/api/achievements', require('./routes/achievements'));
-        app.use('/api/public', require('./routes/public'));
+        // Other routes
         app.use('/api/analytics', require('./routes/analytics'));
         app.use('/api/calendar', require('./routes/contentCalendar'));
         app.use('/api/team', require('./routes/teamManagement'));
@@ -222,6 +232,7 @@ app.get('/api/health', async (req, res) => {
             status: 'ok',
             database: 'postgresql',
             security: 'hardened',
+            resilience: 'enabled',
             timestamp: new Date().toISOString()
         });
     } catch (error) {
@@ -245,6 +256,9 @@ app.get('/', (req, res) => {
 
 // 404 Not Found Handler - catches undefined routes
 app.use(notFoundHandler);
+
+// Timeout Handler (catches timed out requests)
+app.use(timeoutErrorHandler);
 
 // Sentry Error Handler - captures 5xx errors for monitoring (BEFORE custom handler)
 app.use(sentryErrorHandler);
