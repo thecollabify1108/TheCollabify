@@ -20,7 +20,21 @@ export const AuthProvider = ({ children }) => {
     // Fetch user on mount if token exists
     useEffect(() => {
         const initAuth = async () => {
-            if (token) {
+            // Check for token in URL (OAuth redirect flow)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlToken = urlParams.get('token');
+
+            if (urlToken) {
+                // OAuth callback - save token and clean URL
+                localStorage.setItem('token', urlToken);
+                setToken(urlToken);
+                // Remove token from URL for security
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+
+            const currentToken = urlToken || token;
+
+            if (currentToken) {
                 try {
                     const response = await api.get('/auth/me');
                     setUser(response.data.data.user);
