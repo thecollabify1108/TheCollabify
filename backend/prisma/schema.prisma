@@ -140,6 +140,10 @@ model User {
 
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
+
+  @@index([activeRole])
+  @@index([isActive])
+  @@index([createdAt])
 }
 
 model UserRole {
@@ -198,6 +202,11 @@ model CreatorProfile {
 
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
+
+  @@index([category])
+  @@index([isAvailable])
+  @@index([aiScore])
+  @@index([totalEarnings])
 }
 
 model Achievement {
@@ -237,6 +246,11 @@ model PromotionRequest {
 
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+
+  @@index([status])
+  @@index([targetCategory])
+  @@index([promotionType])
+  @@index([createdAt])
 }
 
 model MatchedCreator {
@@ -255,6 +269,8 @@ model MatchedCreator {
   respondedAt        DateTime?
 
   @@unique([promotionId, creatorId])
+  @@index([status])
+  @@index([promotionId, status])
 }
 
 model Conversation {
@@ -289,6 +305,9 @@ model Conversation {
   updatedAt          DateTime           @updatedAt
 
   @@unique([promotionId, creatorUserId])
+  @@index([sellerId, updatedAt])
+  @@index([creatorUserId, updatedAt])
+  @@index([status])
 }
 
 model ConversationDeletion {
@@ -323,6 +342,9 @@ model Message {
 
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+
+  @@index([conversationId, createdAt])
+  @@index([isRead])
 }
 
 model Analytics {
@@ -425,6 +447,7 @@ model Notification {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([userId, isRead])
 }
 
 model CalendarEvent {

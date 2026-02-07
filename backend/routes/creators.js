@@ -230,8 +230,13 @@ router.put('/profile', auth, isCreator, [
  */
 router.get('/promotions', auth, isCreator, async (req, res) => {
     try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
         const profile = await prisma.creatorProfile.findUnique({
-            where: { userId: req.userId }
+            where: { userId: req.userId },
+            select: { category: true, promotionTypes: true, followerCount: true } // Select only needed fields
         });
 
         if (!profile) {
@@ -241,41 +246,66 @@ router.get('/promotions', auth, isCreator, async (req, res) => {
             });
         }
 
-        // Find matching promotion requests
-        const promotions = await prisma.promotionRequest.findMany({
-            where: {
-                status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
-                targetCategory: profile.category,
-                promotionType: { hasSome: profile.promotionTypes },
-                minFollowers: { lte: profile.followerCount },
-                maxFollowers: { gte: profile.followerCount }
-                // budget filter can be complex with ranges, keeping it simple for now
-            },
-            include: {
-                seller: {
-                    select: { name: true, email: true, avatar: true }
+        // Find matching promotion requests with pagination
+        const [promotions, total] = await prisma.$transaction([
+            prisma.promotionRequest.findMany({
+                where: {
+                    status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
+                    targetCategory: profile.category,
+                    promotionType: { hasSome: profile.promotionTypes },
+                    minFollowers: { lte: profile.followerCount },
+                    maxFollowers: { gte: profile.followerCount }
                 },
-                matchedCreators: true
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    minBudget: true,
+                    maxBudget: true,
+                    promotionType: true,
+                    campaignGoal: true,
+                    deadline: true,
+                    createdAt: true,
+                    seller: {
+                        select: { name: true, email: true, avatar: true }
+                    },
+                    // Optimize: Only fetch match status for THIS creator
+                    matchedCreators: {
+                        where: { creatorId: req.userId },
+                        select: { status: true }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip: skip,
+                take: limit
+            }),
+            prisma.promotionRequest.count({
+                where: {
+                    status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
+                    targetCategory: profile.category,
+                    promotionType: { hasSome: profile.promotionTypes },
+                    minFollowers: { lte: profile.followerCount },
+                    maxFollowers: { gte: profile.followerCount }
+                }
+            })
+        ]);
 
-        // Check which ones the creator has already applied to
-        const promotionsWithStatus = promotions.map(promo => {
-            const applied = promo.matchedCreators.find(
-                mc => mc.creatorId === req.userId && mc.status === 'APPLIED'
-            );
-            return {
-                ...promo,
-                hasApplied: !!applied
-            };
-        });
+        // Map response
+        const promotionsWithStatus = promotions.map(promo => ({
+            ...promo,
+            hasApplied: promo.matchedCreators.length > 0 && promo.matchedCreators[0].status === 'APPLIED'
+        }));
 
         res.json({
             success: true,
             data: {
                 promotions: promotionsWithStatus,
-                count: promotions.length
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
             }
         });
     } catch (error) {
@@ -410,25 +440,45 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
  */
 router.get('/applications', auth, isCreator, async (req, res) => {
     try {
-        const applications = await prisma.promotionRequest.findMany({
-            where: {
-                matchedCreators: {
-                    some: {
-                        creatorId: req.userId,
-                        status: { in: ['APPLIED', 'ACCEPTED', 'REJECTED'] }
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const whereClause = {
+            matchedCreators: {
+                some: {
+                    creatorId: req.userId,
+                    status: { in: ['APPLIED', 'ACCEPTED', 'REJECTED'] }
+                }
+            }
+        };
+
+        const [applications, total] = await prisma.$transaction([
+            prisma.promotionRequest.findMany({
+                where: whereClause,
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    promotionType: true,
+                    minBudget: true,
+                    maxBudget: true,
+                    campaignGoal: true,
+                    status: true,
+                    seller: {
+                        select: { name: true, email: true, avatar: true }
+                    },
+                    matchedCreators: {
+                        where: { creatorId: req.userId },
+                        select: { status: true, appliedAt: true, respondedAt: true }
                     }
-                }
-            },
-            include: {
-                seller: {
-                    select: { name: true, email: true }
                 },
-                matchedCreators: {
-                    where: { creatorId: req.userId }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+                orderBy: { createdAt: 'desc' },
+                skip: skip,
+                take: limit
+            }),
+            prisma.promotionRequest.count({ where: whereClause })
+        ]);
 
         const formattedApplications = applications.map(promo => {
             const application = promo.matchedCreators[0];
@@ -454,7 +504,12 @@ router.get('/applications', auth, isCreator, async (req, res) => {
             success: true,
             data: {
                 applications: formattedApplications,
-                count: formattedApplications.length
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
             }
         });
     } catch (error) {

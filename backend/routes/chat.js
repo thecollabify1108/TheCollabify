@@ -101,36 +101,70 @@ router.get('/conversations', auth, async (req, res) => {
         // For simplicity, let's assume we filter them in memory or use a direct check if possible.
         // Actually, let's just fetch all and filter for now, or use JSON path if supported.
 
-        const conversations = await prisma.conversation.findMany({
-            where: {
-                ...where,
-                // Soft delete logic: filter out if userId is in deletedBy
-                // In Postgres/Prisma, this depends on how deletedBy is stored. 
-                // If it's a JSONB array of {userId, deletedAt}:
-                NOT: {
-                    deletedBy: {
-                        path: ['$[*]'],
-                        array_contains: { userId: userId }
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const [conversations, total] = await Promise.all([
+            prisma.conversation.findMany({
+                where: {
+                    ...where,
+                    NOT: {
+                        deletedBy: {
+                            path: ['$[*]'],
+                            array_contains: { userId: userId }
+                        }
+                    }
+                },
+                select: {
+                    id: true,
+                    status: true,
+                    lastMessage: true,
+                    lastMessageAt: true,
+                    unreadCountSeller: true,
+                    unreadCountCreator: true,
+                    updatedAt: true,
+                    acceptanceStatus: true,
+                    sellerId: true,
+                    creatorUserId: true,
+                    seller: {
+                        select: { id: true, name: true, email: true, avatar: true }
+                    },
+                    creatorUser: {
+                        select: { id: true, name: true, email: true, avatar: true }
+                    },
+                    promotion: {
+                        select: { id: true, title: true, status: true }
+                    }
+                },
+                orderBy: { updatedAt: 'desc' },
+                skip: skip,
+                take: limit
+            }),
+            prisma.conversation.count({
+                where: {
+                    ...where,
+                    NOT: {
+                        deletedBy: {
+                            path: ['$[*]'],
+                            array_contains: { userId: userId }
+                        }
                     }
                 }
-            },
-            include: {
-                seller: {
-                    select: { id: true, name: true, email: true, avatar: true }
-                },
-                creatorUser: {
-                    select: { id: true, name: true, email: true, avatar: true }
-                },
-                promotion: {
-                    select: { id: true, title: true, status: true }
-                }
-            },
-            orderBy: { updatedAt: 'desc' }
-        });
+            })
+        ]);
 
         res.json({
             success: true,
-            data: { conversations }
+            data: {
+                conversations,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    pages: Math.ceil(total / limit)
+                }
+            }
         });
     } catch (error) {
         console.error('Get conversations error:', error);

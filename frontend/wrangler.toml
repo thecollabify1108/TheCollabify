@@ -2,5 +2,5 @@ name = "thecollabify-frontend"
 pages_build_output_dir = "dist"
 
 [vars]
-VITE_API_URL = "https://api.thecollabify.tech"
-VITE_SOCKET_URL = "https://api.thecollabify.tech"
+VITE_API_URL = "https://thecollabify-backend.azurewebsites.net"
+VITE_SOCKET_URL = "https://thecollabify-backend.azurewebsites.net"

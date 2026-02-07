@@ -47,13 +47,30 @@ router.get('/requests', auth, isSeller, async (req, res) => {
         const [requests, total] = await Promise.all([
             prisma.promotionRequest.findMany({
                 where,
-                include: {
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    minBudget: true,
+                    maxBudget: true,
+                    promotionType: true,
+                    campaignGoal: true,
+                    deadline: true,
+                    status: true,
+                    createdAt: true,
                     matchedCreators: {
-                        include: {
+                        select: {
+                            id: true,
+                            matchScore: true,
+                            status: true,
+                            creatorId: true,
                             creator: {
-                                include: {
+                                select: {
+                                    id: true,
+                                    followerCount: true,
+                                    category: true,
                                     user: {
-                                        select: { name: true, email: true, avatar: true }
+                                        select: { id: true, name: true, avatar: true }
                                     }
                                 }
                             }
