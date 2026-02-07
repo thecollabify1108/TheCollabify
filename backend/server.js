@@ -6,16 +6,37 @@ const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const morgan = require('morgan');
-const passport = require('./config/passport');
-const prisma = require('./config/prisma');
-const secrets = require('./config/secrets');
-const { securityHeaders, verifyCloudflare, apiLimiter } = require('./middleware/security');
-const initializeSocketServer = require('./socketServer');
 
-// Load environment variables fallback
+// Load environment variables FIRST
 dotenv.config();
 
 const app = express();
+
+// CRITICAL: Early health check for Azure - before any other middleware
+// This ensures Azure can verify the app is running
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', early: true });
+});
+
+// Now load the rest with error handling
+let passport, prisma, secrets, securityHeaders, verifyCloudflare, apiLimiter, initializeSocketServer;
+
+try {
+    passport = require('./config/passport');
+    prisma = require('./config/prisma');
+    secrets = require('./config/secrets');
+    const security = require('./middleware/security');
+    securityHeaders = security.securityHeaders;
+    verifyCloudflare = security.verifyCloudflare;
+    apiLimiter = security.apiLimiter;
+    initializeSocketServer = require('./socketServer');
+} catch (error) {
+    console.error('Failed to load modules:', error);
+    // Provide a fallback error endpoint
+    app.get('/api/health', (req, res) => {
+        res.status(500).json({ status: 'error', message: 'Module load failed', error: error.message });
+    });
+}
 
 // 1. Initial Infrastructure Setup
 const startServer = async () => {
