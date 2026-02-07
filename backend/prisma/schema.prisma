@@ -126,6 +126,7 @@ model User {
   teamMemberships       TeamMember[]       @relation("MemberUser")
   organizations         TeamMember[]       @relation("OrgUser")
   calendarEvents        CalendarEvent[]
+  contentCalendars      ContentCalendar[]
   // E2EE Messaging
   pgpPublicKey          String?        @db.Text
   
