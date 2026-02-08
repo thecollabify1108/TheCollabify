@@ -31,6 +31,7 @@ const ProfileForm = ({ profile, onSave }) => {
             state: profile?.location?.state || ''
         },
         willingToTravel: profile?.willingToTravel || 'NO',
+        collaborationTypes: profile?.collaborationTypes || ['REMOTE'],
         isAvailable: profile?.isAvailable !== false
     });
 
@@ -271,6 +272,35 @@ const ProfileForm = ({ profile, onSave }) => {
                                     'I prefer remote or strictly local work.'}
                         </p>
                     </div>
+                </div>
+
+                {/* Collaboration Types */}
+                <div>
+                    <label className="input-label">Supported Collaboration Types</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {['REMOTE', 'ONSITE', 'HYBRID', 'EVENT'].map(type => (
+                            <button
+                                key={type}
+                                type="button"
+                                onClick={() => {
+                                    const current = formData.collaborationTypes || [];
+                                    const newTypes = current.includes(type)
+                                        ? current.filter(t => t !== type)
+                                        : [...current, type];
+                                    setFormData(prev => ({ ...prev, collaborationTypes: newTypes }));
+                                }}
+                                className={`p-3 rounded-xl border-2 transition-all text-sm font-medium ${formData.collaborationTypes?.includes(type)
+                                    ? 'border-purple-500 bg-purple-500/10 text-purple-400'
+                                    : 'border-dark-600 text-dark-300 hover:border-dark-500'
+                                    }`}
+                            >
+                                {type}
+                            </button>
+                        ))}
+                    </div>
+                    <p className="text-xs text-dark-400 mt-2">
+                        Select all that apply. 'Event' implies appearances, hosting, or live coverage.
+                    </p>
                 </div>
 
                 {/* Price Range */}

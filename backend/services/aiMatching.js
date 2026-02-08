@@ -8,8 +8,9 @@ const SCORING_WEIGHTS = {
     engagementRate: 0.15,      // 15% weight
     nicheSimilarity: 0.15,     // 15% weight
     priceCompatibility: 0.15,  // 15% weight
-    predictedROI: 0.15,        // 15% weight
-    locationMatch: 0.15,       // 15% (New)
+    predictedROI: 0.10,        // 10% weight (Reduced)
+    locationMatch: 0.10,       // 10% (Reduced, context dependent)
+    campaignTypeMatch: 0.10,   // 10% (New)
     insightScore: 0.10,        // 10% weight
     trackRecord: 0.05,         // 5% weight
     intentMatch: 0.05,         // 5% Short-term Intent
@@ -237,6 +238,25 @@ const calculateLocationScore = (creatorLocation, requestLocation, locationType, 
 };
 
 /**
+ * Calculate Campaign Type Score
+ * Rewords location logic based on campaign type
+ */
+const calculateCampaignTypeScore = (creatorTypes, requestType) => {
+    // 1. If logic is missing or default, assume neutral
+    if (!requestType || !creatorTypes || creatorTypes.length === 0) return 50;
+
+    // 2. Exact Match
+    if (creatorTypes.includes(requestType)) return 100;
+
+    // 3. Partial Match logic (optional)
+    // e.g. ONSITE creators might be okay for EVENTs
+    if (requestType === 'EVENT' && creatorTypes.includes('ONSITE')) return 80;
+    if (requestType === 'HYBRID' && creatorTypes.includes('ONSITE')) return 80;
+
+    return 0; // Type not supported
+};
+
+/**
  * Calculate Confidence Level Bucket
  * @param {number} totalScore - The final match score (0-100)
  * @returns {string} - 'High', 'Medium', or 'Experimental'
@@ -297,6 +317,12 @@ const generateMatchReasons = (creator, request, scores) => {
         // 3. AI Behavioral Signals (The "Smart" part)
         if (scores.intent > 70) {
             reasons.push("🧠 <strong>Smart Match:</strong> Aligns with your recent search intent.");
+        }
+
+        // 4. Campaign Type Match
+        if (scores.campaignType >= 100) {
+            if (request.locationType === 'EVENT') reasons.push("🎉 <strong>Event Ready:</strong> Experienced in event collaborations.");
+            if (request.locationType === 'ONSITE') reasons.push("🏢 <strong>On-Site Ready:</strong> Available for on-site work.");
         }
         if (scores.personalization > 70) {
             reasons.push("✨ <strong>Tailored for You:</strong> Similar to creators you've liked before.");
@@ -397,6 +423,10 @@ const generateMatchReasons = (creator, request, scores) => {
                     request.location,
                     request.locationType,
                     creator.willingToTravel
+                ),
+                campaignType: calculateCampaignTypeScore(
+                    creator.collaborationTypes,
+                    request.locationType
                 )
             };
 
@@ -409,7 +439,9 @@ const generateMatchReasons = (creator, request, scores) => {
                 (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
                 (scores.intent * SCORING_WEIGHTS.intentMatch) +
                 (scores.personalization * SCORING_WEIGHTS.personalization) +
-                (scores.location * SCORING_WEIGHTS.locationMatch)
+                (scores.personalization * SCORING_WEIGHTS.personalization) +
+                (scores.location * SCORING_WEIGHTS.locationMatch) +
+                (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch)
             );
 
             const matchReasons = generateMatchReasons(creator, request, scores);

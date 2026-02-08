@@ -188,6 +188,7 @@ model CreatorProfile {
   // Location & Travel
   location              Json?            // { district, city, state, country }
   willingToTravel       String?          @default("NO") // YES, LIMITED, NO
+  collaborationTypes    String[]         // [REMOTE, ONSITE, HYBRID, EVENT]
   
   // Stats
   totalEarnings        Float            @default(0)
@@ -238,7 +239,9 @@ model PromotionRequest {
   
   // Location Requirements
   location          Json?            // { district, city, state, country }
-  locationType      String?          @default("REMOTE") // ONSITE, REMOTE, HYBRID
+  // Location Requirements
+  location          Json?            // { district, city, state, country }
+  locationType      String?          @default("REMOTE") // ONSITE, REMOTE, HYBRID, EVENT
 
   status            CampaignStatus   @default(OPEN)
   
