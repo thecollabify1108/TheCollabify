@@ -568,4 +568,18 @@ model MatchFeedback {
   @@index([createdAt])
 }
 
+model MatchOutcome {
+  id              String         @id @default(uuid())
+  matchId         String         @unique // One outcome record per match
+  matchedCreator  MatchedCreator @relation(fields: [matchId], references: [id])
+  
+  status          String         // contacted, accepted, started, completed, abandoned
+  timeline        Json           // { contacted: Date, accepted: Date, ... }
+  
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  @@index([status])
+}
+
 

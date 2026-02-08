@@ -13,6 +13,7 @@ import { paymentAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import CreatorCard from './CreatorCard';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
+import { trackMatchOutcome } from '../../services/feedback';
 
 const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus, onMessage }) => {
     const [activeSection, setActiveSection] = useState('applicants');
@@ -85,7 +86,19 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         {/* Campaign Status Actions */}
                         {request.status === 'Accepted' && (
                             <button
-                                onClick={() => onUpdateStatus(request._id, 'Completed')}
+                                onClick={() => {
+                                    onUpdateStatus(request._id, 'Completed');
+                                    // Track Outcome: COMPLETED
+                                    // Note: We need a matchId. Since 'Completed' is campaign-level, 
+                                    // we might need to iterate matchedCreators or just track the campaign ID as proxy if backend handles it.
+                                    // For now, let's track it for all accepted creators
+                                    request.matchedCreators.filter(mc => mc.status === 'Accepted').forEach(mc => {
+                                        trackMatchOutcome({
+                                            matchId: mc._id,
+                                            status: 'completed'
+                                        });
+                                    });
+                                }}
                                 className="btn-3d text-sm flex items-center"
                             >
                                 <FaCheck className="mr-2" />
@@ -97,6 +110,13 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                                 onClick={() => {
                                     if (window.confirm('Are you sure you want to cancel this campaign? This action cannot be undone.')) {
                                         onUpdateStatus(request._id, 'Cancelled');
+                                        // Track Outcome: ABANDONED
+                                        request.matchedCreators.forEach(mc => {
+                                            trackMatchOutcome({
+                                                matchId: mc._id,
+                                                status: 'abandoned'
+                                            });
+                                        });
                                     }
                                 }}
                                 className="btn-outline text-sm flex items-center text-red-400 border-red-500/50 hover:bg-red-500/10"

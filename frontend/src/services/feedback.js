@@ -28,4 +28,23 @@ export const trackMatchFeedback = (feedbackData) => {
     }
 };
 
+/**
+ * Track definitive match outcome (State Change)
+ * @param {Object} outcomeData
+ * @param {string} outcomeData.matchId - The ID of the match/promotion-creator pair
+ * @param {string} outcomeData.status - contacted, accepted, started, completed, abandoned
+ */
+export const trackMatchOutcome = (outcomeData) => {
+    try {
+        authAPI.post('/api/analytics/outcome', outcomeData)
+            .catch(err => {
+                if (process.env.NODE_ENV === 'development') {
+                    console.warn('Outcome logging failed:', err.message);
+                }
+            });
+    } catch (error) {
+        // safety
+    }
+};
+
 export default trackMatchFeedback;

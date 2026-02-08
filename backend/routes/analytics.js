@@ -231,4 +231,29 @@ router.post('/feedback', auth, async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/analytics/outcome
+ * @desc    Track match outcome (AI Outcome Loop)
+ * @access  Private
+ */
+router.post('/outcome', auth, async (req, res) => {
+    try {
+        const { matchId, status } = req.body;
+
+        if (!matchId || !status) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+
+        await AnalyticsService.trackMatchOutcome({
+            matchId,
+            status
+        });
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Outcome endpoint error:', error);
+        res.status(200).json({ success: true });
+    }
+});
+
 module.exports = router;

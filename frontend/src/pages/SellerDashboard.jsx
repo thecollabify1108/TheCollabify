@@ -12,7 +12,7 @@ import {
 import { HiSparkles, HiHome, HiUserGroup, HiChat, HiViewGrid } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
 import { sellerAPI, chatAPI } from '../services/api';
-import { trackMatchFeedback } from '../services/feedback';
+import { trackMatchFeedback, trackMatchOutcome } from '../services/feedback';
 import toast from 'react-hot-toast';
 
 // New Components
@@ -267,6 +267,17 @@ const SellerDashboard = () => {
             meta: { requestId }
         });
 
+        // Track Outcome: ACCEPTED
+        // We need the specific matchedCreator ID. 
+        // We can find it in the local state.
+        const match = selectedRequest?.matchedCreators?.find(mc => mc.creatorId._id === creatorId || mc.creatorId === creatorId);
+        if (match) {
+            trackMatchOutcome({
+                matchId: match._id,
+                status: 'accepted'
+            });
+        }
+
         try {
             await sellerAPI.acceptCreator(requestId, creatorId);
             toast.success('✅ Creator accepted!');
@@ -331,6 +342,15 @@ const SellerDashboard = () => {
             matchId: requestId,
             meta: { type: 'chat_start' }
         });
+
+        // Track Outcome: CONTACTED
+        const match = selectedRequest?.matchedCreators?.find(mc => mc.creatorId._id === creatorId || mc.creatorId === creatorId);
+        if (match) {
+            trackMatchOutcome({
+                matchId: match._id,
+                status: 'contacted'
+            });
+        }
 
         try {
             const res = await chatAPI.findOrRestoreConversation(requestId, creatorId);

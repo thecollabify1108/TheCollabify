@@ -71,6 +71,44 @@ class AnalyticsService {
     }
 
     /**
+     * Track match outcome and update timeline
+     */
+    static async trackMatchOutcome(data) {
+        try {
+            const { matchId, status } = data;
+
+            // Find existing outcome or create new
+            const existing = await prisma.matchOutcome.findUnique({
+                where: { matchId }
+            });
+
+            const timeline = existing ? (existing.timeline || {}) : {};
+
+            // Add new status to timeline if not present
+            if (!timeline[status]) {
+                timeline[status] = new Date();
+            }
+
+            return await prisma.matchOutcome.upsert({
+                where: { matchId },
+                update: {
+                    status,
+                    timeline,
+                    updatedAt: new Date()
+                },
+                create: {
+                    matchId,
+                    status,
+                    timeline
+                }
+            });
+        } catch (error) {
+            console.error('Error tracking match outcome:', error);
+            return null;
+        }
+    }
+
+    /**
      * Calculate creator metrics
      */
     static async calculateCreatorMetrics(userId) {
