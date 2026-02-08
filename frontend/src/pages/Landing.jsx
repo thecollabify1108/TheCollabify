@@ -443,7 +443,7 @@ const Landing = () => {
                 </section>
 
                 {/* AI Transparency - Trust & Learning Loop */}
-                < section className="py-24 px-4 relative bg-dark-900 border-t border-dark-800/50" >
+                <section className="py-24 px-4 relative bg-dark-900 border-t border-dark-800/50">
                     <div className="max-w-5xl mx-auto">
                         <div className="text-center mb-16">
                             <span className="text-emerald-400 text-sm font-bold tracking-widest uppercase mb-2 block">Transparency First</span>
