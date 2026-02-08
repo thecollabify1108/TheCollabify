@@ -10,6 +10,7 @@ const ForBrands = lazy(() => import('./pages/ForBrands'));
 const ForCreators = lazy(() => import('./pages/ForCreators'));
 const TermsConditions = lazy(() => import('./pages/TermsConditions'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const DemoWalkthrough = lazy(() => import('./pages/DemoWalkthrough'));
 
 // Pages - Auth (lightweight, load immediately)
 import Login from './pages/Login';
@@ -159,6 +160,7 @@ function App() {
                     <Route path="/for-creators" element={<PageTransition><ForCreators /></PageTransition>} />
                     <Route path="/terms" element={<PageTransition><TermsConditions /></PageTransition>} />
                     <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+                    <Route path="/demo" element={<PageTransition><DemoWalkthrough /></PageTransition>} />
 
                     {/* Chat Route (New) */}
                     <Route
