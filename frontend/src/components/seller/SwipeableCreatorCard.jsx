@@ -225,7 +225,17 @@ const SwipeCard = ({ creator, onSwipe, exitDirection }) => {
                     </div>
 
                     {/* Campaign Info */}
-                    <div className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50">
+                    <div className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 relative">
+                        {/* Confidence Badge */}
+                        {creator.confidenceLevel && (
+                            <div className={`absolute -top-3 right-4 px-3 py-1 rounded-full text-xs font-bold border shadow-lg ${creator.confidenceLevel === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                                    creator.confidenceLevel === 'Medium' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                        'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                                }`}>
+                                {creator.confidenceLevel === 'High' ? 'High Confidence' :
+                                    creator.confidenceLevel === 'Medium' ? 'Medium Confidence' : 'Experimental'}
+                            </div>
+                        )}
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-xs text-dark-400 uppercase tracking-wider">Applied For</span>
                             <span className="text-lg font-bold text-emerald-400">₹{creator.budget?.toLocaleString()}</span>

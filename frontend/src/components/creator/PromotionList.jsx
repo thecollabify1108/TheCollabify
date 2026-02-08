@@ -45,6 +45,17 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null }) => {
                                         }`}>
                                         {promotion.status}
                                     </span>
+
+                                    {/* AI Confidence Badge */}
+                                    {promotion.matchScore && (
+                                        <span className={`badge ${promotion.confidenceLevel === 'High' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                promotion.confidenceLevel === 'Medium' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                    'bg-purple-500/10 text-purple-400 border-purple-500/20' // Experimental
+                                            } border`}>
+                                            {promotion.confidenceLevel === 'High' ? 'High Match' :
+                                                promotion.confidenceLevel === 'Medium' ? 'Good Match' : 'Experimental'}
+                                        </span>
+                                    )}
                                 </div>
 
                                 <p className="text-dark-400 text-sm mb-4">

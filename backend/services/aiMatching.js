@@ -161,6 +161,17 @@ const calculatePersonalizationScore = (creatorId, userHistory) => {
 };
 
 /**
+ * Calculate Confidence Level Bucket
+ * @param {number} totalScore - The final match score (0-100)
+ * @returns {string} - 'High', 'Medium', or 'Experimental'
+ */
+const calculateConfidenceLevel = (totalScore) => {
+    if (totalScore >= 85) return 'High';
+    if (totalScore >= 65) return 'Medium';
+    return 'Experimental';
+};
+
+/**
  * Generate human-readable match explanation
  */
 const generateMatchReason = (creator, request, scores) => {
@@ -271,12 +282,14 @@ const rankCreators = async (creators, request, userId = null) => {
 
         return {
             creatorId: creator.id,
-            creator: creator,
-            matchScore: Math.min(100, Math.max(0, matchScore)),
-            matchReason,
-            scores,
-            prediction: roiPrediction
+            roi: roiPrediction?.roi || 0,
+            insight: creator.aiScore || 50,
+            trackRecord: calculateTrackRecordScore(creator),
+            intent: calculateIntentScore(creator.category, userIntent),
+            personalization: calculatePersonalizationScore(creator.id, userHistory)
         };
+
+
     }));
 
     rankedCreators.sort((a, b) => b.matchScore - a.matchScore);
