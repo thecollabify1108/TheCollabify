@@ -455,6 +455,86 @@ const Landing = () => {
                         </div>
                     </div>
 
+                </section>
+
+                {/* Early Insights - Qualitative Traction */}
+                <section className="py-24 px-4 relative bg-dark-950 border-b border-dark-800/50">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="text-center mb-16">
+                            <span className="text-primary-400 text-sm font-bold tracking-widest uppercase mb-2 block">Real Insights</span>
+                            <motion.h2
+                                className="text-3xl md:text-5xl font-bold mb-4 text-dark-100"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                            >
+                                What We're Hearing
+                            </motion.h2>
+                            <p className="text-dark-400 text-lg max-w-2xl mx-auto">
+                                We spoke to over <span className="text-white font-semibold">500+ creators and brands</span> before writing a single line of code. Here is the reality.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Insight 1 */}
+                            <motion.div
+                                className="glass-card p-8 border-l-4 border-l-red-500 relative overflow-hidden"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.1 }}
+                            >
+                                <div className="absolute top-4 right-4 text-6xl text-dark-800/50 font-serif">"</div>
+                                <h3 className="text-xl font-bold text-dark-100 mb-4">The "Ghosting" Epidemic</h3>
+                                <p className="text-dark-300 italic mb-6">
+                                    "I send 50 DMs, get 2 replies, and 0 contracts. It feels like I'm shouting into a void."
+                                </p>
+                                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-dark-800/50">
+                                    <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-xs font-bold">80%</div>
+                                    <span className="text-xs text-dark-400 font-medium">Non-response rate causing burnout</span>
+                                </div>
+                            </motion.div>
+
+                            {/* Insight 2 */}
+                            <motion.div
+                                className="glass-card p-8 border-l-4 border-l-emerald-500 relative overflow-hidden"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                <div className="absolute top-4 right-4 text-6xl text-dark-800/50 font-serif">"</div>
+                                <h3 className="text-xl font-bold text-dark-100 mb-4">Niche Power > Fame</h3>
+                                <p className="text-dark-300 italic mb-6">
+                                    "My 10k followers are die-hard fans. The guy with 1M followers gets likes, but I get sales."
+                                </p>
+                                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-dark-800/50">
+                                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs font-bold">10x</div>
+                                    <span className="text-xs text-dark-400 font-medium">Higher ROI from micro-influencers</span>
+                                </div>
+                            </motion.div>
+
+                            {/* Insight 3 */}
+                            <motion.div
+                                className="glass-card p-8 border-l-4 border-l-amber-500 relative overflow-hidden"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: 0.3 }}
+                            >
+                                <div className="absolute top-4 right-4 text-6xl text-dark-800/50 font-serif">"</div>
+                                <h3 className="text-xl font-bold text-dark-100 mb-4">Payment Anxiety</h3>
+                                <p className="text-dark-300 italic mb-6">
+                                    "Brand deals are great until you have to chase the invoice for 3 months. I just want to be safe."
+                                </p>
+                                <div className="flex items-center gap-3 mt-auto pt-4 border-t border-dark-800/50">
+                                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-bold">#1</div>
+                                    <span className="text-xs text-dark-400 font-medium">Top request: Guaranteed Escrow</span>
+                                </div>
+                            </motion.div>
+                        </div>
+                    </div>
+
                     {/* How It Works - Large Numbers Style */}
                     <section id="how-it-works" className="py-28 md:py-32 px-4 relative">
                         <div className="max-w-6xl mx-auto">
