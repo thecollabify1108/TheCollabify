@@ -11,6 +11,7 @@ import {
 import { HiHome, HiSparkles, HiUserGroup, HiLightningBolt, HiViewGrid, HiChat, HiBriefcase } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
 import { creatorAPI } from '../services/api';
+import { trackMatchFeedback } from '../services/feedback';
 import toast from 'react-hot-toast';
 
 // Components
@@ -167,6 +168,18 @@ const CreatorDashboard = () => {
         setPromotions(promotions.map(p =>
             p._id === promotionId ? { ...p, hasApplied: true, status: 'Applied' } : p
         ));
+
+        // Get promotion details for feedback
+        const promotion = promotions.find(p => p._id === promotionId);
+        if (promotion) {
+            trackMatchFeedback({
+                targetUserId: promotion.sellerId?._id || promotion.sellerId, // The brand/seller
+                action: 'APPLIED',
+                source: 'creator_dashboard',
+                matchId: promotionId, // Promotion ID as context
+                meta: { promotionTitle: promotion.title }
+            });
+        }
 
         // Optimistically add to applications if we could construct it, but simpler to just wait for background refetch
         // or we could add a temporary item to applications list

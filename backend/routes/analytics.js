@@ -200,4 +200,35 @@ router.post('/track', async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/analytics/feedback
+ * @desc    Record match feedback (AI Learning Loop)
+ * @access  Private
+ */
+router.post('/feedback', auth, async (req, res) => {
+    try {
+        const { targetUserId, action, source, matchId, meta } = req.body;
+
+        // Basic validation
+        if (!targetUserId || !action) {
+            return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+
+        await AnalyticsService.recordMatchFeedback({
+            userId: req.userId,
+            targetUserId: targetUserId,
+            action: action.toUpperCase(),
+            source,
+            matchId,
+            meta
+        });
+
+        res.status(200).json({ success: true });
+    } catch (error) {
+        // Fail silently to client, log on server
+        console.error('Feedback endpoint error:', error);
+        res.status(200).json({ success: true });
+    }
+});
+
 module.exports = router;

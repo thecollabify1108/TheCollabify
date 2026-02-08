@@ -5,6 +5,7 @@ import { HiBriefcase } from 'react-icons/hi';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 import EmptyState from '../common/EmptyState';
 import UrgencyBadge from '../common/UrgencyBadge';
+import { trackMatchFeedback } from '../../services/feedback';
 
 const PromotionList = ({ promotions, onApply, creatorProfile = null }) => {
     const [expandedId, setExpandedId] = useState(null);
@@ -96,7 +97,19 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null }) => {
                             {/* Action Buttons */}
                             <div className="mt-4 md:mt-0 md:ml-6 flex flex-col gap-2">
                                 <button
-                                    onClick={() => setExpandedId(expandedId === promotion._id ? null : promotion._id)}
+                                    onClick={() => {
+                                        const isExpanding = expandedId !== promotion._id;
+                                        setExpandedId(isExpanding ? promotion._id : null);
+                                        if (isExpanding) {
+                                            trackMatchFeedback({
+                                                targetUserId: promotion.sellerId?._id || promotion.sellerId,
+                                                action: 'CLICKED',
+                                                source: 'promotion_list',
+                                                matchId: promotion._id,
+                                                meta: { type: 'ai_insights' }
+                                            });
+                                        }
+                                    }}
                                     className="btn-outline flex items-center justify-center text-sm"
                                 >
                                     <FaChartLine className="mr-2" />

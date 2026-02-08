@@ -552,3 +552,20 @@ model DailyTraffic {
   @@index([date])
 }
 
+model MatchFeedback {
+  id           String   @id @default(uuid())
+  matchId      String?  // Optional link to MatchedCreator
+  userId       String   // User who performed the action
+  targetUserId String   // User who was acted upon
+  action       String   // VIEWED, CLICKED, SAVED, IGNORED, ACCEPTED, REJECTED
+  source       String   // e.g., "campaign_suggestions", "search_results"
+  meta         Json?    // Context: search query, filters, ranking score
+  
+  createdAt    DateTime @default(now())
+
+  @@index([userId, action])
+  @@index([targetUserId])
+  @@index([createdAt])
+}
+
+

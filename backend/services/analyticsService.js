@@ -49,6 +49,28 @@ class AnalyticsService {
     }
 
     /**
+     * Record match feedback for AI learning
+     */
+    static async recordMatchFeedback(data) {
+        try {
+            return await prisma.matchFeedback.create({
+                data: {
+                    userId: data.userId,
+                    targetUserId: data.targetUserId,
+                    action: data.action,
+                    source: data.source || 'unknown',
+                    matchId: data.matchId,
+                    meta: data.meta || {}
+                }
+            });
+        } catch (error) {
+            console.error('Error recording match feedback:', error);
+            // Non-blocking failure
+            return null;
+        }
+    }
+
+    /**
      * Calculate creator metrics
      */
     static async calculateCreatorMetrics(userId) {

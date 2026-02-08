@@ -12,6 +12,7 @@ import {
 import { HiSparkles, HiHome, HiUserGroup, HiChat, HiViewGrid } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
 import { sellerAPI, chatAPI } from '../services/api';
+import { trackMatchFeedback } from '../services/feedback';
 import toast from 'react-hot-toast';
 
 // New Components
@@ -257,6 +258,15 @@ const SellerDashboard = () => {
 
         updateState('Accepted');
 
+        // Fire Feedback Event
+        trackMatchFeedback({
+            targetUserId: creatorId,
+            action: 'ACCEPTED',
+            source: 'seller_dashboard',
+            matchId: requestId, // linking matchId to promotionId for now
+            meta: { requestId }
+        });
+
         try {
             await sellerAPI.acceptCreator(requestId, creatorId);
             toast.success('✅ Creator accepted!');
@@ -293,6 +303,15 @@ const SellerDashboard = () => {
 
         updateState('Rejected');
 
+        // Fire Feedback Event
+        trackMatchFeedback({
+            targetUserId: creatorId,
+            action: 'REJECTED',
+            source: 'seller_dashboard',
+            matchId: requestId,
+            meta: { requestId }
+        });
+
         try {
             await sellerAPI.rejectCreator(requestId, creatorId);
             toast.success('Creator passed');
@@ -304,6 +323,15 @@ const SellerDashboard = () => {
     };
 
     const handleMessageCreator = async (requestId, creatorId, creatorName) => {
+        // Fire Feedback Event (Interest/Click)
+        trackMatchFeedback({
+            targetUserId: creatorId,
+            action: 'CLICKED',
+            source: 'seller_dashboard_chat',
+            matchId: requestId,
+            meta: { type: 'chat_start' }
+        });
+
         try {
             const res = await chatAPI.findOrRestoreConversation(requestId, creatorId);
             const conversation = res.data.data.conversation;
