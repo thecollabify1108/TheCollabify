@@ -49,6 +49,9 @@ import DashboardHero from '../components/dashboard/DashboardHero';
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
 
+import GuidedAIMode from '../components/dashboard/GuidedAIMode';
+import FocusWrapper from '../components/dashboard/FocusWrapper';
+
 const CreatorDashboard = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -62,6 +65,8 @@ const CreatorDashboard = () => {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
+    const [focusMode, setFocusMode] = useState(null);
+    const [showGuide, setShowGuide] = useState(true);
 
     const [searchParams] = useSearchParams();
 
@@ -165,6 +170,23 @@ const CreatorDashboard = () => {
             toast.success(`You are now ${!profile.isAvailable ? 'available' : 'unavailable'} for work`);
         } catch (error) {
             toast.error('Failed to update availability');
+        }
+    };
+
+    const handleGuideAction = (type, target) => {
+        if (type === 'hover') {
+            if (activeTab === 'dashboard') {
+                setFocusMode(target);
+            }
+        } else if (type === 'leave') {
+            setFocusMode(null);
+        } else if (type === 'click') {
+            if (activeTab !== 'dashboard') {
+                setActiveTab('dashboard');
+            }
+            setFocusMode(target);
+            setShowGuide(false);
+            setTimeout(() => setFocusMode(null), 3000);
         }
     };
 
@@ -279,6 +301,15 @@ const CreatorDashboard = () => {
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-6">
                 <AnimatePresence mode="wait">
+                    {/* Guided AI Mode Overlay */}
+                    {activeTab === 'dashboard' && showGuide && (
+                        <GuidedAIMode
+                            role="creator"
+                            onAction={handleGuideAction}
+                            onClose={() => setShowGuide(false)}
+                        />
+                    )}
+
                     {/* Dashboard Tab - Modernized */}
                     {activeTab === 'dashboard' && (
                         <motion.div
@@ -298,113 +329,121 @@ const CreatorDashboard = () => {
                                     />
 
                                     {/* 2. Stats Grid */}
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                                        <StatCard
-                                            label="Active Jobs"
-                                            value={pendingApplications}
-                                            icon={<HiBriefcase />}
-                                            color="blue"
-                                            trend={0}
-                                            delay={0.1}
-                                        />
-                                        <StatCard
-                                            label="Total Earnings"
-                                            value={`₹${(profile?.totalEarnings || 0).toLocaleString()}`}
-                                            icon={<HiLightningBolt />}
-                                            color="emerald"
-                                            trend={0}
-                                            delay={0.2}
-                                        />
-                                        <StatCard
-                                            label="AI Match Score"
-                                            value={profile.aiMatchScore || 0}
-                                            icon={<HiSparkles />}
-                                            color="purple"
-                                            trend={0}
-                                            delay={0.3}
-                                        />
-                                        <StatCard
-                                            label="Profile Views"
-                                            value={profile?.profileViews || 0}
-                                            icon={<HiUserGroup />}
-                                            color="amber"
-                                            trend={0}
-                                            delay={0.4}
-                                        />
-                                    </div>
+                                    <FocusWrapper sectionId="stats" currentFocus={focusMode}>
+                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                                            <StatCard
+                                                label="Active Jobs"
+                                                value={pendingApplications}
+                                                icon={<HiBriefcase />}
+                                                color="blue"
+                                                trend={0}
+                                                delay={0.1}
+                                            />
+                                            <StatCard
+                                                label="Total Earnings"
+                                                value={`₹${(profile?.totalEarnings || 0).toLocaleString()}`}
+                                                icon={<HiLightningBolt />}
+                                                color="emerald"
+                                                trend={0}
+                                                delay={0.2}
+                                            />
+                                            <StatCard
+                                                label="AI Match Score"
+                                                value={profile.aiMatchScore || 0}
+                                                icon={<HiSparkles />}
+                                                color="purple"
+                                                trend={0}
+                                                delay={0.3}
+                                            />
+                                            <StatCard
+                                                label="Profile Views"
+                                                value={profile?.profileViews || 0}
+                                                icon={<HiUserGroup />}
+                                                color="amber"
+                                                trend={0}
+                                                delay={0.4}
+                                            />
+                                        </div>
+                                    </FocusWrapper>
 
                                     {/* 3. Charts & Activity Split */}
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
-                                        <div className="lg:col-span-2 h-[300px] lg:h-full">
-                                            <PerformanceChart
-                                                title="Earnings Overview"
-                                                data={[]} // Empty until analytics
-                                                color="#10b981"
-                                            />
+                                    <FocusWrapper sectionId="stats" currentFocus={focusMode}>
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
+                                            <div className="lg:col-span-2 h-[300px] lg:h-full">
+                                                <PerformanceChart
+                                                    title="Earnings Overview"
+                                                    data={[]} // Empty until analytics
+                                                    color="#10b981"
+                                                />
+                                            </div>
+                                            <div className="h-[400px] lg:h-full">
+                                                <ActivityFeed
+                                                    activities={applications.slice(0, 5).map(app => ({
+                                                        id: app._id,
+                                                        title: `Applied to ${app.promotion?.title || 'Campaign'}`,
+                                                        description: app.status === 'Accepted' ? 'Application accepted!' : 'Application pending review',
+                                                        icon: <FaBriefcase />,
+                                                        iconColor: app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
+                                                    }))}
+                                                    emptyMessage="No recent applications"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="h-[400px] lg:h-full">
-                                            <ActivityFeed
-                                                activities={applications.slice(0, 5).map(app => ({
-                                                    id: app._id,
-                                                    title: `Applied to ${app.promotion?.title || 'Campaign'}`,
-                                                    description: app.status === 'Accepted' ? 'Application accepted!' : 'Application pending review',
-                                                    icon: <FaBriefcase />,
-                                                    iconColor: app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
-                                                }))}
-                                                emptyMessage="No recent applications"
-                                            />
-                                        </div>
-                                    </div>
+                                    </FocusWrapper>
 
                                     {/* 4. Action Items (Today's Focus - Modernized) */}
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.5 }}
-                                            className="p-1 rounded-2xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500"
-                                        >
-                                            <div className="bg-dark-900 rounded-xl p-5 h-full">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <h3 className="font-bold text-white">Profile Strength</h3>
-                                                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-yellow-500">
-                                                        {calculateProfileCompletion()}%
-                                                    </span>
+                                        <FocusWrapper sectionId="profile" currentFocus={focusMode} className="h-full">
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: 0.5 }}
+                                                className="p-1 rounded-2xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 h-full"
+                                            >
+                                                <div className="bg-dark-900 rounded-xl p-5 h-full">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <h3 className="font-bold text-white">Profile Strength</h3>
+                                                        <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-yellow-500">
+                                                            {calculateProfileCompletion()}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full bg-dark-800 rounded-full h-2 mb-4">
+                                                        <div className="bg-gradient-to-r from-pink-500 to-yellow-500 h-2 rounded-full" style={{ width: `${calculateProfileCompletion()}%` }} />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setActiveTab('profile')}
+                                                        className="w-full py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-sm font-medium text-white transition-colors"
+                                                    >
+                                                        Complete Profile
+                                                    </button>
                                                 </div>
-                                                <div className="w-full bg-dark-800 rounded-full h-2 mb-4">
-                                                    <div className="bg-gradient-to-r from-pink-500 to-yellow-500 h-2 rounded-full" style={{ width: `${calculateProfileCompletion()}%` }} />
+                                            </motion.div>
+                                        </FocusWrapper>
+
+                                        <FocusWrapper sectionId="promotions" currentFocus={focusMode} className="h-full">
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: 0.6 }}
+                                                className="p-5 rounded-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm h-full"
+                                            >
+                                                <div className="flex items-center gap-4 mb-3">
+                                                    <div className="p-3 rounded-full bg-purple-500/20 text-purple-400">
+                                                        <HiSparkles className="text-xl" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-white">Opportunity Match</h3>
+                                                        <p className="text-sm text-dark-400">{promotions.length} new campaigns fit your niche</p>
+                                                    </div>
                                                 </div>
                                                 <button
-                                                    onClick={() => setActiveTab('profile')}
-                                                    className="w-full py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-sm font-medium text-white transition-colors"
+                                                    onClick={() => setActiveTab('opportunities')}
+                                                    className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-medium text-white transition-colors"
                                                 >
-                                                    Complete Profile
+                                                    Explore Matches
                                                 </button>
-                                            </div>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.6 }}
-                                            className="p-5 rounded-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm"
-                                        >
-                                            <div className="flex items-center gap-4 mb-3">
-                                                <div className="p-3 rounded-full bg-purple-500/20 text-purple-400">
-                                                    <HiSparkles className="text-xl" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-bold text-white">Opportunity Match</h3>
-                                                    <p className="text-sm text-dark-400">{promotions.length} new campaigns fit your niche</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => setActiveTab('opportunities')}
-                                                className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-medium text-white transition-colors"
-                                            >
-                                                Explore Matches
-                                            </button>
-                                        </motion.div>
+                                            </motion.div>
+                                        </FocusWrapper>
                                     </div>
                                 </>
                             ) : (

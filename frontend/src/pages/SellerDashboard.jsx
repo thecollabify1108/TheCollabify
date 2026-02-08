@@ -47,6 +47,9 @@ import DashboardHero from '../components/dashboard/DashboardHero';
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
 
+import GuidedAIMode from '../components/dashboard/GuidedAIMode';
+import FocusWrapper from '../components/dashboard/FocusWrapper';
+
 const SellerDashboard = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -64,6 +67,8 @@ const SellerDashboard = () => {
     const [allCreators, setAllCreators] = useState([]);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
+    const [focusMode, setFocusMode] = useState(null);
+    const [showGuide, setShowGuide] = useState(true);
 
     const fetchMatches = async () => {
         try {
@@ -71,6 +76,25 @@ const SellerDashboard = () => {
             setConversations(res.data.data.conversations || []);
         } catch (error) {
             console.error('Failed to fetch conversations', error);
+        }
+    };
+
+    const handleGuideAction = (type, target) => {
+        if (type === 'hover') {
+            if (activeTab === 'dashboard' && target === 'campaigns') {
+                setFocusMode('campaigns');
+            }
+        } else if (type === 'leave') {
+            setFocusMode(null);
+        } else if (type === 'click') {
+            if (target === 'search') setActiveTab('search');
+            else if (target === 'messages') setActiveTab('messages');
+            else if (target === 'campaigns') {
+                setActiveTab('dashboard');
+                setFocusMode('campaigns');
+            }
+            setShowGuide(false);
+            setTimeout(() => setFocusMode(null), 3000);
         }
     };
 
@@ -406,6 +430,15 @@ const SellerDashboard = () => {
             {/* Main Content Area */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-6">
                 <AnimatePresence mode="wait">
+                    {/* Guided AI Mode Overlay */}
+                    {showGuide && (
+                        <GuidedAIMode
+                            role="seller"
+                            onAction={handleGuideAction}
+                            onClose={() => setShowGuide(false)}
+                        />
+                    )}
+
                     {/* Search Tab - Creator Discovery with AI */}
                     {activeTab === 'search' && (
                         <motion.div
@@ -586,74 +619,76 @@ const SellerDashboard = () => {
                             </div>
 
                             {/* 4. Active Campaigns List (Modernized) */}
-                            <div>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
-                                        <HiSparkles className="text-primary-400" /> Active Campaigns
-                                    </h2>
-                                    <button
-                                        onClick={() => setShowRequestWizard(true)}
-                                        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors"
-                                    >
-                                        + New Campaign
-                                    </button>
-                                </div>
-
-                                {requests.length === 0 ? (
-                                    <div className="text-center py-12 bg-dark-800/20 rounded-2xl border border-dark-700/50 border-dashed">
-                                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-dark-800/50 flex items-center justify-center">
-                                            <HiViewGrid className="text-2xl text-dark-500" />
-                                        </div>
-                                        <p className="text-dark-400 mb-4">No campaigns yet</p>
+                            <FocusWrapper sectionId="campaigns" currentFocus={focusMode}>
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+                                            <HiSparkles className="text-primary-400" /> Active Campaigns
+                                        </h2>
                                         <button
                                             onClick={() => setShowRequestWizard(true)}
-                                            className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold"
+                                            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors"
                                         >
-                                            Launch Campaign
+                                            + New Campaign
                                         </button>
                                     </div>
-                                ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {requests.slice(0, 6).map((request, index) => (
-                                            <motion.div
-                                                key={request._id}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: index * 0.05 }}
-                                                onClick={() => setSelectedRequest(request)}
-                                                className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800"
+
+                                    {requests.length === 0 ? (
+                                        <div className="text-center py-12 bg-dark-800/20 rounded-2xl border border-dark-700/50 border-dashed">
+                                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-dark-800/50 flex items-center justify-center">
+                                                <HiViewGrid className="text-2xl text-dark-500" />
+                                            </div>
+                                            <p className="text-dark-400 mb-4">No campaigns yet</p>
+                                            <button
+                                                onClick={() => setShowRequestWizard(true)}
+                                                className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold"
                                             >
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                        request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
-                                                            'bg-blue-500/20 text-blue-400'
-                                                        }`}>
-                                                        {request.title?.charAt(0).toUpperCase()}
+                                                Launch Campaign
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {requests.slice(0, 6).map((request, index) => (
+                                                <motion.div
+                                                    key={request._id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: index * 0.05 }}
+                                                    onClick={() => setSelectedRequest(request)}
+                                                    className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800"
+                                                >
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                            request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
+                                                                'bg-blue-500/20 text-blue-400'
+                                                            }`}>
+                                                            {request.title?.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.status === 'Open' ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'
+                                                            }`}>
+                                                            {request.status}
+                                                        </span>
                                                     </div>
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.status === 'Open' ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'
-                                                        }`}>
-                                                        {request.status}
-                                                    </span>
-                                                </div>
 
-                                                <h3 className="font-semibold text-dark-100 mb-1 group-hover:text-primary-400 transition-colors">{request.title}</h3>
-                                                <div className="flex items-center justify-between text-sm text-dark-400">
-                                                    <span>Budget: ₹{request.budget?.toLocaleString()}</span>
-                                                    <span>{request.matchedCreators?.length || 0} Matches</span>
-                                                </div>
+                                                    <h3 className="font-semibold text-dark-100 mb-1 group-hover:text-primary-400 transition-colors">{request.title}</h3>
+                                                    <div className="flex items-center justify-between text-sm text-dark-400">
+                                                        <span>Budget: ₹{request.budget?.toLocaleString()}</span>
+                                                        <span>{request.matchedCreators?.length || 0} Matches</span>
+                                                    </div>
 
-                                                {/* Progress Bar Simulation */}
-                                                <div className="w-full bg-dark-700 rounded-full h-1.5 mt-4 overflow-hidden">
-                                                    <div
-                                                        className="bg-primary-500 h-full rounded-full"
-                                                        style={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
-                                                    />
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                                                    {/* Progress Bar Simulation */}
+                                                    <div className="w-full bg-dark-700 rounded-full h-1.5 mt-4 overflow-hidden">
+                                                        <div
+                                                            className="bg-primary-500 h-full rounded-full"
+                                                            style={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
+                                                        />
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </FocusWrapper>
                         </motion.div>
                     )}
 
