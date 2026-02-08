@@ -32,7 +32,8 @@ const ProfileForm = ({ profile, onSave }) => {
         },
         willingToTravel: profile?.willingToTravel || 'NO',
         collaborationTypes: profile?.collaborationTypes || ['REMOTE'],
-        isAvailable: profile?.isAvailable !== false
+        isAvailable: profile?.isAvailable !== false,
+        availabilityStatus: profile?.availabilityStatus || 'AVAILABLE_NOW'
     });
 
     const handleChange = (e) => {
@@ -369,21 +370,35 @@ const ProfileForm = ({ profile, onSave }) => {
                 </p>
             </div>
 
-            {/* Availability Toggle */}
-            <div className="flex items-center justify-between p-4 bg-dark-800 rounded-xl">
-                <div>
-                    <p className="text-dark-100 font-medium">Available for Work</p>
-                    <p className="text-dark-400 text-sm">Show your profile to brands</p>
+            {/* Availability Status */}
+            <div>
+                <label className="input-label">Availability Status</label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {[
+                        { id: 'AVAILABLE_NOW', label: 'Available Now', color: 'emerald', desc: 'Ready for campaigns' },
+                        { id: 'LIMITED_AVAILABILITY', label: 'Limited', color: 'amber', desc: 'Slower response' },
+                        { id: 'NOT_AVAILABLE', label: 'Not Available', color: 'rose', desc: 'Hidden from new brands' }
+                    ].map(option => (
+                        <button
+                            key={option.id}
+                            type="button"
+                            onClick={() => setFormData(prev => ({
+                                ...prev,
+                                availabilityStatus: option.id,
+                                isAvailable: option.id !== 'NOT_AVAILABLE'
+                            }))}
+                            className={`p-4 rounded-xl border-2 transition-all text-left ${formData.availabilityStatus === option.id
+                                ? `border-${option.color}-500 bg-${option.color}-500/10`
+                                : 'border-dark-600 hover:border-dark-500 bg-dark-800'
+                                }`}
+                        >
+                            <div className={`text-sm font-bold ${formData.availabilityStatus === option.id ? `text-${option.color}-400` : 'text-dark-100'}`}>
+                                {option.label}
+                            </div>
+                            <div className="text-xs text-dark-400 mt-1">{option.desc}</div>
+                        </button>
+                    ))}
                 </div>
-                <button
-                    type="button"
-                    onClick={() => setFormData(prev => ({ ...prev, isAvailable: !prev.isAvailable }))}
-                    className={`w-14 h-8 rounded-full transition-all ${formData.isAvailable ? 'bg-emerald-500' : 'bg-dark-600'
-                        }`}
-                >
-                    <div className={`w-6 h-6 bg-white rounded-full shadow transform transition-all ${formData.isAvailable ? 'translate-x-7' : 'translate-x-1'
-                        }`} />
-                </button>
             </div>
 
             {/* Submit */}

@@ -79,7 +79,8 @@ export const creatorAPI = {
     getAchievements: () => api.get('/achievements'),
     getAchievements: () => api.get('/achievements'),
     checkAchievements: () => api.post('/achievements/check'),
-    respondToRequest: (promotionId, status) => api.post('/creators/respond-request', { promotionId, status })
+    respondToRequest: (promotionId, status) => api.post('/creators/respond-request', { promotionId, status }),
+    updateAvailability: (status) => api.put('/creators/profile/availability', { status })
 };
 
 // Seller API

@@ -76,6 +76,12 @@ enum ConversationStatus {
   ARCHIVED
 }
 
+enum AvailabilityStatus {
+  AVAILABLE_NOW
+  LIMITED_AVAILABILITY
+  NOT_AVAILABLE
+}
+
 enum PaymentStatus {
   CREATED
   PENDING
@@ -138,6 +144,7 @@ model User {
   stripeCustomerId      String?        @unique
   stripeAccountId       String?        @unique // For Connect (Creators)
   stripeOnboardingComplete Boolean     @default(false)
+  userIntent            UserIntent?
 
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
@@ -176,7 +183,9 @@ model CreatorProfile {
   minPrice              Float
   maxPrice              Float
   bio                   String?          @db.Text
-  isAvailable           Boolean          @default(true)
+  isAvailable           Boolean          @default(true) // Deprecated
+  availabilityStatus    AvailabilityStatus @default(AVAILABLE_NOW)
+  availabilityUpdatedAt DateTime         @default(now())
   
   // AI Insights
   engagementQuality     String?          @default("Medium") // Low, Medium, High
@@ -240,8 +249,6 @@ model PromotionRequest {
   
   // Location Requirements
   location          Json?            // { district, city, state, country }
-  // Location Requirements
-  location          Json?            // { district, city, state, country }
   locationType      String?          @default("REMOTE") // ONSITE, REMOTE, HYBRID, EVENT
 
   status            CampaignStatus   @default(OPEN)
@@ -280,6 +287,7 @@ model MatchedCreator {
   
   appliedAt          DateTime?
   respondedAt        DateTime?
+  outcome            MatchOutcome?
 
   @@unique([promotionId, creatorId])
   @@index([status])
@@ -592,7 +600,6 @@ model MatchOutcome {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   
-  @@index([status])
   @@index([status])
 }
 

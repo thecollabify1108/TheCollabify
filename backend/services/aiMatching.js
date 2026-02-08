@@ -5,16 +5,17 @@ const PredictiveService = require('./predictiveService');
  * Scoring weights for different factors
  */
 const SCORING_WEIGHTS = {
-    engagementRate: 0.15,      // 15% weight
-    nicheSimilarity: 0.15,     // 15% weight
-    priceCompatibility: 0.15,  // 15% weight
-    predictedROI: 0.10,        // 10% weight (Reduced)
-    locationMatch: 0.10,       // 10% (Reduced, context dependent)
-    campaignTypeMatch: 0.10,   // 10% (New)
-    insightScore: 0.10,        // 10% weight
-    trackRecord: 0.05,         // 5% weight
-    intentMatch: 0.05,         // 5% Short-term Intent
-    personalization: 0.05      // 5% Long-term History
+    engagementRate: 0.12,      // 12%
+    nicheSimilarity: 0.12,     // 12%
+    priceCompatibility: 0.12,  // 12%
+    predictedROI: 0.10,        // 10%
+    locationMatch: 0.10,       // 10%
+    campaignTypeMatch: 0.10,   // 10%
+    availabilityMatch: 0.10,   // 10% (New)
+    insightScore: 0.08,        // 8%
+    trackRecord: 0.08,         // 8%
+    intentMatch: 0.04,         // 4%
+    personalization: 0.04      // 4%
 };
 
 /**
@@ -257,6 +258,22 @@ const calculateCampaignTypeScore = (creatorTypes, requestType) => {
 };
 
 /**
+ * Calculate Availability Score
+ */
+const calculateAvailabilityScore = (status) => {
+    switch (status) {
+        case 'AVAILABLE_NOW':
+            return 100;
+        case 'LIMITED_AVAILABILITY':
+            return 70;
+        case 'NOT_AVAILABLE':
+            return 40;
+        default:
+            return 100; // Default to available now for fallback
+    }
+};
+
+/**
  * Calculate Confidence Level Bucket
  * @param {number} totalScore - The final match score (0-100)
  * @returns {string} - 'High', 'Medium', or 'Experimental'
@@ -282,7 +299,10 @@ const generateMatchReasons = (creator, request, scores) => {
         (scores.insight * SCORING_WEIGHTS.insightScore) +
         (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
         (scores.intent * SCORING_WEIGHTS.intentMatch) +
-        (scores.personalization * SCORING_WEIGHTS.personalization)
+        (scores.personalization * SCORING_WEIGHTS.personalization) +
+        (scores.location * SCORING_WEIGHTS.locationMatch) +
+        (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
+        (scores.availability * SCORING_WEIGHTS.availabilityMatch)
     );
 
     if (totalScore >= 85) {
@@ -305,6 +325,9 @@ const generateMatchReasons = (creator, request, scores) => {
         reasons.push("✅ <strong>In Budget:</strong> Matches your spending range.");
     } else if (scores.price >= 60 && scores.price < 70) {
         reasons.push("💎 <strong>Premium Choice:</strong> Slightly above budget, but high quality.");
+    }
+    if (scores.availability >= 100) {
+        reasons.push("⚡ <strong class='text-amber-400'>Available Now:</strong> Ready to start collaborating immediately.");
     }
     if (scores.trackRecord > 80) {
         reasons.push("🏆 <strong>Proven Track Record:</strong> Consistently delivers for brands.");
@@ -427,7 +450,8 @@ const generateMatchReasons = (creator, request, scores) => {
                 campaignType: calculateCampaignTypeScore(
                     creator.collaborationTypes,
                     request.locationType
-                )
+                ),
+                availability: calculateAvailabilityScore(creator.availabilityStatus)
             };
 
             const matchScore = Math.round(
@@ -441,7 +465,8 @@ const generateMatchReasons = (creator, request, scores) => {
                 (scores.personalization * SCORING_WEIGHTS.personalization) +
                 (scores.personalization * SCORING_WEIGHTS.personalization) +
                 (scores.location * SCORING_WEIGHTS.locationMatch) +
-                (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch)
+                (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
+                (scores.availability * SCORING_WEIGHTS.availabilityMatch)
             );
 
             const matchReasons = generateMatchReasons(creator, request, scores);

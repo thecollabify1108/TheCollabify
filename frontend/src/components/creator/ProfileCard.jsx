@@ -28,12 +28,29 @@ const ProfileCard = ({ profile, onEdit }) => {
                             <span className="px-3 py-1 rounded-full text-sm font-medium bg-primary-500/10 text-primary-400 border border-primary-500/20">
                                 {profile.category}
                             </span>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${profile.isAvailable
-                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                : 'bg-dark-700 text-dark-400 border border-dark-600'
-                                }`}>
-                                {profile.isAvailable ? '● Available' : 'Unavailable'}
-                            </span>
+                            {profile.availabilityStatus === 'AVAILABLE_NOW' && (
+                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    ● Available Now
+                                </span>
+                            )}
+                            {profile.availabilityStatus === 'LIMITED_AVAILABILITY' && (
+                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                    ● Limited
+                                </span>
+                            )}
+                            {profile.availabilityStatus === 'NOT_AVAILABLE' && (
+                                <span className="px-3 py-1 rounded-full text-sm font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                    ○ Unavailable
+                                </span>
+                            )}
+                            {!profile.availabilityStatus && (
+                                <span className={`px-3 py-1 rounded-full text-sm font-medium ${profile.isAvailable
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                    : 'bg-dark-700 text-dark-400 border border-dark-600'
+                                    }`}>
+                                    {profile.isAvailable ? '● Available' : 'Unavailable'}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

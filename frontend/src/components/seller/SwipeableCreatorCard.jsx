@@ -243,8 +243,24 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                                 <span className="font-medium">{(creator.followerCount || 0).toLocaleString()} followers</span>
                             </div>
                         </div>
-                        <HiLightningBolt />
-                        <span className="text-sm font-medium">Active</span>
+                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${creator.availabilityStatus === 'AVAILABLE_NOW'
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : creator.availabilityStatus === 'LIMITED_AVAILABILITY'
+                                ? 'bg-amber-500/20 text-amber-400'
+                                : 'bg-dark-700 text-dark-400'
+                            }`}>
+                            <span className={`w-2 h-2 rounded-full ${creator.availabilityStatus === 'AVAILABLE_NOW'
+                                ? 'bg-emerald-500 animate-pulse'
+                                : creator.availabilityStatus === 'LIMITED_AVAILABILITY'
+                                    ? 'bg-amber-500'
+                                    : 'bg-dark-500'
+                                }`} />
+                            {creator.availabilityStatus === 'AVAILABLE_NOW'
+                                ? 'Available Now'
+                                : creator.availabilityStatus === 'LIMITED_AVAILABILITY'
+                                    ? 'Limited'
+                                    : 'Unavailable'}
+                        </div>
                     </div>
                     {creator.location?.city && (
                         <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/20 text-purple-400">

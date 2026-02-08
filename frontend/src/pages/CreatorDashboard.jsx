@@ -198,14 +198,26 @@ const CreatorDashboard = () => {
 
     const handleToggleAvailability = async () => {
         try {
+            const states = ['AVAILABLE_NOW', 'LIMITED_AVAILABILITY', 'NOT_AVAILABLE'];
+            const currentIndex = states.indexOf(profile.availabilityStatus || 'AVAILABLE_NOW');
+            const nextStatus = states[(currentIndex + 1) % states.length];
+
             setAvailabilityStatus('loading');
-            const updatedProfile = await creatorAPI.updateProfile({
-                isAvailable: !profile.isAvailable
-            });
-            setProfile(updatedProfile.data.data.profile);
+            const res = await creatorAPI.updateAvailability(nextStatus);
+            setProfile(prev => ({
+                ...prev,
+                availabilityStatus: res.data.data.availabilityStatus,
+                isAvailable: res.data.data.availabilityStatus !== 'NOT_AVAILABLE'
+            }));
             setAvailabilityStatus('success');
             setTimeout(() => setAvailabilityStatus('idle'), 2000);
-            toast.success(`You are now ${!profile.isAvailable ? 'available' : 'unavailable'} for work`);
+
+            const labels = {
+                'AVAILABLE_NOW': 'Available Now ⚡',
+                'LIMITED_AVAILABILITY': 'Limited Availability ⏳',
+                'NOT_AVAILABLE': 'Not Available 🌙'
+            };
+            toast.success(`Status: ${labels[nextStatus]}`);
         } catch (error) {
             setAvailabilityStatus('error');
             setTimeout(() => setAvailabilityStatus('idle'), 2000);
@@ -366,6 +378,8 @@ const CreatorDashboard = () => {
                                         userName={user?.name?.split(' ')[0] || 'Creator'}
                                         role="Creator"
                                         dailyInsight="Complete your profile to increase visibility! 🌟"
+                                        availabilityStatus={profile.availabilityStatus}
+                                        onToggleAvailability={handleToggleAvailability}
                                     />
 
                                     {/* 2. Stats Grid */}

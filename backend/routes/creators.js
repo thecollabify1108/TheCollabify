@@ -94,7 +94,8 @@ router.post('/profile', auth, isCreator, [
             promotionTypes,
             priceRange,
             bio,
-            isAvailable
+            isAvailable,
+            availabilityStatus
         } = req.body;
 
         // Generate AI insights
@@ -118,7 +119,9 @@ router.post('/profile', auth, isCreator, [
                 minPrice: priceRange.min,
                 maxPrice: priceRange.max,
                 bio: bio || '',
-                isAvailable: isAvailable !== false,
+                isAvailable: availabilityStatus === 'NOT_AVAILABLE' ? false : (isAvailable !== false),
+                availabilityStatus: availabilityStatus || (isAvailable === false ? 'NOT_AVAILABLE' : 'AVAILABLE_NOW'),
+                availabilityUpdatedAt: new Date(),
                 insights: insights
             }
         });
@@ -178,10 +181,21 @@ router.put('/profile', auth, isCreator, [
 
         // Update fields
         const updateData = {};
-        const fields = ['instagramUsername', 'followerCount', 'engagementRate', 'category', 'bio', 'isAvailable'];
+        const fields = ['instagramUsername', 'followerCount', 'engagementRate', 'category', 'bio', 'isAvailable', 'availabilityStatus'];
         fields.forEach(f => {
             if (req.body[f] !== undefined) updateData[f] = req.body[f];
         });
+
+        // Keep legacy isAvailable and availabilityUpdatedAt in sync
+        if (req.body.availabilityStatus !== undefined) {
+            updateData.availabilityUpdatedAt = new Date();
+            if (req.body.isAvailable === undefined) {
+                updateData.isAvailable = req.body.availabilityStatus !== 'NOT_AVAILABLE';
+            }
+        } else if (req.body.isAvailable !== undefined) {
+            updateData.availabilityStatus = req.body.isAvailable ? 'AVAILABLE_NOW' : 'NOT_AVAILABLE';
+            updateData.availabilityUpdatedAt = new Date();
+        }
 
         if (req.body.promotionTypes) {
             updateData.promotionTypes = req.body.promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_'));
@@ -605,6 +619,44 @@ router.post('/respond-request', auth, isCreator, [
         res.status(500).json({
             success: false,
             message: 'Failed to respond to request'
+        });
+    }
+});
+
+/**
+ * @route   PUT /api/creators/profile/availability
+ * @desc    Update creator's availability status
+ * @access  Private (Creator)
+ */
+router.put('/profile/availability', auth, isCreator, [
+    body('status').isIn(['AVAILABLE_NOW', 'LIMITED_AVAILABILITY', 'NOT_AVAILABLE']).withMessage('Invalid status'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { status } = req.body;
+
+        const updatedProfile = await prisma.creatorProfile.update({
+            where: { userId: req.userId },
+            data: {
+                availabilityStatus: status,
+                availabilityUpdatedAt: new Date(),
+                isAvailable: status !== 'NOT_AVAILABLE'
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'Availability updated successfully',
+            data: {
+                availabilityStatus: updatedProfile.availabilityStatus,
+                availabilityUpdatedAt: updatedProfile.availabilityUpdatedAt
+            }
+        });
+    } catch (error) {
+        console.error('Update availability error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update availability'
         });
     }
 });
