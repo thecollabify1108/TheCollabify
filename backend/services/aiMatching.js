@@ -5,13 +5,14 @@ const PredictiveService = require('./predictiveService');
  * Scoring weights for different factors
  */
 const SCORING_WEIGHTS = {
-    engagementRate: 0.20,      // 20% weight (Reduced from 25%)
+    engagementRate: 0.20,      // 20% weight
     nicheSimilarity: 0.20,     // 20% weight
     priceCompatibility: 0.15,  // 15% weight
-    predictedROI: 0.20,        // 20% weight
+    predictedROI: 0.15,        // 15% weight
     insightScore: 0.10,        // 10% weight
     trackRecord: 0.10,         // 10% weight
-    intentMatch: 0.05          // 5% weight (NEW: Small personalized bias)
+    intentMatch: 0.05,         // 5% Short-term Intent
+    personalization: 0.05      // 5% Long-term History
 };
 
 /**
@@ -118,20 +119,45 @@ const calculateTrackRecordScore = (profile) => {
 };
 
 /**
- * Calculate intent match score (Personalization)
+ * Calculate intent match score (Short-term)
  */
 const calculateIntentScore = (creatorCategory, userIntent) => {
     if (!userIntent || !userIntent.recentCategories || userIntent.recentCategories.length === 0) {
-        return 50; // Neutral score if no history
+        return 50; // Neutral
     }
-
-    // Direct hit on most recent category
     if (userIntent.recentCategories[0] === creatorCategory) return 100;
-
-    // Hit on recent history
     if (userIntent.recentCategories.includes(creatorCategory)) return 75;
-
     return 0;
+};
+
+/**
+ * Calculate personalization score (History-based)
+ */
+const calculatePersonalizationScore = (creatorId, userHistory) => {
+    if (!userHistory || userHistory.length === 0) return 50; // Neutral
+
+    let score = 50;
+    const interactions = userHistory.filter(h => h.targetUserId === creatorId);
+
+    interactions.forEach(interaction => {
+        switch (interaction.action) {
+            case 'ACCEPTED':
+            case 'COMPLETED':
+                score += 30;
+                break;
+            case 'SAVED':
+            case 'CLICKED':
+            case 'CONTACTED':
+                score += 10;
+                break;
+            case 'REJECTED':
+            case 'ABANDONED':
+                score -= 20;
+                break;
+        }
+    });
+
+    return Math.min(100, Math.max(0, score));
 };
 
 /**
@@ -182,10 +208,26 @@ const generateMatchReason = (creator, request, scores) => {
  * Step 2: AI-powered ranking layer
  */
 const rankCreators = async (creators, request, userId = null) => {
-    // Fetch user intent if userId is provided
+    // Fetch user context if userId is provided
     let userIntent = null;
+    let userHistory = [];
+
     if (userId) {
-        userIntent = await prisma.userIntent.findUnique({ where: { userId } });
+        try {
+            const [intent, feedback] = await Promise.all([
+                prisma.userIntent.findUnique({ where: { userId } }),
+                prisma.matchFeedback.findMany({
+                    where: { userId },
+                    select: { targetUserId: true, action: true },
+                    take: 100,
+                    orderBy: { createdAt: 'desc' }
+                })
+            ]);
+            userIntent = intent;
+            userHistory = feedback || [];
+        } catch (err) {
+            console.warn('Failed to fetch user context for ranking', err);
+        }
     }
 
     const rankedCreators = await Promise.all(creators.map(async (creator) => {
@@ -207,9 +249,11 @@ const rankCreators = async (creators, request, userId = null) => {
                 request.maxBudget
             ),
             roi: roiPrediction?.roi || 0,
+            roi: roiPrediction?.roi || 0,
             insight: creator.aiScore || 50,
             trackRecord: calculateTrackRecordScore(creator),
-            intent: calculateIntentScore(creator.category, userIntent)
+            intent: calculateIntentScore(creator.category, userIntent),
+            personalization: calculatePersonalizationScore(creator.id, userHistory)
         };
 
         const matchScore = Math.round(
@@ -219,7 +263,8 @@ const rankCreators = async (creators, request, userId = null) => {
             (scores.roi * SCORING_WEIGHTS.predictedROI) +
             (scores.insight * SCORING_WEIGHTS.insightScore) +
             (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
-            (scores.intent * SCORING_WEIGHTS.intentMatch)
+            (scores.intent * SCORING_WEIGHTS.intentMatch) +
+            (scores.personalization * SCORING_WEIGHTS.personalization)
         );
 
         const matchReason = generateMatchReason(creator, request, scores);
