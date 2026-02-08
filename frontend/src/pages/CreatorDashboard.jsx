@@ -40,11 +40,15 @@ import ContentCalendar from '../components/calendar/ContentCalendar';
 import PaymentModal from '../components/payment/PaymentModal';
 import { subscriptionPlans } from '../config/subscriptions';
 
-// NEW: Modern Dashboard Widgets
+// Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import PerformanceChart from '../components/dashboard/PerformanceChart';
 import DashboardHero from '../components/dashboard/DashboardHero';
+
+// Enhanced UI Components
+import LoadingButton from '../components/common/LoadingButton';
+import EmptyState from '../components/common/EmptyState';
 
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
@@ -67,6 +71,7 @@ const CreatorDashboard = () => {
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [focusMode, setFocusMode] = useState(null);
     const [showGuide, setShowGuide] = useState(true);
+    const [availabilityStatus, setAvailabilityStatus] = useState('idle');
 
     const [searchParams] = useSearchParams();
 
@@ -163,12 +168,17 @@ const CreatorDashboard = () => {
 
     const handleToggleAvailability = async () => {
         try {
+            setAvailabilityStatus('loading');
             const updatedProfile = await creatorAPI.updateProfile({
                 isAvailable: !profile.isAvailable
             });
             setProfile(updatedProfile.data.data.profile);
+            setAvailabilityStatus('success');
+            setTimeout(() => setAvailabilityStatus('idle'), 2000);
             toast.success(`You are now ${!profile.isAvailable ? 'available' : 'unavailable'} for work`);
         } catch (error) {
+            setAvailabilityStatus('error');
+            setTimeout(() => setAvailabilityStatus('idle'), 2000);
             toast.error('Failed to update availability');
         }
     };
@@ -410,12 +420,12 @@ const CreatorDashboard = () => {
                                                     <div className="w-full bg-dark-800 rounded-full h-2 mb-4">
                                                         <div className="bg-gradient-to-r from-pink-500 to-yellow-500 h-2 rounded-full" style={{ width: `${calculateProfileCompletion()}%` }} />
                                                     </div>
-                                                    <button
+                                                    <LoadingButton
                                                         onClick={() => setActiveTab('profile')}
-                                                        className="w-full py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-sm font-medium text-white transition-colors"
+                                                        className="w-full py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-sm font-medium text-white transition-colors border-none"
                                                     >
                                                         Complete Profile
-                                                    </button>
+                                                    </LoadingButton>
                                                 </div>
                                             </motion.div>
                                         </FocusWrapper>
@@ -436,12 +446,12 @@ const CreatorDashboard = () => {
                                                         <p className="text-sm text-dark-400">{promotions.length} new campaigns fit your niche</p>
                                                     </div>
                                                 </div>
-                                                <button
+                                                <LoadingButton
                                                     onClick={() => setActiveTab('opportunities')}
-                                                    className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-medium text-white transition-colors"
+                                                    className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-medium text-white transition-colors border-none"
                                                 >
                                                     Explore Matches
-                                                </button>
+                                                </LoadingButton>
                                             </motion.div>
                                         </FocusWrapper>
                                     </div>
@@ -579,12 +589,12 @@ const CreatorDashboard = () => {
                                             <h3 className="text-2xl font-bold text-white mb-2">Unlock Pro Features</h3>
                                             <p className="text-purple-100 max-w-md">Get AI-powered analytics, custom reports, and priority support to scale your creator career.</p>
                                         </div>
-                                        <button
+                                        <LoadingButton
                                             onClick={handleUpgrade}
-                                            className="px-8 py-3 bg-white text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors shadow-lg shadow-black/10"
+                                            className="px-8 py-3 bg-white text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors shadow-lg shadow-black/10 border-none"
                                         >
                                             Upgrade Now
-                                        </button>
+                                        </LoadingButton>
                                     </div>
                                 </div>
                             )}
@@ -605,15 +615,16 @@ const CreatorDashboard = () => {
                                                     <h3 className="font-semibold text-dark-100 mb-1">Availability Status</h3>
                                                     <p className="text-sm text-dark-400">Let brands know you're open for work</p>
                                                 </div>
-                                                <button
+                                                <LoadingButton
                                                     onClick={handleToggleAvailability}
-                                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${profile.isAvailable
+                                                    status={availabilityStatus}
+                                                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-none ${profile.isAvailable
                                                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                                                         : 'bg-dark-700 text-dark-400 border border-dark-600'
                                                         }`}
                                                 >
                                                     {profile.isAvailable ? '● Available' : 'Unavailable'}
-                                                </button>
+                                                </LoadingButton>
                                             </div>
                                         </div>
                                     )}
@@ -701,17 +712,14 @@ const CreatorDashboard = () => {
     );
 };
 
-// Applications View Component
 const ApplicationsView = ({ applications }) => {
     if (applications.length === 0) {
         return (
-            <div className="text-center py-16 px-4">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-dark-800/50 flex items-center justify-center">
-                    <FaBriefcase className="w-10 h-10 text-dark-600" />
-                </div>
-                <h3 className="text-lg font-medium text-dark-300 mb-2">No applications yet</h3>
-                <p className="text-dark-400 text-sm mb-4">Browse opportunities to get started!</p>
-            </div>
+            <EmptyState
+                icon={<FaBriefcase />}
+                title="No applications yet"
+                description="Browse opportunities to get started!"
+            />
         );
     }
 

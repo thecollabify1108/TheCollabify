@@ -38,11 +38,15 @@ import TeamManagement from '../components/team/TeamManagement';
 import PaymentModal from '../components/payment/PaymentModal';
 import { subscriptionPlans } from '../config/subscriptions';
 
-// NEW: Modern Dashboard Widgets
+// Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import PerformanceChart from '../components/dashboard/PerformanceChart';
 import DashboardHero from '../components/dashboard/DashboardHero';
+
+// Enhanced UI Components
+import LoadingButton from '../components/common/LoadingButton';
+import EmptyState from '../components/common/EmptyState';
 
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
@@ -548,12 +552,12 @@ const SellerDashboard = () => {
                                             <h3 className="text-2xl font-bold text-white mb-2">Upgrade to Pro</h3>
                                             <p className="text-indigo-100 max-w-md">Launch unlimited campaigns, get advanced AI matches, and access detailed ROI analytics.</p>
                                         </div>
-                                        <button
+                                        <LoadingButton
                                             onClick={handleUpgrade}
-                                            className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 transition-colors shadow-lg shadow-black/10"
+                                            className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 transition-colors shadow-lg shadow-black/10 border-none"
                                         >
                                             Upgrade Now
-                                        </button>
+                                        </LoadingButton>
                                     </div>
                                 </div>
                             )}
@@ -625,27 +629,28 @@ const SellerDashboard = () => {
                                         <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
                                             <HiSparkles className="text-primary-400" /> Active Campaigns
                                         </h2>
-                                        <button
+                                        <LoadingButton
                                             onClick={() => setShowRequestWizard(true)}
-                                            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors"
+                                            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors border-none shadow-lg shadow-primary-500/20"
                                         >
                                             + New Campaign
-                                        </button>
+                                        </LoadingButton>
                                     </div>
 
                                     {requests.length === 0 ? (
-                                        <div className="text-center py-12 bg-dark-800/20 rounded-2xl border border-dark-700/50 border-dashed">
-                                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-dark-800/50 flex items-center justify-center">
-                                                <HiViewGrid className="text-2xl text-dark-500" />
-                                            </div>
-                                            <p className="text-dark-400 mb-4">No campaigns yet</p>
-                                            <button
-                                                onClick={() => setShowRequestWizard(true)}
-                                                className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold"
-                                            >
-                                                Launch Campaign
-                                            </button>
-                                        </div>
+                                        <EmptyState
+                                            icon={<HiViewGrid />}
+                                            title="No campaigns yet"
+                                            description="Launch your first campaign to find creators"
+                                            action={
+                                                <LoadingButton
+                                                    onClick={() => setShowRequestWizard(true)}
+                                                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold border-none shadow-lg shadow-primary-500/20"
+                                                >
+                                                    Launch Campaign
+                                                </LoadingButton>
+                                            }
+                                        />
                                     ) : (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                             {requests.slice(0, 6).map((request, index) => (

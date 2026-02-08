@@ -18,7 +18,7 @@ const EmptyState = ({
 }) => {
     const variants = {
         default: {
-            iconBg: 'bg-dark-800',
+            iconBg: 'bg-dark-700/50',
             iconColor: 'text-dark-400',
             titleColor: 'text-dark-200'
         },
@@ -34,14 +34,14 @@ const EmptyState = ({
         }
     };
 
-    const style = variants[variant];
+    const style = variants[variant] || variants.default;
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className={`flex flex-col items-center justify-center py-16 px-4 text-center ${className}`}
+            className={`flex flex-col items-center justify-center py-12 px-6 text-center rounded-3xl border border-dark-700/30 bg-dark-800/20 backdrop-blur-sm ${className}`}
         >
             {/* Icon */}
             {icon && (
