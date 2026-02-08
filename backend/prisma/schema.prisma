@@ -184,6 +184,10 @@ model CreatorProfile {
   profileSummary        String?          @db.Text
   aiScore               Int              @default(50)
   lastAnalyzed          DateTime?        @default(now())
+
+  // Location & Travel
+  location              Json?            // { district, city, state, country }
+  willingToTravel       String?          @default("NO") // YES, LIMITED, NO
   
   // Stats
   totalEarnings        Float            @default(0)
@@ -231,6 +235,11 @@ model PromotionRequest {
   minFollowers      Int
   maxFollowers      Int
   campaignGoal      CampaignGoal
+  
+  // Location Requirements
+  location          Json?            // { district, city, state, country }
+  locationType      String?          @default("REMOTE") // ONSITE, REMOTE, HYBRID
+
   status            CampaignStatus   @default(OPEN)
   
   deadline          DateTime?

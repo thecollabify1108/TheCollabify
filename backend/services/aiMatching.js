@@ -5,12 +5,13 @@ const PredictiveService = require('./predictiveService');
  * Scoring weights for different factors
  */
 const SCORING_WEIGHTS = {
-    engagementRate: 0.20,      // 20% weight
-    nicheSimilarity: 0.20,     // 20% weight
+    engagementRate: 0.15,      // 15% weight
+    nicheSimilarity: 0.15,     // 15% weight
     priceCompatibility: 0.15,  // 15% weight
     predictedROI: 0.15,        // 15% weight
+    locationMatch: 0.15,       // 15% (New)
     insightScore: 0.10,        // 10% weight
-    trackRecord: 0.10,         // 10% weight
+    trackRecord: 0.05,         // 5% weight
     intentMatch: 0.05,         // 5% Short-term Intent
     personalization: 0.05      // 5% Long-term History
 };
@@ -161,6 +162,49 @@ const calculatePersonalizationScore = (creatorId, userHistory) => {
 };
 
 /**
+ * Calculate Location Score
+ */
+const calculateLocationScore = (creatorLocation, requestLocation, locationType, willingnessToTravel) => {
+    // 1. Remote Campaigns: Location doesn't matter much (or maybe time zone?)
+    if (!locationType || locationType === 'REMOTE') {
+        return 100;
+    }
+
+    // 2. If no location data on either side, neutral score
+    if (!creatorLocation || !requestLocation) {
+        return 50;
+    }
+
+    const { district: cDist, city: cCity, state: cState } = creatorLocation;
+    const { district: rDist, city: rCity, state: rState } = requestLocation;
+
+    // 3. Exact Match (District Level)
+    if (cDist && rDist && cDist.toLowerCase() === rDist.toLowerCase()) {
+        return 100;
+    }
+
+    // 4. City Match
+    if (cCity && rCity && cCity.toLowerCase() === rCity.toLowerCase()) {
+        return 90;
+    }
+
+    // 5. State Match
+    if (cState && rState && cState.toLowerCase() === rState.toLowerCase()) {
+        // Boost if willing to travel
+        if (willingnessToTravel === 'YES') return 80;
+        if (willingnessToTravel === 'LIMITED') return 60;
+        return 40; // Penalty if not willing to travel but in same state
+    }
+
+    // 6. Cross-State / Long Distance
+    if (willingnessToTravel === 'YES') {
+        return 50; // Can travel anywhere
+    }
+
+    return 0; // Too far and not willing to travel
+};
+
+/**
  * Calculate Confidence Level Bucket
  * @param {number} totalScore - The final match score (0-100)
  * @returns {string} - 'High', 'Medium', or 'Experimental'
@@ -207,6 +251,11 @@ const generateMatchReasons = (creator, request, scores) => {
     }
     if (scores.trackRecord > 80) {
         reasons.push("🏆 <strong>Proven Track Record:</strong> Consistently delivers for brands.");
+    }
+    if (scores.location >= 100 && request.locationType !== 'REMOTE') {
+        reasons.push(`📍 <strong>Local Expert:</strong> Located right in ${request.location?.district || "your area"}.`);
+    } else if (scores.location >= 80 && request.locationType !== 'REMOTE') {
+        reasons.push("🚗 <strong>Nearby & Willing:</strong> Just a short trip away.");
     }
 
     // 3. AI Behavioral Signals (The "Smart" part)
@@ -306,7 +355,13 @@ const rankCreators = async (creators, request, userId = null) => {
             insight: creator.aiScore || 50,
             trackRecord: calculateTrackRecordScore(creator),
             intent: calculateIntentScore(creator.category, userIntent),
-            personalization: calculatePersonalizationScore(creator.id, userHistory)
+            personalization: calculatePersonalizationScore(creator.id, userHistory),
+            location: calculateLocationScore(
+                creator.location,
+                request.location,
+                request.locationType,
+                creator.willingToTravel
+            )
         };
 
         const matchScore = Math.round(
@@ -317,7 +372,8 @@ const rankCreators = async (creators, request, userId = null) => {
             (scores.insight * SCORING_WEIGHTS.insightScore) +
             (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
             (scores.intent * SCORING_WEIGHTS.intentMatch) +
-            (scores.personalization * SCORING_WEIGHTS.personalization)
+            (scores.personalization * SCORING_WEIGHTS.personalization) +
+            (scores.location * SCORING_WEIGHTS.locationMatch)
         );
 
         const matchReasons = generateMatchReasons(creator, request, scores);

@@ -24,8 +24,16 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
         maxFollowers: initialData?.maxFollowers || 100000,
         minEngagement: 2.0,
         duration: 14,
+        minEngagement: 2.0,
+        duration: 14,
         requirements: initialData?.requirements || '',
-        platforms: ['instagram']
+        platforms: ['instagram'],
+        location: {
+            district: initialData?.location?.district || '',
+            city: initialData?.location?.city || '',
+            state: initialData?.location?.state || ''
+        },
+        locationType: initialData?.locationType || 'REMOTE'
     });
 
     // Pre-populate form data when initialData changes
@@ -87,7 +95,10 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
             },
             campaignGoal: 'Reach', // Default goal
             requirements: formData.requirements || undefined,
-            deadline: new Date(Date.now() + formData.duration * 24 * 60 * 60 * 1000).toISOString()
+            requirements: formData.requirements || undefined,
+            deadline: new Date(Date.now() + formData.duration * 24 * 60 * 60 * 1000).toISOString(),
+            location: formData.locationType !== 'REMOTE' ? formData.location : undefined,
+            locationType: formData.locationType
         };
 
         onSubmit?.(payload);
@@ -301,194 +312,257 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-3">
-                                        Minimum Engagement Rate: {formData.minEngagement}%
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="10"
-                                        step="0.5"
-                                        value={formData.minEngagement}
-                                        onChange={(e) => setFormData({ ...formData, minEngagement: parseFloat(e.target.value) })}
-                                        className="w-full"
-                                    />
-                                </div>
-                            </motion.div>
-                        )}
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="10"
+                                    step="0.5"
+                                    value={formData.minEngagement}
+                                    onChange={(e) => setFormData({ ...formData, minEngagement: parseFloat(e.target.value) })}
+                                    className="w-full"
+                                />
+                            </div>
 
-                        {/* Step 2: Requirements */}
-                        {currentStep === 2 && (
-                            <motion.div
-                                key="requirements"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
-                            >
-                                <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
-                                        Campaign Requirements
-                                    </label>
-                                    <textarea
-                                        value={formData.requirements}
-                                        onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                                        placeholder="List your requirements for creators..."
-                                        rows={8}
-                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none resize-none"
-                                    />
-                                </div>
-                            </motion.div>
-                        )}
+                                {/* Location Settings */}
+                        <div>
+                            <label className="block text-sm font-semibold text-dark-200 mb-3">
+                                Location Requirements
+                            </label>
+                            <div className="flex gap-4 mb-4">
+                                {['REMOTE', 'HYBRID', 'ONSITE'].map(type => (
+                                    <button
+                                        key={type}
+                                        onClick={() => setFormData({ ...formData, locationType: type })}
+                                        className={`flex-1 py-2 rounded-lg font-medium transition-colors ${formData.locationType === type
+                                            ? 'bg-purple-600 text-white'
+                                            : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                            }`}
+                                    >
+                                        {type}
+                                    </button>
+                                ))}
+                            </div>
 
-                        {/* Step 3: Budget */}
-                        {currentStep === 3 && (
-                            <motion.div
-                                key="budget"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
-                            >
-                                <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
-                                        Budget (₹) *
-                                    </label>
+                            {formData.locationType !== 'REMOTE' && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4">
                                     <input
-                                        type="number"
-                                        value={formData.budget}
-                                        onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                                        placeholder="5000"
+                                        type="text"
+                                        value={formData.location.city}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            location: { ...formData.location, city: e.target.value }
+                                        })}
+                                        placeholder="City"
                                         className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
                                     />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
-                                        Duration: {formData.duration} days
-                                    </label>
                                     <input
-                                        type="range"
-                                        min="3"
-                                        max="90"
-                                        value={formData.duration}
-                                        onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-                                        className="w-full"
+                                        type="text"
+                                        value={formData.location.district}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            location: { ...formData.location, district: e.target.value }
+                                        })}
+                                        placeholder="District"
+                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={formData.location.state}
+                                        onChange={(e) => setFormData({
+                                            ...formData,
+                                            location: { ...formData.location, state: e.target.value }
+                                        })}
+                                        placeholder="State"
+                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none md:col-span-2"
                                     />
                                 </div>
-
-                                {formData.budget && (
-                                    <PredictiveAnalyticsWidget
-                                        campaignData={{
-                                            budget: parseInt(formData.budget),
-                                            creatorFollowers: (formData.minFollowers + formData.maxFollowers) / 2,
-                                            creatorEngagementRate: formData.minEngagement,
-                                            promotionType: formData.promotionType,
-                                            category: formData.targetNiche[0] || 'Lifestyle',
-                                            duration: formData.duration
-                                        }}
-                                        creatorProfile={{
-                                            followers: (formData.minFollowers + formData.maxFollowers) / 2,
-                                            avgEngagementRate: formData.minEngagement
-                                        }}
-                                    />
-                                )}
-                            </motion.div>
+                            )}
+                        </div>
+                    </motion.div>
                         )}
 
-                        {/* Step 4: Review */}
-                        {currentStep === 4 && (
-                            <motion.div
-                                key="review"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
-                            >
-                                <div className="bg-dark-800 rounded-xl p-6 space-y-4">
-                                    <h3 className="text-xl font-bold text-dark-100">Campaign Summary</h3>
+                    {/* Step 2: Requirements */}
+                    {currentStep === 2 && (
+                        <motion.div
+                            key="requirements"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-6"
+                        >
+                            <div>
+                                <label className="block text-sm font-semibold text-dark-200 mb-2">
+                                    Campaign Requirements
+                                </label>
+                                <textarea
+                                    value={formData.requirements}
+                                    onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+                                    placeholder="List your requirements for creators..."
+                                    rows={8}
+                                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none resize-none"
+                                />
+                            </div>
+                        </motion.div>
+                    )}
 
-                                    <div className="space-y-3">
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Title:</span>
-                                            <p className="text-dark-100 font-semibold">{formData.title || 'Not set'}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Type:</span>
-                                            <p className="text-dark-100">{formData.promotionType}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Budget:</span>
-                                            <p className="text-dark-100 font-semibold">₹{formData.budget || '0'}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Duration:</span>
-                                            <p className="text-dark-100">{formData.duration} days</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Target Categories:</span>
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                                {formData.targetNiche.map(cat => (
-                                                    <span key={cat} className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm">
-                                                        {cat}
-                                                    </span>
-                                                ))}
-                                            </div>
+                    {/* Step 3: Budget */}
+                    {currentStep === 3 && (
+                        <motion.div
+                            key="budget"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-6"
+                        >
+                            <div>
+                                <label className="block text-sm font-semibold text-dark-200 mb-2">
+                                    Budget (₹) *
+                                </label>
+                                <input
+                                    type="number"
+                                    value={formData.budget}
+                                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+                                    placeholder="5000"
+                                    className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-semibold text-dark-200 mb-2">
+                                    Duration: {formData.duration} days
+                                </label>
+                                <input
+                                    type="range"
+                                    min="3"
+                                    max="90"
+                                    value={formData.duration}
+                                    onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+                                    className="w-full"
+                                />
+                            </div>
+
+                            {formData.budget && (
+                                <PredictiveAnalyticsWidget
+                                    campaignData={{
+                                        budget: parseInt(formData.budget),
+                                        creatorFollowers: (formData.minFollowers + formData.maxFollowers) / 2,
+                                        creatorEngagementRate: formData.minEngagement,
+                                        promotionType: formData.promotionType,
+                                        category: formData.targetNiche[0] || 'Lifestyle',
+                                        duration: formData.duration
+                                    }}
+                                    creatorProfile={{
+                                        followers: (formData.minFollowers + formData.maxFollowers) / 2,
+                                        avgEngagementRate: formData.minEngagement
+                                    }}
+                                />
+                            )}
+                        </motion.div>
+                    )}
+
+                    {/* Step 4: Review */}
+                    {currentStep === 4 && (
+                        <motion.div
+                            key="review"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-6"
+                        >
+                            <div className="bg-dark-800 rounded-xl p-6 space-y-4">
+                                <h3 className="text-xl font-bold text-dark-100">Campaign Summary</h3>
+
+                                <div className="space-y-3">
+                                    <div>
+                                        <span className="text-dark-500 text-sm">Title:</span>
+                                        <p className="text-dark-100 font-semibold">{formData.title || 'Not set'}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-dark-500 text-sm">Type:</span>
+                                        <p className="text-dark-100">{formData.promotionType}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-dark-500 text-sm">Budget:</span>
+                                        <p className="text-dark-100 font-semibold">₹{formData.budget || '0'}</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-dark-500 text-sm">Duration:</span>
+                                        <p className="text-dark-100">{formData.duration} days</p>
+                                    </div>
+                                    <div>
+                                        <span className="text-dark-500 text-sm">Target Categories:</span>
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {formData.targetNiche.map(cat => (
+                                                <span key={cat} className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm">
+                                                    {cat}
+                                                </span>
+                                            ))}
                                         </div>
                                     </div>
+                                    <div>
+                                        <span className="text-dark-500 text-sm">Location:</span>
+                                        <p className="text-dark-100 font-medium">
+                                            {formData.locationType}
+                                            {formData.locationType !== 'REMOTE' && formData.location?.city && ` • ${formData.location.city}`}
+                                        </p>
+                                    </div>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-
-                {/* Footer */}
-                <div className="border-t border-dark-800 p-6 flex items-center justify-between">
-                    <button
-                        onClick={handleBack}
-                        disabled={currentStep === 0}
-                        className="px-6 py-3 bg-dark-800 hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed text-dark-300 rounded-xl font-medium transition-colors"
-                    >
-                        Back
-                    </button>
-
-                    {currentStep < steps.length - 1 ? (
-                        <button
-                            onClick={handleNext}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity flex items-center gap-2"
-                        >
-                            Next
-                            <FaChevronRight />
-                        </button>
-                    ) : (
-                        <button
-                            onClick={handleSubmit}
-                            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity flex items-center gap-2"
-                        >
-                            <FaRocket />
-                            Launch Campaign
-                        </button>
+                            </div>
+                        </motion.div>
                     )}
-                </div>
-            </motion.div>
+                </AnimatePresence>
+            </div>
 
-            {/* Template Selector */}
-            {showTemplates && (
-                <CampaignTemplateSelector
-                    onSelect={applyTemplate}
-                    onClose={() => setShowTemplates(false)}
-                />
-            )}
+            {/* Footer */}
+            <div className="border-t border-dark-800 p-6 flex items-center justify-between">
+                <button
+                    onClick={handleBack}
+                    disabled={currentStep === 0}
+                    className="px-6 py-3 bg-dark-800 hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed text-dark-300 rounded-xl font-medium transition-colors"
+                >
+                    Back
+                </button>
 
-            {/* AI Assistant */}
-            <AIAssistantPanel
-                campaign={formData}
-                onUse={(content) => {
-                    if (content.type === 'caption') {
-                        setFormData({ ...formData, description: content.content });
-                    }
-                }}
+                {currentStep < steps.length - 1 ? (
+                    <button
+                        onClick={handleNext}
+                        className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity flex items-center gap-2"
+                    >
+                        Next
+                        <FaChevronRight />
+                    </button>
+                ) : (
+                    <button
+                        onClick={handleSubmit}
+                        className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity flex items-center gap-2"
+                    >
+                        <FaRocket />
+                        Launch Campaign
+                    </button>
+                )}
+            </div>
+        </motion.div >
+
+            {/* Template Selector */ }
+    {
+        showTemplates && (
+            <CampaignTemplateSelector
+                onSelect={applyTemplate}
+                onClose={() => setShowTemplates(false)}
             />
+        )
+    }
+
+    {/* AI Assistant */ }
+    <AIAssistantPanel
+        campaign={formData}
+        onUse={(content) => {
+            if (content.type === 'caption') {
+                setFormData({ ...formData, description: content.content });
+            }
+        }}
+    />
         </>
     );
 };

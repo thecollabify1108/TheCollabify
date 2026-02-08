@@ -25,6 +25,12 @@ const ProfileForm = ({ profile, onSave }) => {
         },
         bio: profile?.bio || '',
         instagramProfileUrl: profile?.instagramProfileUrl || '',
+        location: {
+            district: profile?.location?.district || '',
+            city: profile?.location?.city || '',
+            state: profile?.location?.state || ''
+        },
+        willingToTravel: profile?.willingToTravel || 'NO',
         isAvailable: profile?.isAvailable !== false
     });
 
@@ -36,6 +42,12 @@ const ProfileForm = ({ profile, onSave }) => {
             setFormData(prev => ({
                 ...prev,
                 priceRange: { ...prev.priceRange, [key]: value }
+            }));
+        } else if (name.startsWith('location.')) {
+            const key = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                location: { ...prev.location, [key]: value }
             }));
         } else {
             setFormData(prev => ({ ...prev, [name]: value }));
@@ -202,6 +214,62 @@ const ProfileForm = ({ profile, onSave }) => {
                                 {type}
                             </button>
                         ))}
+                    </div>
+                </div>
+
+                {/* Location & Travel */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="input-label">Primary Location</label>
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                            <input
+                                type="text"
+                                name="location.city"
+                                value={formData.location?.city || ''}
+                                onChange={handleChange}
+                                placeholder="City"
+                                className="input-field"
+                            />
+                            <input
+                                type="text"
+                                name="location.district"
+                                value={formData.location?.district || ''}
+                                onChange={handleChange}
+                                placeholder="District"
+                                className="input-field"
+                            />
+                        </div>
+                        <input
+                            type="text"
+                            name="location.state"
+                            value={formData.location?.state || ''}
+                            onChange={handleChange}
+                            placeholder="State"
+                            className="input-field"
+                        />
+                    </div>
+                    <div>
+                        <label className="input-label">Willing to Travel?</label>
+                        <div className="grid grid-cols-3 gap-3">
+                            {['NO', 'LIMITED', 'YES'].map(option => (
+                                <button
+                                    key={option}
+                                    type="button"
+                                    onClick={() => setFormData(prev => ({ ...prev, willingToTravel: option }))}
+                                    className={`py-3 rounded-xl border-2 transition-all text-sm font-medium ${formData.willingToTravel === option
+                                        ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400'
+                                        : 'border-dark-600 text-dark-300 hover:border-dark-500'
+                                        }`}
+                                >
+                                    {option === 'NO' ? 'No' : option === 'LIMITED' ? 'Limited' : 'Anywhere'}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-xs text-dark-400 mt-2">
+                            {formData.willingToTravel === 'YES' ? 'I can travel for campaigns (travel costs may apply).' :
+                                formData.willingToTravel === 'LIMITED' ? 'I can travel to nearby cities/states.' :
+                                    'I prefer remote or strictly local work.'}
+                        </p>
                     </div>
                 </div>
 

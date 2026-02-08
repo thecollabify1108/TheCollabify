@@ -223,111 +223,115 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                                 <span className="font-medium">{(creator.followerCount || 0).toLocaleString()} followers</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-primary-500/20 text-primary-400">
-                            <HiLightningBolt />
-                            <span className="text-sm font-medium">Active</span>
-                        </div>
+                        <HiLightningBolt />
+                        <span className="text-sm font-medium">Active</span>
                     </div>
-
-                    {/* Campaign Info */}
-                    <div className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 relative">
-                        {/* Confidence Badge */}
-                        {creator.confidenceLevel && (
-                            <div className={`absolute -top-3 right-4 px-3 py-1 rounded-full text-xs font-bold border shadow-lg ${creator.confidenceLevel === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
-                                creator.confidenceLevel === 'Medium' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                                    'bg-purple-500/20 text-purple-400 border-purple-500/30'
-                                }`}>
-                                {creator.confidenceLevel === 'High' ? 'High Confidence' :
-                                    creator.confidenceLevel === 'Medium' ? 'Medium Confidence' : 'Experimental'}
-                            </div>
-                        )}
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-dark-400 uppercase tracking-wider">Applied For</span>
-                            <span className="text-lg font-bold text-emerald-400">₹{creator.budget?.toLocaleString()}</span>
+                    {creator.location?.city && (
+                        <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/20 text-purple-400">
+                            <span className="text-sm font-medium">{creator.location.city}</span>
                         </div>
-                        <p className="text-dark-200 font-medium">{creator.requestTitle}</p>
-                    </div>
-
-                    {/* Quick Stats */}
-                    <div className="flex justify-around text-center">
-                        <div>
-                            <div className="text-xl font-bold text-dark-100">{creator.promotionType || 'Story'}</div>
-                            <div className="text-xs text-dark-400">Type</div>
-                        </div>
-                        <div className="w-px bg-dark-700"></div>
-                        <div>
-                            <div className="text-xl font-bold text-dark-100">{creator.niche || 'General'}</div>
-                            <div className="text-xs text-dark-400">Niche</div>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* "Why This Match?" Overlay */}
-                <AnimatePresence>
-                    {showWhy && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 100 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 100 }}
-                            className="absolute inset-0 z-20 bg-dark-900/95 backdrop-blur-md p-6 flex flex-col"
-                            onClick={(e) => e.stopPropagation()}
-                        >
-                            <div className="flex items-center justify-between mb-6">
-                                <h4 className="text-xl font-bold text-white flex items-center gap-2">
-                                    <HiSparkles className="text-primary-400" />
-                                    Why this match?
-                                </h4>
-                                <button
-                                    onClick={() => setShowWhy(false)}
-                                    className="w-8 h-8 rounded-full bg-dark-800 flex items-center justify-center text-dark-400 hover:text-white transition-colors"
-                                >
-                                    <FaTimes />
-                                </button>
-                            </div>
+                {/* Campaign Info */}
+                <div className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 relative">
+                    {/* Confidence Badge */}
+                    {creator.confidenceLevel && (
+                        <div className={`absolute -top-3 right-4 px-3 py-1 rounded-full text-xs font-bold border shadow-lg ${creator.confidenceLevel === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                            creator.confidenceLevel === 'Medium' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                'bg-purple-500/20 text-purple-400 border-purple-500/30'
+                            }`}>
+                            {creator.confidenceLevel === 'High' ? 'High Confidence' :
+                                creator.confidenceLevel === 'Medium' ? 'Medium Confidence' : 'Experimental'}
+                        </div>
+                    )}
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-dark-400 uppercase tracking-wider">Applied For</span>
+                        <span className="text-lg font-bold text-emerald-400">₹{creator.budget?.toLocaleString()}</span>
+                    </div>
+                    <p className="text-dark-200 font-medium">{creator.requestTitle}</p>
+                </div>
 
-                            <div className="space-y-4 flex-1 overflow-y-auto">
-                                {/* Learning Narrative */}
-                                {creator.learningInsight && (
-                                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm leading-relaxed flex gap-3">
-                                        <span className="text-xl">🤖</span>
-                                        <span dangerouslySetInnerHTML={{ __html: creator.learningInsight }} />
-                                    </div>
-                                )}
+                {/* Quick Stats */}
+                <div className="flex justify-around text-center">
+                    <div>
+                        <div className="text-xl font-bold text-dark-100">{creator.promotionType || 'Story'}</div>
+                        <div className="text-xs text-dark-400">Type</div>
+                    </div>
+                    <div className="w-px bg-dark-700"></div>
+                    <div>
+                        <div className="text-xl font-bold text-dark-100">{creator.niche || 'General'}</div>
+                        <div className="text-xs text-dark-400">Niche</div>
+                    </div>
+                </div>
+            </div>
 
-                                {creator.matchReasons && creator.matchReasons.length > 0 ? (
-                                    creator.matchReasons.map((reason, idx) => (
-                                        <div key={idx} className="p-3 rounded-xl bg-dark-800/50 border border-dark-700/50 text-dark-200 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: reason }}>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-3 rounded-xl bg-dark-800/50 border border-dark-700/50 text-dark-200 text-sm">
-                                        ⚡ <strong>Solid Match:</strong> Meets your basic criteria for budget and category.
-                                    </div>
-                                )}
-                            </div>
-
+            {/* "Why This Match?" Overlay */}
+            <AnimatePresence>
+                {showWhy && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 100 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 100 }}
+                        className="absolute inset-0 z-20 bg-dark-900/95 backdrop-blur-md p-6 flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between mb-6">
+                            <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                                <HiSparkles className="text-primary-400" />
+                                Why this match?
+                            </h4>
                             <button
                                 onClick={() => setShowWhy(false)}
-                                className="mt-4 w-full py-3 rounded-xl bg-primary-600 text-white font-bold text-sm tracking-wide"
+                                className="w-8 h-8 rounded-full bg-dark-800 flex items-center justify-center text-dark-400 hover:text-white transition-colors"
                             >
-                                GOT IT
+                                <FaTimes />
                             </button>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                        </div>
 
-                {/* Info Button Trigger */}
-                {!showWhy && (
-                    <button
-                        onClick={(e) => { e.stopPropagation(); setShowWhy(true); }}
-                        className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full bg-dark-900/80 backdrop-blur text-xs font-bold text-primary-400 border border-primary-500/30 shadow-lg hover:bg-primary-500/20 transition-all flex items-center gap-2"
-                    >
-                        <HiSparkles />
-                        Why?
-                    </button>
+                        <div className="space-y-4 flex-1 overflow-y-auto">
+                            {/* Learning Narrative */}
+                            {creator.learningInsight && (
+                                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm leading-relaxed flex gap-3">
+                                    <span className="text-xl">🤖</span>
+                                    <span dangerouslySetInnerHTML={{ __html: creator.learningInsight }} />
+                                </div>
+                            )}
+
+                            {creator.matchReasons && creator.matchReasons.length > 0 ? (
+                                creator.matchReasons.map((reason, idx) => (
+                                    <div key={idx} className="p-3 rounded-xl bg-dark-800/50 border border-dark-700/50 text-dark-200 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: reason }}>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-3 rounded-xl bg-dark-800/50 border border-dark-700/50 text-dark-200 text-sm">
+                                    ⚡ <strong>Solid Match:</strong> Meets your basic criteria for budget and category.
+                                </div>
+                            )}
+                        </div>
+
+                        <button
+                            onClick={() => setShowWhy(false)}
+                            className="mt-4 w-full py-3 rounded-xl bg-primary-600 text-white font-bold text-sm tracking-wide"
+                        >
+                            GOT IT
+                        </button>
+                    </motion.div>
                 )}
-            </div>
-        </motion.div>
+            </AnimatePresence>
+
+            {/* Info Button Trigger */}
+            {!showWhy && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); setShowWhy(true); }}
+                    className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full bg-dark-900/80 backdrop-blur text-xs font-bold text-primary-400 border border-primary-500/30 shadow-lg hover:bg-primary-500/20 transition-all flex items-center gap-2"
+                >
+                    <HiSparkles />
+                    Why?
+                </button>
+            )}
+        </div>
+        </motion.div >
     );
 };
 
