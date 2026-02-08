@@ -128,7 +128,7 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                             <p className="text-dark-400">No conversations yet</p>
                         </div>
                     ) : (
-                        filteredConversations.map((conv) => (
+                        filteredConversations.map((conv, index) => (
                             <SwipeableConversationItem
                                 key={conv._id}
                                 conversation={conv}

@@ -6,7 +6,8 @@ import {
     FaTrophy,
     FaComments,
     FaCog,
-    FaCalendar
+    FaCalendar,
+    FaBriefcase
 } from 'react-icons/fa';
 import { HiHome, HiSparkles, HiUserGroup, HiLightningBolt, HiViewGrid, HiChat, HiBriefcase } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -795,11 +796,5 @@ const ApplicationsView = ({ applications }) => {
     );
 };
 
-// Helper function
-const formatNumber = num => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num;
-};
 
 export default CreatorDashboard;
