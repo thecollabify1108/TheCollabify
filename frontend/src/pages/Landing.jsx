@@ -412,6 +412,8 @@ const Landing = () => {
                                 </div>
                                 <div className="text-left">
                                     <div className="text-sm text-dark-400">I'm a</div>
+                                    <div className="text-xl font-bold">Creator</div>
+                                </div>
                             </button>
                         </motion.div>
 
