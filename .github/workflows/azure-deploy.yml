@@ -12,6 +12,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -33,11 +37,18 @@ jobs:
         cd backend
         npx prisma generate
 
+    - name: Login to Azure
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_EE908C73504B45449F8E53FD54C271B8 }}
+        tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_448FE0AD6FE84844AF97F80611074CFF }}
+        subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_88F0397DA72946A7B02122AD713744FF }}
+
     - name: Deploy to Azure Web App
-      uses: azure/webapps-deploy@v2
+      uses: azure/webapps-deploy@v3
       with:
         app-name: 'thecollabify-api'
-        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        slot-name: 'Production'
         package: ./backend
 
     - name: Run Database Migrations
