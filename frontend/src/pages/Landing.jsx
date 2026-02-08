@@ -38,6 +38,16 @@ const Landing = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // Lock body scroll when mobile menu is open
+    useEffect(() => {
+        if (mobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [mobileMenuOpen]);
+
     // Typing animation effect
     const phrases = ['Perfect Creators', 'Ideal Influencers', 'Amazing Partners', 'Top Talent'];
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
@@ -204,12 +214,17 @@ const Landing = () => {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center justify-between h-16">
                             {/* Logo */}
-                            <Link to="/" className="flex items-center space-x-3">
-                                <img src="/favicon.png" alt="" className="h-8 w-8 object-contain" />
+                            <Link to="/" className="flex items-center space-x-2 md:space-x-3 group">
+                                <motion.img
+                                    src="/favicon.png"
+                                    alt=""
+                                    className="h-8 w-8 object-contain"
+                                    whileTap={{ scale: 0.9 }}
+                                />
                                 <div className="flex flex-col">
                                     <div className="flex items-baseline">
-                                        <span className="text-lg italic text-dark-100 mr-1">The</span>
-                                        <span className="text-xl font-bold text-dark-100">Collabify</span>
+                                        <span className="text-base md:text-lg italic text-dark-100 mr-1">The</span>
+                                        <span className="text-lg md:text-xl font-bold text-dark-100">Collabify</span>
                                     </div>
                                     <span className="text-xs text-dark-400 -mt-1 tracking-wide hidden sm:block">Empowering Influencer Partnerships</span>
                                 </div>
@@ -242,24 +257,27 @@ const Landing = () => {
                             </div>
 
                             {/* Mobile Right Side */}
-                            <div className="flex md:hidden items-center space-x-3">
-                                <ThemeToggle />
+                            <div className="flex md:hidden items-center space-x-2">
+                                <div className="scale-90 origin-right">
+                                    <ThemeToggle />
+                                </div>
                                 {/* Hamburger Menu Button */}
-                                <button
+                                <motion.button
+                                    whileTap={{ scale: 0.9 }}
                                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                    className="w-10 h-10 rounded-lg flex items-center justify-center bg-dark-800 hover:bg-dark-700 transition"
+                                    className="w-10 h-10 rounded-lg flex items-center justify-center bg-dark-800 hover:bg-dark-700 transition border border-dark-700"
                                     aria-label="Toggle menu"
                                 >
                                     {mobileMenuOpen ? (
-                                        <svg className="w-6 h-6 text-dark-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5 text-dark-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     ) : (
-                                        <svg className="w-6 h-6 text-dark-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5 text-dark-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                                         </svg>
                                     )}
-                                </button>
+                                </motion.button>
                             </div>
                         </div>
                     </div>

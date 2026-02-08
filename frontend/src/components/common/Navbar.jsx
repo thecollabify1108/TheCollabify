@@ -55,15 +55,16 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center space-x-3 group">
+                    <Link to="/" className="flex items-center space-x-2 md:space-x-3 group">
                         <motion.img
                             src="/favicon.png"
                             alt="Logo"
-                            className="h-9 w-9 object-contain"
+                            className="h-8 w-8 md:h-9 md:w-9 object-contain"
                             whileHover={{ rotate: 12, scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
                         />
                         <div className="flex flex-col">
-                            <span className="text-2xl font-black italic tracking-tighter gradient-text">
+                            <span className="text-xl md:text-2xl font-black italic tracking-tighter gradient-text">
                                 TheCollabify
                             </span>
                             <span className="text-[10px] text-dark-400 uppercase tracking-[0.2em] font-bold -mt-1 hidden md:block">
@@ -73,24 +74,27 @@ const Navbar = () => {
                     </Link>
 
                     {/* Right side */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2 md:space-x-4">
                         {/* Live Notifications - Real-time */}
                         <LiveNotificationBell userId={user?._id} />
 
                         {/* Theme Toggle */}
-                        <ThemeToggle />
+                        <div className="scale-90 md:scale-100 origin-right">
+                            <ThemeToggle />
+                        </div>
 
                         {/* User Menu */}
                         <div className="relative" ref={menuRef}>
-                            <button
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
                                 onClick={() => setShowUserMenu(!showUserMenu)}
-                                className="flex items-center space-x-2 p-2 rounded-xl hover:bg-dark-800 transition"
+                                className="flex items-center space-x-2 p-1 md:p-2 rounded-xl hover:bg-dark-800 transition"
                             >
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-medium text-sm">
+                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-medium text-sm border-2 border-dark-950 ring-2 ring-transparent hover:ring-primary-500/50 transition-all">
                                     {user?.name?.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="hidden md:block text-dark-200 font-medium">{user?.name}</span>
-                            </button>
+                            </motion.button>
 
                             <AnimatePresence>
                                 {showUserMenu && (

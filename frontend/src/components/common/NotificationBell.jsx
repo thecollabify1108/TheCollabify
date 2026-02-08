@@ -25,6 +25,16 @@ const NotificationBell = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Lock body scroll when notification menu is open on mobile
+    useEffect(() => {
+        if (window.innerWidth < 768 && isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => { document.body.style.overflow = 'unset'; };
+    }, [isOpen]);
+
     const getNotificationIcon = (type) => {
         switch (type) {
             case 'NEW_MATCH':
@@ -98,17 +108,18 @@ const NotificationBell = () => {
 
     return (
         <div className="relative" ref={menuRef}>
-            <button
+            <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(!isOpen)}
                 className="relative p-2 rounded-xl hover:bg-dark-800 transition text-dark-300 hover:text-dark-100"
             >
                 <FaBell className="text-xl" />
                 {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
+                    <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-gradient-to-r from-primary-500 to-secondary-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold border border-dark-950">
                         {unreadCount > 9 ? '9+' : unreadCount}
                     </span>
                 )}
-            </button>
+            </motion.button>
 
             <AnimatePresence>
                 {isOpen && (
@@ -117,10 +128,10 @@ const NotificationBell = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.15 }}
-                        className="fixed md:absolute left-2 right-2 md:left-auto md:right-0 top-16 md:top-auto md:mt-2 w-auto md:w-80 max-w-[calc(100vw-16px)] glass-card shadow-xl overflow-hidden z-50"
+                        className="fixed inset-x-4 top-20 md:absolute md:left-auto md:right-0 md:top-auto md:mt-2 w-auto md:w-80 md:inset-auto bg-dark-900 md:glass-card border border-dark-700 shadow-2xl rounded-2xl overflow-hidden z-50 transform origin-top-right"
                     >
                         {/* Header */}
-                        <div className="px-4 py-3 border-b border-dark-700 flex items-center justify-between">
+                        <div className="px-4 py-3 border-b border-dark-700 flex items-center justify-between bg-dark-800/50">
                             <h3 className="font-semibold text-dark-100">Notifications</h3>
                             <div className="flex items-center gap-3">
                                 {notifications.length > 0 && (
@@ -143,7 +154,7 @@ const NotificationBell = () => {
                         </div>
 
                         {/* Notifications List */}
-                        <div className="max-h-96 overflow-y-auto">
+                        <div className="max-h-[60vh] md:max-h-96 overflow-y-auto overscroll-contain">
                             {notifications.length === 0 ? (
                                 <div className="p-8 text-center">
                                     <FaBell className="text-4xl text-dark-600 mx-auto mb-3" />
