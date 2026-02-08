@@ -67,6 +67,17 @@ export const SkeletonListItem = () => {
     );
 };
 
+// List Skeleton Wrapper
+export const SkeletonList = ({ count = 3 }) => {
+    return (
+        <div className="space-y-4">
+            {Array.from({ length: count }).map((_, i) => (
+                <SkeletonListItem key={i} />
+            ))}
+        </div>
+    );
+};
+
 // Table Row Skeleton
 export const SkeletonTable = ({ rows = 5 }) => {
     return (

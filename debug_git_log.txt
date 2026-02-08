@@ -1,0 +1,21 @@
+=== BRANCH === 
+main
+=== STATUS === 
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	debug_git.bat
+	debug_git_log.txt
+
+nothing added to commit but untracked files present (use "git add" to track)
+=== LOG === 
+3d35387 fix: move correctly imported skeleton in SellerDashboard.jsx to top level
+2dfb51e fix: move misplaced import in CreatorDashboard.jsx to top level
+fd8394e fix: repair azure deployment workflow with correct credentials
+=== REMOTE === 
+origin	https://github.com/thecollabify1108/TheCollabify.git (fetch)
+origin	https://github.com/thecollabify1108/TheCollabify.git (push)
+=== PUSH === 
+Everything up-to-date
