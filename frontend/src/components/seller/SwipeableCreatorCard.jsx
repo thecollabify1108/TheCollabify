@@ -246,8 +246,17 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                         </div>
                     )}
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-dark-400 uppercase tracking-wider">Applied For</span>
-                        <span className="text-lg font-bold text-emerald-400">₹{creator.budget?.toLocaleString()}</span>
+                        <span className="text-xs text-dark-400 uppercase tracking-wider">Charge Range</span>
+                        <div className="text-right">
+                            <span className="text-lg font-bold text-emerald-400">
+                                ₹{creator.minPrice ? creator.minPrice.toLocaleString() : '0'}
+                            </span>
+                            {creator.maxPrice && (
+                                <span className="text-sm text-emerald-500/80 ml-1">
+                                    - {(creator.maxPrice).toLocaleString()}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <p className="text-dark-200 font-medium">{creator.requestTitle}</p>
                 </div>

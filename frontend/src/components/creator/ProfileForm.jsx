@@ -275,104 +275,107 @@ const ProfileForm = ({ profile, onSave }) => {
 
                 {/* Price Range */}
                 <div>
-                    <label className="input-label">Price Range (₹ INR)</label>
+                    <label className="input-label">Charge Range per Post (₹ INR)</label>
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="relative">
-                            <FaRupeeSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
+                        <div>
+                            <span className="text-xs text-dark-400 mb-1 block">Minimum Charge</span>
                             <input
                                 type="number"
                                 name="priceRange.min"
-                                value={formData.priceRange.min}
+                                value={formData.priceRange?.min || ''}
                                 onChange={handleChange}
                                 placeholder="Min"
-                                className="input-field pl-10"
+                                className="input-field"
                                 min="0"
-                                required
                             />
                         </div>
-                        <div className="relative">
-                            <FaRupeeSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
+                        <div>
+                            <span className="text-xs text-dark-400 mb-1 block">Maximum / Preferred</span>
                             <input
                                 type="number"
                                 name="priceRange.max"
-                                value={formData.priceRange.max}
+                                value={formData.priceRange?.max || ''}
                                 onChange={handleChange}
                                 placeholder="Max"
-                                className="input-field pl-10"
+                                className="input-field"
                                 min="0"
-                                required
                             />
                         </div>
                     </div>
-                </div>
-
-                {/* Bio */}
-                <div>
-                    <label className="input-label">Bio (Optional)</label>
-                    <textarea
-                        name="bio"
-                        value={formData.bio}
-                        onChange={handleChange}
-                        placeholder="Tell brands about yourself..."
-                        className="input-field h-24 resize-none"
-                        maxLength={500}
-                    />
-                    <p className="text-xs text-dark-400 mt-1">{formData.bio.length}/500 characters</p>
-                </div>
-
-                {/* Instagram Profile URL */}
-                <div>
-                    <label className="input-label">Instagram Profile URL (Optional)</label>
-                    <input
-                        type="text"
-                        name="instagramProfileUrl"
-                        value={formData.instagramProfileUrl}
-                        onChange={handleChange}
-                        placeholder="https://instagram.com/your_username"
-                        className="input-field"
-                    />
-                    <p className="text-xs text-dark-400 mt-1">
-                        Paste your Instagram profile URL (query parameters like ?utm_source are okay)
+                    <p className="text-xs text-dark-500 mt-2">
+                        Set a realistic range. Wide ranges improve match chances but may attract lower offers.
                     </p>
                 </div>
 
-                {/* Availability Toggle */}
-                <div className="flex items-center justify-between p-4 bg-dark-800 rounded-xl">
-                    <div>
-                        <p className="text-dark-100 font-medium">Available for Work</p>
-                        <p className="text-dark-400 text-sm">Show your profile to brands</p>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, isAvailable: !prev.isAvailable }))}
-                        className={`w-14 h-8 rounded-full transition-all ${formData.isAvailable ? 'bg-emerald-500' : 'bg-dark-600'
-                            }`}
-                    >
-                        <div className={`w-6 h-6 bg-white rounded-full shadow transform transition-all ${formData.isAvailable ? 'translate-x-7' : 'translate-x-1'
-                            }`} />
-                    </button>
-                </div>
+            </div>
 
-                {/* Submit */}
+            {/* Bio */}
+            <div>
+                <label className="input-label">Bio (Optional)</label>
+                <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    placeholder="Tell brands about yourself..."
+                    className="input-field h-24 resize-none"
+                    maxLength={500}
+                />
+                <p className="text-xs text-dark-400 mt-1">{formData.bio.length}/500 characters</p>
+            </div>
+
+            {/* Instagram Profile URL */}
+            <div>
+                <label className="input-label">Instagram Profile URL (Optional)</label>
+                <input
+                    type="text"
+                    name="instagramProfileUrl"
+                    value={formData.instagramProfileUrl}
+                    onChange={handleChange}
+                    placeholder="https://instagram.com/your_username"
+                    className="input-field"
+                />
+                <p className="text-xs text-dark-400 mt-1">
+                    Paste your Instagram profile URL (query parameters like ?utm_source are okay)
+                </p>
+            </div>
+
+            {/* Availability Toggle */}
+            <div className="flex items-center justify-between p-4 bg-dark-800 rounded-xl">
+                <div>
+                    <p className="text-dark-100 font-medium">Available for Work</p>
+                    <p className="text-dark-400 text-sm">Show your profile to brands</p>
+                </div>
                 <button
-                    type="submit"
-                    disabled={loading}
-                    className="btn-3d w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, isAvailable: !prev.isAvailable }))}
+                    className={`w-14 h-8 rounded-full transition-all ${formData.isAvailable ? 'bg-emerald-500' : 'bg-dark-600'
+                        }`}
                 >
-                    {loading ? (
-                        <span className="flex items-center justify-center">
-                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            Saving...
-                        </span>
-                    ) : (
-                        profile ? 'Update Profile' : 'Create Profile'
-                    )}
+                    <div className={`w-6 h-6 bg-white rounded-full shadow transform transition-all ${formData.isAvailable ? 'translate-x-7' : 'translate-x-1'
+                        }`} />
                 </button>
-            </form>
-        </motion.div>
+            </div>
+
+            {/* Submit */}
+            <button
+                type="submit"
+                disabled={loading}
+                className="btn-3d w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                {loading ? (
+                    <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                    </span>
+                ) : (
+                    profile ? 'Update Profile' : 'Create Profile'
+                )}
+            </button>
+        </form>
+        </motion.div >
     );
 };
 
