@@ -69,6 +69,23 @@ const Landing = () => {
         return () => clearTimeout(timer);
     }, [displayText, isDeleting, currentPhraseIndex]);
 
+    // AI Status Cycle
+    const aiStatuses = [
+        "Analyzing Creator Relevance...",
+        "Matching Brand Intent...",
+        "Verifying Audience Quality...",
+        "Predicting Campaign ROI...",
+        "Optimizing Collaboration Fit..."
+    ];
+    const [aiStatusIndex, setAiStatusIndex] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setAiStatusIndex((prev) => (prev + 1) % aiStatuses.length);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -319,6 +336,27 @@ const Landing = () => {
                                 <HiSparkles className="w-4 h-4 mr-2" />
                                 Smart Influencer Marketing Platform
                             </span>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5, duration: 1 }}
+                            className="h-8 mb-4 flex items-center justify-center overflow-hidden"
+                        >
+                            <AnimatePresence mode="wait">
+                                <motion.span
+                                    key={displayText}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.5 }}
+                                    className="text-xs font-mono text-primary-400/80 tracking-widest uppercase flex items-center gap-2"
+                                >
+                                    <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-pulse"></span>
+                                    {aiStatuses[aiStatusIndex]}
+                                </motion.span>
+                            </AnimatePresence>
                         </motion.div>
 
                         <motion.h1
