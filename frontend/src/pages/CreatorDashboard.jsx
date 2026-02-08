@@ -51,14 +51,19 @@ import LoadingButton from '../components/common/LoadingButton';
 import EmptyState from '../components/common/EmptyState';
 
 // Skeleton Loading Components
-import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
+import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList, SkeletonMobileCard } from '../components/common/Skeleton';
 
 import GuidedAIMode from '../components/dashboard/GuidedAIMode';
 import FocusWrapper from '../components/dashboard/FocusWrapper';
 
 const CreatorDashboard = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('dashboard');
+    const [activeTab, setActiveTab] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        if (tab === 'edit') return 'profile';
+        return tab || 'dashboard';
+    });
     const [profile, setProfile] = useState(null);
     const [promotions, setPromotions] = useState([]);
     const [applications, setApplications] = useState([]);
@@ -110,9 +115,9 @@ const CreatorDashboard = () => {
         }
     }, [searchParams]);
 
-    const fetchData = async () => {
+    const fetchData = async (isBackground = false) => {
         try {
-            setLoading(true);
+            if (!isBackground) setLoading(true);
             const [profileRes, promotionsRes, applicationsRes] = await Promise.allSettled([
                 creatorAPI.getProfile(),
                 creatorAPI.getPromotions(),
@@ -133,14 +138,14 @@ const CreatorDashboard = () => {
                 setApplications(applicationsRes.value.data.data.applications);
             }
         } finally {
-            setLoading(false);
+            if (!isBackground) setLoading(false);
         }
     };
 
     const handleProfileSaved = () => {
         setShowProfileForm(false);
         setIsEditingProfile(false);
-        fetchData();
+        fetchData(true); // Seamless update
         toast.success('Profile updated successfully!');
         // Navigate to home tab after successful save
         setActiveTab('home');
@@ -157,11 +162,22 @@ const CreatorDashboard = () => {
     };
 
     const handleApplyToPromotion = async (promotionId) => {
+        // Optimistic Update
+        const previousPromotions = [...promotions];
+        setPromotions(promotions.map(p =>
+            p._id === promotionId ? { ...p, hasApplied: true, status: 'Applied' } : p
+        ));
+
+        // Optimistically add to applications if we could construct it, but simpler to just wait for background refetch
+        // or we could add a temporary item to applications list
+
         try {
             await creatorAPI.applyToPromotion(promotionId);
             toast.success('Application submitted successfully!');
-            fetchData();
+            fetchData(true); // Background update
         } catch (error) {
+            // Revert
+            setPromotions(previousPromotions);
             toast.error(error.message || 'Failed to apply');
         }
     };

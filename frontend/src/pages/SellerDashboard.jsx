@@ -120,15 +120,15 @@ const SellerDashboard = () => {
         return () => window.removeEventListener('switchToMessages', handleSwitchToMessages);
     }, []);
 
-    const fetchRequests = async () => {
+    const fetchRequests = async (isBackground = false) => {
         try {
-            setLoading(true);
+            if (!isBackground) setLoading(true);
             const res = await sellerAPI.getRequests();
             setRequests(res.data.data.requests);
         } catch (error) {
-            toast.error('Failed to fetch data');
+            if (!isBackground) toast.error('Failed to fetch data');
         } finally {
-            setLoading(false);
+            if (!isBackground) setLoading(false);
         }
     };
 
@@ -233,22 +233,72 @@ const SellerDashboard = () => {
 
     const handleAcceptCreator = async (requestId, creatorId) => {
         setProcessedCreators(prev => new Set([...prev, `${requestId}-${creatorId}`]));
+
+        // Optimistic Update
+        const updateState = (status) => {
+            const updater = (r) => {
+                if (r._id === requestId) {
+                    return {
+                        ...r,
+                        matchedCreators: r.matchedCreators?.map(mc =>
+                            (mc.creatorId?._id === creatorId || mc.creatorId === creatorId)
+                                ? { ...mc, status }
+                                : mc
+                        )
+                    };
+                }
+                return r;
+            };
+            setRequests(prev => prev.map(updater));
+            if (selectedRequest && selectedRequest._id === requestId) {
+                setSelectedRequest(prev => updater(prev));
+            }
+        };
+
+        updateState('Accepted');
+
         try {
             await sellerAPI.acceptCreator(requestId, creatorId);
             toast.success('✅ Creator accepted!');
-            fetchRequests();
+            fetchRequests(true);
         } catch (error) {
+            updateState('Matched'); // Revert (assuming it was matched)
             toast.error('Failed to accept creator');
         }
     };
 
     const handleRejectCreator = async (requestId, creatorId) => {
         setProcessedCreators(prev => new Set([...prev, `${requestId}-${creatorId}`]));
+
+        // Optimistic Update
+        const updateState = (status) => {
+            const updater = (r) => {
+                if (r._id === requestId) {
+                    return {
+                        ...r,
+                        matchedCreators: r.matchedCreators?.map(mc =>
+                            (mc.creatorId?._id === creatorId || mc.creatorId === creatorId)
+                                ? { ...mc, status }
+                                : mc
+                        )
+                    };
+                }
+                return r;
+            };
+            setRequests(prev => prev.map(updater));
+            if (selectedRequest && selectedRequest._id === requestId) {
+                setSelectedRequest(prev => updater(prev));
+            }
+        };
+
+        updateState('Rejected');
+
         try {
             await sellerAPI.rejectCreator(requestId, creatorId);
             toast.success('Creator passed');
-            fetchRequests();
+            fetchRequests(true);
         } catch (error) {
+            updateState('Matched'); // Revert
             toast.error('Failed to reject creator');
         }
     };
@@ -294,14 +344,22 @@ const SellerDashboard = () => {
 
     const handleDeleteConversation = async (conversationId) => {
         if (!window.confirm('Delete this conversation?')) return;
+
+        // Optimistic Update
+        const previousConversations = [...conversations];
+        setConversations(conversations.filter(c => c._id !== conversationId));
+        if (selectedConversation?._id === conversationId) {
+            setSelectedConversation(null);
+        }
+
         try {
             await chatAPI.deleteConversation(conversationId);
             toast.success('Conversation deleted');
-            if (selectedConversation?._id === conversationId) {
-                setSelectedConversation(null);
-            }
+            // Background refresh to ensure sync
             fetchConversations();
         } catch (error) {
+            // Revert on failure
+            setConversations(previousConversations);
             toast.error('Failed to delete conversation');
         }
     };

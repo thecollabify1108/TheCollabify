@@ -15,6 +15,7 @@ import {
 import { chatAPI } from '../../services/api';
 import { format, isToday, isYesterday } from 'date-fns';
 import SwipeableConversationItem from './SwipeableConversationItem';
+import { SkeletonMessage } from '../common/Skeleton';
 
 const MessagingPanel = ({ conversations, onSelectConversation, selectedConversation, onBack, onDeleteConversation }) => {
     const [messages, setMessages] = useState([]);
@@ -174,9 +175,7 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                         {/* Messages */}
                         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-dark-900/50">
                             {loading ? (
-                                <div className="text-center py-8">
-                                    <div className="animate-spin w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto"></div>
-                                </div>
+                                <SkeletonMessage />
                             ) : messages.length === 0 ? (
                                 <div className="text-center py-8">
                                     <p className="text-dark-400">No messages yet. Start the conversation!</p>
