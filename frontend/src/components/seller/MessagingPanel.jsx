@@ -14,13 +14,32 @@ import {
 } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { format, isToday, isYesterday } from 'date-fns';
+import SwipeableConversationItem from './SwipeableConversationItem';
 
-const MessagingPanel = ({ conversations, onSelectConversation, selectedConversation, onBack }) => {
+const MessagingPanel = ({ conversations, onSelectConversation, selectedConversation, onBack, onDeleteConversation }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showSwipeHint, setShowSwipeHint] = useState(false);
     const messagesEndRef = useRef(null);
+
+    // Onboarding Hint Logic
+    useEffect(() => {
+        const hasSeenHint = localStorage.getItem('hasSeenSwipeHint');
+        if (!hasSeenHint && conversations?.length > 0) {
+            // Delay slightly to let UI settle
+            const timer = setTimeout(() => {
+                setShowSwipeHint(true);
+                // Mark as seen after animation plays
+                setTimeout(() => {
+                    localStorage.setItem('hasSeenSwipeHint', 'true');
+                    setShowSwipeHint(false);
+                }, 2000);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [conversations]);
 
     useEffect(() => {
         if (selectedConversation) {
@@ -108,34 +127,15 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                         </div>
                     ) : (
                         filteredConversations.map((conv) => (
-                            <motion.div
+                            <SwipeableConversationItem
                                 key={conv._id}
-                                onClick={() => onSelectConversation(conv)}
-                                className={`p-4 border-b border-dark-800 cursor-pointer hover:bg-dark-800/50 transition-all ${selectedConversation?._id === conv._id ? 'bg-dark-800' : ''
-                                    }`}
-                                whileHover={{ x: 5 }}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0">
-                                        <span className="text-white font-bold">
-                                            {conv.creatorUserId?.name?.charAt(0) || 'C'}
-                                        </span>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between">
-                                            <p className="font-medium text-dark-100 truncate">
-                                                {conv.creatorUserId?.name || 'Creator'}
-                                            </p>
-                                            <span className="text-xs text-dark-500">
-                                                {formatMessageTime(conv.updatedAt)}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm text-dark-400 truncate">
-                                            {conv.promotionRequestId?.title || 'Campaign'}
-                                        </p>
-                                    </div>
-                                </div>
-                            </motion.div>
+                                conversation={conv}
+                                isSelected={selectedConversation?._id === conv._id}
+                                onClick={onSelectConversation}
+                                onDelete={onDeleteConversation}
+                                formatTime={formatMessageTime}
+                                peek={index === 0 && showSwipeHint}
+                            />
                         ))
                     )}
                 </div>

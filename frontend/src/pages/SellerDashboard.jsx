@@ -47,6 +47,7 @@ import DashboardHero from '../components/dashboard/DashboardHero';
 // Enhanced UI Components
 import LoadingButton from '../components/common/LoadingButton';
 import EmptyState from '../components/common/EmptyState';
+import BottomSheet from '../components/common/BottomSheet';
 
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
@@ -288,6 +289,20 @@ const SellerDashboard = () => {
             fetchRequests();
         } catch (error) {
             toast.error('Failed to delete');
+        }
+    };
+
+    const handleDeleteConversation = async (conversationId) => {
+        if (!window.confirm('Delete this conversation?')) return;
+        try {
+            await chatAPI.deleteConversation(conversationId);
+            toast.success('Conversation deleted');
+            if (selectedConversation?._id === conversationId) {
+                setSelectedConversation(null);
+            }
+            fetchConversations();
+        } catch (error) {
+            toast.error('Failed to delete conversation');
         }
     };
 
@@ -710,6 +725,7 @@ const SellerDashboard = () => {
                                 conversations={conversations}
                                 selectedConversation={selectedConversation}
                                 onSelectConversation={(conv) => setSelectedConversation(conv)}
+                                onDeleteConversation={handleDeleteConversation}
                                 onBack={() => setSelectedConversation(null)}
                             />
                         </motion.div>
@@ -765,17 +781,25 @@ const SellerDashboard = () => {
                 initialData={aiSuggestionData}
             />
 
-            {selectedRequest && (
-                <CampaignTracker
-                    request={selectedRequest}
-                    onClose={() => setSelectedRequest(null)}
-                    onAccept={(creatorId) => handleAcceptCreator(selectedRequest._id, creatorId)}
-                    onReject={(creatorId) => handleRejectCreator(selectedRequest._id, creatorId)}
-                    onMessage={(creatorId, creatorName) => handleMessageCreator(selectedRequest._id, creatorId, creatorName)}
-                    onUpdateStatus={(status) => handleUpdateStatus(selectedRequest._id, status)}
-                    onDelete={() => handleDeleteRequest(selectedRequest._id)}
-                />
-            )}
+            {/* Enhanced Campaign Tracker in Bottom Sheet */}
+            <BottomSheet
+                isOpen={!!selectedRequest}
+                onClose={() => setSelectedRequest(null)}
+                title={selectedRequest?.title || 'Campaign Details'}
+                className="p-0" // Remove default padding as CampaignTracker has its own
+            >
+                {selectedRequest && (
+                    <CampaignTracker
+                        request={selectedRequest}
+                        onClose={() => setSelectedRequest(null)}
+                        onAccept={(creatorId) => handleAcceptCreator(selectedRequest._id, creatorId)}
+                        onReject={(creatorId) => handleRejectCreator(selectedRequest._id, creatorId)}
+                        onMessage={(creatorId, creatorName) => handleMessageCreator(selectedRequest._id, creatorId, creatorName)}
+                        onUpdateStatus={(status) => handleUpdateStatus(selectedRequest._id, status)}
+                        onDelete={() => handleDeleteRequest(selectedRequest._id)}
+                    />
+                )}
+            </BottomSheet>
 
             {/* NEW: AI Assistant Panel (Always available) */}
             <AIAssistantPanel
