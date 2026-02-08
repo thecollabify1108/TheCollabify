@@ -359,7 +359,7 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                     Why?
                 </button>
             )}
-        </div>
+        </motion.div>
     );
 };
 
