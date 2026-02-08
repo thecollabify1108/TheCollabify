@@ -286,6 +286,14 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                             </div>
 
                             <div className="space-y-4 flex-1 overflow-y-auto">
+                                {/* Learning Narrative */}
+                                {creator.learningInsight && (
+                                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm leading-relaxed flex gap-3">
+                                        <span className="text-xl">🤖</span>
+                                        <span dangerouslySetInnerHTML={{ __html: creator.learningInsight }} />
+                                    </div>
+                                )}
+
                                 {creator.matchReasons && creator.matchReasons.length > 0 ? (
                                     creator.matchReasons.map((reason, idx) => (
                                         <div key={idx} className="p-3 rounded-xl bg-dark-800/50 border border-dark-700/50 text-dark-200 text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: reason }}>

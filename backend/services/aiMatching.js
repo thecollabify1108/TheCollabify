@@ -226,6 +226,38 @@ const generateMatchReasons = (creator, request, scores) => {
 };
 
 /**
+ * Generate a learning narrative based on history and intent
+ */
+const generateLearningInsight = (creator, scores, userIntent, userHistory) => {
+    // 1. New User / Low Data
+    if (!userHistory || userHistory.length < 3) {
+        return "🌱 <strong>Learning your style:</strong> Your feedback helps us refine future matches.";
+    }
+
+    // 2. Strong Intent Match (Recent Search)
+    if (scores.intent > 80) {
+        return `🔎 <strong>Adapted to intent:</strong> Based on your recent interest in ${creator.category}.`;
+    }
+
+    // 3. History Match (Personalization)
+    if (scores.personalization > 70) {
+        return "🔄 <strong>Consistent pattern:</strong> Similar to creators you've approved recently.";
+    }
+
+    // 4. Deviation / Discovery
+    if (scores.niche < 60 && scores.engagement > 90) {
+        return "💡 <strong>Discovery:</strong> High-performing creator outside your usual niche.";
+    }
+
+    // 5. Stable/High Consistency
+    if (scores.personalization > 50 && scores.niche > 80) {
+        return "🎯 <strong>Stable Match:</strong> Aligned with your established preferences.";
+    }
+
+    return null;
+};
+
+/**
  * Step 2: AI-powered ranking layer
  */
 const rankCreators = async (creators, request, userId = null) => {
@@ -289,6 +321,7 @@ const rankCreators = async (creators, request, userId = null) => {
         );
 
         const matchReasons = generateMatchReasons(creator, request, scores);
+        const learningInsight = generateLearningInsight(creator, scores, userIntent, userHistory);
 
         return {
             creatorId: creator.id,
@@ -300,6 +333,7 @@ const rankCreators = async (creators, request, userId = null) => {
             matchScore: finalScore,
             confidenceLevel,
             matchReasons,
+            learningInsight, // New field
             scores,
             prediction: roiPrediction
         };
