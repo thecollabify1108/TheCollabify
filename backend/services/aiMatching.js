@@ -174,45 +174,55 @@ const calculateConfidenceLevel = (totalScore) => {
 /**
  * Generate human-readable match explanation
  */
-const generateMatchReason = (creator, request, scores) => {
+const generateMatchReasons = (creator, request, scores) => {
     const reasons = [];
 
-    if (scores.engagement >= 70) {
-        reasons.push(`Strong engagement (${creator.engagementRate.toFixed(1)}%)`);
+    // 1. High-Level Confidence (The "Hook")
+    const totalScore = Math.round(
+        (scores.engagement * SCORING_WEIGHTS.engagementRate) +
+        (scores.niche * SCORING_WEIGHTS.nicheSimilarity) +
+        (scores.price * SCORING_WEIGHTS.priceCompatibility) +
+        (scores.roi * SCORING_WEIGHTS.predictedROI) +
+        (scores.insight * SCORING_WEIGHTS.insightScore) +
+        (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
+        (scores.intent * SCORING_WEIGHTS.intentMatch) +
+        (scores.personalization * SCORING_WEIGHTS.personalization)
+    );
+
+    if (totalScore >= 85) {
+        reasons.push("⚡ <strong class='text-emerald-400'>Highly Relevant:</strong> Matches your budget and niche perfectly.");
+    } else if (scores.roi > 80) {
+        reasons.push("📈 <strong class='text-blue-400'>High ROI Potential:</strong> Predicted to deliver strong engagement value.");
     }
 
-    if (scores.niche === 100) {
-        reasons.push(`Exact niche fit (${creator.category})`);
-    } else if (scores.niche >= 50) {
-        reasons.push(`Related niche (${creator.category})`);
+    // 2. Specific Strengths (The "Why")
+    if (scores.niche > 90) {
+        reasons.push(`🎯 <strong>Niche Expert:</strong> Deeply aligned with ${creator.category}.`);
+    }
+    if (scores.engagement > 85) {
+        reasons.push("🔥 <strong>Viral Potential:</strong> Higher engagement rate than peers.");
+    }
+    if (scores.price > 90) {
+        reasons.push("💰 <strong>Budget Friendly:</strong> Well within your spending limit.");
+    }
+    if (scores.trackRecord > 80) {
+        reasons.push("🏆 <strong>Proven Track Record:</strong> Consistently delivers for brands.");
     }
 
-    if (scores.price >= 80) {
-        reasons.push('Within budget');
-    } else if (scores.price >= 50) {
-        reasons.push('Slightly above budget');
+    // 3. AI Behavioral Signals (The "Smart" part)
+    if (scores.intent > 70) {
+        reasons.push("🧠 <strong>Smart Match:</strong> Aligns with your recent search intent.");
+    }
+    if (scores.personalization > 70) {
+        reasons.push("✨ <strong>Tailored for You:</strong> Similar to creators you've liked before.");
     }
 
-    if (creator.insights?.score >= 70) {
-        reasons.push('High-quality profile');
+    // Fallback if we have too few
+    if (reasons.length === 0) {
+        reasons.push("✅ <strong>Solid Option:</strong> Meets your basic criteria.");
     }
 
-    if (creator.successfulPromotions >= 5) {
-        reasons.push(`${creator.successfulPromotions} successful campaigns`);
-    }
-
-    if (scores.roi >= 100) {
-        reasons.push(`High ROI Potential (${scores.roi}%)`);
-    }
-
-    const formattedFollowers = creator.followerCount >= 1000000
-        ? `${(creator.followerCount / 1000000).toFixed(1)}M`
-        : creator.followerCount >= 1000
-            ? `${(creator.followerCount / 1000).toFixed(0)}K`
-            : creator.followerCount;
-    reasons.push(`${formattedFollowers} followers`);
-
-    return reasons.join(' • ');
+    return reasons.slice(0, 3); // Return top 3 reasons
 };
 
 /**
@@ -278,7 +288,7 @@ const rankCreators = async (creators, request, userId = null) => {
             (scores.personalization * SCORING_WEIGHTS.personalization)
         );
 
-        const matchReason = generateMatchReason(creator, request, scores);
+        const matchReasons = generateMatchReasons(creator, request, scores);
 
         return {
             creatorId: creator.id,
@@ -286,7 +296,12 @@ const rankCreators = async (creators, request, userId = null) => {
             insight: creator.aiScore || 50,
             trackRecord: calculateTrackRecordScore(creator),
             intent: calculateIntentScore(creator.category, userIntent),
-            personalization: calculatePersonalizationScore(creator.id, userHistory)
+            personalization: calculatePersonalizationScore(creator.id, userHistory),
+            matchScore: finalScore,
+            confidenceLevel,
+            matchReasons,
+            scores,
+            prediction: roiPrediction
         };
 
 
