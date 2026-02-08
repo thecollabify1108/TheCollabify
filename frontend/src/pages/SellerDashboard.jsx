@@ -44,6 +44,9 @@ import ActivityFeed from '../components/dashboard/ActivityFeed';
 import PerformanceChart from '../components/dashboard/PerformanceChart';
 import DashboardHero from '../components/dashboard/DashboardHero';
 
+// Skeleton Loading Components
+import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
+
 const SellerDashboard = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -332,8 +335,7 @@ const SellerDashboard = () => {
         }
     ];
 
-    // Imported Skeleton components
-    import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
+    // Imported Skeleton components moved to top-level imports
 
     if (loading) {
         return (
