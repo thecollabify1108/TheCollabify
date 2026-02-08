@@ -159,4 +159,45 @@ router.get('/range', auth, async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/analytics/track
+ * @desc    Track anonymous page view (Privacy-friendly, no PII)
+ * @access  Public
+ */
+router.post('/track', async (req, res) => {
+    try {
+        const { path } = req.body;
+
+        // Normalize path (remove query params, trailing slashes)
+        const cleanPath = path.split('?')[0].replace(/\/$/, '') || '/';
+
+        // Get today's date (UTC, reset time)
+        const today = new Date();
+        today.setUTCHours(0, 0, 0, 0);
+
+        await prisma.dailyTraffic.upsert({
+            where: {
+                date_path: {
+                    date: today,
+                    path: cleanPath
+                }
+            },
+            update: {
+                views: { increment: 1 }
+            },
+            create: {
+                date: today,
+                path: cleanPath,
+                views: 1
+            }
+        });
+
+        res.status(200).send('ok');
+    } catch (error) {
+        // Silently fail to not disrupt client
+        console.error('Analytics track error:', error);
+        res.status(200).send('ok');
+    }
+});
+
 module.exports = router;

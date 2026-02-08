@@ -1,174 +1,122 @@
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaArrowLeft } from 'react-icons/fa';
+import { FaShieldAlt, FaUserSecret, FaCookieBite, FaCheckCircle } from 'react-icons/fa';
+import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 
 const PrivacyPolicy = () => {
     return (
-        <div className="min-h-screen bg-dark-950">
-            {/* Header */}
-            <div className="bg-dark-900 border-b border-dark-800 py-8">
-                <div className="max-w-4xl mx-auto px-4">
-                    <Link to="/" className="flex items-center space-x-3 mb-6">
-                        <img src="/favicon.png" alt="" className="w-8 h-8 object-contain" />
-                        <div className="flex items-baseline">
-                            <span className="text-lg italic text-dark-100 mr-1">The</span>
-                            <span className="text-xl font-bold text-dark-100">Collabify</span>
+        <div className="min-h-screen bg-gray-50/50 dark:bg-dark-900 transition-colors duration-300">
+            <Navbar />
+
+            <div className="pt-28 pb-20 px-6">
+                <div className="max-w-4xl mx-auto">
+                    {/* Header */}
+                    <div className="text-center mb-16">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-medium text-sm mb-6"
+                        >
+                            <FaShieldAlt /> Privacy First Protocol
+                        </motion.div>
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-6"
+                        >
+                            We Respect Your Privacy. <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-secondary-500">Period.</span>
+                        </motion.h1>
+                        <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                            No tracking cookies. No third-party ads. No selling your data.
+                            Just a transparent platform built on trust.
+                        </p>
+                    </div>
+
+                    {/* Key Promises Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+                        <div className="p-8 rounded-2xl bg-white dark:bg-dark-800 shadow-sm border border-gray-100 dark:border-dark-700">
+                            <FaUserSecret className="text-4xl text-primary-500 mb-4" />
+                            <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Zero Personal Tracking</h3>
+                            <p className="text-gray-600 dark:text-gray-400">
+                                We don't track who you are. We only count anonymous page views to verify campaign reach.
+                            </p>
                         </div>
-                    </Link>
-                    <h1 className="text-4xl font-bold text-dark-100">Privacy Policy</h1>
-                    <p className="text-dark-400 mt-2">Last updated: December 2024</p>
+                        <div className="p-8 rounded-2xl bg-white dark:bg-dark-800 shadow-sm border border-gray-100 dark:border-dark-700">
+                            <FaCookieBite className="text-4xl text-secondary-500 mb-4" />
+                            <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">No Creepy Cookies</h3>
+                            <p className="text-gray-600 dark:text-gray-400">
+                                We do not use persistent cookies to follow you around the internet. Your browsing habit is yours alone.
+                            </p>
+                        </div>
+                        <div className="p-8 rounded-2xl bg-white dark:bg-dark-800 shadow-sm border border-gray-100 dark:border-dark-700">
+                            <FaShieldAlt className="text-4xl text-green-500 mb-4" />
+                            <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Data Ownership</h3>
+                            <p className="text-gray-600 dark:text-gray-400">
+                                Your detailed profile data belongs to you. You can export or delete it at any time.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Detailed Policy Content */}
+                    <div className="prose prose-lg dark:prose-invert max-w-none bg-white dark:bg-dark-800 p-8 md:p-12 rounded-3xl border border-gray-100 dark:border-dark-700">
+                        <h2>1. What Data We Collect</h2>
+                        <p>We believe in minimal data collection. Here is exactly what we store:</p>
+                        <ul className="space-y-2">
+                            <li className="flex items-start gap-3">
+                                <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0" />
+                                <span><strong>Account Info:</strong> Name, Email, and Password (encrypted) when you sign up.</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0" />
+                                <span><strong>Profile Data:</strong> Social media stats you choose to connect (for matchmaking).</span>
+                            </li>
+                            <li className="flex items-start gap-3">
+                                <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0" />
+                                <span><strong>Anonymous Analytics:</strong> We count "1 visit to /home" without attaching IP addresses or IDs.</span>
+                            </li>
+                        </ul>
+
+                        <div className="my-8 h-px bg-gray-200 dark:bg-dark-600" />
+
+                        <h2>2. What We DO NOT Collect</h2>
+                        <ul className="list-disc pl-6 space-y-2 text-gray-600 dark:text-gray-400">
+                            <li>We do <strong>NOT</strong> store your Credit Card numbers (Stripe handles that securely).</li>
+                            <li>We do <strong>NOT</strong> record your screen or mouse movements.</li>
+                            <li>We do <strong>NOT</strong> buy data about you from third parties.</li>
+                            <li>We do <strong>NOT</strong> access your contacts or private messages.</li>
+                        </ul>
+
+                        <div className="my-8 h-px bg-gray-200 dark:bg-dark-600" />
+
+                        <h2>3. How We Use Analytics</h2>
+                        <p>
+                            We built our own lightweight analytics engine to protect your privacy.
+                            Legacy tools like Google Analytics track too much.
+                            Our system simply answers: <em>"How many people visited the site today?"</em>
+                            without asking <em>"Who are they?"</em>.
+                        </p>
+
+                        <div className="my-8 h-px bg-gray-200 dark:bg-dark-600" />
+
+                        <h2>4. Your Rights</h2>
+                        <p>You have the right to:</p>
+                        <ul className="list-disc pl-6 space-y-2 text-gray-600 dark:text-gray-400">
+                            <li><strong>Access:</strong> Request a copy of all data we hold about you.</li>
+                            <li><strong>Rectify:</strong> Fix any incorrect data effortlessly.</li>
+                            <li><strong>Forget:</strong> Request permanent deletion of your account.</li>
+                        </ul>
+
+                        <div className="bg-primary-50 dark:bg-primary-900/10 p-6 rounded-xl mt-8 border border-primary-100 dark:border-primary-500/20">
+                            <h3 className="text-primary-800 dark:text-primary-300 m-0 mb-2">Questions?</h3>
+                            <p className="m-0 text-primary-700 dark:text-primary-400">
+                                Contact our Data Privacy Officer at <a href="mailto:privacy@thecollabify.tech" className="font-bold hover:underline">privacy@thecollabify.tech</a>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {/* Content */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="max-w-4xl mx-auto px-4 py-12"
-            >
-                <div className="prose prose-invert max-w-none">
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">1. Introduction</h2>
-                        <p className="text-dark-300 leading-relaxed">
-                            At The Collabify, we take your privacy seriously. This Privacy Policy explains how we
-                            collect, use, disclose, and safeguard your information when you use our platform.
-                            Please read this policy carefully to understand our practices regarding your data.
-                        </p>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">2. Information We Collect</h2>
-                        <p className="text-dark-300 leading-relaxed mb-4">
-                            We collect information you provide directly to us, including:
-                        </p>
-                        <ul className="list-disc list-inside text-dark-300 space-y-2 ml-4">
-                            <li>Account information (name, email, password)</li>
-                            <li>Profile information (bio, profile picture, social media handles)</li>
-                            <li>Instagram account data (follower count, engagement metrics)</li>
-                            <li>Communication data (messages, campaign details)</li>
-                            <li>Payment information (processed by secure third parties)</li>
-                            <li>Usage data (how you interact with our platform)</li>
-                        </ul>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">3. How We Use Your Information</h2>
-                        <p className="text-dark-300 leading-relaxed mb-4">
-                            We use the information we collect to:
-                        </p>
-                        <ul className="list-disc list-inside text-dark-300 space-y-2 ml-4">
-                            <li>Provide, maintain, and improve our services</li>
-                            <li>Match brands with suitable creators using AI algorithms</li>
-                            <li>Process transactions and send related information</li>
-                            <li>Send notifications about campaigns and platform updates</li>
-                            <li>Respond to your comments, questions, and requests</li>
-                            <li>Monitor and analyze trends, usage, and activities</li>
-                            <li>Detect, investigate, and prevent fraudulent activities</li>
-                        </ul>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">4. Information Sharing</h2>
-                        <p className="text-dark-300 leading-relaxed mb-4">
-                            We may share your information in the following situations:
-                        </p>
-                        <ul className="list-disc list-inside text-dark-300 space-y-2 ml-4">
-                            <li>With brands/creators when you engage in a collaboration</li>
-                            <li>With service providers who assist in operating our platform</li>
-                            <li>In response to legal requests or to protect our rights</li>
-                            <li>In connection with a merger, acquisition, or sale of assets</li>
-                            <li>With your consent or at your direction</li>
-                        </ul>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">5. Data Security</h2>
-                        <p className="text-dark-300 leading-relaxed">
-                            We implement industry-standard security measures to protect your personal information.
-                            This includes encryption of data in transit and at rest, secure servers, and regular
-                            security audits. However, no method of transmission over the Internet is 100% secure,
-                            and we cannot guarantee absolute security.
-                        </p>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">6. Cookies and Tracking</h2>
-                        <p className="text-dark-300 leading-relaxed">
-                            We use cookies and similar tracking technologies to track activity on our platform and
-                            store certain information. You can instruct your browser to refuse all cookies or indicate
-                            when a cookie is being sent. However, some features of our platform may not function
-                            properly without cookies.
-                        </p>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">7. Your Rights</h2>
-                        <p className="text-dark-300 leading-relaxed mb-4">
-                            Depending on your location, you may have the following rights:
-                        </p>
-                        <ul className="list-disc list-inside text-dark-300 space-y-2 ml-4">
-                            <li>Access and receive a copy of your personal data</li>
-                            <li>Correct or update your personal information</li>
-                            <li>Delete your account and associated data</li>
-                            <li>Object to or restrict processing of your data</li>
-                            <li>Data portability</li>
-                            <li>Withdraw consent at any time</li>
-                        </ul>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">8. Data Retention</h2>
-                        <p className="text-dark-300 leading-relaxed">
-                            We retain your personal information for as long as your account is active or as needed
-                            to provide you services. We may also retain and use your information to comply with legal
-                            obligations, resolve disputes, and enforce our agreements.
-                        </p>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">9. Children's Privacy</h2>
-                        <p className="text-dark-300 leading-relaxed">
-                            Our Service is not intended for individuals under the age of 18. We do not knowingly
-                            collect personal information from children. If you are a parent and believe your child
-                            has provided us with personal information, please contact us immediately.
-                        </p>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">10. Changes to This Policy</h2>
-                        <p className="text-dark-300 leading-relaxed">
-                            We may update this Privacy Policy from time to time. We will notify you of any changes
-                            by posting the new policy on this page and updating the "Last updated" date. We encourage
-                            you to review this policy periodically.
-                        </p>
-                    </section>
-
-                    <section className="mb-8">
-                        <h2 className="text-2xl font-bold text-dark-100 mb-4">11. Contact Us</h2>
-                        <p className="text-dark-300 leading-relaxed">
-                            If you have questions about this Privacy Policy or our data practices, please contact us at:{' '}
-                            <a href="mailto:support@thecollabify.ai" className="text-primary-400 hover:text-primary-300">
-                                support@thecollabify.ai
-                            </a>
-                        </p>
-                    </section>
-                </div>
-
-                {/* Back Button */}
-                <div className="mt-12 pt-8 border-t border-dark-800">
-                    <Link
-                        to="/"
-                        className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-dark-800 text-dark-100 hover:bg-dark-700 transition"
-                    >
-                        <FaArrowLeft />
-                        Back to Home
-                    </Link>
-                </div>
-            </motion.div>
-
-            {/* Footer */}
             <Footer />
         </div>
     );

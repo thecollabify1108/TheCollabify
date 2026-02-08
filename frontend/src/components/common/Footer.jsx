@@ -123,7 +123,7 @@ const Footer = () => {
                     <div className="md:col-span-2">
                         <h4 className="font-bold mb-6 text-sm uppercase tracking-widest text-secondary-400">Company</h4>
                         <ul className="space-y-4">
-                            {['About Us', 'Contact', 'Terms', 'Privacy'].map((link) => (
+                            {['About Us', 'Contact', 'Terms'].map((link) => (
                                 <li key={link}>
                                     <Link to={`/${link.toLowerCase().replace(/ /g, '-')}`} className={`text-sm flex items-center group transition-colors ${isDark ? 'text-dark-400 hover:text-secondary-400' : 'text-gray-600 hover:text-secondary-600'}`}>
                                         <FaArrowRight className="w-0 overflow-hidden group-hover:w-3 transition-all duration-300 mr-0 group-hover:mr-2 text-xs" />
@@ -131,6 +131,13 @@ const Footer = () => {
                                     </Link>
                                 </li>
                             ))}
+                            {/* Privacy Policy Link */}
+                            <li>
+                                <Link to="/privacy" className={`text-sm flex items-center group transition-colors ${isDark ? 'text-dark-400 hover:text-secondary-400' : 'text-gray-600 hover:text-secondary-600'}`}>
+                                    <FaArrowRight className="w-0 overflow-hidden group-hover:w-3 transition-all duration-300 mr-0 group-hover:mr-2 text-xs" />
+                                    Privacy Policy
+                                </Link>
+                            </li>
                         </ul>
                     </div>
 

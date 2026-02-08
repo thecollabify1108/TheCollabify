@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useAuth } from './context/AuthContext';
+import usePrivacyAnalytics from './hooks/usePrivacyAnalytics';
 
 // Pages - Marketing (lazy loaded for better performance)
 const Landing = lazy(() => import('./pages/Landing'));
@@ -87,6 +88,9 @@ const PublicRoute = ({ children }) => {
 
 function App() {
     const location = useLocation();
+
+    // Initialize privacy-friendly analytics (No Cookies, No PII)
+    usePrivacyAnalytics();
 
     return (
         <ErrorBoundary>
