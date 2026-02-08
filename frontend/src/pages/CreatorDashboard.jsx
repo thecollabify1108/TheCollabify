@@ -288,7 +288,7 @@ const CreatorDashboard = () => {
 
     const pendingApplications = applications.filter(a => a.applicationStatus === 'Pending').length;
     const completedCampaigns = profile?.successfulPromotions || 0;
-    const pendingRequests = 0; // Will be fetched from messages
+    const pendingRequests = applications.filter(a => a.applicationStatus === 'INVITED').length;
 
     // Bottom navigation - 6 tabs with Analytics & Calendar
     const tabs = [

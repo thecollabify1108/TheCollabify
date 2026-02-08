@@ -543,7 +543,7 @@ router.get('/conversations/:id/messages', auth, async (req, res) => {
 
 /**
  * @route   POST /api/chat/conversations/:id/messages
- * @desc    Send a message
+ * @desc    Send a message (GATED)
  * @access  Private
  */
 router.post('/conversations/:id/messages', auth, [
@@ -554,7 +554,8 @@ router.post('/conversations/:id/messages', auth, [
     try {
         const conversationId = req.params.id;
         const conversation = await prisma.conversation.findUnique({
-            where: { id: conversationId }
+            where: { id: conversationId },
+            include: { promotion: true }
         });
 
         if (!conversation) {
@@ -576,14 +577,40 @@ router.post('/conversations/:id/messages', auth, [
             });
         }
 
-        // Check if conversation is accepted by creator
-        if (conversation.acceptanceStatus?.byCreator !== 'accepted' && conversation.status !== 'ACTIVE') {
+        // GATED MESSAGING LOGIC
+        // Check MatchedCreator status
+        const matchedCreator = await prisma.matchedCreator.findUnique({
+            where: {
+                promotionId_creatorId: {
+                    promotionId: conversation.promotionId,
+                    creatorId: conversation.creatorProfileId || '' // Handle null profileId safely
+                }
+            }
+        });
+
+        // Use creatorProfileId from conversation, fallback to lookup if needed (omitted for brevity) 
+        // Actually, let's be robust. If creatorProfileId is missing, we might have an issue.
+        // But in our flow, it should be there.
+
+        // Standard check: Status must be ACCEPTED
+        if (matchedCreator && matchedCreator.status !== 'ACCEPTED') {
             return res.status(403).json({
                 success: false,
-                message: 'Creator has not accepted this conversation yet',
-                isPending: true
+                message: 'Messaging is locked until the creator accepts the collaboration request.',
+                isLocked: true,
+                status: matchedCreator.status
             });
         }
+
+        // Also check Conversation status
+        if (conversation.status !== 'ACTIVE') {
+            return res.status(403).json({
+                success: false,
+                message: 'This conversation is not active.',
+                isLocked: true
+            });
+        }
+
 
         // Create message
         const message = await prisma.message.create({

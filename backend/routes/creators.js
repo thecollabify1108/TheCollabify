@@ -448,7 +448,7 @@ router.get('/applications', auth, isCreator, async (req, res) => {
             matchedCreators: {
                 some: {
                     creatorId: req.userId,
-                    status: { in: ['APPLIED', 'ACCEPTED', 'REJECTED'] }
+                    status: { in: ['APPLIED', 'ACCEPTED', 'REJECTED', 'INVITED'] }
                 }
             }
         };
@@ -517,6 +517,94 @@ router.get('/applications', auth, isCreator, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to get applications'
+        });
+    }
+});
+
+/**
+ * @route   POST /api/creators/respond-request
+ * @desc    Respond to a collaboration request (Accept/Decline)
+ * @access  Private (Creator)
+ */
+router.post('/respond-request', auth, isCreator, [
+    body('promotionId').notEmpty().withMessage('Promotion ID is required'),
+    body('status').isIn(['ACCEPTED', 'REJECTED']).withMessage('Invalid status'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { promotionId, status } = req.body;
+
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId }
+        });
+
+        if (!profile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Profile not found'
+            });
+        }
+
+        // Find the invitation
+        const matchedCreator = await prisma.matchedCreator.findUnique({
+            where: {
+                promotionId_creatorId: {
+                    promotionId,
+                    creatorId: profile.id
+                }
+            },
+            include: { promotion: true }
+        });
+
+        if (!matchedCreator || matchedCreator.status !== 'INVITED') {
+            return res.status(400).json({
+                success: false,
+                message: 'No pending invitation found for this promotion'
+            });
+        }
+
+        // Update status
+        await prisma.matchedCreator.update({
+            where: { id: matchedCreator.id },
+            data: {
+                status: status,
+                respondedAt: new Date()
+            }
+        });
+
+        if (status === 'ACCEPTED') {
+            // Unlock/Create Conversation
+            await prisma.conversation.upsert({
+                where: {
+                    promotionId_creatorUserId: {
+                        promotionId,
+                        creatorUserId: req.userId
+                    }
+                },
+                update: { status: 'ACTIVE' },
+                create: {
+                    promotionId,
+                    sellerId: matchedCreator.promotion.sellerId,
+                    creatorUserId: req.userId,
+                    creatorProfileId: profile.id,
+                    status: 'ACTIVE'
+                }
+            });
+
+            // Notify Seller
+            // await notifySellerRequestAccepted(...)
+        }
+
+        res.json({
+            success: true,
+            message: `Request ${status.toLowerCase()} successfully`
+        });
+
+    } catch (error) {
+        console.error('Respond request error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to respond to request'
         });
     }
 });

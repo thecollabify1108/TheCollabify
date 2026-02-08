@@ -63,6 +63,7 @@ enum CampaignStatus {
 
 enum MatchStatus {
   MATCHED
+  INVITED
   APPLIED
   ACCEPTED
   REJECTED

@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
-import { FaInstagram, FaHeart, FaTimes, FaComments, FaStar, FaUndo, FaCheck } from 'react-icons/fa';
+import { FaInstagram, FaHeart, FaTimes, FaComments, FaStar, FaUndo, FaCheck, FaUserPlus } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
 
-const SwipeableCreatorCard = ({ creators, onAccept, onReject, onMessage, onSave }) => {
+const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [lastAction, setLastAction] = useState(null);
     const [exitDirection, setExitDirection] = useState(null);
@@ -32,6 +32,19 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onMessage, onSave 
             setCurrentIndex(prev => prev - 1);
             setLastAction(null);
             setShowWhy(false);
+        }
+    };
+
+    const handleRequest = async () => {
+        try {
+            await onRequest(currentCreator.requestId, currentCreator.creatorId);
+            setLastAction({ type: 'request', creator: currentCreator });
+            // Show success animation or toast here if needed
+            setTimeout(() => {
+                setCurrentIndex(prev => prev + 1);
+            }, 500);
+        } catch (error) {
+            console.error('Failed to send request', error);
         }
     };
 
@@ -104,14 +117,21 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onMessage, onSave 
                     <FaTimes className="text-2xl" />
                 </motion.button>
 
+                {/* Gated Messaging / Request Button */}
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => onMessage(currentCreator.requestId, currentCreator.creatorId, currentCreator.creatorName)}
-                    className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-blue-500/30"
+                    onClick={handleRequest} // Use handleRequest instead of onMessage
+                    className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 relative group"
+                    title="Request Collaboration"
                 >
-                    <FaComments />
+                    <FaUserPlus /> {/* Changed icon to represent request */}
+
+                    <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-dark-900 border border-dark-700 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        Request Collaboration
+                    </span>
                 </motion.button>
+
 
                 <motion.button
                     whileHover={{ scale: 1.1 }}
@@ -340,7 +360,6 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                 </button>
             )}
         </div>
-        </motion.div >
     );
 };
 

@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FaCheck, FaTimes, FaEnvelope, FaBuilding } from 'react-icons/fa';
-import { chatAPI } from '../../services/api';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaCheck, FaTimes, FaEnvelope, FaBuilding, FaUserPlus } from 'react-icons/fa';
+import { creatorAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 /**
- * MessageRequests - Shows pending message requests from sellers
- * Creators can accept or reject requests
+ * MessageRequests - Shows pending collaboration requests from brands
  */
 const MessageRequests = ({ onAccept }) => {
     const [loading, setLoading] = useState(true);
@@ -20,155 +19,128 @@ const MessageRequests = ({ onAccept }) => {
     const fetchRequests = async () => {
         try {
             setLoading(true);
-            const response = await chatAPI.getConversations();
-
-            // Filter only pending conversations
-            const pendingRequests = response.data.data.conversations.filter(
-                conv => conv.status === 'pending'
+            const response = await creatorAPI.getApplications();
+            // Filter for INVITED status
+            // The API returns { promotion, applicationStatus, ... }
+            const pendingRequests = response.data.data.applications.filter(
+                app => app.applicationStatus === 'INVITED'
             );
-
             setRequests(pendingRequests);
         } catch (error) {
             console.error('Failed to fetch requests:', error);
-            toast.error('Failed to load message requests');
+            // toast.error('Failed to load requests'); // Silently fail or retry
         } finally {
             setLoading(false);
         }
     };
 
-    const handleAccept = async (requestId) => {
-        setProcessing(prev => new Set([...prev, requestId]));
+    const handleResponse = async (promotionId, status) => {
+        setProcessing(prev => new Set([...prev, promotionId]));
         try {
-            await chatAPI.acceptRequest(requestId);
-            toast.success('✅ Message request accepted!');
+            await creatorAPI.respondToRequest(promotionId, status);
+            toast.success(status === 'ACCEPTED' ? '✅ Request Accepted!' : 'Request Declined');
 
             // Remove from list
-            setRequests(prev => prev.filter(r => r._id !== requestId));
+            setRequests(prev => prev.filter(r => r.promotion.id !== promotionId));
 
-            // Notify parent to refresh conversations
-            if (onAccept) {
+            if (status === 'ACCEPTED' && onAccept) {
                 onAccept();
             }
         } catch (error) {
-            toast.error('Failed to accept request');
+            console.error('Failed to respond:', error);
+            toast.error('Failed to update request');
+        } finally {
             setProcessing(prev => {
                 const newSet = new Set(prev);
-                newSet.delete(requestId);
+                newSet.delete(promotionId);
                 return newSet;
             });
         }
     };
 
-    const handleReject = async (requestId) => {
-        setProcessing(prev => new Set([...prev, requestId]));
-        try {
-            await chatAPI.rejectRequest(requestId);
-            toast.success('Message request rejected');
-
-            // Remove from list
-            setRequests(prev => prev.filter(r => r._id !== requestId));
-        } catch (error) {
-            toast.error('Failed to reject request');
-            setProcessing(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(requestId);
-                return newSet;
-            });
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="space-y-3">
-                {[1, 2, 3].map(i => (
-                    <div key={i} className="glass-card p-4 animate-pulse">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-full bg-dark-700" />
-                            <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-dark-700 rounded w-1/3" />
-                                <div className="h-3 bg-dark-700 rounded w-1/2" />
-                            </div>
-                        </div>
-                    </div>
-                ))}
+    if (loading) return (
+        <div className="space-y-3">
+            <div className="glass-card p-4 animate-pulse">
+                <div className="h-4 bg-dark-700 rounded w-1/3 mb-2" />
+                <div className="h-3 bg-dark-700 rounded w-1/2" />
             </div>
-        );
-    }
+        </div>
+    );
 
-    if (requests.length === 0) {
-        return (
-            <div className="text-center py-12">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-dark-800/50 flex items-center justify-center">
-                    <FaEnvelope className="text-3xl text-dark-500" />
-                </div>
-                <h3 className="text-lg font-semibold text-dark-200 mb-2">No Pending Requests</h3>
-                <p className="text-sm text-dark-400">
-                    You don't have any message requests at the moment
-                </p>
-            </div>
-        );
-    }
+    if (requests.length === 0) return null; // Hide if empty
 
     return (
-        <div className="space-y-3">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-dark-100">
-                    Message Requests ({requests.length})
+        <div className="mb-6 space-y-3">
+            <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                    <FaUserPlus className="text-blue-400" />
+                </div>
+                <h3 className="text-lg font-bold text-dark-100">
+                    New Collab Requests <span className="text-sm font-normal text-dark-400">({requests.length})</span>
                 </h3>
             </div>
 
-            {requests.map((request) => {
-                const seller = request.sellerUserId || {};
-                const isProcessing = processing.has(request._id);
+            <AnimatePresence>
+                {requests.map((req) => {
+                    const { promotion, seller } = req;
+                    const isProcessing = processing.has(promotion.id);
 
-                return (
-                    <motion.div
-                        key={request._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -100 }}
-                        className="glass-card p-4 hover:border-primary-500/30 transition"
-                    >
-                        <div className="flex items-start gap-3">
-                            {/* Seller Avatar */}
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold flex-shrink-0">
-                                {seller.name?.charAt(0).toUpperCase() || 'S'}
-                            </div>
-
-                            {/* Request Info */}
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <h4 className="font-semibold text-dark-100">{seller.name || 'Brand'}</h4>
-                                    <FaBuilding className="text-xs text-dark-500" />
+                    return (
+                        <motion.div
+                            key={promotion.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="glass-card p-5 border-l-4 border-blue-500 relative overflow-hidden"
+                        >
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-dark-700 overflow-hidden">
+                                        {seller?.avatar ? (
+                                            <img src={seller.avatar} alt={seller.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-purple-500 to-indigo-500 text-white font-bold">
+                                                {seller?.name?.charAt(0) || 'B'}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-dark-100">{promotion.title}</h4>
+                                        <p className="text-sm text-dark-300 mb-1">{seller?.name || 'A Brand'}</p>
+                                        <div className="flex items-center gap-2 text-xs text-dark-400">
+                                            <span className="px-2 py-0.5 rounded-full bg-dark-700 border border-dark-600">
+                                                {promotion.promotionType?.[0] || 'Campaign'}
+                                            </span>
+                                            {promotion.minBudget && (
+                                                <span className="text-emerald-400 font-medium">
+                                                    ${promotion.minBudget} - ${promotion.maxBudget}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <p className="text-sm text-dark-400 mb-3">
-                                    wants to send you a message
-                                </p>
 
-                                {/* Action Buttons */}
-                                <div className="flex gap-2">
+                                <div className="flex flex-col gap-2">
                                     <button
-                                        onClick={() => handleAccept(request._id)}
+                                        onClick={() => handleResponse(promotion.id, 'ACCEPTED')}
                                         disabled={isProcessing}
-                                        className="flex-1 px-4 py-2 rounded-lg bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        className="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold flex items-center gap-2 transition-colors disabled:opacity-50"
                                     >
-                                        <FaCheck className="text-sm" />
-                                        Accept
+                                        <FaCheck /> Accept
                                     </button>
                                     <button
-                                        onClick={() => handleReject(request._id)}
+                                        onClick={() => handleResponse(promotion.id, 'REJECTED')}
                                         disabled={isProcessing}
-                                        className="flex-1 px-4 py-2 rounded-lg bg-dark-700 text-dark-200 font-medium hover:bg-dark-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        className="px-4 py-2 rounded-lg bg-dark-700 hover:bg-dark-600 text-dark-300 text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
                                     >
-                                        <FaTimes className="text-sm" />
-                                        Decline
+                                        <FaTimes /> Decline
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    </motion.div>
-                );
-            })}
+                        </motion.div>
+                    );
+                })}
+            </AnimatePresence>
         </div>
     );
 };

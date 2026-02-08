@@ -10,7 +10,8 @@ import {
     FaEllipsisV,
     FaImage,
     FaSmile,
-    FaComments
+    FaComments,
+    FaLock
 } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { format, isToday, isYesterday } from 'date-fns';
@@ -211,28 +212,40 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                             <div ref={messagesEndRef} />
                         </div>
 
-                        {/* Message Input */}
-                        <form onSubmit={sendMessage} className="p-4 border-t border-dark-700 flex items-center gap-3">
-                            <button type="button" className="p-2 hover:bg-dark-800 rounded-lg text-dark-400">
-                                <FaSmile />
-                            </button>
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Type a message..."
-                                className="flex-1 px-4 py-2 bg-dark-800 border border-dark-700 rounded-full text-dark-200 placeholder-dark-500 focus:outline-none focus:border-primary-500"
-                            />
-                            <motion.button
-                                type="submit"
-                                disabled={!newMessage.trim()}
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                <FaPaperPlane />
-                            </motion.button>
-                        </form>
+                        {/* Message Input - Gated */}
+                        {selectedConversation.status === 'ACTIVE' ? (
+                            <form onSubmit={sendMessage} className="p-4 border-t border-dark-700 flex items-center gap-3">
+                                <button type="button" className="p-2 hover:bg-dark-800 rounded-lg text-dark-400">
+                                    <FaSmile />
+                                </button>
+                                <input
+                                    type="text"
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder="Type a message..."
+                                    className="flex-1 px-4 py-2 bg-dark-800 border border-dark-700 rounded-full text-dark-200 placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                                />
+                                <motion.button
+                                    type="submit"
+                                    disabled={!newMessage.trim()}
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <FaPaperPlane />
+                                </motion.button>
+                            </form>
+                        ) : (
+                            <div className="p-6 border-t border-dark-700 bg-dark-800/50 text-center">
+                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/20 text-amber-500 mb-3">
+                                    <FaLock className="text-xl" />
+                                </div>
+                                <h4 className="text-dark-100 font-medium mb-1">Request Pending</h4>
+                                <p className="text-sm text-dark-400 max-w-xs mx-auto">
+                                    Messaging is disabled until the creator accepts your collaboration request.
+                                </p>
+                            </div>
+                        )}
                     </>
                 ) : (
                     <div className="flex-1 flex items-center justify-center">

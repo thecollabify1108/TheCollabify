@@ -77,7 +77,9 @@ export const creatorAPI = {
     applyToPromotion: (promotionId) => api.post(`/creators/promotions/${promotionId}/apply`),
     getApplications: () => api.get('/creators/applications'),
     getAchievements: () => api.get('/achievements'),
-    checkAchievements: () => api.post('/achievements/check')
+    getAchievements: () => api.get('/achievements'),
+    checkAchievements: () => api.post('/achievements/check'),
+    respondToRequest: (promotionId, status) => api.post('/creators/respond-request', { promotionId, status })
 };
 
 // Seller API
@@ -91,7 +93,9 @@ export const sellerAPI = {
     rejectCreator: (requestId, creatorId) => api.post(`/sellers/requests/${requestId}/reject/${creatorId}`),
     updateStatus: (requestId, status) => api.put(`/sellers/requests/${requestId}/status`, { status }),
     getMatchDetails: (requestId, creatorId) => api.get(`/sellers/requests/${requestId}/match-details/${creatorId}`),
-    searchCreators: (params) => api.get('/search/creators', { params })
+    getMatchDetails: (requestId, creatorId) => api.get(`/sellers/requests/${requestId}/match-details/${creatorId}`),
+    searchCreators: (params) => api.get('/search/creators', { params }),
+    requestCollaboration: (promotionId, creatorId) => api.post('/sellers/request-collaboration', { promotionId, creatorId })
 };
 
 // Notification API

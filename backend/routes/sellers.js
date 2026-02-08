@@ -675,4 +675,82 @@ router.get('/requests/:id/match-details/:creatorId', auth, isSeller, async (req,
     }
 });
 
+/**
+ * @route   POST /api/sellers/request-collaboration
+ * @desc    Request collaboration with a creator (Invite)
+ * @access  Private (Seller)
+ */
+router.post('/request-collaboration', auth, isSeller, [
+    body('promotionId').notEmpty().withMessage('Promotion ID is required'),
+    body('creatorId').notEmpty().withMessage('Creator ID is required'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { promotionId, creatorId } = req.body;
+
+        // Verify promotion ownership
+        const promotion = await prisma.promotionRequest.findUnique({
+            where: { id: promotionId }
+        });
+
+        if (!promotion || promotion.sellerId !== req.userId) {
+            return res.status(403).json({
+                success: false,
+                message: 'Unauthorized access to this promotion'
+            });
+        }
+
+        // Check if matched creator entry exists
+        let matchedCreator = await prisma.matchedCreator.findUnique({
+            where: {
+                promotionId_creatorId: {
+                    promotionId,
+                    creatorId
+                }
+            }
+        });
+
+        if (matchedCreator) {
+            // Update status to INVITED
+            matchedCreator = await prisma.matchedCreator.update({
+                where: { id: matchedCreator.id },
+                data: { status: 'INVITED' }
+            });
+        } else {
+            // Create new entry (if not matched by AI but manually found)
+            // For now, request flows usually imply a match exists, but let's be safe
+            return res.status(404).json({
+                success: false,
+                message: 'Creator match not found'
+            });
+        }
+
+        // Notify Creator
+        try {
+            const creatorProfile = await prisma.creatorProfile.findUnique({
+                where: { id: creatorId }
+            });
+            if (creatorProfile) {
+                // Assuming we have a notification service method for invites
+                // await notifyCreatorInvited(creatorProfile.userId, promotion);
+            }
+        } catch (err) {
+            console.error('Failed to notify creator:', err);
+        }
+
+        res.json({
+            success: true,
+            message: 'Collaboration request sent successfully',
+            data: { matchedCreator }
+        });
+
+    } catch (error) {
+        console.error('Request collaboration error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to send collaboration request'
+        });
+    }
+});
+
 module.exports = router;
