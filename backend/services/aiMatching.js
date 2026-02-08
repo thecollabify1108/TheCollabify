@@ -5,12 +5,13 @@ const PredictiveService = require('./predictiveService');
  * Scoring weights for different factors
  */
 const SCORING_WEIGHTS = {
-    engagementRate: 0.25,      // 25% weight
+    engagementRate: 0.20,      // 20% weight (Reduced from 25%)
     nicheSimilarity: 0.20,     // 20% weight
     priceCompatibility: 0.15,  // 15% weight
-    predictedROI: 0.20,        // 20% weight (NEW)
+    predictedROI: 0.20,        // 20% weight
     insightScore: 0.10,        // 10% weight
-    trackRecord: 0.10          // 10% weight
+    trackRecord: 0.10,         // 10% weight
+    intentMatch: 0.05          // 5% weight (NEW: Small personalized bias)
 };
 
 /**
@@ -117,6 +118,23 @@ const calculateTrackRecordScore = (profile) => {
 };
 
 /**
+ * Calculate intent match score (Personalization)
+ */
+const calculateIntentScore = (creatorCategory, userIntent) => {
+    if (!userIntent || !userIntent.recentCategories || userIntent.recentCategories.length === 0) {
+        return 50; // Neutral score if no history
+    }
+
+    // Direct hit on most recent category
+    if (userIntent.recentCategories[0] === creatorCategory) return 100;
+
+    // Hit on recent history
+    if (userIntent.recentCategories.includes(creatorCategory)) return 75;
+
+    return 0;
+};
+
+/**
  * Generate human-readable match explanation
  */
 const generateMatchReason = (creator, request, scores) => {
@@ -163,7 +181,13 @@ const generateMatchReason = (creator, request, scores) => {
 /**
  * Step 2: AI-powered ranking layer
  */
-const rankCreators = async (creators, request) => {
+const rankCreators = async (creators, request, userId = null) => {
+    // Fetch user intent if userId is provided
+    let userIntent = null;
+    if (userId) {
+        userIntent = await prisma.userIntent.findUnique({ where: { userId } });
+    }
+
     const rankedCreators = await Promise.all(creators.map(async (creator) => {
         const roiPrediction = await PredictiveService.predictROI(creator.id, request);
 
@@ -184,7 +208,8 @@ const rankCreators = async (creators, request) => {
             ),
             roi: roiPrediction?.roi || 0,
             insight: creator.aiScore || 50,
-            trackRecord: calculateTrackRecordScore(creator)
+            trackRecord: calculateTrackRecordScore(creator),
+            intent: calculateIntentScore(creator.category, userIntent)
         };
 
         const matchScore = Math.round(
@@ -193,7 +218,8 @@ const rankCreators = async (creators, request) => {
             (scores.price * SCORING_WEIGHTS.priceCompatibility) +
             (scores.roi * SCORING_WEIGHTS.predictedROI) +
             (scores.insight * SCORING_WEIGHTS.insightScore) +
-            (scores.trackRecord * SCORING_WEIGHTS.trackRecord)
+            (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
+            (scores.intent * SCORING_WEIGHTS.intentMatch)
         );
 
         const matchReason = generateMatchReason(creator, request, scores);

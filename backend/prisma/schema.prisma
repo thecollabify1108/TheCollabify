@@ -580,6 +580,19 @@ model MatchOutcome {
   updatedAt       DateTime       @updatedAt
   
   @@index([status])
+  @@index([status])
+}
+
+model UserIntent {
+  id              String         @id @default(uuid())
+  userId          String         @unique
+  user            User           @relation(fields: [userId], references: [id])
+  
+  recentCategories String[]      // e.g. ["Tech", "Gaming"] (Limited to last 5)
+  recentTags       String[]      // e.g. ["review", "tutorial"]
+  lastActive       DateTime      @default(now())
+  
+  updatedAt       DateTime       @updatedAt
 }
 
 
