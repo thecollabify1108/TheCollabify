@@ -358,14 +358,20 @@ const Register = () => {
                             {/* Email */}
                             <div className="space-y-1 group">
                                 <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Email Address <span className="text-red-400">*</span></label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
-                                    required
-                                />
+                                <div className="relative">
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50 pl-8"
+                                        required
+                                    />
+                                    <FaEnvelope className="absolute left-0 top-3 text-dark-400" />
+                                </div>
+                                <p className="text-xs text-dark-400 flex items-center gap-1 mt-1">
+                                    <FaLock className="w-2.5 h-2.5" /> We'll keep this private.
+                                </p>
                             </div>
 
                             {/* Password */}
@@ -377,13 +383,17 @@ const Register = () => {
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50"
+                                        className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50 pl-8"
                                         required
                                     />
+                                    <FaLock className="absolute left-0 top-3 text-dark-400" />
                                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-2 text-dark-400 hover:text-dark-600 transition-colors">
                                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                                     </button>
                                 </div>
+                                <p className="text-xs text-emerald-500/80 flex items-center gap-1 mt-1">
+                                    <FaLock className="w-2.5 h-2.5" /> Encrypted before leaving your device.
+                                </p>
                                 <PasswordStrengthIndicator password={formData.password} />
                             </div>
 
