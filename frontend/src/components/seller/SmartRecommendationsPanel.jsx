@@ -13,6 +13,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedCreators, setSelectedCreators] = useState([]);
+    const [showExplanation, setShowExplanation] = useState(null);
 
     useEffect(() => {
         if (campaign?.id) {
@@ -80,7 +81,10 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                         <FaRobot className="text-2xl text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-dark-100">AI Recommendations</h3>
+                        <h3 className="text-lg font-bold text-dark-100 flex items-center gap-2">
+                            AI Recommendations
+                            <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium">BETA</span>
+                        </h3>
                         <p className="text-sm text-dark-500">
                             {recommendations.length} perfect matches found
                         </p>
@@ -149,9 +153,21 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between text-xs mb-1">
                                             <span className="text-dark-500">Match Score</span>
-                                            <span className="font-semibold text-purple-400">
-                                                {creator.matchScore}%
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setShowExplanation(showExplanation === creator._id ? null : creator._id);
+                                                    }}
+                                                    className="text-xs text-purple-400 hover:text-purple-300 underline underline-offset-2 flex items-center gap-1 transition-colors relative z-10"
+                                                >
+                                                    <HiSparkles className="text-[10px]" />
+                                                    Why?
+                                                </button>
+                                                <span className="font-semibold text-purple-400">
+                                                    {creator.matchScore}%
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className="h-2 bg-dark-800 rounded-full overflow-hidden">
                                             <div
@@ -162,21 +178,59 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                     </div>
                                 </div>
 
-                                {/* Reasons */}
-                                <div className="flex flex-wrap gap-2">
-                                    {creator.reasons?.slice(0, 3).map((reason, i) => (
-                                        <span
-                                            key={i}
-                                            className="px-2 py-1 bg-purple-500/10 text-purple-400 rounded text-xs"
+                                {/* Explainability Panel */}
+                                <AnimatePresence>
+                                    {showExplanation === creator._id && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                                            animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
+                                            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="overflow-hidden cursor-default w-full"
                                         >
-                                            {reason}
-                                        </span>
-                                    ))}
-                                </div>
+                                            <div className="bg-dark-800 rounded-xl p-3 border border-purple-500/20 relative">
+                                                <div className="flex gap-2 mb-2">
+                                                    <FaRobot className="text-purple-400 mt-0.5" />
+                                                    <div>
+                                                        <h5 className="text-xs font-bold text-dark-200">AI Logic</h5>
+                                                        <p className="text-[10px] text-dark-400">Why {creator.name} is a match:</p>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-2">
+                                                    {creator.reasons?.map((reason, i) => (
+                                                        <div key={i} className="flex items-start gap-1.5 text-[11px] text-dark-300 bg-dark-900/50 p-1.5 rounded">
+                                                            <FaCheckCircle className="text-emerald-500/50 mt-0.5 flex-shrink-0" />
+                                                            <span>{reason}</span>
+                                                        </div>
+                                                    ))}
+                                                    {(!creator.reasons || creator.reasons.length === 0) && (
+                                                        <div className="text-[11px] text-dark-400 italic px-1">
+                                                            High audience alignment and engagement overlap.
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
+                        </div>
 
-                            {/* Quick Stats */}
-                            <div className="text-right">
+                        {/* Reasons */}
+                        <div className="flex flex-wrap gap-2">
+                            {creator.reasons?.slice(0, 3).map((reason, i) => (
+                                <span
+                                    key={i}
+                                    className="px-2 py-1 bg-purple-500/10 text-purple-400 rounded text-xs"
+                                >
+                                    {reason}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+
+                            {/* Quick Stats */ }
+                    < div className = "text-right" >
                                 <div className="text-sm font-semibold text-dark-100 mb-1">
                                     ₹{(creator.pricing?.min || 0).toLocaleString()}
                                 </div>
@@ -184,21 +238,23 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                     Estimated cost
                                 </div>
                             </div>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
-
-            {recommendations.length === 0 && (
-                <div className="text-center py-12">
-                    <HiSparkles className="text-6xl text-dark-700 mx-auto mb-4" />
-                    <p className="text-dark-400">No recommendations yet</p>
-                    <p className="text-sm text-dark-500 mt-2">
-                        Add more details to your campaign for better matches
-                    </p>
-                </div>
-            )}
         </div>
+                    </motion.div >
+                ))}
+            </div >
+
+{
+    recommendations.length === 0 && (
+        <div className="text-center py-12">
+            <HiSparkles className="text-6xl text-dark-700 mx-auto mb-4" />
+            <p className="text-dark-400">No recommendations yet</p>
+            <p className="text-sm text-dark-500 mt-2">
+                Add more details to your campaign for better matches
+            </p>
+        </div>
+    )
+}
+        </div >
     );
 };
 
