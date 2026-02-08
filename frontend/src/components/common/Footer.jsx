@@ -108,7 +108,7 @@ const Footer = () => {
                     <div className="md:col-span-2">
                         <h4 className="font-bold mb-6 text-sm uppercase tracking-widest text-primary-400">Platform</h4>
                         <ul className="space-y-4">
-                            {['For Brands', 'For Influencers', 'Case Studies', 'Pricing'].map((link) => (
+                            {['For Brands', 'For Influencers'].map((link) => (
                                 <li key={link}>
                                     <Link to={`/${link.toLowerCase().replace(/ /g, '-')}`} className={`text-sm flex items-center group transition-colors ${isDark ? 'text-dark-400 hover:text-primary-400' : 'text-gray-600 hover:text-primary-600'}`}>
                                         <FaArrowRight className="w-0 overflow-hidden group-hover:w-3 transition-all duration-300 mr-0 group-hover:mr-2 text-xs" />
