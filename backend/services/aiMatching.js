@@ -1,5 +1,6 @@
 const prisma = require('../config/prisma');
 const PredictiveService = require('./predictiveService');
+const { calculateResponseLikelihood } = require('./responseLogic');
 
 /**
  * Scoring weights for different factors
@@ -419,6 +420,7 @@ const generateMatchReasons = (creator, request, scores) => {
 
         const rankedCreators = await Promise.all(creators.map(async (creator) => {
             const roiPrediction = await PredictiveService.predictROI(creator.id, request);
+            const responseLikelihood = await calculateResponseLikelihood(creator.id, creator.userId);
 
             const scores = {
                 engagement: calculateEngagementScore(
@@ -486,7 +488,8 @@ const generateMatchReasons = (creator, request, scores) => {
                 matchReasons,
                 learningInsight,
                 scores,
-                prediction: roiPrediction
+                prediction: roiPrediction,
+                responseLikelihood
             };
 
 
