@@ -332,220 +332,185 @@ const generateMatchReasons = (creator, request, scores) => {
     }
     if (scores.trackRecord > 80) {
         reasons.push("🏆 <strong>Proven Track Record:</strong> Consistently delivers for brands.");
-        if (scores.location >= 100 && request.locationType !== 'REMOTE') {
-            reasons.push(`📍 <strong>Local Expert:</strong> Located right in ${request.location?.district || "your area"}.`);
-        } else if (scores.location >= 80 && request.locationType !== 'REMOTE') {
-            reasons.push("🚗 <strong>Nearby & Willing:</strong> Just a short trip away.");
-        }
+    }
 
-        // 3. AI Behavioral Signals (The "Smart" part)
-        if (scores.intent > 70) {
-            reasons.push("🧠 <strong>Smart Match:</strong> Aligns with your recent search intent.");
-        }
+    if (scores.location >= 100 && request.locationType !== 'REMOTE') {
+        reasons.push(`📍 <strong>Local Expert:</strong> Located right in ${request.location?.district || "your area"}.`);
+    } else if (scores.location >= 80 && request.locationType !== 'REMOTE') {
+        reasons.push("🚗 <strong>Nearby & Willing:</strong> Just a short trip away.");
+    }
 
-        // 4. Campaign Type Match
-        if (scores.campaignType >= 100) {
-            if (request.locationType === 'EVENT') reasons.push("🎉 <strong>Event Ready:</strong> Experienced in event collaborations.");
-            if (request.locationType === 'ONSITE') reasons.push("🏢 <strong>On-Site Ready:</strong> Available for on-site work.");
-        }
-        if (scores.personalization > 70) {
-            reasons.push("✨ <strong>Tailored for You:</strong> Similar to creators you've liked before.");
-        }
+    // 3. AI Behavioral Signals (The "Smart" part)
+    if (scores.intent > 70) {
+        reasons.push("🧠 <strong>Smart Match:</strong> Aligns with your recent search intent.");
+    }
 
-        // Fallback if we have too few
-        if (reasons.length === 0) {
-            reasons.push("✅ <strong>Solid Option:</strong> Meets your basic criteria.");
-        }
+    // 4. Campaign Type Match
+    if (scores.campaignType >= 100) {
+        if (request.locationType === 'EVENT') reasons.push("🎉 <strong>Event Ready:</strong> Experienced in event collaborations.");
+        if (request.locationType === 'ONSITE') reasons.push("🏢 <strong>On-Site Ready:</strong> Available for on-site work.");
+    }
+    if (scores.personalization > 70) {
+        reasons.push("✨ <strong>Tailored for You:</strong> Similar to creators you've liked before.");
+    }
 
-        return reasons.slice(0, 3); // Return top 3 reasons
+    // Fallback if we have too few
+    if (reasons.length === 0) {
+        reasons.push("✅ <strong>Solid Option:</strong> Meets your basic criteria.");
+    }
+
+    return reasons.slice(0, 3); // Return top 3 reasons
+};
+
+/**
+ * Generate a learning narrative based on history and intent
+ */
+const generateLearningInsight = (creator, scores, userIntent, userHistory) => {
+    // 1. New User / Low Data
+    if (!userHistory || userHistory.length < 3) {
+        return "🌱 <strong>Learning your style:</strong> Your feedback helps us refine future matches.";
+    }
+
+    // 2. Strong Intent Match (Recent Search)
+    if (scores.intent > 80) {
+        return `🔎 <strong>Adapted to intent:</strong> Based on your recent interest in ${creator.category}.`;
+    }
+
+    // 3. History Match (Personalization)
+    if (scores.personalization > 70) {
+        return "🔄 <strong>Consistent pattern:</strong> Similar to creators you've approved recently.";
+    }
+
+    // 4. Deviation / Discovery
+    if (scores.niche < 60 && scores.engagement > 90) {
+        return "💡 <strong>Discovery:</strong> High-performing creator outside your usual niche.";
+    }
+
+    // 5. Stable/High Consistency
+    if (scores.personalization > 50 && scores.niche > 80) {
+        return "🎯 <strong>Stable Match:</strong> Aligned with your established preferences.";
+    }
+
+    return null;
+};
+
+/**
+ * Determine the location match status for grouping
+ */
+const determineLocationStatus = (creatorLocation, requestLocation, locationType, willingToTravel) => {
+    if (!locationType || locationType === 'REMOTE') return 'REMOTE';
+    // If request has no location, treat as remote/flexible
+    if (!requestLocation?.district && !requestLocation?.state) return 'REMOTE';
+    if (!creatorLocation) return 'OTHER';
+
+    const { district: cDist, state: cState } = creatorLocation;
+    const { district: rDist, state: rState } = requestLocation;
+
+    if (cDist && rDist && cDist.toLowerCase() === rDist.toLowerCase()) {
+        return 'EXACT';
+    }
+    if (cState && rState && cState.toLowerCase() === rState.toLowerCase()) {
+        return 'NEARBY';
+    }
+    if (willingToTravel === 'YES') {
+        return 'TRAVEL';
+    }
+    return 'OTHER';
+};
+
+/**
+ * Determine the budget value status
+ */
+const determineBudgetValueStatus = (minPrice, maxPrice, maxBudget) => {
+    if (!minPrice || !maxBudget) return null;
+
+    // effectivePrice: use minPrice as the base for value comparison
+    const effectivePrice = minPrice;
+
+    // ratio < 1.0 means UNDER budget (Good Value)
+    const ratio = effectivePrice / maxBudget;
+
+    if (ratio <= 0.7) {
+        return {
+            status: 'GREAT_VALUE',
+            label: 'Great Value',
+            description: 'Significantly under your maximum budget.',
+            color: 'emerald'
+        };
+    }
+    if (ratio <= 0.95) {
+        return {
+            status: 'GOOD_VALUE',
+            label: 'Good Value',
+            description: 'Comfortably within your budget range.',
+            color: 'blue'
+        };
+    }
+    if (ratio <= 1.15) {
+        return {
+            status: 'SOLID_FIT',
+            label: 'Solid Fit',
+            description: 'Closely aligns with your budget.',
+            color: 'indigo'
+        };
+    }
+    if (ratio <= 1.4) {
+        return {
+            status: 'PREMIUM',
+            label: 'Premium Option',
+            description: 'Slightly above budget, but high quality.',
+            color: 'purple'
+        };
+    }
+    return {
+        status: 'EXPERIMENTAL',
+        label: 'Stretch Goal',
+        description: 'Significantly above budget.',
+        color: 'amber'
     };
+};
 
-    /**
-     * Generate a learning narrative based on history and intent
-     */
-    const generateLearningInsight = (creator, scores, userIntent, userHistory) => {
-        // 1. New User / Low Data
-        if (!userHistory || userHistory.length < 3) {
-            return "🌱 <strong>Learning your style:</strong> Your feedback helps us refine future matches.";
+/**
+ * Step 2: AI-powered ranking layer
+ */
+const rankCreators = async (creators, request, userId = null) => {
+    // Fetch user context if userId is provided
+    let userIntent = null;
+    let userHistory = [];
+
+    if (userId) {
+        try {
+            const [intent, feedback] = await Promise.all([
+                prisma.userIntent.findUnique({ where: { userId } }),
+                prisma.matchFeedback.findMany({
+                    where: { userId },
+                    select: { targetUserId: true, action: true },
+                    take: 100,
+                    orderBy: { createdAt: 'desc' }
+                })
+            ]);
+            userIntent = intent;
+            userHistory = feedback || [];
+        } catch (err) {
+            console.warn('Failed to fetch user context for ranking', err);
         }
+    }
 
-        // 2. Strong Intent Match (Recent Search)
-        if (scores.intent > 80) {
-            return `🔎 <strong>Adapted to intent:</strong> Based on your recent interest in ${creator.category}.`;
-        }
+    const rankedCreators = await Promise.all(creators.map(async (creator) => {
+        const roiPrediction = await PredictiveService.predictROI(creator.id, request);
+        const responseLikelihood = await calculateResponseLikelihood(creator.id, creator.userId);
+        const locationStatus = determineLocationStatus(
+            creator.location,
+            request.location,
+            request.locationType,
+            creator.willingToTravel
+        );
 
-        // 3. History Match (Personalization)
-        if (scores.personalization > 70) {
-            return "🔄 <strong>Consistent pattern:</strong> Similar to creators you've approved recently.";
-        }
-
-        // 4. Deviation / Discovery
-        if (scores.niche < 60 && scores.engagement > 90) {
-            return "💡 <strong>Discovery:</strong> High-performing creator outside your usual niche.";
-        }
-
-        // 5. Stable/High Consistency
-        if (scores.personalization > 50 && scores.niche > 80) {
-            return "🎯 <strong>Stable Match:</strong> Aligned with your established preferences.";
-        }
-
-        return null;
-    };
-
-    /**
-     * Determine the location match status for grouping
-     */
-    const determineLocationStatus = (creatorLocation, requestLocation, locationType, willingToTravel) => {
-        if (!locationType || locationType === 'REMOTE') return 'REMOTE';
-        // If request has no location, treat as remote/flexible
-        if (!requestLocation?.district && !requestLocation?.state) return 'REMOTE';
-        if (!creatorLocation) return 'OTHER';
-
-        const { district: cDist, state: cState } = creatorLocation;
-        const { district: rDist, state: rState } = requestLocation;
-
-        if (cDist && rDist && cDist.toLowerCase() === rDist.toLowerCase()) {
-            return 'EXACT';
-        }
-        if (cState && rState && cState.toLowerCase() === rState.toLowerCase()) {
-            return 'NEARBY';
-        }
-        if (willingToTravel === 'YES') {
-            return 'TRAVEL';
-        }
-        return 'OTHER';
-    };
-
-    /**
-     * Step 2: AI-powered ranking layer
-     */
-    const rankCreators = async (creators, request, userId = null) => {
-        // Fetch user context if userId is provided
-        let userIntent = null;
-        let userHistory = [];
-
-        if (userId) {
-            try {
-                const [intent, feedback] = await Promise.all([
-                    prisma.userIntent.findUnique({ where: { userId } }),
-                    prisma.matchFeedback.findMany({
-                        where: { userId },
-                        select: { targetUserId: true, action: true },
-                        take: 100,
-                        orderBy: { createdAt: 'desc' }
-                    })
-                ]);
-                userIntent = intent;
-                userHistory = feedback || [];
-            } catch (err) {
-                console.warn('Failed to fetch user context for ranking', err);
-            }
-        }
-
-        const rankedCreators = await Promise.all(creators.map(async (creator) => {
-            const roiPrediction = await PredictiveService.predictROI(creator.id, request);
-            const responseLikelihood = await calculateResponseLikelihood(creator.id, creator.userId);
-            const locationStatus = determineLocationStatus(
-                creator.location,
-                request.location,
-                request.locationType,
-                creator.willingToTravel
-            );
-
-            const scores = {
-                engagement: calculateEngagementScore(
-                    creator.engagementRate,
-                    creator.followerCount
-                ),
-                niche: calculateNicheSimilarity(
-                    creator.category,
-                    request.targetCategory
-                ),
-                price: calculatePriceCompatibility(
-                    creator.minPrice,
-                    creator.maxPrice,
-                    request.minBudget,
-                    request.maxBudget
-                ),
-                roi: roiPrediction?.roi || 0,
-                insight: creator.aiScore || 50,
-                trackRecord: calculateTrackRecordScore(creator),
-                intent: calculateIntentScore(creator.category, userIntent),
-                personalization: calculatePersonalizationScore(creator.id, userHistory),
-                location: calculateLocationScore(
-                    creator.location,
-                    request.location,
-                    request.locationType,
-                    creator.willingToTravel
-                ),
-                campaignType: calculateCampaignTypeScore(
-                    creator.collaborationTypes,
-                    request.locationType
-                ),
-                availability: calculateAvailabilityScore(creator.availabilityStatus)
-            };
-
-            const matchScore = Math.round(
-                (scores.engagement * SCORING_WEIGHTS.engagementRate) +
-                (scores.niche * SCORING_WEIGHTS.nicheSimilarity) +
-                (scores.price * SCORING_WEIGHTS.priceCompatibility) +
-                (scores.roi * SCORING_WEIGHTS.predictedROI) +
-                (scores.insight * SCORING_WEIGHTS.insightScore) +
-                (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
-                (scores.intent * SCORING_WEIGHTS.intentMatch) +
-                (scores.personalization * SCORING_WEIGHTS.personalization) +
-                (scores.location * SCORING_WEIGHTS.locationMatch) +
-                (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
-                (scores.availability * SCORING_WEIGHTS.availabilityMatch)
-            );
-
-            const matchReasons = generateMatchReasons(creator, request, scores);
-            const learningInsight = generateLearningInsight(creator, scores, userIntent, userHistory);
-
-            const confidenceLevel = calculateConfidenceLevel(matchScore);
-
-            return {
-                ...creator, // Return full creator details (name, photo, prices, etc.)
-                roi: roiPrediction?.roi || 0,
-                insight: creator.aiScore || 50,
-                trackRecord: calculateTrackRecordScore(creator),
-                intent: calculateIntentScore(creator.category, userIntent),
-                personalization: calculatePersonalizationScore(creator.id, userHistory),
-                matchScore,
-                confidenceLevel,
-                matchReasons,
-                learningInsight,
-                scores,
-                prediction: roiPrediction,
-                responseLikelihood,
-                locationStatus // Added for frontend grouping
-            };
-        }));
-
-        rankedCreators.sort((a, b) => b.matchScore - a.matchScore);
-        return rankedCreators;
-    };
-
-    /**
-     * Main matching function
-     */
-    const findMatchingCreators = async (promotionRequest) => {
-        const filteredCreators = await filterCreators(promotionRequest);
-        if (filteredCreators.length === 0) return [];
-
-        const rankedCreators = await rankCreators(filteredCreators, promotionRequest);
-        return rankedCreators.slice(0, 20);
-    };
-
-    /**
-     * Get match explanation for a specific creator-request pair
-     */
-    const explainMatch = async (creatorId, promotionRequest) => {
-        const creator = await prisma.creatorProfile.findUnique({
-            where: { id: creatorId }
-        });
-
-        if (!creator) return null;
+        const budgetValue = determineBudgetValueStatus(
+            creator.minPrice,
+            creator.maxPrice,
+            request.maxBudget
+        );
 
         const scores = {
             engagement: calculateEngagementScore(
@@ -554,69 +519,165 @@ const generateMatchReasons = (creator, request, scores) => {
             ),
             niche: calculateNicheSimilarity(
                 creator.category,
-                promotionRequest.targetCategory
+                request.targetCategory
             ),
             price: calculatePriceCompatibility(
                 creator.minPrice,
                 creator.maxPrice,
-                promotionRequest.minBudget,
-                promotionRequest.maxBudget
+                request.minBudget,
+                request.maxBudget
             ),
-            insight: creator.insights?.score || 50,
-            availability: creator.isAvailable ? 100 : 0,
-            trackRecord: calculateTrackRecordScore(creator)
+            roi: roiPrediction?.roi || 0,
+            insight: creator.aiScore || 50,
+            trackRecord: calculateTrackRecordScore(creator),
+            intent: calculateIntentScore(creator.category, userIntent),
+            personalization: calculatePersonalizationScore(creator.id, userHistory),
+            location: calculateLocationScore(
+                creator.location,
+                request.location,
+                request.locationType,
+                creator.willingToTravel
+            ),
+            campaignType: calculateCampaignTypeScore(
+                creator.collaborationTypes,
+                request.locationType
+            ),
+            availability: calculateAvailabilityScore(creator.availabilityStatus)
         };
 
         const matchScore = Math.round(
             (scores.engagement * SCORING_WEIGHTS.engagementRate) +
             (scores.niche * SCORING_WEIGHTS.nicheSimilarity) +
             (scores.price * SCORING_WEIGHTS.priceCompatibility) +
+            (scores.roi * SCORING_WEIGHTS.predictedROI) +
             (scores.insight * SCORING_WEIGHTS.insightScore) +
-            (scores.availability * SCORING_WEIGHTS.availability) +
-            (scores.trackRecord * SCORING_WEIGHTS.trackRecord)
+            (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
+            (scores.intent * SCORING_WEIGHTS.intentMatch) +
+            (scores.personalization * SCORING_WEIGHTS.personalization) +
+            (scores.location * SCORING_WEIGHTS.locationMatch) +
+            (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
+            (scores.availability * SCORING_WEIGHTS.availabilityMatch)
         );
 
+        const matchReasons = generateMatchReasons(creator, request, scores);
+        const learningInsight = generateLearningInsight(creator, scores, userIntent, userHistory);
+
+        const confidenceLevel = calculateConfidenceLevel(matchScore);
+
         return {
+            ...creator, // Return full creator details (name, photo, prices, etc.)
+            roi: roiPrediction?.roi || 0,
+            insight: creator.aiScore || 50,
+            trackRecord: calculateTrackRecordScore(creator),
+            intent: calculateIntentScore(creator.category, userIntent),
+            personalization: calculatePersonalizationScore(creator.id, userHistory),
             matchScore,
-            breakdown: {
-                engagement: {
-                    score: scores.engagement,
-                    weight: SCORING_WEIGHTS.engagementRate,
-                    contribution: scores.engagement * SCORING_WEIGHTS.engagementRate
-                },
-                nicheSimilarity: {
-                    score: scores.niche,
-                    weight: SCORING_WEIGHTS.nicheSimilarity,
-                    contribution: scores.niche * SCORING_WEIGHTS.nicheSimilarity
-                },
-                priceCompatibility: {
-                    score: scores.price, // Frontend should mask this if needed
-                    weight: SCORING_WEIGHTS.priceCompatibility,
-                    contribution: scores.price * SCORING_WEIGHTS.priceCompatibility
-                },
-                profileQuality: {
-                    score: scores.insight,
-                    weight: SCORING_WEIGHTS.insightScore,
-                    contribution: scores.insight * SCORING_WEIGHTS.insightScore
-                },
-                availability: {
-                    score: scores.availability,
-                    weight: SCORING_WEIGHTS.availability,
-                    contribution: scores.availability * SCORING_WEIGHTS.availability
-                },
-                trackRecord: {
-                    score: scores.trackRecord,
-                    weight: SCORING_WEIGHTS.trackRecord,
-                    contribution: scores.trackRecord * SCORING_WEIGHTS.trackRecord
-                }
-            }
+            confidenceLevel,
+            matchReasons,
+            learningInsight,
+            scores,
+            prediction: roiPrediction,
+            responseLikelihood,
+            locationStatus, // Added for frontend grouping
+            budgetValue
         };
+    }));
+
+    rankedCreators.sort((a, b) => b.matchScore - a.matchScore);
+    return rankedCreators;
+};
+
+/**
+ * Main matching function
+ */
+const findMatchingCreators = async (promotionRequest) => {
+    const filteredCreators = await filterCreators(promotionRequest);
+    if (filteredCreators.length === 0) return [];
+
+    const rankedCreators = await rankCreators(filteredCreators, promotionRequest);
+    return rankedCreators.slice(0, 20);
+};
+
+/**
+ * Get match explanation for a specific creator-request pair
+ */
+const explainMatch = async (creatorId, promotionRequest) => {
+    const creator = await prisma.creatorProfile.findUnique({
+        where: { id: creatorId }
+    });
+
+    if (!creator) return null;
+
+    const scores = {
+        engagement: calculateEngagementScore(
+            creator.engagementRate,
+            creator.followerCount
+        ),
+        niche: calculateNicheSimilarity(
+            creator.category,
+            promotionRequest.targetCategory
+        ),
+        price: calculatePriceCompatibility(
+            creator.minPrice,
+            creator.maxPrice,
+            promotionRequest.minBudget,
+            promotionRequest.maxBudget
+        ),
+        insight: creator.insights?.score || 50,
+        availability: creator.isAvailable ? 100 : 0,
+        trackRecord: calculateTrackRecordScore(creator)
     };
 
-    module.exports = {
-        findMatchingCreators,
-        filterCreators,
-        rankCreators,
-        explainMatch,
-        SCORING_WEIGHTS
+    const matchScore = Math.round(
+        (scores.engagement * SCORING_WEIGHTS.engagementRate) +
+        (scores.niche * SCORING_WEIGHTS.nicheSimilarity) +
+        (scores.price * SCORING_WEIGHTS.priceCompatibility) +
+        (scores.insight * SCORING_WEIGHTS.insightScore) +
+        (scores.availability * SCORING_WEIGHTS.availability) +
+        (scores.trackRecord * SCORING_WEIGHTS.trackRecord)
+    );
+
+    return {
+        matchScore,
+        breakdown: {
+            engagement: {
+                score: scores.engagement,
+                weight: SCORING_WEIGHTS.engagementRate,
+                contribution: scores.engagement * SCORING_WEIGHTS.engagementRate
+            },
+            nicheSimilarity: {
+                score: scores.niche,
+                weight: SCORING_WEIGHTS.nicheSimilarity,
+                contribution: scores.niche * SCORING_WEIGHTS.nicheSimilarity
+            },
+            priceCompatibility: {
+                score: scores.price, // Frontend should mask this if needed
+                weight: SCORING_WEIGHTS.priceCompatibility,
+                contribution: scores.price * SCORING_WEIGHTS.priceCompatibility
+            },
+            profileQuality: {
+                score: scores.insight,
+                weight: SCORING_WEIGHTS.insightScore,
+                contribution: scores.insight * SCORING_WEIGHTS.insightScore
+            },
+            availability: {
+                score: scores.availability,
+                weight: SCORING_WEIGHTS.availability,
+                contribution: scores.availability * SCORING_WEIGHTS.availability
+            },
+            trackRecord: {
+                score: scores.trackRecord,
+                weight: SCORING_WEIGHTS.trackRecord,
+                contribution: scores.trackRecord * SCORING_WEIGHTS.trackRecord
+            }
+        }
     };
+};
+
+module.exports = {
+    findMatchingCreators,
+    filterCreators,
+    rankCreators,
+    explainMatch,
+    SCORING_WEIGHTS
+};

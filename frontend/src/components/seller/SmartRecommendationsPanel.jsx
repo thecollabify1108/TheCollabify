@@ -32,7 +32,8 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                     _id: creator.id,
                     matchScore: creator.matchScore,
                     reasons: creator.matchReasons || [],
-                    locationStatus: creator.locationStatus || 'OTHER'
+                    locationStatus: creator.locationStatus || 'OTHER',
+                    budgetValue: creator.budgetValue // New field
                 }));
                 setRecommendations(formattedRecs);
             }
@@ -178,6 +179,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                                 <span>{(creator.followerCount || 50000).toLocaleString()} followers</span>
                                                 <span>•</span>
                                                 <span>{(creator.engagementRate || 3.5).toFixed(1)}% ER</span>
+                                                {/* Response Likelihood Badge */}
                                                 {creator.responseLikelihood && (
                                                     <>
                                                         <span>•</span>
@@ -192,6 +194,28 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                                             {/* Tooltip */}
                                                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-dark-800 border border-dark-700 rounded shadow-lg text-[10px] text-dark-300 w-max max-w-[200px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
                                                                 {creator.responseLikelihood.description}
+                                                                <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-dark-700"></div>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+
+                                                {/* Budget-Value Badge */}
+                                                {creator.budgetValue && (
+                                                    <>
+                                                        <span>•</span>
+                                                        <div className="group relative inline-block">
+                                                            <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${creator.budgetValue.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                                    creator.budgetValue.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                        creator.budgetValue.color === 'indigo' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
+                                                                            creator.budgetValue.color === 'purple' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                                                                                'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                                }`}>
+                                                                {creator.budgetValue.label}
+                                                            </span>
+                                                            {/* Tooltip */}
+                                                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-dark-800 border border-dark-700 rounded shadow-lg text-[10px] text-dark-300 w-max max-w-[200px] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                                                {creator.budgetValue.description}
                                                                 <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-dark-700"></div>
                                                             </div>
                                                         </div>
