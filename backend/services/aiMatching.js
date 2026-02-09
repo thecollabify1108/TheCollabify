@@ -393,6 +393,30 @@ const generateMatchReasons = (creator, request, scores) => {
     };
 
     /**
+     * Determine the location match status for grouping
+     */
+    const determineLocationStatus = (creatorLocation, requestLocation, locationType, willingToTravel) => {
+        if (!locationType || locationType === 'REMOTE') return 'REMOTE';
+        // If request has no location, treat as remote/flexible
+        if (!requestLocation?.district && !requestLocation?.state) return 'REMOTE';
+        if (!creatorLocation) return 'OTHER';
+
+        const { district: cDist, state: cState } = creatorLocation;
+        const { district: rDist, state: rState } = requestLocation;
+
+        if (cDist && rDist && cDist.toLowerCase() === rDist.toLowerCase()) {
+            return 'EXACT';
+        }
+        if (cState && rState && cState.toLowerCase() === rState.toLowerCase()) {
+            return 'NEARBY';
+        }
+        if (willingToTravel === 'YES') {
+            return 'TRAVEL';
+        }
+        return 'OTHER';
+    };
+
+    /**
      * Step 2: AI-powered ranking layer
      */
     const rankCreators = async (creators, request, userId = null) => {
@@ -421,6 +445,12 @@ const generateMatchReasons = (creator, request, scores) => {
         const rankedCreators = await Promise.all(creators.map(async (creator) => {
             const roiPrediction = await PredictiveService.predictROI(creator.id, request);
             const responseLikelihood = await calculateResponseLikelihood(creator.id, creator.userId);
+            const locationStatus = determineLocationStatus(
+                creator.location,
+                request.location,
+                request.locationType,
+                creator.willingToTravel
+            );
 
             const scores = {
                 engagement: calculateEngagementScore(
@@ -437,7 +467,6 @@ const generateMatchReasons = (creator, request, scores) => {
                     request.minBudget,
                     request.maxBudget
                 ),
-                roi: roiPrediction?.roi || 0,
                 roi: roiPrediction?.roi || 0,
                 insight: creator.aiScore || 50,
                 trackRecord: calculateTrackRecordScore(creator),
@@ -465,7 +494,6 @@ const generateMatchReasons = (creator, request, scores) => {
                 (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
                 (scores.intent * SCORING_WEIGHTS.intentMatch) +
                 (scores.personalization * SCORING_WEIGHTS.personalization) +
-                (scores.personalization * SCORING_WEIGHTS.personalization) +
                 (scores.location * SCORING_WEIGHTS.locationMatch) +
                 (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
                 (scores.availability * SCORING_WEIGHTS.availabilityMatch)
@@ -489,10 +517,9 @@ const generateMatchReasons = (creator, request, scores) => {
                 learningInsight,
                 scores,
                 prediction: roiPrediction,
-                responseLikelihood
+                responseLikelihood,
+                locationStatus // Added for frontend grouping
             };
-
-
         }));
 
         rankedCreators.sort((a, b) => b.matchScore - a.matchScore);
