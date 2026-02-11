@@ -598,9 +598,44 @@ router.post('/conversations/:id/messages', auth, [
         // But we allow pre-inquiry messages with sanitization
         let contentToSave = req.body.content;
 
-        if (matchedCreator && matchedCreator.status !== 'ACCEPTED') {
-            // Apply soft content sanitization for pre-acceptance messages
-            contentToSave = sanitizeContent(req.body.content);
+
+        if (matchedCreator) {
+            if (matchedCreator.status === 'DECLINED') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Messaging unavailable. This request was declined.'
+                });
+            }
+
+            if (matchedCreator.status === 'PENDING') {
+                // Check if user has already sent a message
+                const messageCount = await prisma.message.count({
+                    where: {
+                        conversationId: conversationId,
+                        senderId: userId
+                    }
+                });
+
+                if (messageCount >= 1) {
+                    return res.status(403).json({
+                        success: false,
+                        message: 'Pre-inquiry limit reached. Wait for the creator to accept your request.',
+                        isPendingLimit: true
+                    });
+                }
+
+                // Block links in pre-inquiry
+                const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+                if (linkRegex.test(req.body.content)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: 'Links are not allowed in pre-inquiry messages.'
+                    });
+                }
+
+                // Apply soft content sanitization for pre-acceptance messages
+                contentToSave = sanitizeContent(req.body.content);
+            }
         }
 
         // Also check Conversation status

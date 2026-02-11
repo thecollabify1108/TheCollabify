@@ -93,6 +93,10 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
         return format(msgDate, 'MMM d, HH:mm');
     };
 
+    const isPending = selectedConversation?.status === 'PENDING';
+    const myMessageCount = selectedConversation ? messages.filter(m => m.senderRole === 'seller').length : 0;
+    const canSendMessage = !isPending || myMessageCount === 0;
+
     const filteredConversations = conversations?.filter(conv =>
         conv.creatorUserId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         conv.promotionRequestId?.title?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -214,33 +218,41 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
 
                         {/* Message Input - Always enabled but sanitized if pending */}
                         <div className="border-t border-dark-700 bg-dark-800">
-                            {selectedConversation.status === 'PENDING' && (
-                                <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-center">
-                                    <p className="text-xs text-amber-500 flex items-center justify-center gap-2">
+                            {isPending && (
+                                <div className={`px-4 py-2 border-b text-center transition-colors ${canSendMessage ? 'bg-amber-500/10 border-amber-500/20' : 'bg-dark-800 border-dark-700'}`}>
+                                    <p className={`text-xs flex items-center justify-center gap-2 ${canSendMessage ? 'text-amber-500' : 'text-dark-400'}`}>
                                         <FaLock className="text-xs" />
-                                        <span>For safety, contact details are hidden until the request is accepted.</span>
+                                        <span>
+                                            {canSendMessage
+                                                ? "You can send 1 pre-inquiry message. Full messaging unlocks after acceptance."
+                                                : "Pre-inquiry sent. Wait for the creator to accept your request."}
+                                        </span>
                                     </p>
                                 </div>
                             )}
                             <form onSubmit={sendMessage} className="p-4 flex items-center gap-3">
-                                <button type="button" className="p-2 hover:bg-dark-700 rounded-lg text-dark-400 transition-colors">
-                                    <FaSmile />
-                                </button>
+                                {canSendMessage && (
+                                    <button type="button" className="p-2 hover:bg-dark-700 rounded-lg text-dark-400 transition-colors">
+                                        <FaSmile />
+                                    </button>
+                                )}
                                 <input
                                     type="text"
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    placeholder={selectedConversation.status === 'PENDING' ? "Ask a question about the campaign..." : "Type a message..."}
-                                    className="flex-1 px-4 py-2 bg-dark-900 border border-dark-700 rounded-full text-dark-200 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all"
+                                    placeholder={isPending ? (canSendMessage ? "Send your pre-inquiry question..." : "Waiting for acceptance...") : "Type a message..."}
+                                    className="flex-1 px-4 py-2 bg-dark-900 border border-dark-700 rounded-full text-dark-200 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={!canSendMessage}
                                 />
                                 <motion.button
                                     type="submit"
-                                    disabled={!newMessage.trim()}
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-900/20"
+                                    disabled={!newMessage.trim() || !canSendMessage}
+                                    whileHover={{ scale: canSendMessage ? 1.05 : 1 }}
+                                    whileTap={{ scale: canSendMessage ? 0.95 : 1 }}
+                                    className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-900/20 flex items-center gap-2"
                                 >
                                     <FaPaperPlane />
+                                    {isPending && canSendMessage && <span className="text-xs font-bold">Pre-inquiry</span>}
                                 </motion.button>
                             </form>
                         </div>

@@ -203,6 +203,10 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
     const messageGroups = groupMessagesByDate(messages);
 
+    // Staged Communication Logic
+    const myMessageCount = messages.filter(m => m.senderId._id === user?.id || m.senderId === user?.id).length;
+    const canSendMessage = !isPending || myMessageCount === 0;
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -267,11 +271,15 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
             {/* Pending Status Banner - Soft Warning */}
             {isPending && (
-                <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2">
+                <div className={`px-4 py-3 border-b flex items-center gap-2 transition-colors ${canSendMessage ? 'bg-amber-500/10 border-amber-500/20' : 'bg-dark-800 border-dark-700'}`}>
                     <div className="flex-1">
-                        <p className="text-amber-400 text-sm font-medium flex items-center gap-2">
+                        <p className={`text-sm font-medium flex items-center gap-2 ${canSendMessage ? 'text-amber-400' : 'text-dark-400'}`}>
                             <FaLock size={12} />
-                            <span>Contact info hidden until acceptance</span>
+                            <span>
+                                {canSendMessage
+                                    ? "You can send 1 pre-inquiry message. Full messaging unlocks after acceptance."
+                                    : "Pre-inquiry sent. Accept the request to continue chatting."}
+                            </span>
                         </p>
                     </div>
                 </div>
@@ -381,16 +389,18 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                         value={newMessage}
                         onChange={handleMessageChange}
                         onBlur={sendStopTyping}
-                        placeholder={isPending ? "Ask a question..." : "Type a message..."}
+                        placeholder={isPending ? (canSendMessage ? "Send your pre-inquiry question..." : "Waiting for acceptance...") : "Type a message..."}
                         className="flex-1 bg-dark-700 border border-dark-600 rounded-xl px-4 py-2 text-sm text-dark-100 placeholder-dark-400 focus:border-primary-500 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
                         maxLength={2000}
+                        disabled={!canSendMessage}
                     />
                     <button
                         type="submit"
-                        disabled={!newMessage.trim() || sending}
-                        className="p-2 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl text-white disabled:opacity-50 disabled:cursor-not-allowed transition hover:opacity-90"
+                        disabled={!newMessage.trim() || sending || !canSendMessage}
+                        className="p-2 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl text-white disabled:opacity-50 disabled:cursor-not-allowed transition hover:opacity-90 flex items-center gap-2"
                     >
                         <FaPaperPlane className={sending ? 'animate-pulse' : ''} />
+                        {isPending && canSendMessage && <span className="text-xs font-bold whitespace-nowrap">Pre-inquiry</span>}
                     </button>
                 </div>
             </form>
