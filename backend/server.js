@@ -205,6 +205,7 @@ const initializeModules = async () => {
         app.use('/api/team', require('./routes/teamManagement'));
         app.use('/api/ai', require('./routes/ai'));
         app.use('/api/payments', require('./routes/payments'));
+        app.use('/api/collaboration', require('./routes/collaboration'));
         console.log('✅ Routes loaded with security middleware');
 
         isFullyInitialized = true;

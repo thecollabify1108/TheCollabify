@@ -1,0 +1,40 @@
+
+> creator-seller-marketplace-frontend@1.0.1 build
+> node node_modules/vite/bin/vite.js build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32m✓[39m 111 modules transformed.
+[31mx[39m Build failed in 10.66s
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 2 errors:
+C:/Users/sukhv/project 2/frontend/src/pages/SellerDashboard.jsx:67:10: ERROR: The symbol "setShowRequestWizard" has already been declared
+C:/Users/sukhv/project 2/frontend/src/pages/SellerDashboard.jsx:67:10: ERROR: The symbol "showRequestWizard" has already been declared[31m
+file: [36mC:/Users/sukhv/project 2/frontend/src/pages/SellerDashboard.jsx:67:10[31m
+[33m
+[33mThe symbol "setShowRequestWizard" has already been declared[33m
+65 |      const [loading, setLoading] = useState(true);
+66 |      const [showRequestWizard, setShowRequestWizard] = useState(false);
+67 |      const [showRequestWizard, setShowRequestWizard] = useState(false);
+   |            ^
+68 |      const [selectedRequest, setSelectedRequest] = useState(null);
+69 |      const [activeCollabMatch, setActiveCollabMatch] = useState(null); // New state for modal
+
+[33mThe symbol "showRequestWizard" has already been declared[33m
+65 |      const [loading, setLoading] = useState(true);
+66 |      const [showRequestWizard, setShowRequestWizard] = useState(false);
+67 |      const [showRequestWizard, setShowRequestWizard] = useState(false);
+   |            ^
+68 |      const [selectedRequest, setSelectedRequest] = useState(null);
+69 |      const [activeCollabMatch, setActiveCollabMatch] = useState(null); // New state for modal
+[31m
+    at failureErrorWithLog (C:\Users\sukhv\project 2\frontend\node_modules\esbuild\lib\main.js:1472:15)
+    at C:\Users\sukhv\project 2\frontend\node_modules\esbuild\lib\main.js:755:50
+    at responseCallbacks.<computed> (C:\Users\sukhv\project 2\frontend\node_modules\esbuild\lib\main.js:622:9)
+    at handleIncomingPacket (C:\Users\sukhv\project 2\frontend\node_modules\esbuild\lib\main.js:677:12)
+    at Socket.readFromStdout (C:\Users\sukhv\project 2\frontend\node_modules\esbuild\lib\main.js:600:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:510:3)
+    at Readable.push (node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m

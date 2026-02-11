@@ -8,14 +8,14 @@ import {
     FaTimes,
     FaFlag
 } from 'react-icons/fa';
-import { HiSparkles, HiCreditCard } from 'react-icons/hi';
+import { HiSparkles, HiCreditCard, HiClipboardList } from 'react-icons/hi';
 import { paymentAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import CreatorCard from './CreatorCard';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 import { trackMatchOutcome } from '../../services/feedback';
 
-const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus, onMessage }) => {
+const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus, onMessage, onManageCollaboration }) => {
     const [activeSection, setActiveSection] = useState('applicants');
 
     const applicants = request.matchedCreators?.filter(mc => mc.status === 'Applied') || [];
@@ -242,7 +242,15 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         status={mc.status}
                         onMessage={() => onMessage && onMessage(request._id, mc.creatorId._id || mc.creatorId, mc.creatorId?.userId?.name || 'Creator')}
                     >
-                        <div className="mt-4 pt-4 border-t border-dark-700">
+                        <div className="mt-4 pt-4 border-t border-dark-700 flex flex-col gap-3">
+                            {/* Manage Collaboration Button (Value Retention) */}
+                            <button
+                                onClick={() => onManageCollaboration && onManageCollaboration(mc)}
+                                className="w-full btn-secondary py-3 flex items-center justify-center gap-2 text-sm bg-dark-700 hover:bg-dark-600 text-white border border-dark-600"
+                            >
+                                <HiClipboardList className="text-primary-400" /> Manage Collaboration
+                            </button>
+
                             <button
                                 onClick={async () => {
                                     try {

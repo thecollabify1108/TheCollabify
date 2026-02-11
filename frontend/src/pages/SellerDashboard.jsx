@@ -23,6 +23,7 @@ import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
 import QuickStatsBar from '../components/seller/QuickStatsBar';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import MessagingPanel from '../components/seller/MessagingPanel';
+import CollaborationHub from '../components/common/CollaborationHub';
 
 import CreatorSearch from '../components/seller/CreatorSearch';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
@@ -64,6 +65,7 @@ const SellerDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showRequestWizard, setShowRequestWizard] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
+    const [activeCollabMatch, setActiveCollabMatch] = useState(null); // New state for modal
     const [conversations, setConversations] = useState([]);
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [processedCreators, setProcessedCreators] = useState(new Set());
@@ -277,11 +279,20 @@ const SellerDashboard = () => {
                 matchId: match._id,
                 status: 'accepted'
             });
+
+            // NEW: Auto-open collaboration hub
+            // We need the full match object with promotion and creator populated for the hub
+            // For now, we'll let them click the button, or fetch it.
+            // But let's show a toast action maybe?
         }
 
         try {
             await sellerAPI.acceptCreator(requestId, creatorId);
-            toast.success('✅ Creator accepted!');
+            // Initialize collaboration in background
+            if (match) {
+                await collaborationAPI.initializeCollaboration(match._id).catch(err => console.error("Auto-init failed", err));
+            }
+            toast.success('✅ Creator accepted! Collaboration started.');
             fetchRequests(true);
         } catch (error) {
             updateState('Matched'); // Revert (assuming it was matched)
@@ -485,6 +496,14 @@ const SellerDashboard = () => {
         }
     ];
 
+    // Helper to open collab hub
+    const handleOpenCollab = (match) => {
+        // Construct full match object if needed, or pass what we have
+        // We need: id, promotion: {title}, creator: {user: {name}}
+        // The match object from requests already has this structure usually
+        setActiveCollabMatch(match);
+    };
+
     // Imported Skeleton components moved to top-level imports
 
     if (loading) {
@@ -557,6 +576,27 @@ const SellerDashboard = () => {
                 onCreateNew={() => setShowRequestWizard(true)}
                 onSelectCampaign={(campaign) => setSelectedRequest(campaign)}
             />
+
+            {/* Collaboration Hub Modal */}
+            <AnimatePresence>
+                {activeCollabMatch && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="w-full max-w-4xl h-[85vh] bg-dark-900 rounded-3xl overflow-hidden shadow-2xl border border-dark-700"
+                        >
+                            <CollaborationHub
+                                match={activeCollabMatch}
+                                isOwner={true}
+                                onClose={() => setActiveCollabMatch(null)}
+                                onComplete={() => fetchRequests(true)}
+                            />
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             {/* Collapsible Stats Bar */}
             <QuickStatsBar stats={stats} />

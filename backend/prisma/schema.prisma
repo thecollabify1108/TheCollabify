@@ -288,6 +288,7 @@ model MatchedCreator {
   appliedAt          DateTime?
   respondedAt        DateTime?
   outcome            MatchOutcome?
+  collaboration      Collaboration?
 
   @@unique([promotionId, creatorId])
   @@index([status])
@@ -599,6 +600,45 @@ model MatchOutcome {
   
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+  
+  @@index([status])
+}
+
+enum CollaborationStatus {
+  REQUESTED
+  ACCEPTED
+  IN_DISCUSSION
+  AGREED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Collaboration {
+  id               String              @id @default(uuid())
+  matchId          String              @unique
+  matchedCreator   MatchedCreator      @relation(fields: [matchId], references: [id])
+  
+  status           CollaborationStatus @default(REQUESTED)
+  statusUpdatedAt  DateTime            @default(now())
+  statusHistory    Json?               // [{ from, to, at, userId }]
+  
+  deliverables     String[]
+  
+  startDate        DateTime?
+  endDate          DateTime?
+  
+  milestones       Json?               // [{ id, title, status: 'pending'|'done', dueDate? }]
+  termsAccepted    Boolean             @default(true)
+  
+  // Reflections / Outcome Tracking
+  sellerFeedback   Json?
+  creatorFeedback  Json?
+  
+  completedAt      DateTime?
+  
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
   
   @@index([status])
 }

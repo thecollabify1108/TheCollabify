@@ -194,4 +194,13 @@ export const aiAPI = {
     getProfileTips: (data) => api.post('/ai/profile-tips', data)
 };
 
+// Collaboration API (Value Retention + Lifecycle State Machine)
+export const collaborationAPI = {
+    initializeCollaboration: (matchId) => api.post('/collaboration/initialize', { matchId }),
+    getCollaboration: (matchId) => api.get(`/collaboration/${matchId}`),
+    updateCollaboration: (id, data) => api.patch(`/collaboration/${id}`, data),
+    transitionStatus: (id, newStatus) => api.post(`/collaboration/${id}/transition`, { newStatus }),
+    submitFeedback: (id, data) => api.post(`/collaboration/${id}/feedback`, data)
+};
+
 export default api;
