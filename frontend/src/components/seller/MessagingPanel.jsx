@@ -212,40 +212,38 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                             <div ref={messagesEndRef} />
                         </div>
 
-                        {/* Message Input - Gated */}
-                        {selectedConversation.status === 'ACTIVE' ? (
-                            <form onSubmit={sendMessage} className="p-4 border-t border-dark-700 flex items-center gap-3">
-                                <button type="button" className="p-2 hover:bg-dark-800 rounded-lg text-dark-400">
+                        {/* Message Input - Always enabled but sanitized if pending */}
+                        <div className="border-t border-dark-700 bg-dark-800">
+                            {selectedConversation.status === 'PENDING' && (
+                                <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-center">
+                                    <p className="text-xs text-amber-500 flex items-center justify-center gap-2">
+                                        <FaLock className="text-xs" />
+                                        <span>For safety, contact details are hidden until the request is accepted.</span>
+                                    </p>
+                                </div>
+                            )}
+                            <form onSubmit={sendMessage} className="p-4 flex items-center gap-3">
+                                <button type="button" className="p-2 hover:bg-dark-700 rounded-lg text-dark-400 transition-colors">
                                     <FaSmile />
                                 </button>
                                 <input
                                     type="text"
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
-                                    placeholder="Type a message..."
-                                    className="flex-1 px-4 py-2 bg-dark-800 border border-dark-700 rounded-full text-dark-200 placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                                    placeholder={selectedConversation.status === 'PENDING' ? "Ask a question about the campaign..." : "Type a message..."}
+                                    className="flex-1 px-4 py-2 bg-dark-900 border border-dark-700 rounded-full text-dark-200 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all"
                                 />
                                 <motion.button
                                     type="submit"
                                     disabled={!newMessage.trim()}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-900/20"
                                 >
                                     <FaPaperPlane />
                                 </motion.button>
                             </form>
-                        ) : (
-                            <div className="p-6 border-t border-dark-700 bg-dark-800/50 text-center">
-                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-500/20 text-amber-500 mb-3">
-                                    <FaLock className="text-xl" />
-                                </div>
-                                <h4 className="text-dark-100 font-medium mb-1">Request Pending</h4>
-                                <p className="text-sm text-dark-400 max-w-xs mx-auto">
-                                    Messaging is disabled until the creator accepts your collaboration request.
-                                </p>
-                            </div>
-                        )}
+                        </div>
                     </>
                 ) : (
                     <div className="flex-1 flex items-center justify-center">

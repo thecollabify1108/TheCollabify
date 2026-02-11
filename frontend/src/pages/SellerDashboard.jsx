@@ -16,7 +16,8 @@ import { trackMatchFeedback, trackMatchOutcome } from '../services/feedback';
 import toast from 'react-hot-toast';
 
 // New Components
-import Navbar from '../components/common/Navbar';
+import DashboardLayout from '../components/layout/DashboardLayout';
+// Navbar removed
 import CampaignStories from '../components/seller/CampaignStories';
 import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
 import QuickStatsBar from '../components/seller/QuickStatsBar';
@@ -536,9 +537,17 @@ const SellerDashboard = () => {
     }
 
     return (
-        <div className="min-h-screen bg-dark-950 pb-20">
-            <Navbar />
-
+        <DashboardLayout
+            user={user}
+            activeTab={activeTab}
+            setActiveTab={(tab) => {
+                setActiveTab(tab);
+                haptic.light();
+            }}
+            tabs={tabs}
+            showGuide={showGuide}
+            setShowGuide={setShowGuide}
+        >
             {/* Onboarding Tour for new users */}
             <OnboardingTour role="seller" />
 
@@ -552,328 +561,296 @@ const SellerDashboard = () => {
             {/* Collapsible Stats Bar */}
             <QuickStatsBar stats={stats} />
 
-            {/* Main Content Area */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-6">
-                <AnimatePresence mode="wait">
-                    {/* Guided AI Mode Overlay */}
-                    {showGuide && (
-                        <GuidedAIMode
-                            role="seller"
-                            onAction={handleGuideAction}
-                            onClose={() => setShowGuide(false)}
+            <AnimatePresence mode="wait">
+                {/* Guided AI Mode Overlay */}
+                {showGuide && (
+                    <GuidedAIMode
+                        role="seller"
+                        onAction={handleGuideAction}
+                        onClose={() => setShowGuide(false)}
+                    />
+                )}
+
+                {/* Search Tab - Creator Discovery with AI */}
+                {activeTab === 'search' && (
+                    <motion.div
+                        key="search"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="space-y-4"
+                    >
+                        {/* Enhanced Creator Search */}
+                        <EnhancedCreatorSearch
+                            onSearch={(results) => {
+                                setAllCreators(results);
+                                setShowAIRecommendations(true);
+                            }}
+                            onSelect={(creator) => {
+                                console.log('Selected creator:', creator);
+                                toast.success(`Selected ${creator.name}`);
+                            }}
                         />
-                    )}
 
-                    {/* Search Tab - Creator Discovery with AI */}
-                    {activeTab === 'search' && (
-                        <motion.div
-                            key="search"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="space-y-4"
-                        >
-                            {/* Enhanced Creator Search */}
-                            <EnhancedCreatorSearch
-                                onSearch={(results) => {
-                                    setAllCreators(results);
-                                    setShowAIRecommendations(true);
-                                }}
-                                onSelect={(creator) => {
-                                    console.log('Selected creator:', creator);
-                                    toast.success(`Selected ${creator.name}`);
+                        {/* AI Smart Recommendations */}
+                        {showAIRecommendations && selectedRequest && (
+                            <SmartRecommendationsPanel
+                                campaign={selectedRequest}
+                                allCreators={allCreators}
+                                onInvite={(creators) => {
+                                    console.log('Inviting creators:', creators);
+                                    toast.success(`Invited ${creators.length} creators!`);
                                 }}
                             />
+                        )}
+                    </motion.div>
+                )}
 
-                            {/* AI Smart Recommendations */}
-                            {showAIRecommendations && selectedRequest && (
-                                <SmartRecommendationsPanel
-                                    campaign={selectedRequest}
-                                    allCreators={allCreators}
-                                    onInvite={(creators) => {
-                                        console.log('Inviting creators:', creators);
-                                        toast.success(`Invited ${creators.length} creators!`);
-                                    }}
-                                />
-                            )}
-                        </motion.div>
-                    )}
-
-                    {/* Discover Tab - Swipe Cards Only */}
-                    {activeTab === 'discover' && (
-                        <motion.div
-                            key="discover"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="flex justify-center"
-                        >
-                            {/* Swipeable Creator Cards */}
-                            <div className="w-full max-w-md">
-                                <SwipeableCreatorCard
-                                    creators={pendingCreators}
-                                    onAccept={handleAcceptCreator}
-                                    onReject={handleRejectCreator}
-                                    onMessage={handleMessageCreator}
-                                />
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* Analytics Tab */}
-                    {activeTab === 'analytics' && (
-                        <motion.div
-                            key="analytics"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                        >
-                            <div className="mb-4">
-                                <h2 className="text-xl font-bold text-dark-100 mb-1">Campaign Analytics</h2>
-                                <p className="text-sm text-dark-400">Track your campaign performance</p>
-                            </div>
-                            <AnalyticsDashboard userType="seller" requests={requests} />
-                        </motion.div>
-                    )}
-
-                    {/* Team Management Tab */}
-                    {activeTab === 'team' && (
-                        <motion.div
-                            key="team"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                        >
-                            <TeamManagement />
-                        </motion.div>
-                    )}
-
-                    {/* Dashboard Tab - Modernized */}
-                    {activeTab === 'dashboard' && (
-                        <motion.div
-                            key="dashboard"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-8 pb-6"
-                        >
-                            {/* 1. Hero Section */}
-                            <DashboardHero
-                                userName={(user?.companyName || user?.name || '').split(' ')[0] || 'Seller'}
-                                role="Seller"
-                                dailyInsight="Welcome to your campaign dashboard! 🚀"
+                {/* Discover Tab - Swipe Cards Only */}
+                {activeTab === 'discover' && (
+                    <motion.div
+                        key="discover"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="flex justify-center"
+                    >
+                        {/* Swipeable Creator Cards */}
+                        <div className="w-full max-w-md">
+                            <SwipeableCreatorCard
+                                creators={pendingCreators}
+                                onAccept={handleAcceptCreator}
+                                onReject={handleRejectCreator}
+                                onMessage={handleMessageCreator}
                             />
+                        </div>
+                    </motion.div>
+                )}
 
-                            {/* Pro Upgrade Card */}
-                            {user.subscription?.status !== 'active' && (
-                                <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-xl shadow-indigo-900/20 relative overflow-hidden group">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-                                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                        <div>
-                                            <h3 className="text-2xl font-bold text-white mb-2">Upgrade to Pro</h3>
-                                            <p className="text-indigo-100 max-w-md">Launch unlimited campaigns, get advanced AI matches, and access detailed ROI analytics.</p>
-                                        </div>
-                                        <LoadingButton
-                                            onClick={handleUpgrade}
-                                            className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 transition-colors shadow-lg shadow-black/10 border-none"
-                                        >
-                                            Upgrade Now
-                                        </LoadingButton>
+                {/* Analytics Tab */}
+                {activeTab === 'analytics' && (
+                    <motion.div
+                        key="analytics"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                    >
+                        <div className="mb-4">
+                            <h2 className="text-xl font-bold text-dark-100 mb-1">Campaign Analytics</h2>
+                            <p className="text-sm text-dark-400">Track your campaign performance</p>
+                        </div>
+                        <AnalyticsDashboard userType="seller" requests={requests} />
+                    </motion.div>
+                )}
+
+                {/* Team Management Tab */}
+                {activeTab === 'team' && (
+                    <motion.div
+                        key="team"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                    >
+                        <TeamManagement />
+                    </motion.div>
+                )}
+
+                {/* Dashboard Tab - Modernized */}
+                {activeTab === 'dashboard' && (
+                    <motion.div
+                        key="dashboard"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-8 pb-6"
+                    >
+                        {/* 1. Hero Section */}
+                        <DashboardHero
+                            userName={(user?.companyName || user?.name || '').split(' ')[0] || 'Seller'}
+                            role="Seller"
+                            dailyInsight="Welcome to your campaign dashboard! 🚀"
+                        />
+
+                        {/* Pro Upgrade Card */}
+                        {user.subscription?.status !== 'active' && (
+                            <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-xl shadow-indigo-900/20 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700" />
+                                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-white mb-2">Upgrade to Pro</h3>
+                                        <p className="text-indigo-100 max-w-md">Launch unlimited campaigns, get advanced AI matches, and access detailed ROI analytics.</p>
                                     </div>
-                                </div>
-                            )}
-
-                            {/* 2. Campaign Pipeline Stats */}
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                                <StatCard
-                                    label="Total Budget"
-                                    value="₹0" // Placeholder until real budget logic
-                                    icon={<FaFire />}
-                                    color="orange"
-                                    trend={0}
-                                    delay={0.1}
-                                />
-                                <StatCard
-                                    label="Active Campaigns"
-                                    value={stats.active}
-                                    icon={<HiViewGrid />}
-                                    color="blue"
-                                    trend={0}
-                                    delay={0.2}
-                                />
-                                <StatCard
-                                    label="Pending Applicants"
-                                    value={stats.pending}
-                                    icon={<HiUserGroup />}
-                                    color="purple"
-                                    trend={0}
-                                    delay={0.3}
-                                />
-                                <StatCard
-                                    label="Total Matches"
-                                    value={stats.totalMatches}
-                                    icon={<HiSparkles />}
-                                    color="emerald"
-                                    trend={0}
-                                    delay={0.4}
-                                />
-                            </div>
-
-                            {/* 3. Charts & Applicant Feed */}
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
-                                <div className="lg:col-span-2 h-[300px] lg:h-full">
-                                    <PerformanceChart
-                                        title="Campaign Spend & ROI"
-                                        color="#f59e0b"
-                                        data={[]} // Empty data until analytics API is ready
-                                    />
-                                </div>
-                                <div className="h-[400px] lg:h-full">
-                                    <ActivityFeed
-                                        activities={pendingCreators.slice(0, 5).map(c => ({
-                                            id: c.creatorId,
-                                            title: c.name,
-                                            description: `Applied to ${c.requestTitle}`,
-                                            time: 'Just now',
-                                            icon: <HiUserGroup />,
-                                            iconColor: 'bg-purple-500/20 text-purple-400'
-                                        }))}
-                                        emptyMessage="No pending applicants"
-                                    />
+                                    <LoadingButton
+                                        onClick={handleUpgrade}
+                                        className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 transition-colors shadow-lg shadow-black/10 border-none"
+                                    >
+                                        Upgrade Now
+                                    </LoadingButton>
                                 </div>
                             </div>
+                        )}
 
-                            {/* 4. Active Campaigns List (Modernized) */}
-                            <FocusWrapper sectionId="campaigns" currentFocus={focusMode}>
-                                <div>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
-                                            <HiSparkles className="text-primary-400" /> Active Campaigns
-                                        </h2>
-                                        <LoadingButton
-                                            onClick={() => setShowRequestWizard(true)}
-                                            className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors border-none shadow-lg shadow-primary-500/20"
-                                        >
-                                            + New Campaign
-                                        </LoadingButton>
-                                    </div>
-
-                                    {requests.length === 0 ? (
-                                        <EmptyState
-                                            icon={<HiViewGrid />}
-                                            title="No campaigns yet"
-                                            description="Launch your first campaign to find creators"
-                                            action={
-                                                <LoadingButton
-                                                    onClick={() => setShowRequestWizard(true)}
-                                                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold border-none shadow-lg shadow-primary-500/20"
-                                                >
-                                                    Launch Campaign
-                                                </LoadingButton>
-                                            }
-                                        />
-                                    ) : (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {requests.slice(0, 6).map((request, index) => (
-                                                <motion.div
-                                                    key={request._id}
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: index * 0.05 }}
-                                                    onClick={() => setSelectedRequest(request)}
-                                                    className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800"
-                                                >
-                                                    <div className="flex items-start justify-between mb-3">
-                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                            request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
-                                                                'bg-blue-500/20 text-blue-400'
-                                                            }`}>
-                                                            {request.title?.charAt(0).toUpperCase()}
-                                                        </div>
-                                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.status === 'Open' ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'
-                                                            }`}>
-                                                            {request.status}
-                                                        </span>
-                                                    </div>
-
-                                                    <h3 className="font-semibold text-dark-100 mb-1 group-hover:text-primary-400 transition-colors">{request.title}</h3>
-                                                    <div className="flex items-center justify-between text-sm text-dark-400">
-                                                        <span>Budget: ₹{request.budget?.toLocaleString()}</span>
-                                                        <span>{request.matchedCreators?.length || 0} Matches</span>
-                                                    </div>
-
-                                                    {/* Progress Bar Simulation */}
-                                                    <div className="w-full bg-dark-700 rounded-full h-1.5 mt-4 overflow-hidden">
-                                                        <div
-                                                            className="bg-primary-500 h-full rounded-full"
-                                                            style={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
-                                                        />
-                                                    </div>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </FocusWrapper>
-                        </motion.div>
-                    )}
-
-                    {/* Messages Tab */}
-                    {activeTab === 'messages' && (
-                        <motion.div
-                            key="messages"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="p-4"
-                        >
-                            <MessagingPanel
-                                conversations={conversations}
-                                selectedConversation={selectedConversation}
-                                onSelectConversation={(conv) => setSelectedConversation(conv)}
-                                onDeleteConversation={handleDeleteConversation}
-                                onBack={() => setSelectedConversation(null)}
+                        {/* 2. Campaign Pipeline Stats */}
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                            <StatCard
+                                label="Total Budget"
+                                value="₹0" // Placeholder until real budget logic
+                                icon={<FaFire />}
+                                color="orange"
+                                trend={0}
+                                delay={0.1}
                             />
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </main>
+                            <StatCard
+                                label="Active Campaigns"
+                                value={stats.active}
+                                icon={<HiViewGrid />}
+                                color="blue"
+                                trend={0}
+                                delay={0.2}
+                            />
+                            <StatCard
+                                label="Pending Applicants"
+                                value={stats.pending}
+                                icon={<HiUserGroup />}
+                                color="purple"
+                                trend={0}
+                                delay={0.3}
+                            />
+                            <StatCard
+                                label="Total Matches"
+                                value={stats.totalMatches}
+                                icon={<HiSparkles />}
+                                color="emerald"
+                                trend={0}
+                                delay={0.4}
+                            />
+                        </div>
 
-            {/* Quick Actions FAB */}
+                        {/* 3. Charts & Applicant Feed */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
+                            <div className="lg:col-span-2 h-[300px] lg:h-full">
+                                <PerformanceChart
+                                    title="Campaign Spend & ROI"
+                                    color="#f59e0b"
+                                    data={[]} // Empty data until analytics API is ready
+                                />
+                            </div>
+                            <div className="h-[400px] lg:h-full">
+                                <ActivityFeed
+                                    activities={pendingCreators.slice(0, 5).map(c => ({
+                                        id: c.creatorId,
+                                        title: c.name,
+                                        description: `Applied to ${c.requestTitle}`,
+                                        time: 'Just now',
+                                        icon: <HiUserGroup />,
+                                        iconColor: 'bg-purple-500/20 text-purple-400'
+                                    }))}
+                                    emptyMessage="No pending applicants"
+                                />
+                            </div>
+                        </div>
+
+                        {/* 4. Active Campaigns List (Modernized) */}
+                        <FocusWrapper sectionId="campaigns" currentFocus={focusMode}>
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+                                        <HiSparkles className="text-primary-400" /> Active Campaigns
+                                    </h2>
+                                    <LoadingButton
+                                        onClick={() => setShowRequestWizard(true)}
+                                        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors border-none shadow-lg shadow-primary-500/20"
+                                    >
+                                        + New Campaign
+                                    </LoadingButton>
+                                </div>
+
+                                {requests.length === 0 ? (
+                                    <EmptyState
+                                        icon={<HiViewGrid />}
+                                        title="No campaigns yet"
+                                        description="Launch your first campaign to find creators"
+                                        action={
+                                            <LoadingButton
+                                                onClick={() => setShowRequestWizard(true)}
+                                                className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold border-none shadow-lg shadow-primary-500/20"
+                                            >
+                                                Launch Campaign
+                                            </LoadingButton>
+                                        }
+                                    />
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {requests.slice(0, 6).map((request, index) => (
+                                            <motion.div
+                                                key={request._id}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.05 }}
+                                                onClick={() => setSelectedRequest(request)}
+                                                className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800"
+                                            >
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                        request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
+                                                            'bg-blue-500/20 text-blue-400'
+                                                        }`}>
+                                                        {request.title?.charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.status === 'Open' ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'
+                                                        }`}>
+                                                        {request.status}
+                                                    </span>
+                                                </div>
+
+                                                <h3 className="font-semibold text-dark-100 mb-1 group-hover:text-primary-400 transition-colors">{request.title}</h3>
+                                                <div className="flex items-center justify-between text-sm text-dark-400">
+                                                    <span>Budget: ₹{request.budget?.toLocaleString()}</span>
+                                                    <span>{request.matchedCreators?.length || 0} Matches</span>
+                                                </div>
+
+                                                {/* Progress Bar Simulation */}
+                                                <div className="w-full bg-dark-700 rounded-full h-1.5 mt-4 overflow-hidden">
+                                                    <div
+                                                        className="bg-primary-500 h-full rounded-full"
+                                                        style={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
+                                                    />
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </FocusWrapper>
+                    </motion.div>
+                )}
+
+                {/* Messages Tab */}
+                {activeTab === 'messages' && (
+                    <motion.div
+                        key="messages"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="p-4"
+                    >
+                        <MessagingPanel
+                            conversations={conversations}
+                            selectedConversation={selectedConversation}
+                            onSelectConversation={(conv) => setSelectedConversation(conv)}
+                            onDeleteConversation={handleDeleteConversation}
+                            onBack={() => setSelectedConversation(null)}
+                        />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Quick Actions and Modals */}
             <QuickActionsFAB
                 userRole="seller"
                 onBrowse={() => setActiveTab('search')}
                 onCreateCampaign={() => setShowRequestWizard(true)}
             />
-
-            {/* Bottom Navigation */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-dark-900/95 backdrop-blur-xl border-t border-dark-800 z-50">
-                <div className="max-w-lg mx-auto px-1 md:px-2 py-1 md:py-2">
-                    <div className="flex items-center justify-around">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.id}
-                                onClick={() => {
-                                    setActiveTab(tab.id);
-                                    haptic.light();
-                                }}
-                                className={`flex flex-col items-center gap-1 px-1.5 md:px-4 py-1.5 md:py-2 rounded-xl transition-all ${activeTab === tab.id
-                                    ? 'text-primary-400 bg-primary-500/10'
-                                    : 'text-dark-400 hover:text-dark-200'
-                                    }`}
-                            >
-                                {tab.icon}
-                                <span className="text-xs font-medium">{tab.label}</span>
-                                {tab.badge > 0 && (
-                                    <span className="absolute top-0 right-2 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                                        {tab.badge}
-                                    </span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </nav>
 
             {/* Modals */}
             {/* Enhanced Campaign Wizard (Primary) */}
@@ -916,9 +893,6 @@ const SellerDashboard = () => {
                 }}
             />
 
-            {/* Onboarding Tour */}
-            <OnboardingTour role="seller" />
-
             {/* Payment Modal */}
             {showPaymentModal && (
                 <PaymentModal
@@ -927,7 +901,7 @@ const SellerDashboard = () => {
                     onSuccess={handlePaymentSuccess}
                 />
             )}
-        </div>
+        </DashboardLayout>
     );
 };
 

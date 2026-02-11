@@ -265,12 +265,14 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                 </div>
             </div>
 
-            {/* Pending Status Banner */}
+            {/* Pending Status Banner - Soft Warning */}
             {isPending && (
                 <div className="px-4 py-3 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2">
                     <div className="flex-1">
-                        <p className="text-amber-400 text-sm font-medium">⏳ Request Pending</p>
-                        <p className="text-amber-300/70 text-xs">Waiting for creator to accept your message request</p>
+                        <p className="text-amber-400 text-sm font-medium flex items-center gap-2">
+                            <FaLock size={12} />
+                            <span>Contact info hidden until acceptance</span>
+                        </p>
                     </div>
                 </div>
             )}
@@ -379,21 +381,16 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                         value={newMessage}
                         onChange={handleMessageChange}
                         onBlur={sendStopTyping}
-                        placeholder={isPending ? "Locked - Waiting for creator to accept..." : "Type a message..."}
+                        placeholder={isPending ? "Ask a question..." : "Type a message..."}
                         className="flex-1 bg-dark-700 border border-dark-600 rounded-xl px-4 py-2 text-sm text-dark-100 placeholder-dark-400 focus:border-primary-500 focus:outline-none transition disabled:opacity-50 disabled:cursor-not-allowed"
                         maxLength={2000}
-                        disabled={isPending}
                     />
                     <button
                         type="submit"
-                        disabled={!newMessage.trim() || sending || isPending}
+                        disabled={!newMessage.trim() || sending}
                         className="p-2 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-xl text-white disabled:opacity-50 disabled:cursor-not-allowed transition hover:opacity-90"
                     >
-                        {isPending ? (
-                            <FaLock />
-                        ) : (
-                            <FaPaperPlane className={sending ? 'animate-pulse' : ''} />
-                        )}
+                        <FaPaperPlane className={sending ? 'animate-pulse' : ''} />
                     </button>
                 </div>
             </form>

@@ -676,7 +676,7 @@ const Landing = () => {
                                 transition={{ delay: 0.2 }}
                             >
                                 <div className="absolute top-4 right-4 text-6xl text-dark-800/50 font-serif">"</div>
-                                <h3 className="text-xl font-bold text-dark-100 mb-4">Niche Power > Fame</h3>
+                                <h3 className="text-xl font-bold text-dark-100 mb-4">Niche Power &gt; Fame</h3>
                                 <p className="text-dark-300 italic mb-6">
                                     "My 10k followers are die-hard fans. The guy with 1M followers gets likes, but I get sales."
                                 </p>

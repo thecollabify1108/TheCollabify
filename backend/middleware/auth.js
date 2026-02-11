@@ -37,50 +37,60 @@ const auth = async (req, res, next) => {
         // Verify token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Find user
-        const user = await prisma.user.findUnique({
-            where: { id: decoded.userId }
-        });
-
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Token is invalid. User not found.'
-            });
+        // Find user with optimized selection
+        select: {
+            id: true,
+                email: true,
+                    name: true,
+                        activeRole: true,
+                            isActive: true,
+                                avatar: true
         }
+    });
 
-        if (!user.isActive) {
-            return res.status(401).json({
-                success: false,
-                message: 'Account has been deactivated.'
-            });
-        }
-
-        // Attach user to request
-        req.user = user;
-        req.userId = user.id;
-
-        next();
-    } catch (error) {
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({
-                success: false,
-                message: 'Token is invalid.'
-            });
-        }
-        if (error.name === 'TokenExpiredError') {
-            return res.status(401).json({
-                success: false,
-                message: 'Token has expired. Please login again.'
-            });
-        }
-
-        console.error('Auth middleware error:', error);
-        res.status(500).json({
+    if (!user) {
+        return res.status(401).json({
             success: false,
-            message: 'Server error during authentication.'
+            message: 'Token is invalid. User not found.'
         });
     }
+
+    if (!user.isActive) {
+        return res.status(401).json({
+            success: false,
+            message: 'Account has been deactivated.'
+        });
+    }
+
+    // Attach user to request
+    req.user = user;
+    // Backwards compatibility: ensure 'role' property exists if used elsewhere
+    if (user.activeRole && !user.role) {
+        req.user.role = user.activeRole.toLowerCase(); // roles are usually lowercase in frontend checks
+    }
+    req.userId = user.id;
+
+    next();
+} catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({
+            success: false,
+            message: 'Token is invalid.'
+        });
+    }
+    if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({
+            success: false,
+            message: 'Token has expired. Please login again.'
+        });
+    }
+
+    console.error('Auth middleware error:', error);
+    res.status(500).json({
+        success: false,
+        message: 'Server error during authentication.'
+    });
+}
 };
 
 /**

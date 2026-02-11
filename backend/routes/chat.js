@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
+const { sanitizeContent } = require('../utils/sanitizer');
 
 /**
  * Validation middleware
@@ -593,13 +594,13 @@ router.post('/conversations/:id/messages', auth, [
         // But in our flow, it should be there.
 
         // Standard check: Status must be ACCEPTED
+        // Standard check: Status must be ACCEPTED for full communication
+        // But we allow pre-inquiry messages with sanitization
+        let contentToSave = req.body.content;
+
         if (matchedCreator && matchedCreator.status !== 'ACCEPTED') {
-            return res.status(403).json({
-                success: false,
-                message: 'Messaging is locked until the creator accepts the collaboration request.',
-                isLocked: true,
-                status: matchedCreator.status
-            });
+            // Apply soft content sanitization for pre-acceptance messages
+            contentToSave = sanitizeContent(req.body.content);
         }
 
         // Also check Conversation status
@@ -618,7 +619,7 @@ router.post('/conversations/:id/messages', auth, [
                 conversationId: conversationId,
                 senderId: userId,
                 receiverId: isSeller ? conversation.creatorUserId : conversation.sellerId,
-                content: req.body.content,
+                content: contentToSave,
                 messageType: req.body.messageType || 'TEXT',
                 isEncrypted: req.body.isEncrypted || false,
                 encryptionVersion: req.body.encryptionVersion || '1.0'
@@ -636,7 +637,7 @@ router.post('/conversations/:id/messages', auth, [
         await prisma.conversation.update({
             where: { id: conversationId },
             data: {
-                lastMessage: req.body.content.substring(0, 100),
+                lastMessage: contentToSave.substring(0, 100),
                 lastMessageAt: new Date(),
                 ...unreadUpdate
             }

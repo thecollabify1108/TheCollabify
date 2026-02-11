@@ -338,89 +338,89 @@ const ProfileForm = ({ profile, onSave }) => {
                     </p>
                 </div>
 
-            </div>
 
-            {/* Bio */}
-            <div>
-                <label className="input-label">Bio (Optional)</label>
-                <textarea
-                    name="bio"
-                    value={formData.bio}
-                    onChange={handleChange}
-                    placeholder="Tell brands about yourself..."
-                    className="input-field h-24 resize-none"
-                    maxLength={500}
-                />
-                <p className="text-xs text-dark-400 mt-1">{formData.bio.length}/500 characters</p>
-            </div>
 
-            {/* Instagram Profile URL */}
-            <div>
-                <label className="input-label">Instagram Profile URL (Optional)</label>
-                <input
-                    type="text"
-                    name="instagramProfileUrl"
-                    value={formData.instagramProfileUrl}
-                    onChange={handleChange}
-                    placeholder="https://instagram.com/your_username"
-                    className="input-field"
-                />
-                <p className="text-xs text-dark-400 mt-1">
-                    Paste your Instagram profile URL (query parameters like ?utm_source are okay)
-                </p>
-            </div>
-
-            {/* Availability Status */}
-            <div>
-                <label className="input-label">Availability Status</label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {[
-                        { id: 'AVAILABLE_NOW', label: 'Available Now', color: 'emerald', desc: 'Ready for campaigns' },
-                        { id: 'LIMITED_AVAILABILITY', label: 'Limited', color: 'amber', desc: 'Slower response' },
-                        { id: 'NOT_AVAILABLE', label: 'Not Available', color: 'rose', desc: 'Hidden from new brands' }
-                    ].map(option => (
-                        <button
-                            key={option.id}
-                            type="button"
-                            onClick={() => setFormData(prev => ({
-                                ...prev,
-                                availabilityStatus: option.id,
-                                isAvailable: option.id !== 'NOT_AVAILABLE'
-                            }))}
-                            className={`p-4 rounded-xl border-2 transition-all text-left ${formData.availabilityStatus === option.id
-                                ? `border-${option.color}-500 bg-${option.color}-500/10`
-                                : 'border-dark-600 hover:border-dark-500 bg-dark-800'
-                                }`}
-                        >
-                            <div className={`text-sm font-bold ${formData.availabilityStatus === option.id ? `text-${option.color}-400` : 'text-dark-100'}`}>
-                                {option.label}
-                            </div>
-                            <div className="text-xs text-dark-400 mt-1">{option.desc}</div>
-                        </button>
-                    ))}
+                {/* Bio */}
+                <div>
+                    <label className="input-label">Bio (Optional)</label>
+                    <textarea
+                        name="bio"
+                        value={formData.bio}
+                        onChange={handleChange}
+                        placeholder="Tell brands about yourself..."
+                        className="input-field h-24 resize-none"
+                        maxLength={500}
+                    />
+                    <p className="text-xs text-dark-400 mt-1">{formData.bio.length}/500 characters</p>
                 </div>
-            </div>
 
-            {/* Submit */}
-            <button
-                type="submit"
-                disabled={loading}
-                className="btn-3d w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                {loading ? (
-                    <span className="flex items-center justify-center">
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Saving...
-                    </span>
-                ) : (
-                    profile ? 'Update Profile' : 'Create Profile'
-                )}
-            </button>
-        </form>
-        </motion.div >
+                {/* Instagram Profile URL */}
+                <div>
+                    <label className="input-label">Instagram Profile URL (Optional)</label>
+                    <input
+                        type="text"
+                        name="instagramProfileUrl"
+                        value={formData.instagramProfileUrl}
+                        onChange={handleChange}
+                        placeholder="https://instagram.com/your_username"
+                        className="input-field"
+                    />
+                    <p className="text-xs text-dark-400 mt-1">
+                        Paste your Instagram profile URL (query parameters like ?utm_source are okay)
+                    </p>
+                </div>
+
+                {/* Availability Status */}
+                <div>
+                    <label className="input-label">Availability Status</label>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {[
+                            { id: 'AVAILABLE_NOW', label: 'Available Now', color: 'emerald', desc: 'Ready for campaigns' },
+                            { id: 'LIMITED_AVAILABILITY', label: 'Limited', color: 'amber', desc: 'Slower response' },
+                            { id: 'NOT_AVAILABLE', label: 'Not Available', color: 'rose', desc: 'Hidden from new brands' }
+                        ].map(option => (
+                            <button
+                                key={option.id}
+                                type="button"
+                                onClick={() => setFormData(prev => ({
+                                    ...prev,
+                                    availabilityStatus: option.id,
+                                    isAvailable: option.id !== 'NOT_AVAILABLE'
+                                }))}
+                                className={`p-4 rounded-xl border-2 transition-all text-left ${formData.availabilityStatus === option.id
+                                    ? `border-${option.color}-500 bg-${option.color}-500/10`
+                                    : 'border-dark-600 hover:border-dark-500 bg-dark-800'
+                                    }`}
+                            >
+                                <div className={`text-sm font-bold ${formData.availabilityStatus === option.id ? `text-${option.color}-400` : 'text-dark-100'}`}>
+                                    {option.label}
+                                </div>
+                                <div className="text-xs text-dark-400 mt-1">{option.desc}</div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Submit */}
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-3d w-full py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {loading ? (
+                        <span className="flex items-center justify-center">
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Saving...
+                        </span>
+                    ) : (
+                        profile ? 'Update Profile' : 'Create Profile'
+                    )}
+                </button>
+            </form>
+        </motion.div>
     );
 };
 
