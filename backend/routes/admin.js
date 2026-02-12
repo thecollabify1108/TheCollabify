@@ -527,4 +527,27 @@ router.post('/create-admin', auth, isAdmin, [
     }
 });
 
+/**
+ * @route   GET /api/admin/insights
+ * @desc    Get platform-wide collaboration analytics
+ * @access  Private (Admin)
+ */
+router.get('/insights', auth, isAdmin, async (req, res) => {
+    try {
+        const AnalyticsService = require('../services/analyticsService');
+        const insights = await AnalyticsService.getAdminInsights();
+
+        res.json({
+            success: true,
+            data: { insights }
+        });
+    } catch (error) {
+        console.error('Get admin insights error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get insights'
+        });
+    }
+});
+
 module.exports = router;

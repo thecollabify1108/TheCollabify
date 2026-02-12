@@ -256,4 +256,38 @@ router.post('/outcome', auth, async (req, res) => {
     }
 });
 
+/**
+ * @route   GET /api/analytics/insights
+ * @desc    Get role-scoped insights (brand or creator)
+ * @access  Private
+ */
+router.get('/insights', auth, async (req, res) => {
+    try {
+        const role = req.user.activeRole;
+        let insights;
+
+        if (role === 'SELLER') {
+            insights = await AnalyticsService.getBrandInsights(req.userId);
+        } else if (role === 'CREATOR') {
+            insights = await AnalyticsService.getCreatorInsights(req.userId);
+        } else {
+            return res.status(400).json({
+                success: false,
+                message: 'Insights not available for this role'
+            });
+        }
+
+        res.json({
+            success: true,
+            data: { insights, role }
+        });
+    } catch (error) {
+        console.error('Get insights error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get insights'
+        });
+    }
+});
+
 module.exports = router;

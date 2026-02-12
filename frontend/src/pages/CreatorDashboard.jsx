@@ -26,6 +26,7 @@ import ChatBox from '../components/common/ChatBox';
 import ConversationList from '../components/common/ConversationList';
 
 import CreatorAnalytics from '../components/creator/CreatorAnalytics';
+import { CreatorInsightCards } from '../components/analytics/InsightCards';
 import AIOpportunitySuggestions from '../components/creator/AIOpportunitySuggestions';
 import ProfileProgress from '../components/creator/ProfileProgress';
 import BadgeShowcase from '../components/creator/BadgeShowcase';
@@ -449,6 +450,9 @@ const CreatorDashboard = () => {
                                         </div>
                                     </div>
                                 </FocusWrapper>
+
+                                {/* Creator Insights */}
+                                <CreatorInsightCards />
 
                                 {/* 4. Action Items (Today's Focus - Modernized) */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

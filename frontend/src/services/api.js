@@ -155,7 +155,8 @@ export const adminAPI = {
     deleteUser: (id) => api.delete(`/admin/users/${id}`),
     bulkDeleteUsers: (userIds) => api.post('/admin/bulk-delete', { userIds }),
     getRequests: (params) => api.get('/admin/requests', { params }),
-    deleteRequest: (id) => api.delete(`/admin/requests/${id}`)
+    deleteRequest: (id) => api.delete(`/admin/requests/${id}`),
+    getInsights: () => api.get('/admin/insights')
 };
 
 // Public API
@@ -169,7 +170,8 @@ export const analyticsAPI = {
     getSummary: () => api.get('/analytics/summary'),
     getTopPerformers: (params) => api.get('/analytics/top-performers', { params }),
     getRange: (params) => api.get('/analytics/range', { params }),
-    recordSnapshot: () => api.post('/analytics/snapshot')
+    recordSnapshot: () => api.post('/analytics/snapshot'),
+    getInsights: () => api.get('/analytics/insights')
 };
 
 // Team API

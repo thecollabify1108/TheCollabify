@@ -18,6 +18,7 @@ import { FaUsers, FaArrowUp, FaArrowDown, FaMoneyBillWave, FaBullhorn, FaCheckCi
 import AnimatedCounter from '../common/AnimatedCounter';
 
 import { Skeleton, SkeletonStats } from '../../components/common/Skeleton';
+import { AdminInsightCards } from '../analytics/InsightCards';
 
 const AdminDashboard = ({ stats, loading }) => {
     if (loading || !stats) {
@@ -104,6 +105,9 @@ const AdminDashboard = ({ stats, loading }) => {
                     color="text-amber-500"
                 />
             </div>
+
+            {/* Collaboration Insights */}
+            <AdminInsightCards />
 
             {/* Charts Row 1 */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

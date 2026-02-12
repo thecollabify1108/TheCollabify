@@ -37,6 +37,7 @@ import AIAssistantPanel from '../components/common/AIAssistantPanel';
 import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
 import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
+import { BrandInsightCards } from '../components/analytics/InsightCards';
 import TeamManagement from '../components/team/TeamManagement';
 import PaymentModal from '../components/payment/PaymentModal';
 import { subscriptionPlans } from '../config/subscriptions';
@@ -765,6 +766,9 @@ const SellerDashboard = () => {
                                 delay={0.4}
                             />
                         </div>
+
+                        {/* Brand Insights */}
+                        <BrandInsightCards />
 
                         {/* 3. Charts & Applicant Feed */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
