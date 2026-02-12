@@ -34,24 +34,7 @@ setupProcessHandlers();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// CRITICAL: Initialize Sentry FIRST (before any middleware)
-initSentry(app);
-
-// CRITICAL: Early health check for Azure - runs before complex modules
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', early: true, port: PORT });
-});
-
-// Track initialization status
-let prisma = null;
-let passport = null;
-let initializeSocketServer = null;
-let isFullyInitialized = false;
-let initError = null;
-
-// ===== SECURITY & RESILIENCE MIDDLEWARE STACK =====
-
-// 0. MANUAL PREFLIGHT — runs before ANYTHING else so OPTIONS always gets CORS headers
+// 0. MANUAL PREFLIGHT — ABSOLUTE FIRST (runs before Sentry, Health Checks, etc.)
 const ALLOWED_ORIGINS = [
     'https://thecollabify.tech',
     'https://www.thecollabify.tech',
@@ -73,13 +56,30 @@ app.use((req, res, next) => {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,X-API-KEY');
     }
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
     next();
 });
+
+// CRITICAL: Initialize Sentry FIRST (before any middleware)
+initSentry(app);
+
+// CRITICAL: Early health check for Azure - runs before complex modules
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', early: true, port: PORT });
+});
+
+// Track initialization status
+let prisma = null;
+let passport = null;
+let initializeSocketServer = null;
+let isFullyInitialized = false;
+let initError = null;
+
+// ===== SECURITY & RESILIENCE MIDDLEWARE STACK =====
 
 // 1. Request ID Tracking (for audit trails)
 app.use(requestTracker);

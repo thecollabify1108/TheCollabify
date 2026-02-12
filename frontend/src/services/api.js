@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 // Production Azure URL as fallback if env var not set
-const AZURE_API_URL = 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net';
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? AZURE_API_URL : '/api');
+const AZURE_API_URL = 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net/api';
+const API_URL = import.meta.env.VITE_API_URL ||
+    (import.meta.env.PROD || window.location.hostname !== 'localhost' ? AZURE_API_URL : '/api');
 
 const api = axios.create({
     baseURL: API_URL,
