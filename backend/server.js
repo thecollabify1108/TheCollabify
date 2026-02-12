@@ -35,27 +35,43 @@ const PORT = process.env.PORT || 8080;
 
 app.use((req, res, next) => {
     const origin = req.headers.origin;
+    const requestedHeaders = req.headers['access-control-request-headers'];
 
-    // Hardened CORS: allow all trusted origins and localhost
+    // Very permissive check for our known domains to avoid any accidental blocking
     const isAllowed = !origin ||
         origin.includes('localhost') ||
         origin.includes('thecollabify.tech') ||
         origin.includes('vercel.app') ||
         origin.includes('pages.dev');
 
-    if (origin && isAllowed) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-API-KEY');
-        res.setHeader('Access-Control-Max-Age', '86400');
-        res.setHeader('Vary', 'Origin');
+    if (origin) {
+        if (isAllowed) {
+            res.setHeader('Access-Control-Allow-Origin', origin);
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', requestedHeaders || 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-API-KEY');
+            res.setHeader('Access-Control-Max-Age', '86400');
+            res.setHeader('Vary', 'Origin');
+        } else {
+            console.warn(`CORS Blocked Origin: ${origin}`);
+        }
     }
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
     next();
+});
+
+// Diagnostic Ping - Absolute first route, no dependencies
+app.get('/api/ping', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'pong',
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV,
+        origin: req.headers.origin
+    });
 });
 
 // CRITICAL: Initialize Sentry FIRST (before any middleware)
