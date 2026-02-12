@@ -34,30 +34,24 @@ setupProcessHandlers();
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// 0. MANUAL PREFLIGHT — ABSOLUTE FIRST (runs before Sentry, Health Checks, etc.)
-const ALLOWED_ORIGINS = [
-    'https://thecollabify.tech',
-    'https://www.thecollabify.tech',
-    process.env.FRONTEND_URL
-].filter(Boolean);
-
-function isOriginAllowed(origin) {
-    if (!origin) return true;
-    if (origin.includes('localhost')) return true;
-    if (/https:\/\/.*\.vercel\.app$/.test(origin)) return true;
-    if (/https:\/\/.*\.pages\.dev$/.test(origin)) return true;
-    const normalized = origin.replace(/\/$/, '');
-    return ALLOWED_ORIGINS.some(ao => ao && ao.replace(/\/$/, '') === normalized);
-}
-
 app.use((req, res, next) => {
     const origin = req.headers.origin;
-    if (origin && isOriginAllowed(origin)) {
+
+    const isAllowed = !origin ||
+        origin.includes('localhost') ||
+        origin.includes('thecollabify.tech') ||
+        origin.includes('vercel.app') ||
+        origin.includes('pages.dev') ||
+        origin === process.env.FRONTEND_URL;
+
+    if (origin && isAllowed) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,X-API-KEY');
+        res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
     }
+
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
@@ -93,13 +87,13 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'none'"],
-            connectSrc: ["'self'"],
+            connectSrc: ["'self'", "https://thecollabify.tech", "https://*.thecollabify.tech", "https://www.googleapis.com", "https://*.azurewebsites.net"],
             frameSrc: ["'none'"],
             frameAncestors: ["'none'"],
-            scriptSrc: ["'none'"],
-            styleSrc: ["'none'"],
-            imgSrc: ["'none'"],
-            fontSrc: ["'none'"],
+            scriptSrc: ["'self'"], // Support limited scripts if needed
+            styleSrc: ["'self'", "'unsafe-inline'"],
+            imgSrc: ["'self'", "data:", "https:"],
+            fontSrc: ["'self'", "https:", "data:"],
             objectSrc: ["'none'"],
             mediaSrc: ["'none'"],
             manifestSrc: ["'none'"]
@@ -133,44 +127,8 @@ app.use(helmet({
     }
 }));
 
-// 4. CORS — MUST run before rate limiter so preflight OPTIONS gets headers
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-
-        // Allow localhost in development
-        if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
-            return callback(null, true);
-        }
-
-        // Allow Vercel preview deploys
-        if (origin.match(/https:\/\/.*\.vercel\.app$/)) {
-            return callback(null, true);
-        }
-
-        // Allow Cloudflare Pages preview deploys
-        if (origin.match(/https:\/\/.*\.pages\.dev$/)) {
-            return callback(null, true);
-        }
-
-        // Allow production domains
-        const allowedOrigins = [
-            'https://thecollabify.tech',
-            'https://www.thecollabify.tech',
-            process.env.FRONTEND_URL
-        ].filter(Boolean);
-
-        const normalizedOrigin = origin.replace(/\/$/, "");
-        const isAllowed = allowedOrigins.some(ao => ao && ao.replace(/\/$/, "") === normalizedOrigin);
-
-        if (isAllowed) return callback(null, true);
-        return callback(new Error('CORS blocked'), false);
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-    optionsSuccessStatus: 200
-}));
+// 4. CORS - Handled by manual preflight at the top
+// Deleted redundant app.use(cors()) call to avoid conflicts
 
 // 5. Compression & Logging
 app.use(compression());
