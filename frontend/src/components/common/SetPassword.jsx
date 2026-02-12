@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -36,7 +36,7 @@ const SetPassword = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('/api/auth/set-password', formData);
+            const response = await api.post('/auth/set-password', formData);
 
             if (response.data.success) {
                 toast.success(response.data.message);

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaShieldAlt, FaCheck } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
-import axios from 'axios';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 const PaymentModal = ({ plan, onClose, onSuccess }) => {
@@ -14,7 +14,7 @@ const PaymentModal = ({ plan, onClose, onSuccess }) => {
             setProcessing(true);
 
             // Create order
-            const { data } = await axios.post('/api/payments/create-order', {
+            const { data } = await api.post('/payments/create-order', {
                 amount: plan.price,
                 planId: plan.id
             });
@@ -31,7 +31,7 @@ const PaymentModal = ({ plan, onClose, onSuccess }) => {
                 handler: async function (response) {
                     try {
                         // Verify payment
-                        const verifyRes = await axios.post('/api/payments/verify-payment', {
+                        const verifyRes = await api.post('/payments/verify-payment', {
                             orderId: response.razorpay_order_id,
                             paymentId: response.razorpay_payment_id,
                             signature: response.razorpay_signature
