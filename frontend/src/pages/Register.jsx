@@ -6,7 +6,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import api from '../services/api';
 import Confetti from '../components/common/Confetti';
 import OTPInput from '../components/common/OTPInput';
 import PasswordStrengthIndicator from '../components/common/PasswordStrengthIndicator';
@@ -95,7 +95,7 @@ const Register = () => {
 
         setLoading(true);
         try {
-            const response = await axios.post('/api/auth/register/send-otp', {
+            const response = await api.post('/auth/register/send-otp', {
                 email: formData.email,
                 name: formData.name,
                 password: formData.password,
