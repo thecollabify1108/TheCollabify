@@ -200,6 +200,12 @@ model CreatorProfile {
   willingToTravel       String?          @default("NO") // YES, LIMITED, NO
   collaborationTypes    String[]         // [REMOTE, ONSITE, HYBRID, EVENT]
   
+  // Onboarding & Completion
+  profileCompletionPercentage Int        @default(0)
+  onboardingCompleted   Boolean          @default(false)
+  portfolioLinks        String[]
+  pastExperience        String?          @db.Text
+
   // Stats
   totalEarnings        Float            @default(0)
   profileViews         Int              @default(0)
@@ -222,6 +228,7 @@ model CreatorProfile {
   @@index([isAvailable])
   @@index([aiScore])
   @@index([totalEarnings])
+  @@index([profileCompletionPercentage])
 }
 
 model Achievement {

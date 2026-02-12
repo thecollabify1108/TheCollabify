@@ -24,6 +24,33 @@ const handleValidation = (req, res, next) => {
 };
 
 /**
+ * Calculate profile completion percentage based on filled fields.
+ * Phase 1 fields (required) = 60%, Phase 2 fields (optional) = 40%
+ */
+function calculateCompletion(profile) {
+    let score = 0;
+    const phase1Weight = 10; // 6 fields × 10 = 60%
+    const phase2Weight = 8;  // 5 fields × 8 = 40%
+
+    // Phase 1: Essential fields (10 pts each, total 60)
+    if (profile.category) score += phase1Weight;
+    if (profile.promotionTypes && profile.promotionTypes.length > 0) score += phase1Weight;
+    if (profile.minPrice > 0 || profile.maxPrice > 0) score += phase1Weight;
+    if (profile.availabilityStatus) score += phase1Weight;
+    if (profile.collaborationTypes && profile.collaborationTypes.length > 0) score += phase1Weight;
+    if (profile.location && (profile.location.district || profile.location.city)) score += phase1Weight;
+
+    // Phase 2: Quality signal fields (8 pts each, total 40)
+    if (profile.bio && profile.bio.trim().length > 10) score += phase2Weight;
+    if (profile.followerCount > 0) score += phase2Weight;
+    if (profile.engagementRate > 0) score += phase2Weight;
+    if (profile.portfolioLinks && profile.portfolioLinks.length > 0) score += phase2Weight;
+    if (profile.willingToTravel && profile.willingToTravel !== 'NO') score += phase2Weight;
+
+    return Math.min(100, score);
+}
+
+/**
  * @route   GET /api/creators/profile
  * @desc    Get creator's own profile
  * @access  Private (Creator)
@@ -65,12 +92,14 @@ router.get('/profile', auth, isCreator, async (req, res) => {
  * @access  Private (Creator)
  */
 router.post('/profile', auth, isCreator, [
-    body('followerCount').isInt({ min: 0 }).withMessage('Follower count must be a positive number'),
-    body('engagementRate').isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
+    // Phase 1: Only essential fields required
     body('category').notEmpty().withMessage('Category is required'),
     body('promotionTypes').isArray({ min: 1 }).withMessage('At least one promotion type is required'),
     body('priceRange.min').isFloat({ min: 0 }).withMessage('Minimum price must be positive'),
     body('priceRange.max').isFloat({ min: 0 }).withMessage('Maximum price must be positive'),
+    // Phase 2: Optional quality signals
+    body('followerCount').optional().isInt({ min: 0 }).withMessage('Follower count must be a positive number'),
+    body('engagementRate').optional().isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
     handleValidation
 ], async (req, res) => {
     try {
@@ -88,14 +117,19 @@ router.post('/profile', auth, isCreator, [
 
         const {
             instagramUsername,
-            followerCount,
-            engagementRate,
+            followerCount = 0,
+            engagementRate = 0,
             category,
             promotionTypes,
             priceRange,
             bio,
             isAvailable,
-            availabilityStatus
+            availabilityStatus,
+            location,
+            willingToTravel,
+            collaborationTypes,
+            portfolioLinks,
+            pastExperience
         } = req.body;
 
         // Generate AI insights
@@ -107,24 +141,36 @@ router.post('/profile', auth, isCreator, [
             priceRange
         });
 
+        // Build create data
+        const createData = {
+            userId: req.userId,
+            instagramUsername,
+            followerCount: parseInt(followerCount) || 0,
+            engagementRate: parseFloat(engagementRate) || 0,
+            category: category,
+            promotionTypes: promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_')),
+            minPrice: priceRange.min,
+            maxPrice: priceRange.max,
+            bio: bio || '',
+            isAvailable: availabilityStatus === 'NOT_AVAILABLE' ? false : (isAvailable !== false),
+            availabilityStatus: availabilityStatus || (isAvailable === false ? 'NOT_AVAILABLE' : 'AVAILABLE_NOW'),
+            availabilityUpdatedAt: new Date(),
+            insights: insights
+        };
+
+        // Phase 1 optional fields
+        if (location) createData.location = location;
+        if (willingToTravel) createData.willingToTravel = willingToTravel;
+        if (collaborationTypes && collaborationTypes.length > 0) createData.collaborationTypes = collaborationTypes;
+        if (portfolioLinks && portfolioLinks.length > 0) createData.portfolioLinks = portfolioLinks;
+        if (pastExperience) createData.pastExperience = pastExperience;
+
+        // Calculate completion percentage
+        createData.profileCompletionPercentage = calculateCompletion(createData);
+        createData.onboardingCompleted = createData.profileCompletionPercentage >= 60;
+
         // Create profile
-        const profile = await prisma.creatorProfile.create({
-            data: {
-                userId: req.userId,
-                instagramUsername,
-                followerCount,
-                engagementRate,
-                category: category,
-                promotionTypes: promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_')),
-                minPrice: priceRange.min,
-                maxPrice: priceRange.max,
-                bio: bio || '',
-                isAvailable: availabilityStatus === 'NOT_AVAILABLE' ? false : (isAvailable !== false),
-                availabilityStatus: availabilityStatus || (isAvailable === false ? 'NOT_AVAILABLE' : 'AVAILABLE_NOW'),
-                availabilityUpdatedAt: new Date(),
-                insights: insights
-            }
-        });
+        const profile = await prisma.creatorProfile.create({ data: createData });
 
         // Notify about insights
         try {
@@ -181,10 +227,14 @@ router.put('/profile', auth, isCreator, [
 
         // Update fields
         const updateData = {};
-        const fields = ['instagramUsername', 'followerCount', 'engagementRate', 'category', 'bio', 'isAvailable', 'availabilityStatus'];
+        const fields = ['instagramUsername', 'followerCount', 'engagementRate', 'category', 'bio', 'isAvailable', 'availabilityStatus', 'willingToTravel', 'pastExperience'];
         fields.forEach(f => {
             if (req.body[f] !== undefined) updateData[f] = req.body[f];
         });
+
+        // Handle array fields
+        if (req.body.portfolioLinks !== undefined) updateData.portfolioLinks = req.body.portfolioLinks;
+        if (req.body.collaborationTypes !== undefined) updateData.collaborationTypes = req.body.collaborationTypes;
 
         // Keep legacy isAvailable and availabilityUpdatedAt in sync
         if (req.body.availabilityStatus !== undefined) {
@@ -206,9 +256,16 @@ router.put('/profile', auth, isCreator, [
             if (req.body.priceRange.max !== undefined) updateData.maxPrice = req.body.priceRange.max;
         }
 
+        if (req.body.location !== undefined) updateData.location = req.body.location;
+
         // Generate AI insights
         const insights = generateInsights({ ...profile, ...updateData });
         updateData.insights = insights;
+
+        // Recalculate completion percentage
+        const merged = { ...profile, ...updateData };
+        updateData.profileCompletionPercentage = calculateCompletion(merged);
+        updateData.onboardingCompleted = updateData.profileCompletionPercentage >= 60;
 
         const updatedProfile = await prisma.creatorProfile.update({
             where: { userId: req.userId },

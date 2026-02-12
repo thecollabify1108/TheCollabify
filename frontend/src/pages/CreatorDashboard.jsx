@@ -20,6 +20,7 @@ import toast from 'react-hot-toast';
 import DashboardLayout from '../components/layout/DashboardLayout';
 // Navbar removed explicitly, using DashboardLayout instead
 import ProfileForm from '../components/creator/ProfileForm';
+import CreatorOnboarding from '../components/creator/CreatorOnboarding';
 import PromotionList from '../components/creator/PromotionList';
 import ChatBox from '../components/common/ChatBox';
 import ConversationList from '../components/common/ConversationList';
@@ -506,7 +507,7 @@ const CreatorDashboard = () => {
                             </>
                         ) : (
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                                <ProfileForm onSave={handleProfileSaved} />
+                                <CreatorOnboarding onComplete={handleProfileSaved} />
                             </motion.div>
                         )}
                     </motion.div>
