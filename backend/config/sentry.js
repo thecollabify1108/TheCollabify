@@ -1,5 +1,13 @@
 const Sentry = require('@sentry/node');
-const { ProfilingIntegration } = require('@sentry/profiling-node');
+
+// Defensive load of profiling integration for Sentry v10 compatibility
+let profilingIntegration = null;
+try {
+    const profiling = require('@sentry/profiling-node');
+    profilingIntegration = profiling.nodeProfilingIntegration || profiling.ProfilingIntegration;
+} catch (e) {
+    console.warn('⚠️ Sentry Profiling Node integration failed to load (common in some environments):', e.message);
+}
 
 /**
  * Initialize Sentry for production error monitoring
@@ -22,8 +30,7 @@ const initSentry = (app) => {
         profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0, // 10% profiling in prod
 
         integrations: [
-            // Profiling integration for performance insights
-            new ProfilingIntegration(),
+            ...(profilingIntegration ? [new profilingIntegration()] : []),
         ],
 
         // SECURITY: Data sanitization - remove sensitive information

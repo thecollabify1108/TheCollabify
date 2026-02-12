@@ -74,8 +74,12 @@ app.get('/api/ping', (req, res) => {
     });
 });
 
-// CRITICAL: Initialize Sentry FIRST (before any middleware)
-initSentry(app);
+// CRITICAL: Initialize Sentry DEFENSIVELY
+try {
+    initSentry(app);
+} catch (e) {
+    console.error('💥 CRITICAL: initSentry crashed synchronously:', e.message);
+}
 
 // CRITICAL: Early health check for Azure - runs before complex modules
 app.get('/health', (req, res) => {
@@ -91,22 +95,21 @@ let initError = null;
 
 // ===== SECURITY & RESILIENCE MIDDLEWARE STACK =====
 
-// 1. Request ID Tracking (for audit trails)
+// 1. Request ID Tracking
 app.use(requestTracker);
 
-// 2. Global Timeout (Prevents hanging requests)
+// 2. Global Timeout
 app.use(timeoutMiddleware);
 
 // 3. Production-grade security headers
 app.use(helmet({
-    // Content Security Policy for API endpoints
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'none'"],
             connectSrc: ["'self'", "https://thecollabify.tech", "https://*.thecollabify.tech", "https://www.googleapis.com", "https://*.azurewebsites.net"],
             frameSrc: ["'none'"],
             frameAncestors: ["'none'"],
-            scriptSrc: ["'self'"], // Support limited scripts if needed
+            scriptSrc: ["'self'"],
             styleSrc: ["'self'", "'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https:"],
             fontSrc: ["'self'", "https:", "data:"],
@@ -115,45 +118,24 @@ app.use(helmet({
             manifestSrc: ["'none'"]
         }
     },
-    // HTTP Strict Transport Security (HSTS)
-    hsts: {
-        maxAge: 31536000, // 1 year
-        includeSubDomains: true,
-        preload: true
-    },
-    // Prevent clickjacking
-    frameguard: {
-        action: 'deny'
-    },
-    // Prevent MIME type sniffing
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true },
+    frameguard: { action: 'deny' },
     noSniff: true,
-    // Disable X-Powered-By header
     hidePoweredBy: true,
-    // Referrer Policy
-    referrerPolicy: {
-        policy: 'strict-origin-when-cross-origin'
-    },
-    // Cross-Origin embedder policy
-    crossOriginEmbedderPolicy: false, // Not needed for API
-    // Cross-Origin opener policy — MUST be disabled for Google OAuth popup flow
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    crossOriginEmbedderPolicy: false,
     crossOriginOpenerPolicy: false,
-    // Cross-Origin resource policy — must be 'cross-origin' for API serving a different-origin frontend
-    crossOriginResourcePolicy: {
-        policy: 'cross-origin'
-    }
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
-// 4. CORS - Handled by manual preflight at the top
-// Deleted redundant app.use(cors()) call to avoid conflicts
-
-// 5. Compression & Logging
+// 4. Compression & Logging
 app.use(compression());
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-// 6. Global Rate Limiting (100 req/15min per IP)
+// 5. Global Rate Limiting
 app.use(globalLimiter);
 
-// Standard Middleware
+// 6. Standard Middleware
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
@@ -174,53 +156,64 @@ const initializeModules = async () => {
         console.log('🔄 Loading modules...');
 
         // 1. Load Prisma
-        prisma = require('./config/prisma');
-        console.log('✅ Prisma loaded');
+        try {
+            prisma = require('./config/prisma');
+            console.log('✅ Prisma loaded');
+        } catch (e) {
+            console.error('❌ Prisma load failed:', e.message);
+            throw e;
+        }
 
         // 2. Test database connection
-        await prisma.$queryRaw`SELECT 1`;
-        console.log('✅ Database connected');
+        try {
+            await prisma.$queryRaw`SELECT 1`;
+            console.log('✅ Database connected');
+        } catch (e) {
+            console.error('❌ Database connection failed:', e.message);
+        }
 
         // 3. Load Passport
-        passport = require('./config/passport');
-        app.use(passport.initialize());
-        app.use(passport.session());
-        console.log('✅ Passport initialized');
+        try {
+            passport = require('./config/passport');
+            app.use(passport.initialize());
+            app.use(passport.session());
+            console.log('✅ Passport initialized');
+        } catch (e) {
+            console.error('❌ Passport initialization failed:', e.message);
+        }
 
         // 4. Load Socket.io
-        initializeSocketServer = require('./socketServer');
-        console.log('✅ Socket.io loaded');
+        try {
+            initializeSocketServer = require('./socketServer');
+            console.log('✅ Socket.io loaded');
+        } catch (e) {
+            console.error('❌ Socket.io load failed:', e.message);
+        }
 
-        // 5. Load Routes with specialized security
-        // Auth routes: strict rate limiting (5 req/15min)
-        app.use('/api/auth', authLimiter, require('./routes/auth'));
-        app.use('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset'));
-        app.use('/api/oauth', require('./routes/oauth'));
-
-        // Standard API routes
-        // Cache these heavy, public, rarely-changing routes (5 mins)
-        app.use('/api/search', cacheMiddleware(300), require('./routes/search'));
-        app.use('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard'));
-        app.use('/api/achievements', cacheMiddleware(300), require('./routes/achievements'));
-        app.use('/api/public', cacheMiddleware(300), require('./routes/public'));
-
-        // No cache for dynamic/private routes
-        app.use('/api/creators', require('./routes/creators'));
-        app.use('/api/sellers', require('./routes/sellers'));
-        app.use('/api/notifications', require('./routes/notifications'));
-        app.use('/api/chat', require('./routes/chat'));
-
-        // Admin routes: IP allowlisting required
-        app.use('/api/admin', ipAllowlist, require('./routes/admin'));
-
-        // Other routes
-        app.use('/api/analytics', require('./routes/analytics'));
-        app.use('/api/calendar', require('./routes/contentCalendar'));
-        app.use('/api/team', require('./routes/teamManagement'));
-        app.use('/api/ai', require('./routes/ai'));
-        app.use('/api/payments', require('./routes/payments'));
-        app.use('/api/collaboration', require('./routes/collaboration'));
-        console.log('✅ Routes loaded with security middleware');
+        // 5. Load Routes
+        try {
+            app.use('/api/auth', authLimiter, require('./routes/auth'));
+            app.use('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset'));
+            app.use('/api/oauth', require('./routes/oauth'));
+            app.use('/api/search', cacheMiddleware(300), require('./routes/search'));
+            app.use('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard'));
+            app.use('/api/achievements', cacheMiddleware(300), require('./routes/achievements'));
+            app.use('/api/public', cacheMiddleware(300), require('./routes/public'));
+            app.use('/api/creators', require('./routes/creators'));
+            app.use('/api/sellers', require('./routes/sellers'));
+            app.use('/api/notifications', require('./routes/notifications'));
+            app.use('/api/chat', require('./routes/chat'));
+            app.use('/api/admin', ipAllowlist, require('./routes/admin'));
+            app.use('/api/analytics', require('./routes/analytics'));
+            app.use('/api/calendar', require('./routes/contentCalendar'));
+            app.use('/api/team', require('./routes/teamManagement'));
+            app.use('/api/ai', require('./routes/ai'));
+            app.use('/api/payments', require('./routes/payments'));
+            app.use('/api/collaboration', require('./routes/collaboration'));
+            console.log('✅ Routes loaded');
+        } catch (e) {
+            console.error('❌ Routes load failed:', e.message);
+        }
 
         isFullyInitialized = true;
         console.log('🚀 Full initialization complete!');
@@ -241,21 +234,10 @@ app.get('/api/health', async (req, res) => {
                 port: PORT
             });
         }
-
         await prisma.$queryRaw`SELECT 1`;
-        res.json({
-            status: 'ok',
-            database: 'postgresql',
-            security: 'hardened',
-            resilience: 'enabled',
-            timestamp: new Date().toISOString()
-        });
+        res.json({ status: 'ok', database: 'postgresql', timestamp: new Date().toISOString() });
     } catch (error) {
-        res.status(500).json({
-            status: 'error',
-            message: 'DB connection failed',
-            error: error.message
-        });
+        res.status(500).json({ status: 'error', message: 'DB connection failed', error: error.message });
     }
 });
 
@@ -268,17 +250,9 @@ app.get('/', (req, res) => {
 });
 
 // ===== ERROR HANDLING (MUST BE LAST) =====
-
-// 404 Not Found Handler - catches undefined routes
 app.use(notFoundHandler);
-
-// Timeout Handler (catches timed out requests)
 app.use(timeoutErrorHandler);
-
-// Sentry Error Handler - captures 5xx errors for monitoring (BEFORE custom handler)
 app.use(sentryErrorHandler);
-
-// Global Error Handler - catches all errors
 app.use(errorHandler);
 
 // Start Server
@@ -287,17 +261,21 @@ const server = http.createServer(app);
 server.listen(PORT, '0.0.0.0', async () => {
     console.log(`✅ Server listening on port ${PORT}`);
 
-    // Initialize modules AFTER server is listening
-    // This ensures Azure health checks pass while we're loading
-    await initializeModules();
+    // Background initialization
+    initializeModules().catch(err => {
+        console.error('💥 Background initialization failed:', err);
+    });
 
-    // Initialize Socket.io after modules are loaded
     if (initializeSocketServer) {
-        const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
-        app.locals.sendNotification = sendNotification;
-        app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
-        app.locals.sendBulkNotification = sendBulkNotification;
-        console.log('✅ Socket.io initialized');
+        try {
+            const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
+            app.locals.sendNotification = sendNotification;
+            app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
+            app.locals.sendBulkNotification = sendBulkNotification;
+            console.log('✅ Socket.io initialized');
+        } catch (e) {
+            console.error('❌ Socket.io initialization failed:', e.message);
+        }
     }
 });
 
