@@ -51,7 +51,37 @@ let initError = null;
 
 // ===== SECURITY & RESILIENCE MIDDLEWARE STACK =====
 
-// 1. Request ID Tracking (FIRST - for audit trails)
+// 0. MANUAL PREFLIGHT — runs before ANYTHING else so OPTIONS always gets CORS headers
+const ALLOWED_ORIGINS = [
+    'https://thecollabify.tech',
+    'https://www.thecollabify.tech',
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
+function isOriginAllowed(origin) {
+    if (!origin) return true;
+    if (origin.includes('localhost')) return true;
+    if (/https:\/\/.*\.vercel\.app$/.test(origin)) return true;
+    if (/https:\/\/.*\.pages\.dev$/.test(origin)) return true;
+    const normalized = origin.replace(/\/$/, '');
+    return ALLOWED_ORIGINS.some(ao => ao && ao.replace(/\/$/, '') === normalized);
+}
+
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (origin && isOriginAllowed(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+        res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept');
+    }
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
+
+// 1. Request ID Tracking (for audit trails)
 app.use(requestTracker);
 
 // 2. Global Timeout (Prevents hanging requests)
@@ -95,6 +125,8 @@ app.use(helmet({
     },
     // Cross-Origin embedder policy
     crossOriginEmbedderPolicy: false, // Not needed for API
+    // Cross-Origin opener policy — MUST be disabled for Google OAuth popup flow
+    crossOriginOpenerPolicy: false,
     // Cross-Origin resource policy — must be 'cross-origin' for API serving a different-origin frontend
     crossOriginResourcePolicy: {
         policy: 'cross-origin'
