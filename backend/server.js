@@ -95,20 +95,13 @@ app.use(helmet({
     },
     // Cross-Origin embedder policy
     crossOriginEmbedderPolicy: false, // Not needed for API
-    // Cross-Origin resource policy
+    // Cross-Origin resource policy — must be 'cross-origin' for API serving a different-origin frontend
     crossOriginResourcePolicy: {
-        policy: 'same-site'
+        policy: 'cross-origin'
     }
 }));
 
-// 4. Compression & Logging
-app.use(compression());
-app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-
-// 5. Global Rate Limiting (100 req/15min per IP)
-app.use(globalLimiter);
-
-// CORS Configuration
+// 4. CORS — MUST run before rate limiter so preflight OPTIONS gets headers
 app.use(cors({
     origin: function (origin, callback) {
         if (!origin) return callback(null, true);
@@ -120,6 +113,11 @@ app.use(cors({
 
         // Allow Vercel preview deploys
         if (origin.match(/https:\/\/.*\.vercel\.app$/)) {
+            return callback(null, true);
+        }
+
+        // Allow Cloudflare Pages preview deploys
+        if (origin.match(/https:\/\/.*\.pages\.dev$/)) {
             return callback(null, true);
         }
 
@@ -136,8 +134,18 @@ app.use(cors({
         if (isAllowed) return callback(null, true);
         return callback(new Error('CORS blocked'), false);
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    optionsSuccessStatus: 200
 }));
+
+// 5. Compression & Logging
+app.use(compression());
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// 6. Global Rate Limiting (100 req/15min per IP)
+app.use(globalLimiter);
 
 // Standard Middleware
 app.use(cookieParser());
