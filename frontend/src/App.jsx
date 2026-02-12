@@ -11,6 +11,8 @@ const ForCreators = lazy(() => import('./pages/ForCreators'));
 // Duplicate imports removed
 const DemoWalkthrough = lazy(() => import('./pages/DemoWalkthrough'));
 const HowAIWorks = lazy(() => import('./pages/HowAIWorks')); // New Page
+const TermsConditions = lazy(() => import('./pages/TermsConditions'));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
 // Pages - Auth (lightweight, load immediately)
 import Login from './pages/Login';
