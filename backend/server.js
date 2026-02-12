@@ -1,6 +1,5 @@
 const express = require('express');
 const http = require('http');
-const cors = require('cors');
 const dotenv = require('dotenv');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
@@ -37,19 +36,20 @@ const PORT = process.env.PORT || 8080;
 app.use((req, res, next) => {
     const origin = req.headers.origin;
 
+    // Hardened CORS: allow all trusted origins and localhost
     const isAllowed = !origin ||
         origin.includes('localhost') ||
         origin.includes('thecollabify.tech') ||
         origin.includes('vercel.app') ||
-        origin.includes('pages.dev') ||
-        origin === process.env.FRONTEND_URL;
+        origin.includes('pages.dev');
 
     if (origin && isAllowed) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Credentials', 'true');
         res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With,Accept,X-API-KEY');
-        res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-API-KEY');
+        res.setHeader('Access-Control-Max-Age', '86400');
+        res.setHeader('Vary', 'Origin');
     }
 
     if (req.method === 'OPTIONS') {
