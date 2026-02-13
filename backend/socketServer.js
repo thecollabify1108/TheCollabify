@@ -9,6 +9,7 @@
  */
 
 const { Server } = require('socket.io');
+const jwt = require('jsonwebtoken');
 
 // In-memory storage for online users (use Redis in production!)
 const onlineUsers = new Map();
@@ -35,7 +36,6 @@ function initializeSocketServer(httpServer) {
             }
 
             // Verify JWT token
-            const jwt = require('jsonwebtoken');
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
             // Verify that the userId matches the token
