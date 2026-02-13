@@ -38,15 +38,17 @@ const auth = async (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         // Find user with optimized selection
-        select: {
-            id: true,
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: {
+                id: true,
                 email: true,
-                    name: true,
-                        activeRole: true,
-                            isActive: true,
-                                avatar: true
-        }
-    });
+                name: true,
+                activeRole: true,
+                isActive: true,
+                avatar: true
+            }
+        });
 
     if (!user) {
         return res.status(401).json({
