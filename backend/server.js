@@ -27,6 +27,11 @@ const { initSentry, sentryErrorHandler } = require('./config/sentry');
 // Load environment variables FIRST
 dotenv.config();
 
+// Validate environment variables
+const { validateEnv, validateJWTSecret } = require('./utils/envValidator');
+validateEnv();
+validateJWTSecret();
+
 // Setup process-level error handlers (unhandled rejections, exceptions)
 setupProcessHandlers();
 
@@ -37,12 +42,21 @@ app.use((req, res, next) => {
     const origin = req.headers.origin;
     const requestedHeaders = req.headers['access-control-request-headers'];
 
-    // Very permissive check for our known domains to avoid any accidental blocking
-    const isAllowed = !origin ||
-        origin.includes('localhost') ||
-        origin.includes('thecollabify.tech') ||
-        origin.includes('vercel.app') ||
-        origin.includes('pages.dev');
+    // Whitelist of exact allowed origins for production security
+    const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'https://thecollabify.tech',
+        'https://www.thecollabify.tech',
+        'https://thecollabify.pages.dev',
+        'https://thecollabify-frontend.vercel.app',
+    ];
+
+    // For development, allow localhost with any port
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    const isAllowedDev = isDevelopment && origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'));
+    const isAllowedProd = allowedOrigins.includes(origin);
+    const isAllowed = !origin || isAllowedDev || isAllowedProd;
 
     if (origin) {
         if (isAllowed) {
@@ -139,8 +153,14 @@ app.use(globalLimiter);
 app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+
+// Validate SESSION_SECRET is set in production
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+    throw new Error('FATAL: SESSION_SECRET environment variable is required in production');
+}
+
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'fallback-session-secret-key',
+    secret: process.env.SESSION_SECRET || 'dev-only-fallback-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: {
