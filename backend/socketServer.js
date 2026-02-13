@@ -25,20 +25,30 @@ function initializeSocketServer(httpServer) {
     });
 
     // Middleware for authentication
-    io.use((socket, next) => {
-        const userId = socket.handshake.auth.userId;
-        const token = socket.handshake.auth.token;
+    io.use(async (socket, next) => {
+        try {
+            const userId = socket.handshake.auth.userId;
+            const token = socket.handshake.auth.token;
 
-        if (!userId) {
-            return next(new Error('Authentication error'));
+            if (!userId || !token) {
+                return next(new Error('Authentication error: Missing credentials'));
+            }
+
+            // Verify JWT token
+            const jwt = require('jsonwebtoken');
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+            // Verify that the userId matches the token
+            if (decoded.userId !== userId) {
+                return next(new Error('Authentication error: User ID mismatch'));
+            }
+
+            socket.userId = userId;
+            next();
+        } catch (error) {
+            console.error('Socket authentication error:', error);
+            return next(new Error('Authentication error: Invalid token'));
         }
-
-        // TODO: Verify token here
-        // const isValid = verifyToken(token);
-        // if (!isValid) return next(new Error('Invalid token'));
-
-        socket.userId = userId;
-        next();
     });
 
     io.on('connection', (socket) => {
