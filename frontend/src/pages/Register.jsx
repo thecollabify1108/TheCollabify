@@ -143,30 +143,13 @@ const Register = () => {
 
     // Google Auth Logic
     const loginWithGoogle = useGoogleLogin({
+        flow: 'implicit',
         onSuccess: async (tokenResponse) => {
             setGoogleLoading(true);
             try {
-                // Determine role based on step or formData
-                // If step 1, user hasn't selected role yet, but button is inside step 1?
-                // Actually the Google button is in Step 1 alongside options or after?
-                // Let's check where the button is.
-                // It is in step 1.
-                // Wait, if it is in step 1, formData.role might be empty or default.
-                // The Google button is physically located below the role cards in the code I saw earlier.
-                // It says "or sign up with Google".
-                // If the user hasn't selected a role, we might need to prompt them or default?
-                // Actually, if they sign up with Google, maybe we direct them to role selection if backend says "new user"?
-                // BUT, for now, let's assume we pass the current role if selected, or maybe just login if account exists.
-
-                // If they are on Step 1, they haven't "submitted" a role, but formData.role defaults to 'seller' or 'creator'?
-                // Initial state in code: const [formData, setFormData] = useState({ role: '', ... });
-                // If role is empty, we probably shouldn't register them as anything specific yet?
-                // Or does backend handle "no role"?
-                // Let's send the role if it exists.
-
                 const user = await googleLogin({
                     accessToken: tokenResponse.access_token,
-                    role: formData.role || undefined // Send role if selected
+                    role: formData.role || undefined
                 });
 
                 toast.success('Welcome to TheCollabify!');

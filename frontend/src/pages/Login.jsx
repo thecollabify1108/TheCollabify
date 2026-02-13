@@ -92,6 +92,7 @@ const Login = () => {
     };
 
     const loginWithGoogle = useGoogleLogin({
+        flow: 'implicit',
         onSuccess: async (tokenResponse) => {
             setGoogleLoading(true);
             try {
