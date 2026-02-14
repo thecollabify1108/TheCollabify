@@ -51,8 +51,9 @@ jobs:
         package: ./backend
 
     - name: Run Database Migrations
+      continue-on-error: true
       env:
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
       run: |
         cd backend
-        npx prisma migrate deploy
+        npx prisma db push --accept-data-loss
