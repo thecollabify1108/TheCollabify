@@ -63,6 +63,7 @@ app.use((req, res, next) => {
         'http://localhost:3000',
         'https://thecollabify.tech',
         'https://www.thecollabify.tech',
+        'https://api.thecollabify.tech',
         'https://thecollabify.pages.dev',
         'https://thecollabify-frontend.vercel.app',
     ];

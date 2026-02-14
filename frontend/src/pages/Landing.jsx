@@ -151,7 +151,7 @@ const Landing = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net' : '');
+                const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://api.thecollabify.tech' : '');
                 const response = await fetch(`${apiUrl}/api/public/stats`);
                 const result = await response.json();
                 if (result.success) {
