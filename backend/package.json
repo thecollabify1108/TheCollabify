@@ -1,6 +1,6 @@
 {
   "name": "creator-seller-marketplace-backend",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Backend API for Instagram Creator-Seller Promotion Marketplace",
   "main": "server.js",
   "scripts": {
