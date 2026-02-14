@@ -6,3 +6,5 @@ yarn-error.log
 coverage
 dist
 build
+test-db.js
+test-url.js
