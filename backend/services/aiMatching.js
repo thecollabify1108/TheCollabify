@@ -44,7 +44,8 @@ const filterCreators = async (request) => {
             user: {
                 select: { name: true, email: true, avatar: true }
             }
-        }
+        },
+        take: 100 // Performance Safety: Cap matching pool to top 100 candidates by DB order first
     });
 
     return creators;

@@ -29,11 +29,22 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor for error handling
+// Response interceptor for error handling & retries
 api.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
+        const originalRequest = error.config;
         const message = error.response?.data?.message || 'An error occurred';
+
+        // Retry logic for 5xx errors or network errors (max 3 retries)
+        if (error.response?.status >= 500 || error.message === 'Network Error') {
+            originalRequest._retry = originalRequest._retry || 0;
+            if (originalRequest._retry < 2) {
+                originalRequest._retry += 1;
+                await new Promise(resolve => setTimeout(resolve, 1000 * originalRequest._retry)); // Exponential backoff
+                return api(originalRequest);
+            }
+        }
 
         // Handle unauthorized errors
         if (error.response?.status === 401) {

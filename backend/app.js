@@ -93,6 +93,22 @@ app.use((req, res, next) => {
     next();
 });
 
+// Security Headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google-analytics.com", "https://apis.google.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "https:", "blob:"],
+            connectSrc: ["'self'", "https://api.thecollabify.tech", "https://thecollabify.tech", "wss://api.thecollabify.tech", "https://www.google-analytics.com"],
+        },
+    },
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+}));
+
 // Diagnostic Ping - Absolute first route, no dependencies
 app.get('/api/ping', (req, res) => {
     res.status(200).json({
