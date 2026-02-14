@@ -32,15 +32,6 @@ if (process.env.REDIS_URL) {
         redisClient = null;
     }
 } else {
-
-    redisClient.on('error', (err) => {
-        console.error('❌ Redis Error:', err.message);
-    });
-
-    redisClient.on('connect', () => {
-        console.log('✅ Connected to Azure Redis');
-    });
-} else {
     // Fallback to Local Memory (Development)
     console.log('⚠️ No REDIS_URL found. Using local in-memory cache.');
     localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });

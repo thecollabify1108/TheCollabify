@@ -2,10 +2,10 @@
   "name": "creator-seller-marketplace-backend",
   "version": "1.0.1",
   "description": "Backend API for Instagram Creator-Seller Promotion Marketplace",
-  "main": "server.js",
+  "main": "app.js",
   "scripts": {
     "prestart": "npm install",
-    "start": "node server.js",
+    "start": "node app.js",
     "start:minimal": "node server-minimal.js",
     "dev": "nodemon server.js",
     "postinstall": "prisma generate"
