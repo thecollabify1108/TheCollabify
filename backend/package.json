@@ -4,6 +4,7 @@
   "description": "Backend API for Instagram Creator-Seller Promotion Marketplace",
   "main": "server.js",
   "scripts": {
+    "prestart": "npm install",
     "start": "node server.js",
     "start:minimal": "node server-minimal.js",
     "dev": "nodemon server.js",
