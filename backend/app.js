@@ -17,24 +17,16 @@ const helmet = require('helmet');
 console.log('🔍 [Startup] Standard middleware imported');
 
 // Advanced Security Middleware
-try {
-    const requestTracker = require('./middleware/requestTracker');
-    const { globalLimiter, authLimiter, apiLimiter, strictLimiter } = require('./middleware/rateLimiter');
-    const ipAllowlist = require('./middleware/ipAllowlist');
-    const apiKeyAuth = require('./middleware/apiKeyAuth');
-    console.log('🔍 [Startup] Security middleware imported');
-} catch (e) {
-    console.error('❌ [Startup] Security middleware import failed:', e);
-}
+const requestTracker = require('./middleware/requestTracker');
+const { globalLimiter, authLimiter, apiLimiter, strictLimiter } = require('./middleware/rateLimiter');
+const ipAllowlist = require('./middleware/ipAllowlist');
+const apiKeyAuth = require('./middleware/apiKeyAuth');
+console.log('🔍 [Startup] Security middleware imported');
 
 // Resilience Middleware
-try {
-    const { timeoutMiddleware, timeoutErrorHandler } = require('./middleware/timeout');
-    const { cacheMiddleware } = require('./middleware/cache');
-    console.log('🔍 [Startup] Resilience middleware imported');
-} catch (e) {
-    console.error('❌ [Startup] Resilience middleware import failed:', e);
-}
+const { timeoutMiddleware, timeoutErrorHandler } = require('./middleware/timeout');
+const { cacheMiddleware } = require('./middleware/cache');
+console.log('🔍 [Startup] Resilience middleware imported');
 
 // Error Handling Middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -52,7 +44,6 @@ try {
     console.log('✅ [Startup] Environment validated');
 } catch (e) {
     console.error('❌ [Startup] Environment validation failed:', e);
-    // Don't crash here for now, let it try to start
 }
 
 // Setup process-level error handlers (unhandled rejections, exceptions)
@@ -63,47 +54,42 @@ const PORT = process.env.PORT || 8080;
 console.log(`🔍 [Startup] Port configured: ${PORT}`);
 
 app.use((req, res, next) => {
-    // ... (CORS logic intentionally skipped in replacement chunk)
     const origin = req.headers.origin;
-    // ...
-    next();
-});
-const origin = req.headers.origin;
-const requestedHeaders = req.headers['access-control-request-headers'];
+    const requestedHeaders = req.headers['access-control-request-headers'];
 
-// Whitelist of exact allowed origins for production security
-const allowedOrigins = [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://thecollabify.tech',
-    'https://www.thecollabify.tech',
-    'https://thecollabify.pages.dev',
-    'https://thecollabify-frontend.vercel.app',
-];
+    // Whitelist of exact allowed origins for production security
+    const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'https://thecollabify.tech',
+        'https://www.thecollabify.tech',
+        'https://thecollabify.pages.dev',
+        'https://thecollabify-frontend.vercel.app',
+    ];
 
-// For development, allow localhost with any port
-const isDevelopment = process.env.NODE_ENV !== 'production';
-const isAllowedDev = isDevelopment && origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'));
-const isAllowedProd = allowedOrigins.includes(origin);
-const isAllowed = !origin || isAllowedDev || isAllowedProd;
+    // For development, allow localhost with any port
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    const isAllowedDev = isDevelopment && origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'));
+    const isAllowedProd = allowedOrigins.includes(origin);
+    const isAllowed = !origin || isAllowedDev || isAllowedProd;
 
-if (origin) {
-    if (isAllowed) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-        res.setHeader('Access-Control-Allow-Credentials', 'true');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', requestedHeaders || 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-API-KEY');
-        res.setHeader('Access-Control-Max-Age', '86400');
-        res.setHeader('Vary', 'Origin');
-    } else {
-        console.warn(`CORS Blocked Origin: ${origin}`);
+    if (origin) {
+        if (isAllowed) {
+            res.setHeader('Access-Control-Allow-Origin', origin);
+            res.setHeader('Access-Control-Allow-Credentials', 'true');
+            res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+            res.setHeader('Access-Control-Allow-Headers', requestedHeaders || 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-API-KEY');
+            res.setHeader('Access-Control-Max-Age', '86400');
+            res.setHeader('Vary', 'Origin');
+        } else {
+            console.warn(`CORS Blocked Origin: ${origin}`);
+        }
     }
-}
 
-if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-}
-next();
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
 });
 
 // Diagnostic Ping - Absolute first route, no dependencies
