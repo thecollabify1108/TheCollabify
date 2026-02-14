@@ -1,6 +1,10 @@
 const express = require('express');
 const http = require('http');
 const dotenv = require('dotenv');
+
+// Load environment variables FIRST (Critical for middleware config)
+dotenv.config();
+
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -24,8 +28,6 @@ const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandl
 // Sentry Error Monitoring
 const { initSentry, sentryErrorHandler } = require('./config/sentry');
 
-// Load environment variables FIRST
-dotenv.config();
 
 // Validate environment variables
 const { validateEnv, validateJWTSecret } = require('./utils/envValidator');

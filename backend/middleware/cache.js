@@ -6,12 +6,32 @@ let redisClient = null;
 let localCache = null;
 
 if (process.env.REDIS_URL) {
-    console.log('🔌 Connecting to Azure Redis...');
-    redisClient = new Redis(process.env.REDIS_URL, {
-        tls: { servername: new URL(process.env.REDIS_URL).hostname }, // Required for Azure
-        retryStrategy: (times) => Math.min(times * 50, 2000), // Exponential backoff
-        maxRetriesPerRequest: 3
-    });
+    try {
+        console.log('🔌 Connecting to Azure Redis...');
+        // Safely extract hostname for TLS
+        const redisUrl = new URL(process.env.REDIS_URL);
+
+        redisClient = new Redis(process.env.REDIS_URL, {
+            tls: { servername: redisUrl.hostname }, // Required for Azure
+            retryStrategy: (times) => Math.min(times * 50, 2000), // Exponential backoff
+            maxRetriesPerRequest: 3,
+            enableOfflineQueue: false // Fail fast if not connected
+        });
+
+        redisClient.on('error', (err) => {
+            console.error('❌ Redis Error:', err.message);
+        });
+
+        redisClient.on('connect', () => {
+            console.log('✅ Connected to Azure Redis');
+        });
+    } catch (error) {
+        console.error('❌ Critical Redis Init Error:', error.message);
+        console.warn('⚠️ Falling back to local memory cache due to Redis configuration error.');
+        localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
+        redisClient = null;
+    }
+} else {
 
     redisClient.on('error', (err) => {
         console.error('❌ Redis Error:', err.message);
