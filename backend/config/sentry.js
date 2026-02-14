@@ -1,17 +1,17 @@
 const Sentry = require('@sentry/node');
 
-// Defensive load of profiling integration for Sentry v10 compatibility
+// Defensive load of profiling integration
 let profilingIntegration = null;
 try {
     const profiling = require('@sentry/profiling-node');
-    profilingIntegration = profiling.nodeProfilingIntegration || profiling.ProfilingIntegration;
+    profilingIntegration = profiling.nodeProfilingIntegration;
 } catch (e) {
-    console.warn('⚠️ Sentry Profiling Node integration failed to load (common in some environments):', e.message);
+    console.warn('⚠️ Sentry Profiling Node integration failed to load:', e.message);
 }
 
 /**
  * Initialize Sentry for production error monitoring
- * Call this BEFORE any other Express middleware
+ * Updated for Sentry Node SDK v8+ (v10)
  */
 const initSentry = (app) => {
     // Only initialize if DSN is provided
@@ -20,109 +20,39 @@ const initSentry = (app) => {
         return;
     }
 
-    // Initialize Sentry
-    Sentry.init({
-        dsn: process.env.SENTRY_DSN,
-        environment: process.env.NODE_ENV || 'development',
+    try {
+        // Initialize Sentry
+        Sentry.init({
+            dsn: process.env.SENTRY_DSN,
+            environment: process.env.NODE_ENV || 'development',
+            integrations: [
+                // Add profiling if available
+                ...(profilingIntegration ? [profilingIntegration()] : []),
+            ],
+            // Performance Monitoring
+            tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+            profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+        });
 
-        // Performance Monitoring
-        tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0, // 10% in prod, 0% in dev
-        profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0, // 10% profiling in prod
+        // V10: Automatically setup Express error handling
+        // This replaces the old app.use(Sentry.Handlers.errorHandler())
+        Sentry.setupExpressErrorHandler(app);
 
-        integrations: [
-            ...(profilingIntegration ? [new profilingIntegration()] : []),
-        ],
-
-        // SECURITY: Data sanitization - remove sensitive information
-        beforeSend(event, hint) {
-            // Don't send events in development (unless explicitly enabled)
-            if (process.env.NODE_ENV !== 'production' && !process.env.SENTRY_ENABLE_DEV) {
-                return null;
-            }
-
-            // Sanitize request data
-            if (event.request) {
-                // Remove cookies (may contain auth tokens)
-                delete event.request.cookies;
-
-                // Sanitize headers
-                if (event.request.headers) {
-                    delete event.request.headers['authorization'];
-                    delete event.request.headers['cookie'];
-                    delete event.request.headers['x-api-key'];
-                }
-
-                // Sanitize request body
-                if (event.request.data) {
-                    event.request.data = sanitizeData(event.request.data);
-                }
-
-                // Sanitize query parameters
-                if (event.request.query_string) {
-                    event.request.query_string = sanitizeQueryString(event.request.query_string);
-                }
-            }
-
-            // Sanitize user data
-            if (event.user) {
-                delete event.user.password;
-                delete event.user.token;
-                delete event.user.apiKey;
-            }
-
-            // Sanitize extra context
-            if (event.extra) {
-                event.extra = sanitizeData(event.extra);
-            }
-
-            // Sanitize breadcrumbs
-            if (event.breadcrumbs) {
-                event.breadcrumbs = event.breadcrumbs.map(crumb => {
-                    if (crumb.data) {
-                        crumb.data = sanitizeData(crumb.data);
-                    }
-                    return crumb;
-                });
-            }
-
-            return event;
-        },
-
-        // SECURITY: Ignore common sensitive errors
-        ignoreErrors: [
-            // Authentication errors (don't need to track in Sentry)
-            'JsonWebTokenError',
-            'TokenExpiredError',
-
-            // Validation errors (user input issues)
-            'ValidationError',
-
-            // Rate limiting (not actual errors)
-            'Too many requests',
-        ],
-    });
-
-    // Request handler must be the first middleware
-    app.use(Sentry.Handlers.requestHandler());
-
-    // TracingHandler creates a trace for every incoming request
-    app.use(Sentry.Handlers.tracingHandler());
-
-    console.log('✅ Sentry initialized for error monitoring');
+        console.log('✅ Sentry initialized (v10 compatibility mode)');
+    } catch (error) {
+        console.error('❌ Sentry initialization failed:', error.message);
+    }
 };
 
 /**
- * Sentry error handler - must be added BEFORE your custom error handler
- * but AFTER all routes
+ * Legacy Sentry Error Handler Placeholder
+ * Kept to prevent breaking server.js which imports 'sentryErrorHandler'
+ * In v10, setupExpressErrorHandler(app) handles this automatically.
  */
-const sentryErrorHandler = Sentry.Handlers.errorHandler({
-    shouldHandleError(error) {
-        // Only send 5xx errors and unexpected errors to Sentry
-        // Don't send 4xx client errors (validation, auth, etc.)
-        const statusCode = error.statusCode || error.status || 500;
-        return statusCode >= 500;
-    },
-});
+const sentryErrorHandler = (err, req, res, next) => {
+    // Pass through to next error handler
+    next(err);
+};
 
 /**
  * Sanitize data object - recursively remove sensitive fields
