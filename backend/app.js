@@ -169,9 +169,9 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
-// Validate SESSION_SECRET is set in production
+// Warn if SESSION_SECRET is not set in production (but don't crash)
 if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
-    throw new Error('FATAL: SESSION_SECRET environment variable is required in production');
+    console.warn('⚠️ SESSION_SECRET not set in production. Using fallback. Set it in Azure Environment Variables!');
 }
 
 app.use(session({
