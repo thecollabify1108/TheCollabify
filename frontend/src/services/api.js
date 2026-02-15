@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosRetry from 'axios-retry';
 
 // Production Azure URL as fallback if env var not set
 const AZURE_API_URL = 'https://api.thecollabify.tech/api';
@@ -13,15 +14,26 @@ const api = axios.create({
     withCredentials: true // Enable sending cookies with requests
 });
 
-// Request interceptor to add auth token (for backward compatibility with localStorage)
-// Cookies are sent automatically when withCredentials is true
+// Configure robust retry logic using axios-retry
+axiosRetry(api, {
+    retries: 3, // Retry up to 3 times
+    retryDelay: axiosRetry.exponentialDelay, // Use exponential backoff (e.g., 1s, 2s, 4s)
+    retryCondition: (error) => {
+        // Retry on network errors or 5xx server errors
+        // Also retry on 429 (Too Many Requests) if global rate limit hit
+        return axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+            error.response?.status >= 500 ||
+            error.response?.status === 429;
+    }
+});
+
+// Request interceptor to add auth token
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
-        // If no localStorage token, cookies will be used automatically
         return config;
     },
     (error) => {
@@ -29,28 +41,18 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor for error handling & retries
+// Response interceptor for auth error handling
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const originalRequest = error.config;
         const message = error.response?.data?.message || 'An error occurred';
 
-        // Retry logic for 5xx errors or network errors (max 3 retries)
-        if (error.response?.status >= 500 || error.message === 'Network Error') {
-            originalRequest._retry = originalRequest._retry || 0;
-            if (originalRequest._retry < 2) {
-                originalRequest._retry += 1;
-                await new Promise(resolve => setTimeout(resolve, 1000 * originalRequest._retry)); // Exponential backoff
-                return api(originalRequest);
-            }
-        }
-
-        // Handle unauthorized errors
+        // Handle unauthorized errors (token expired/invalid)
         if (error.response?.status === 401) {
             // Clear token and redirect to login
             localStorage.removeItem('token');
-            if (window.location.pathname !== '/login') {
+            // Only redirect if not already on auth pages
+            if (!window.location.pathname.startsWith('/auth') && window.location.pathname !== '/login') {
                 window.location.href = '/login';
             }
         }
