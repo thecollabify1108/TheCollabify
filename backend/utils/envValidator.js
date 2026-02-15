@@ -12,6 +12,21 @@ const requiredEnvVars = {
 
     // Session
     SESSION_SECRET: 'Secret key for session management',
+
+    // Google OAuth
+    GOOGLE_CLIENT_ID: 'Google OAuth Client ID',
+    GOOGLE_CLIENT_SECRET: 'Google OAuth Client Secret',
+    GOOGLE_CALLBACK_URL: 'Google OAuth Callback URL',
+
+    // Push Notifications
+    VAPID_PUBLIC_KEY: 'VAPID Public Key',
+    VAPID_PRIVATE_KEY: 'VAPID Private Key',
+    VAPID_EMAIL: 'VAPID Email',
+
+    // Email Service
+    EMAIL_HOST: 'SMTP Host',
+    EMAIL_USER: 'SMTP User',
+    EMAIL_PASS: 'SMTP Password',
 };
 
 const optionalEnvVars = {
@@ -23,16 +38,11 @@ const optionalEnvVars = {
     // JWT
     JWT_EXPIRE: '7d',
 
-    // Email (optional but recommended for production)
-    EMAIL_HOST: undefined,
-    EMAIL_PORT: undefined,
-    EMAIL_USER: undefined,
-    EMAIL_PASS: undefined,
-
     // OAuth (optional)
-    GOOGLE_CLIENT_ID: undefined,
-    GOOGLE_CLIENT_SECRET: undefined,
-    GOOGLE_CALLBACK_URL: undefined,
+    // moved to required
+
+    // Monitoring (optional but recommended for production)
+    SENTRY_DSN: undefined,
 
 
 

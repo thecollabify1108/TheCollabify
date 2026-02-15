@@ -102,7 +102,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
 ### ✅ What's Working
 - **Environment Files**: `.env.example` with comprehensive documentation
 - **Secret Management**: 1Password integration via `@1password/op-js`
-- **Deployment Configs**: `render.yaml`, `docker-compose.yml`, Dockerfile
+- **Deployment Configs**: `docker-compose.yml`, Dockerfile
 - **Database**: Prisma ORM with PostgreSQL, migrations configured
 
 ### ⚠️ Recommendations
@@ -197,8 +197,8 @@ npm install --save-dev jest supertest @types/jest
   - OIDC authentication (secure, no stored credentials)
   - npm ci for reproducible builds
 - **Deployment Targets**: 
-  - Backend: Azure App Service / Render
-  - Frontend: Cloudflare Pages / Vercel
+  - Backend: Azure App Service (Guardian Elite Setup)
+  - Frontend: Azure Static Web Apps / Azure App Service (Guardian Elite Setup)
 
 ### ⚠️ Recommendations
 1. **Add Health Checks to Dockerfile**
@@ -337,7 +337,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 ### Emergency Contacts
 - **Database Issues**: [Database Admin Contact]
 - **Payment Issues**: Stripe/Razorpay support
-- **Infrastructure**: Azure/Render support
+- **Infrastructure**: Azure support
 - **Security Incidents**: [Security Team Lead]
 
 ---

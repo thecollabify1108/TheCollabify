@@ -65,11 +65,11 @@ const handleValidation = (req, res, next) => {
 };
 
 /**
- * @route   POST /api/auth/register/send-otp
- * @desc    Send OTP for email verification during registration
- * @access  Public
- */
-body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+// @route   POST /api/auth/register/send-otp
+// @desc    Send OTP for email verification during registration
+// @access  Public
+router.post('/register/send-otp', [
+    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
     body('name').trim().escape().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
     body('password').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 }).withMessage('Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number'),
     body('role').isIn(['creator', 'seller']).withMessage('Role must be either creator or seller'),

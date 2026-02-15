@@ -1,5 +1,6 @@
 node_modules
 .env
+.azure_credentials.json
 .DS_Store
 npm-debug.log
 yarn-error.log

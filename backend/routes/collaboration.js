@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const {
     validateTransition,
     buildHistoryEntry,
