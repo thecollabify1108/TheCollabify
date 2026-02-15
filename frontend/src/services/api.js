@@ -151,14 +151,7 @@ export const chatAPI = {
     getPGPKey: (userId) => api.get(`/chat/pgp-key/${userId}`)
 };
 
-// Payment API
-export const paymentAPI = {
-    onboard: () => api.post('/payments/onboard'),
-    createEscrowSession: (data) => api.post('/payments/create-escrow-session', data),
-    verifySession: (sessionId) => api.get(`/payments/verify-session/${sessionId}`),
-    getHistory: () => api.get('/payments/history'),
-    releaseEscrow: (paymentId) => api.post(`/payments/release-escrow/${paymentId}`)
-};
+
 
 // Admin API
 export const adminAPI = {

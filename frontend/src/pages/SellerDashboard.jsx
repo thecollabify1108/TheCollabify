@@ -39,7 +39,6 @@ import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import { BrandInsightCards } from '../components/analytics/InsightCards';
 import TeamManagement from '../components/team/TeamManagement';
-import PaymentModal from '../components/payment/PaymentModal';
 import { subscriptionPlans } from '../config/subscriptions';
 
 // Modern Dashboard Widgets
@@ -75,7 +74,6 @@ const SellerDashboard = () => {
     // NEW: Enhanced features state
     const [showAIRecommendations, setShowAIRecommendations] = useState(false);
     const [allCreators, setAllCreators] = useState([]);
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [focusMode, setFocusMode] = useState(null);
     const [showGuide, setShowGuide] = useState(true);
@@ -135,16 +133,6 @@ const SellerDashboard = () => {
         } finally {
             if (!isBackground) setLoading(false);
         }
-    };
-
-    const handleUpgrade = () => {
-        setSelectedPlan(subscriptionPlans.pro);
-        setShowPaymentModal(true);
-    };
-
-    const handlePaymentSuccess = (data) => {
-        fetchRequests(); // Refresh data
-        toast.success('Welcome to Pro!');
     };
 
     const fetchConversations = async () => {
@@ -712,24 +700,7 @@ const SellerDashboard = () => {
                             dailyInsight="Welcome to your campaign dashboard! 🚀"
                         />
 
-                        {/* Pro Upgrade Card */}
-                        {user.subscription?.status !== 'active' && (
-                            <div className="p-6 rounded-3xl bg-gradient-to-br from-indigo-600 to-blue-700 shadow-xl shadow-indigo-900/20 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-                                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                    <div>
-                                        <h3 className="text-2xl font-bold text-white mb-2">Upgrade to Pro</h3>
-                                        <p className="text-indigo-100 max-w-md">Launch unlimited campaigns, get advanced AI matches, and access detailed ROI analytics.</p>
-                                    </div>
-                                    <LoadingButton
-                                        onClick={handleUpgrade}
-                                        className="px-8 py-3 bg-white text-indigo-600 rounded-2xl font-bold hover:bg-indigo-50 transition-colors shadow-lg shadow-black/10 border-none"
-                                    >
-                                        Upgrade Now
-                                    </LoadingButton>
-                                </div>
-                            </div>
-                        )}
+
 
                         {/* 2. Campaign Pipeline Stats */}
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">

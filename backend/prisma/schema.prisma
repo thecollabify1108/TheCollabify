@@ -82,14 +82,6 @@ enum AvailabilityStatus {
   NOT_AVAILABLE
 }
 
-enum PaymentStatus {
-  CREATED
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
 enum TeamRole {
   OWNER
   ADMIN
@@ -125,7 +117,6 @@ model User {
   creatorProfile        CreatorProfile?
   sellerCampaigns       PromotionRequest[] @relation("SellerCampaigns")
   analytics             Analytics[]
-  payments              Payment[]
   notifications         Notification[]
   sentMessages          Message[]          @relation("Sender")
   conversationsSeller   Conversation[]     @relation("Seller")
@@ -397,35 +388,7 @@ model Analytics {
   @@index([metrics], type: Gin) // Optimized for analytics aggregation
 }
 
-model Payment {
-  id            String        @id @default(uuid())
-  userId        String
-  user          User          @relation(fields: [userId], references: [id])
-  amount        Float
-  currency      String        @default("INR")
-  status        PaymentStatus @default(CREATED)
-  
-  // Razorpay (Legacy)
-  orderId       String        @unique
-  paymentId     String?
-  
-  // Stripe (Guardian Elite)
-  stripePaymentIntentId String? @unique
-  stripeTransferId      String? @unique
-  stripeSessionId       String? @unique
 
-  planId        String?
-  refundId      String?
-  refundAmount  Float?
-  completedAt   DateTime?
-  failedAt      DateTime?
-  refundedAt    DateTime?
-  failureReason String?
-  metadata      Json?
-
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-}
 
 model TeamMember {
   id               String       @id @default(uuid())
