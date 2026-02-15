@@ -229,7 +229,9 @@ model CreatorProfile {
   @@index([aiScore])
   @@index([totalEarnings])
   @@index([profileCompletionPercentage])
+  @@index([location], type: Gin) // Optimized for location-based search
 }
+
 
 model Achievement {
   id               String         @id @default(uuid())
@@ -278,6 +280,7 @@ model PromotionRequest {
   @@index([targetCategory])
   @@index([promotionType])
   @@index([createdAt])
+  @@index([location], type: Gin) // Optimized for location-based search
 }
 
 model MatchedCreator {
@@ -391,6 +394,7 @@ model Analytics {
   updatedAt             DateTime @updatedAt
 
   @@index([userId, date])
+  @@index([metrics], type: Gin) // Optimized for analytics aggregation
 }
 
 model Payment {
@@ -448,6 +452,10 @@ model TeamMember {
 
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([permissions], type: Gin)
 }
 
 model OTP {
@@ -476,6 +484,7 @@ model Notification {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+
   @@index([userId, isRead])
 }
 

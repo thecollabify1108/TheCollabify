@@ -69,10 +69,9 @@ const handleValidation = (req, res, next) => {
  * @desc    Send OTP for email verification during registration
  * @access  Public
  */
-router.post('/register/send-otp', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-    body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+    body('name').trim().escape().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
+    body('password').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 }).withMessage('Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number'),
     body('role').isIn(['creator', 'seller']).withMessage('Role must be either creator or seller'),
     handleValidation
 ], async (req, res) => {
@@ -305,8 +304,8 @@ router.post('/register/resend-otp', [
  */
 router.post('/register', [
     body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('name').trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
+    body('password').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 }).withMessage('Weak password'),
+    body('name').trim().escape().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
     body('role').isIn(['creator', 'seller']).withMessage('Role must be either creator or seller'),
     handleValidation
 ], async (req, res) => {
