@@ -34,11 +34,7 @@ const optionalEnvVars = {
     GOOGLE_CLIENT_SECRET: undefined,
     GOOGLE_CALLBACK_URL: undefined,
 
-    // Payment Gateways (optional)
-    STRIPE_SECRET_KEY: undefined,
-    STRIPE_WEBHOOK_SECRET: undefined,
-    RAZORPAY_KEY_ID: undefined,
-    RAZORPAY_KEY_SECRET: undefined,
+
 
     // Monitoring (optional but recommended for production)
     SENTRY_DSN: undefined,

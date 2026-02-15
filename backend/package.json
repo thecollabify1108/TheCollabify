@@ -5,8 +5,10 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
+    "start:doppler": "doppler run -- node app.js",
     "start:minimal": "node server-minimal.js",
     "dev": "nodemon server.js",
+    "dev:doppler": "doppler run -- nodemon server.js",
     "postinstall": "prisma generate"
   },
   "keywords": [

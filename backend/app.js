@@ -43,7 +43,8 @@ try {
     validateJWTSecret();
     console.log('✅ [Startup] Environment validated');
 } catch (e) {
-    console.error('❌ [Startup] Environment validation failed:', e);
+    console.error('❌ [Startup] Environment validation failed:', e.message);
+    process.exit(1); // Fail fast if secrets are missing
 }
 
 // Setup process-level error handlers (unhandled rejections, exceptions)
@@ -192,7 +193,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
 }
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'dev-only-fallback-secret-key',
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
