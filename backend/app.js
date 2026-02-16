@@ -33,6 +33,7 @@ const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandlers');
 
 // Sentry Error Monitoring
+const Sentry = require('@sentry/node');
 const { initSentry, sentryErrorHandler } = require('./config/sentry');
 
 // Validate environment variables
@@ -141,6 +142,10 @@ let isFullyInitialized = false;
 let initError = null;
 
 // ===== SECURITY & RESILIENCE MIDDLEWARE STACK =====
+
+// 0. Sentry Request Handler (Must be first)
+app.use(Sentry.Handlers.requestHandler());
+app.use(Sentry.Handlers.tracingHandler());
 
 // 1. Request ID Tracking
 app.use(requestTracker);

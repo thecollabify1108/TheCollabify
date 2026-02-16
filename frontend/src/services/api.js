@@ -1,5 +1,6 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import * as Sentry from "@sentry/react";
 
 // Production Azure URL as fallback if env var not set
 const AZURE_API_URL = 'https://api.thecollabify.tech/api';
@@ -54,7 +55,21 @@ api.interceptors.response.use(
             // Only redirect if not already on auth pages
             if (!window.location.pathname.startsWith('/auth') && window.location.pathname !== '/login') {
                 window.location.href = '/login';
+
+
             }
+        }
+
+        // Capture API errors in Sentry (exclude 401s which are expected flow)
+        if (error.response?.status !== 401) {
+            Sentry.captureException(error, {
+                extra: {
+                    url: error.config?.url,
+                    method: error.config?.method,
+                    status: error.response?.status,
+                    data: error.response?.data
+                }
+            });
         }
 
         return Promise.reject({ ...error, message });
