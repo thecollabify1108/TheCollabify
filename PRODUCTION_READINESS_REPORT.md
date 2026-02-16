@@ -198,7 +198,7 @@ npm install --save-dev jest supertest @types/jest
   - npm ci for reproducible builds
 - **Deployment Targets**: 
   - Backend: Azure App Service (Guardian Elite Setup)
-  - Frontend: Azure Static Web Apps / Azure App Service (Guardian Elite Setup)
+  - Frontend: Cloudflare Pages (Production) / Vercel (Staging)
 
 ### ⚠️ Recommendations
 1. **Add Health Checks to Dockerfile**
