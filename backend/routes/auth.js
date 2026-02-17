@@ -65,9 +65,44 @@ const handleValidation = (req, res, next) => {
 };
 
 /**
-// @route   POST /api/auth/register/send-otp
-// @desc    Send OTP for email verification during registration
-// @access  Public
+ * @swagger
+ * /auth/register/send-otp:
+ *   post:
+ *     summary: Send OTP for email verification during registration
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - name
+ *               - password
+ *               - role
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 50
+ *               password:
+ *                 type: string
+ *                 format: password
+ *               role:
+ *                 type: string
+ *                 enum: [creator, seller]
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       400:
+ *         description: Validation failed or user already exists
+ *       500:
+ *         description: Server error
+ */
 router.post('/register/send-otp', [
     body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
     body('name').trim().escape().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
@@ -134,9 +169,35 @@ router.post('/register/send-otp', [
 });
 
 /**
- * @route   POST /api/auth/register/verify-otp
- * @desc    Verify OTP and complete registration
- * @access  Public
+ * @swagger
+ * /auth/register/verify-otp:
+ *   post:
+ *     summary: Verify OTP and complete registration
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - tempUserId
+ *               - otp
+ *             properties:
+ *               tempUserId:
+ *                 type: string
+ *                 description: Base64 encoded temporary user data received from send-otp
+ *               otp:
+ *                 type: string
+ *                 minLength: 6
+ *                 maxLength: 6
+ *     responses:
+ *       201:
+ *         description: Registration successful
+ *       400:
+ *         description: Invalid OTP or user data
+ *       500:
+ *         description: Server error
  */
 router.post('/register/verify-otp', [
     body('tempUserId').notEmpty().withMessage('User data is required'),
@@ -359,9 +420,36 @@ router.post('/register', [
 });
 
 /**
- * @route   POST /api/auth/login
- * @desc    Login user
- * @access  Public
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [creator, seller]
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *       401:
+ *         description: Invalid credentials or deactivated account
+ *       500:
+ *         description: Server error
  */
 router.post('/login', [
     body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
@@ -455,9 +543,20 @@ router.post('/login', [
 });
 
 /**
- * @route   GET /api/auth/me
- * @desc    Get current user
- * @access  Private
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Get current authenticated user
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User information retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
  */
 router.get('/me', auth, async (req, res) => {
     try {

@@ -36,6 +36,10 @@ const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandl
 const Sentry = require('@sentry/node');
 const { initSentry, sentryErrorHandler } = require('./config/sentry');
 
+// Swagger API Documentation
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 // Validate environment variables
 try {
     const { validateEnv, validateJWTSecret } = require('./utils/envValidator');
@@ -134,6 +138,9 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', early: true, port: PORT });
 });
 
+// Swagger UI Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 // Track initialization status
 let prisma = null;
 let passport = null;
@@ -142,10 +149,6 @@ let isFullyInitialized = false;
 let initError = null;
 
 // ===== SECURITY & RESILIENCE MIDDLEWARE STACK =====
-
-// 0. Sentry Request Handler (Must be first)
-app.use(Sentry.Handlers.requestHandler());
-app.use(Sentry.Handlers.tracingHandler());
 
 // 1. Request ID Tracking
 app.use(requestTracker);
