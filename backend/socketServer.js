@@ -10,8 +10,10 @@
 
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
+const { createAdapter } = require('@socket.io/redis-adapter');
+const { getRedisClient, getSubClient, isRedisEnabled } = require('./config/redis');
 
-// In-memory storage for online users (use Redis in production!)
+// In-memory storage for online users (use Redis/Database in production!)
 const onlineUsers = new Map();
 const userSockets = new Map();
 
@@ -24,6 +26,14 @@ function initializeSocketServer(httpServer) {
         },
         transports: ['websocket', 'polling']
     });
+
+    // Integrated Redis Adapter for scaling
+    if (isRedisEnabled()) {
+        const pubClient = getRedisClient();
+        const subClient = getSubClient();
+        io.adapter(createAdapter(pubClient, subClient));
+        console.log('✅ Socket.io Redis adapter integrated');
+    }
 
     // Middleware for authentication
     io.use(async (socket, next) => {

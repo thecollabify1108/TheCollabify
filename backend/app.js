@@ -133,13 +133,22 @@ try {
     console.error('💥 CRITICAL: initSentry crashed synchronously:', e.message);
 }
 
-// CRITICAL: Early health check for Azure - runs before complex modules
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', early: true, port: PORT });
-});
+// Redis Configuration
+const { initRedis, isRedisEnabled } = require('./config/redis');
+initRedis();
 
 // Swagger UI Documentation
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+// CRITICAL: Early health check for Azure - runs before complex modules
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        early: true,
+        port: PORT,
+        redis: isRedisEnabled() ? 'connected' : 'disabled/disconnected'
+    });
+});
 
 // Track initialization status
 let prisma = null;

@@ -1,41 +1,8 @@
-const Redis = require('ioredis');
 const NodeCache = require('node-cache');
+const { getRedisClient, isRedisEnabled } = require('../config/redis');
 
-// Initialize Redis Client (Azure Production)
-let redisClient = null;
-let localCache = null;
-
-if (process.env.REDIS_URL) {
-    try {
-        console.log('🔌 Connecting to Azure Redis...');
-        // Safely extract hostname for TLS
-        const redisUrl = new URL(process.env.REDIS_URL);
-
-        redisClient = new Redis(process.env.REDIS_URL, {
-            tls: { servername: redisUrl.hostname }, // Required for Azure
-            retryStrategy: (times) => Math.min(times * 50, 2000), // Exponential backoff
-            maxRetriesPerRequest: 3,
-            enableOfflineQueue: false // Fail fast if not connected
-        });
-
-        redisClient.on('error', (err) => {
-            console.error('❌ Redis Error:', err.message);
-        });
-
-        redisClient.on('connect', () => {
-            console.log('✅ Connected to Azure Redis');
-        });
-    } catch (error) {
-        console.error('❌ Critical Redis Init Error:', error.message);
-        console.warn('⚠️ Falling back to local memory cache due to Redis configuration error.');
-        localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
-        redisClient = null;
-    }
-} else {
-    // Fallback to Local Memory (Development)
-    console.log('⚠️ No REDIS_URL found. Using local in-memory cache.');
-    localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
-}
+// Fallback local cache for development or Redis failure
+const localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
 /**
  * Enterprise Caching Middleware
@@ -58,8 +25,8 @@ const cacheMiddleware = (duration = 300) => async (req, res, next) => {
     try {
         // 4. Check Cache (Redis or Local)
         let cachedBody;
-        if (redisClient) {
-            cachedBody = await redisClient.get(key);
+        if (isRedisEnabled()) {
+            cachedBody = await getRedisClient().get(key);
         } else {
             cachedBody = localCache.get(key);
         }
@@ -80,9 +47,9 @@ const cacheMiddleware = (duration = 300) => async (req, res, next) => {
         res.send = function (body) {
             // Only cache successful JSON responses
             if (res.statusCode >= 200 && res.statusCode < 300) {
-                if (redisClient) {
+                if (isRedisEnabled()) {
                     // Store in Redis with expiration
-                    redisClient.set(key, body, 'EX', duration).catch(err => console.error('Redis Set Error:', err));
+                    getRedisClient().set(key, body, 'EX', duration).catch(err => console.error('Redis Set Error:', err));
                 } else {
                     localCache.set(key, body, duration);
                 }
@@ -100,11 +67,11 @@ const cacheMiddleware = (duration = 300) => async (req, res, next) => {
 // Helper to manually clear cache
 const clearCache = async (key) => {
     try {
-        if (redisClient) {
+        if (isRedisEnabled()) {
             if (key) {
-                await redisClient.del(key);
+                await getRedisClient().del(key);
             } else {
-                await redisClient.flushdb();
+                await getRedisClient().flushdb();
             }
         } else {
             if (key) {
