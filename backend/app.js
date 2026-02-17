@@ -327,27 +327,34 @@ app.use(errorHandler);
 // Start Server
 const server = http.createServer(app);
 
-server.listen(PORT, '0.0.0.0', async () => {
-    console.log(`✅ Server listening on port ${PORT}`);
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+    server.listen(PORT, '0.0.0.0', async () => {
+        console.log(`✅ Server listening on port ${PORT}`);
 
-    // Background initialization
-    initializeModules().catch(err => {
-        console.error('💥 Background initialization failed:', err);
+        // Background initialization
+        initializeModules().catch(err => {
+            console.error('💥 Background initialization failed:', err);
+        });
+
+        if (initializeSocketServer) {
+            try {
+                const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
+                app.locals.sendNotification = sendNotification;
+                app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
+                app.locals.sendBulkNotification = sendBulkNotification;
+                console.log('✅ Socket.io initialized');
+            } catch (e) {
+                console.error('❌ Socket.io initialization failed:', e.message);
+            }
+        }
     });
 
-    if (initializeSocketServer) {
-        try {
-            const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
-            app.locals.sendNotification = sendNotification;
-            app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
-            app.locals.sendBulkNotification = sendBulkNotification;
-            console.log('✅ Socket.io initialized');
-        } catch (e) {
-            console.error('❌ Socket.io initialization failed:', e.message);
-        }
-    }
-});
+    // Graceful shutdown handlers
+    process.on('SIGTERM', () => gracefulShutdown(server, prisma));
+    process.on('SIGINT', () => gracefulShutdown(server, prisma));
+}
 
-// Graceful shutdown handlers
-process.on('SIGTERM', () => gracefulShutdown(server, prisma));
-process.on('SIGINT', () => gracefulShutdown(server, prisma));
+// Export for testing
+module.exports = app;
+
