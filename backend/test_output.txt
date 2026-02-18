@@ -1,0 +1,267 @@
+
+> creator-seller-marketplace-backend@1.0.1 test
+> cross-env NODE_ENV=test jest tests/security.test.js
+
+  console.log
+    ≡ƒº¬ Test Environment Initialized
+
+      at Object.log (tests/setup.js:14:9)
+
+  console.log
+    ≡ƒöì [Startup] Modules imported
+
+      at Object.log (app.js:5:9)
+
+  console.log
+    ≡ƒöì [Startup] Environment loaded
+
+      at Object.log (app.js:9:9)
+
+  console.log
+    ≡ƒöì [Startup] Standard middleware imported
+
+      at Object.log (app.js:17:9)
+
+  console.log
+    ≡ƒöì [Startup] Security middleware imported
+
+      at Object.log (app.js:24:9)
+
+  console.log
+    ≡ƒöì [Startup] Resilience middleware imported
+
+      at Object.log (app.js:29:9)
+
+  console.log
+    ≡ƒöì [Startup] Validating environment...
+
+      at Object.log (app.js:46:13)
+
+  console.log
+    Γ£à All required environment variables are set
+
+      at log (utils/envValidator.js:101:17)
+
+  console.log
+    Γ£à [Startup] Environment validated
+
+      at Object.log (app.js:49:13)
+
+  console.log
+    Γ£à Process-level error handlers initialized
+
+      at log (utils/processHandlers.js:76:13)
+
+  console.log
+    ≡ƒöì [Startup] Port configured: 5000
+
+      at Object.log (app.js:60:9)
+
+  console.log
+    ΓÜá∩╕Å  Sentry DSN not configured - error monitoring disabled
+
+      at log (config/sentry.js:19:17)
+
+  console.log
+    ΓÜá∩╕Å No REDIS_URL found. Redis features will be disabled or fall back to local memory.
+
+      at log (config/redis.js:8:17)
+
+  console.log
+    ≡ƒöä Registering routes...
+
+      at Object.log (app.js:293:9)
+
+  console.warn
+    ΓÜá∩╕Å BREVO_API_KEY is missing. OTP emails will fail to send.
+
+    [0m [90m  8 |[39m     console[33m.[39mlog([32m'Γ£à Brevo Email Service initialized'[39m)[33m;[39m
+     [90m  9 |[39m } [36melse[39m {
+    [31m[1m>[22m[39m[90m 10 |[39m     console[33m.[39mwarn([32m'ΓÜá∩╕Å BREVO_API_KEY is missing. OTP emails will fail to send.'[39m)[33m;[39m
+     [90m    |[39m             [31m[1m^[22m[39m
+     [90m 11 |[39m }
+     [90m 12 |[39m
+     [90m 13 |[39m [90m/**[39m[0m
+
+      at Object.warn (utils/brevoEmailService.js:10:13)
+      at Object.require (services/otpService.js:3:26)
+      at Object.require (routes/auth.js:9:41)
+      at Object.require (app.js:294:35)
+      at Object.require (tests/security.test.js:3:13)
+
+  console.log
+    Γ£à Google OAuth configured
+
+      at Object.log (config/passport.js:63:13)
+
+  console.log
+    Γ£à Routes registered
+
+      at Object.log (app.js:311:9)
+
+  console.log
+    ≡ƒöä Loading modules...
+
+      at log (app.js:226:17)
+
+  console.log
+    Γ£à Prisma loaded
+
+      at log (app.js:231:21)
+
+  console.log
+    Γ£à Database connected
+
+      at log (app.js:240:21)
+
+  console.log
+    Γ£à Passport initialized
+
+      at log (app.js:250:21)
+
+  console.log
+    Γ£à Socket.io loaded
+
+      at log (app.js:258:21)
+
+  console.log
+    ≡ƒÜÇ Full initialization complete!
+
+      at log (app.js:267:17)
+
+  console.log
+    [2026-02-18T06:05:57.693Z] [a41ace08-d15d-415b-bd54-34236bc1a6c7] POST /api/chat/conversations/e2u7g9/messages from ::ffff:127.0.0.1
+
+      at log (middleware/requestTracker.js:24:13)
+
+  console.log
+    [2026-02-18T06:05:57.693Z] [a41ace08-d15d-415b-bd54-34236bc1a6c7] Completed 403 in 36ms
+
+      at ServerResponse.log (middleware/requestTracker.js:33:17)
+
+[0mPOST /api/chat/conversations/e2u7g9/messages [33m403[0m 34.735 ms - 129[0m
+  console.log
+    [2026-02-18T06:05:57.759Z] [78f2bb3a-7417-4774-b881-73e5b61354e5] POST /api/chat/conversations/conv1/messages from ::ffff:127.0.0.1
+
+      at log (middleware/requestTracker.js:24:13)
+
+  console.log
+    [2026-02-18T06:05:57.759Z] [78f2bb3a-7417-4774-b881-73e5b61354e5] Completed 201 in 5ms
+
+      at ServerResponse.log (middleware/requestTracker.js:33:17)
+
+[0mPOST /api/chat/conversations/conv1/messages [32m201[0m 3.408 ms - 219[0m
+  console.log
+    [2026-02-18T06:05:57.773Z] [9021a72d-3f4c-432e-895c-ad0ad4705dec] GET /api/collaboration/e2u7g9 from ::ffff:127.0.0.1
+
+      at log (middleware/requestTracker.js:24:13)
+
+  console.log
+    [2026-02-18T06:05:57.773Z] [9021a72d-3f4c-432e-895c-ad0ad4705dec] Completed 403 in 2ms
+
+      at ServerResponse.log (middleware/requestTracker.js:33:17)
+
+[0mGET /api/collaboration/e2u7g9 [33m403[0m 1.800 ms - 74[0m
+  console.log
+    [2026-02-18T06:05:57.783Z] [79223691-73dc-4efa-85c1-f7d8d884aa50] PATCH /api/collaboration/collaboration1 from ::ffff:127.0.0.1
+
+      at log (middleware/requestTracker.js:24:13)
+
+  console.log
+    [2026-02-18T06:05:57.783Z] [79223691-73dc-4efa-85c1-f7d8d884aa50] Completed 403 in 2ms
+
+      at ServerResponse.log (middleware/requestTracker.js:33:17)
+
+[0mPATCH /api/collaboration/collaboration1 [33m403[0m 2.021 ms - 71[0m
+  console.log
+    [2026-02-18T06:05:57.793Z] [44427fa0-36f1-4fc6-89c8-287cf8d800b8] GET /api/collaboration/e2u7g9 from ::ffff:127.0.0.1
+
+      at log (middleware/requestTracker.js:24:13)
+
+  console.log
+    [2026-02-18T06:05:57.793Z] [44427fa0-36f1-4fc6-89c8-287cf8d800b8] Completed 200 in 3ms
+
+      at ServerResponse.log (middleware/requestTracker.js:33:17)
+
+[0mGET /api/collaboration/e2u7g9 [32m200[0m 2.148 ms - 557[0m
+  console.log
+    [2026-02-18T06:05:57.806Z] [3fbdfd24-95bf-43ed-b261-a7d0745290fc] POST /api/analytics/outcome from ::ffff:127.0.0.1
+
+      at log (middleware/requestTracker.js:24:13)
+
+  console.log
+    [2026-02-18T06:05:57.806Z] [3fbdfd24-95bf-43ed-b261-a7d0745290fc] Completed 403 in 3ms
+
+      at ServerResponse.log (middleware/requestTracker.js:33:17)
+
+[0mPOST /api/analytics/outcome [33m403[0m 2.655 ms - 59[0m
+PASS tests/security.test.js
+  Backend Hardening Security Tests
+    Messaging Gating
+      ΓêÜ should block messaging if match is MATCHED (Strict Gating) (56 ms)
+      ΓêÜ should allow messaging after match is ACCEPTED (25 ms)
+    Collaboration IDOR
+      ΓêÜ should block unauthorized user from viewing collaboration (10 ms)
+      ΓêÜ should block unauthorized user from modifying collaboration (10 ms)
+      ΓêÜ should allow seller to view collaboration (11 ms)
+    Analytics IDOR
+      ΓêÜ should block unauthorized user from tracking outcome for other match (13 ms)
+
+-------------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------
+File                           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                                                   
+-------------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------
+All files                      |   19.39 |     4.83 |    5.62 |   20.22 |                                                                                                                                                     
+ backend                       |   54.74 |    23.25 |      12 |   55.21 |                                                                                                                                                     
+  app.js                       |   73.61 |     30.3 |      30 |   74.53 | 51-52,84-92,97,133,145,209,233-234,242,252,260,270-271,277-288,315,329,337-355                                                                      
+  socketServer.js              |   10.14 |        0 |       0 |   10.14 | 21-197                                                                                                                                              
+ backend/middleware            |   34.11 |    11.86 |   23.07 |   34.28 |                                                                                                                                                     
+  apiKeyAuth.js                |      20 |        0 |       0 |      20 | 9-43                                                                                                                                                
+  auth.js                      |   65.62 |    54.16 |     100 |   65.62 | 14,21,31,54,61,77-91                                                                                                                                
+  cache.js                     |   17.07 |        0 |      20 |   15.38 | 13-63,69-84                                                                                                                                         
+  errorHandler.js              |    8.06 |        0 |       0 |    8.06 | 11-43,51-66,75-142,150-151,159-160                                                                                                                  
+  ipAllowlist.js               |   13.33 |        0 |       0 |   14.28 | 8-40                                                                                                                                                
+  rateLimiter.js               |     100 |      100 |     100 |     100 |                                                                                                                                                     
+  requestTracker.js            |     100 |       50 |     100 |     100 | 22                                                                                                                                                  
+  roleCheck.js                 |      50 |        0 |   33.33 |   53.33 | 12-29                                                                                                                                               
+  timeout.js                   |      40 |        0 |       0 |      40 | 16-26                                                                                                                                               
+ backend/routes                |   16.24 |     4.28 |    3.06 |   16.75 |                                                                                                                                                     
+  achievements.js              |   19.14 |        0 |       0 |   20.45 | 65-106,119-171                                                                                                                                      
+  admin.js                     |   11.92 |        0 |       0 |   12.08 | 12-20,29-63,76-136,149-185,201-225,238-306,323-382,396-443,456-467,485-523,536-546                                                                  
+  ai.js                        |   21.62 |        0 |       0 |   21.62 | 13-35,48-69,82-107,120-130,145-167,180-185,195-200,210-214,224-228                                                                                  
+  analytics.js                 |   23.07 |    20.58 |   11.11 |   23.07 | 13-30,43-57,70-84,97-111,124-155,168-199,209-240,254,266-274,284-305                                                                                
+  auth.js                      |   10.58 |        0 |       0 |   10.82 | 18,31-49,56-64,113-164,207-309,325-354,373-415,460-538,562-575,592-619,635-670,687-719,736-807,827-876,891-926,939-1042,1055-1069,1085-1110         
+  chat.js                      |   18.59 |    14.91 |    9.52 |   18.82 | 14,33-45,58-96,110-191,200-267,276-322,331-368,381-436,449-481,494-557,582,594,621,664-665,678-699,716-761,774-807,820-860,873-924,937-975,988-1018 
+  collaboration.js             |    29.9 |    15.25 |   33.33 |   31.06 | 18-22,33-81,121,148-149,161-236,263,274-295,308-337                                                                                                 
+  contentCalendar.js           |   16.66 |        0 |       0 |   16.66 | 12-44,57-129,142-165,178-200,213-243                                                                                                                
+  creators.js                  |    9.54 |        0 |       0 |   10.85 | 15-50,59-82,105-197,216-290,303-384,397-500,513-588,605-676,692-714                                                                                 
+  leaderboard.js               |   22.72 |        0 |       0 |   22.72 | 11-68                                                                                                                                               
+  notifications.js             |   21.42 |        0 |       0 |   21.42 | 17-32,45-59,72-88,101-110,123-134,147-168,181-207,220-236,249-263                                                                                   
+  oauth.js                     |      25 |     4.16 |       0 |      25 | 16,31-35,51-90,104-210,223-230                                                                                                                      
+  passwordReset.js             |   22.41 |        0 |       0 |   22.41 | 13,26-34,46-75,92-125,142-196                                                                                                                       
+  public.js                    |   41.66 |      100 |       0 |   45.45 | 11-48                                                                                                                                               
+  search.js                    |    10.2 |        0 |       0 |   11.36 | 11-130                                                                                                                                              
+  sellers.js                   |    10.6 |        0 |       0 |   10.88 | 21-29,38-101,125-203,216-247,260-334,347-440,453-499,512-549,565-623,636-671,688-749                                                                
+  teamManagement.js            |   17.39 |        0 |       0 |   17.64 | 10-53,60-66,75-100,113-177,190-236,249-291,304-320                                                                                                  
+ backend/services              |   10.12 |     0.52 |    1.88 |   11.11 |                                                                                                                                                     
+  aiContentService.js          |    4.54 |        0 |       0 |    4.76 | 14-203                                                                                                                                              
+  aiInsights.js                |    6.36 |        0 |       0 |    7.14 | 20-43,55-79,86-136,143-172,180-204,213-237                                                                                                          
+  aiMatching.js                |    9.62 |        0 |       0 |   11.16 | 28-51,58-63,70-94,106-139,146-155,162-167,174-197,205-240,249-259,266-274,284-286,293-363,371-395,402-419,426-466,479-588,595-599,606-641           
+  analyticsService.js          |    1.39 |        0 |       0 |    1.56 | 11-450                                                                                                                                              
+  collaborationStateMachine.js |   35.29 |       10 |      50 |   35.29 | 45-75                                                                                                                                               
+  emailTemplates.js            |   22.72 |     12.5 |       0 |   22.72 | 17-312,379-399                                                                                                                                      
+  keyRotation.js               |    8.57 |        0 |       0 |    8.57 | 15-166                                                                                                                                              
+  notificationService.js       |      35 |        0 |       0 |      35 | 7-22,30-31,44,57,70,83-93,106,119-124,136,148-164,175-180,187-192                                                                                   
+  otpService.js                |      18 |        0 |       0 |      18 | 12,17-64,70-109,115-140,146-154                                                                                                                     
+  predictiveService.js         |    5.55 |        0 |       0 |    6.45 | 12-111                                                                                                                                              
+  responseLogic.js             |   11.11 |        0 |       0 |   11.11 | 17-122                                                                                                                                              
+ backend/utils                 |   26.84 |    33.33 |   16.66 |   28.16 |                                                                                                                                                     
+  brevoEmailService.js         |      15 |       10 |       0 |   15.78 | 7-8,17-71,79-102,110-133,141-164                                                                                                                    
+  envValidator.js              |      50 |       56 |      50 |   54.28 | 67,73-76,90-98,105-107,128                                                                                                                          
+  processHandlers.js           |   21.62 |        0 |   14.28 |   21.62 | 16-32,41-56,63-65,72-73,84-102                                                                                                                      
+  sanitizer.js                 |   28.57 |        0 |       0 |   30.76 | 32-64                                                                                                                                               
+-------------------------------|---------|----------|---------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------
+Test Suites: 1 passed, 1 total
+Tests:       6 passed, 6 total
+Snapshots:   0 total
+Time:        4.935 s
+Ran all test suites matching tests/security.test.js.

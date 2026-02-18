@@ -214,6 +214,16 @@ router.post('/feedback', auth, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
         }
 
+        if (matchId) {
+            const match = await prisma.matchedCreator.findUnique({
+                where: { id: matchId },
+                include: { promotion: { select: { sellerId: true } }, creator: { select: { userId: true } } }
+            });
+            if (match && match.promotion.sellerId !== req.userId && match.creator.userId !== req.userId) {
+                return res.status(403).json({ success: false, message: 'Unauthorized feedback' });
+            }
+        }
+
         await AnalyticsService.recordMatchFeedback({
             userId: req.userId,
             targetUserId: targetUserId,
@@ -242,6 +252,15 @@ router.post('/outcome', auth, async (req, res) => {
 
         if (!matchId || !status) {
             return res.status(400).json({ success: false, message: 'Missing required fields' });
+        }
+
+        const match = await prisma.matchedCreator.findUnique({
+            where: { id: matchId },
+            include: { promotion: { select: { sellerId: true } }, creator: { select: { userId: true } } }
+        });
+
+        if (!match || (match.promotion.sellerId !== req.userId && match.creator.userId !== req.userId)) {
+            return res.status(403).json({ success: false, message: 'Unauthorized outcome tracking' });
         }
 
         await AnalyticsService.trackMatchOutcome({

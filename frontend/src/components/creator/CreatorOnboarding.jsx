@@ -9,6 +9,7 @@ import {
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { creatorAPI } from '../../services/api';
+import { trackEvent } from '../../utils/analytics';
 
 // ─── Constants ──────────────────────────────────────────────────
 const CATEGORIES = [
@@ -54,8 +55,8 @@ const ProgressBar = ({ currentPhase, completionPct }) => (
                 return (
                     <div key={i} className="flex items-center gap-2" style={{ flex: 1 }}>
                         <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 ${isDone ? 'bg-emerald-500 text-white' :
-                                isActive ? 'bg-primary-500 text-white ring-4 ring-primary-500/20' :
-                                    'bg-dark-700 text-dark-400'
+                            isActive ? 'bg-primary-500 text-white ring-4 ring-primary-500/20' :
+                                'bg-dark-700 text-dark-400'
                             }`}>
                             {isDone ? <FaCheckCircle /> : <Icon size={14} />}
                         </div>
@@ -103,8 +104,8 @@ const Phase1 = ({ data, setData }) => (
                         key={cat} type="button"
                         onClick={() => setData(d => ({ ...d, category: cat }))}
                         className={`py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition-all ${data.category === cat
-                                ? 'border-primary-500 bg-primary-500/10 text-primary-400'
-                                : 'border-dark-600 text-dark-300 hover:border-dark-500'
+                            ? 'border-primary-500 bg-primary-500/10 text-primary-400'
+                            : 'border-dark-600 text-dark-300 hover:border-dark-500'
                             }`}
                     >
                         {cat}
@@ -198,8 +199,8 @@ const Phase1 = ({ data, setData }) => (
                         key={opt.id} type="button"
                         onClick={() => setData(d => ({ ...d, availabilityStatus: opt.id }))}
                         className={`p-3 rounded-xl border-2 text-center transition-all ${data.availabilityStatus === opt.id
-                                ? `border-${opt.color}-500 bg-${opt.color}-500/10`
-                                : 'border-dark-600 hover:border-dark-500'
+                            ? `border-${opt.color}-500 bg-${opt.color}-500/10`
+                            : 'border-dark-600 hover:border-dark-500'
                             }`}
                     >
                         <span className="text-lg">{opt.icon}</span>
@@ -225,7 +226,7 @@ const Phase1 = ({ data, setData }) => (
                                 setData(d => ({ ...d, promotionTypes: next }));
                             }}
                             className={`py-3 rounded-xl border-2 text-sm font-medium transition-all ${selected ? 'border-primary-500 bg-primary-500/10 text-primary-400'
-                                    : 'border-dark-600 text-dark-300 hover:border-dark-500'
+                                : 'border-dark-600 text-dark-300 hover:border-dark-500'
                                 }`}
                         >
                             {type}
@@ -348,8 +349,8 @@ const Phase2 = ({ data, setData }) => {
                             key={opt.id} type="button"
                             onClick={() => setData(d => ({ ...d, willingToTravel: opt.id }))}
                             className={`p-3 rounded-xl border-2 transition-all text-left ${data.willingToTravel === opt.id
-                                    ? 'border-amber-500 bg-amber-500/10'
-                                    : 'border-dark-600 hover:border-dark-500'
+                                ? 'border-amber-500 bg-amber-500/10'
+                                : 'border-dark-600 hover:border-dark-500'
                                 }`}
                         >
                             <div className={`text-sm font-medium ${data.willingToTravel === opt.id ? 'text-amber-400' : 'text-dark-200'}`}>{opt.label}</div>
@@ -608,6 +609,7 @@ const CreatorOnboarding = ({ onComplete }) => {
     const handleFinish = async () => {
         try {
             const profile = await saveToServer();
+            trackEvent('onboarding_completed');
             toast.success('🎉 Profile ready! Welcome aboard.');
             if (onComplete) onComplete(profile);
         } catch (err) {

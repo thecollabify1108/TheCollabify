@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaRupeeSign, FaUsers } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import { trackEvent } from '../../utils/analytics';
 
 const CATEGORIES = [
     'Fashion', 'Tech', 'Fitness', 'Food', 'Travel', 'Lifestyle',
@@ -77,6 +78,7 @@ const RequestForm = ({ onSubmit }) => {
                     max: parseInt(formData.followerRange.max)
                 }
             });
+            trackEvent('collaboration_requested');
         } finally {
             setLoading(false);
         }

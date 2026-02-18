@@ -68,6 +68,25 @@ router.get('/pgp-key/:userId', auth, async (req, res) => {
             });
         }
 
+        // RBAC Check: Only allow if users are connected via an ACCEPTED match
+        const checkConnection = await prisma.matchedCreator.findFirst({
+            where: {
+                OR: [
+                    { creator: { userId: req.userId }, promotion: { sellerId: req.params.userId } },
+                    { creator: { userId: req.params.userId }, promotion: { sellerId: req.userId } }
+                ],
+                status: 'ACCEPTED'
+            }
+        });
+
+        if (!checkConnection) {
+            return res.status(403).json({
+                success: true,
+                data: { publicKey: null, name: user.name, isLocked: true },
+                message: 'PGP key access restricted. You must have an accepted collaboration to view this key.'
+            });
+        }
+
         res.json({
             success: true,
             data: { publicKey: user.pgpPublicKey, name: user.name }
@@ -578,65 +597,24 @@ router.post('/conversations/:id/messages', auth, [
             });
         }
 
-        // GATED MESSAGING LOGIC
-        // Check MatchedCreator status
-        const matchedCreator = await prisma.matchedCreator.findUnique({
+        // GATED MESSAGING LOGIC (Hardened)
+        // Fetch match status to verify if messaging is allowed
+        const match = await prisma.matchedCreator.findFirst({
             where: {
-                promotionId_creatorId: {
-                    promotionId: conversation.promotionId,
-                    creatorId: conversation.creatorProfileId || '' // Handle null profileId safely
-                }
+                promotionId: conversation.promotionId,
+                creator: { userId: conversation.creatorUserId }
             }
         });
 
-        // Use creatorProfileId from conversation, fallback to lookup if needed (omitted for brevity) 
-        // Actually, let's be robust. If creatorProfileId is missing, we might have an issue.
-        // But in our flow, it should be there.
-
-        // Standard check: Status must be ACCEPTED
-        // Standard check: Status must be ACCEPTED for full communication
-        // But we allow pre-inquiry messages with sanitization
-        let contentToSave = req.body.content;
-
-
-        if (matchedCreator) {
-            if (matchedCreator.status === 'DECLINED') {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Messaging unavailable. This request was declined.'
-                });
-            }
-
-            if (matchedCreator.status === 'PENDING') {
-                // Check if user has already sent a message
-                const messageCount = await prisma.message.count({
-                    where: {
-                        conversationId: conversationId,
-                        senderId: userId
-                    }
-                });
-
-                if (messageCount >= 1) {
-                    return res.status(403).json({
-                        success: false,
-                        message: 'Pre-inquiry limit reached. Wait for the creator to accept your request.',
-                        isPendingLimit: true
-                    });
-                }
-
-                // Block links in pre-inquiry
-                const linkRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
-                if (linkRegex.test(req.body.content)) {
-                    return res.status(400).json({
-                        success: false,
-                        message: 'Links are not allowed in pre-inquiry messages.'
-                    });
-                }
-
-                // Apply soft content sanitization for pre-acceptance messages
-                contentToSave = sanitizeContent(req.body.content);
-            }
+        if (!match || match.status !== 'ACCEPTED') {
+            return res.status(403).json({
+                success: false,
+                message: 'Messaging is only available after the brand has accepted the collaboration request.',
+                isLocked: true
+            });
         }
+
+        let contentToSave = req.body.content;
 
         // Also check Conversation status
         if (conversation.status !== 'ACTIVE') {

@@ -66,6 +66,17 @@
     gtag('js', new Date());
     gtag('config', 'G-QC608XJKBS');
   </script>
+
+  <!-- Simple Analytics - Production Only (Azure) -->
+  <script>
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      const saScript = document.createElement('script');
+      saScript.async = true;
+      saScript.defer = true;
+      saScript.src = "https://scripts.simpleanalyticscdn.com/latest.js";
+      document.head.appendChild(saScript);
+    }
+  </script>
   <!-- PWA Manifest - Disabled to prevent install prompts -->
   <!-- <link rel="manifest" href="/manifest.json?v=2" /> -->
 

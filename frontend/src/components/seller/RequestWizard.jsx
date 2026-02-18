@@ -11,6 +11,7 @@ import {
     FaInstagram
 } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
+import { trackEvent } from '../../utils/analytics';
 
 const RequestWizard = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
     const [step, setStep] = useState(1);
@@ -75,6 +76,7 @@ const RequestWizard = ({ isOpen, onClose, onSubmit, initialData = {} }) => {
         };
 
         onSubmit(payload);
+        trackEvent('collaboration_requested');
         onClose();
         resetForm();
     };

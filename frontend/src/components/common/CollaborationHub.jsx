@@ -9,6 +9,7 @@ import {
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { collaborationAPI } from '../../services/api';
+import { trackEvent } from '../../utils/analytics';
 
 // ─── Stage configuration ────────────────────────────────────────
 const STAGE_CONFIG = {
@@ -63,8 +64,8 @@ const ProgressTracker = ({ currentStatus }) => {
                                     boxShadow: isCurrent ? '0 0 20px rgba(99,102,241,0.4)' : '0 0 0px transparent'
                                 }}
                                 className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${isPast ? `${config.bg} border-transparent text-white` :
-                                        isCurrent ? `${config.bg} border-transparent text-white ring-4 ring-${config.bg}/20` :
-                                            'bg-dark-800 border-dark-600 text-dark-500'
+                                    isCurrent ? `${config.bg} border-transparent text-white ring-4 ring-${config.bg}/20` :
+                                        'bg-dark-800 border-dark-600 text-dark-500'
                                     }`}
                             >
                                 {isPast ? <FaCheckCircle size={16} /> : <Icon size={14} />}
@@ -151,6 +152,7 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
             toast.success(`${label} ✓`);
 
             if (newStatus === 'COMPLETED') {
+                trackEvent('collaboration_completed');
                 setShowFeedbackModal(true);
                 if (onComplete) onComplete();
             }

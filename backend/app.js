@@ -260,29 +260,8 @@ const initializeModules = async () => {
             console.error('❌ Socket.io load failed:', e.message);
         }
 
-        // 5. Load Routes
-        try {
-            app.use('/api/auth', authLimiter, require('./routes/auth'));
-            app.use('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset'));
-            app.use('/api/oauth', require('./routes/oauth'));
-            app.use('/api/search', cacheMiddleware(300), require('./routes/search'));
-            app.use('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard'));
-            app.use('/api/achievements', cacheMiddleware(300), require('./routes/achievements'));
-            app.use('/api/public', cacheMiddleware(300), require('./routes/public'));
-            app.use('/api/creators', require('./routes/creators'));
-            app.use('/api/sellers', require('./routes/sellers'));
-            app.use('/api/notifications', require('./routes/notifications'));
-            app.use('/api/chat', require('./routes/chat'));
-            app.use('/api/admin', ipAllowlist, require('./routes/admin'));
-            app.use('/api/analytics', require('./routes/analytics'));
-            app.use('/api/calendar', require('./routes/contentCalendar'));
-            app.use('/api/team', require('./routes/teamManagement'));
-            app.use('/api/ai', require('./routes/ai'));
-            app.use('/api/collaboration', require('./routes/collaboration'));
-            console.log('✅ Routes loaded');
-        } catch (e) {
-            console.error('❌ Routes load failed:', e.message);
-        }
+        // 5. Heavy logic that can stay async
+        // (Socket.io, DB connection testing, etc.)
 
         isFullyInitialized = true;
         console.log('🚀 Full initialization complete!');
@@ -310,6 +289,27 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// Register Routes Synchronously (Must be before Error Handlers)
+console.log('🔄 Registering routes...');
+app.use('/api/auth', authLimiter, require('./routes/auth'));
+app.use('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset'));
+app.use('/api/oauth', require('./routes/oauth'));
+app.use('/api/search', cacheMiddleware(300), require('./routes/search'));
+app.use('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard'));
+app.use('/api/achievements', cacheMiddleware(300), require('./routes/achievements'));
+app.use('/api/public', cacheMiddleware(300), require('./routes/public'));
+app.use('/api/creators', require('./routes/creators'));
+app.use('/api/sellers', require('./routes/sellers'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/chat', require('./routes/chat'));
+app.use('/api/admin', ipAllowlist, require('./routes/admin'));
+app.use('/api/analytics', require('./routes/analytics'));
+app.use('/api/calendar', require('./routes/contentCalendar'));
+app.use('/api/team', require('./routes/teamManagement'));
+app.use('/api/ai', require('./routes/ai'));
+app.use('/api/collaboration', require('./routes/collaboration'));
+console.log('✅ Routes registered');
+
 // Root endpoint
 app.get('/', (req, res) => {
     res.json({
@@ -324,6 +324,11 @@ app.use(timeoutErrorHandler);
 app.use(sentryErrorHandler);
 app.use(errorHandler);
 
+// Start background initialization
+initializeModules().catch(err => {
+    console.error('💥 Background initialization failed:', err);
+});
+
 // Start Server
 const server = http.createServer(app);
 
@@ -331,11 +336,6 @@ const server = http.createServer(app);
 if (process.env.NODE_ENV !== 'test') {
     server.listen(PORT, '0.0.0.0', async () => {
         console.log(`✅ Server listening on port ${PORT}`);
-
-        // Background initialization
-        initializeModules().catch(err => {
-            console.error('💥 Background initialization failed:', err);
-        });
 
         if (initializeSocketServer) {
             try {

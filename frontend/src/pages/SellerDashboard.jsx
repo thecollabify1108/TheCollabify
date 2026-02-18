@@ -11,8 +11,9 @@ import {
 } from 'react-icons/fa';
 import { HiSparkles, HiHome, HiUserGroup, HiChat, HiViewGrid } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
-import { sellerAPI, chatAPI } from '../services/api';
+import { sellerAPI, chatAPI, collaborationAPI } from '../services/api';
 import { trackMatchFeedback, trackMatchOutcome } from '../services/feedback';
+import { trackEvent } from '../utils/analytics';
 import toast from 'react-hot-toast';
 
 // New Components
@@ -281,6 +282,7 @@ const SellerDashboard = () => {
             if (match) {
                 await collaborationAPI.initializeCollaboration(match._id).catch(err => console.error("Auto-init failed", err));
             }
+            trackEvent('collaboration_accepted');
             toast.success('✅ Creator accepted! Collaboration started.');
             fetchRequests(true);
         } catch (error) {

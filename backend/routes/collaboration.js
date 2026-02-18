@@ -42,6 +42,14 @@ router.post('/initialize', auth, [
             return res.status(404).json({ success: false, message: 'Match not found' });
         }
 
+        // Enforce state-based gating: Cannot initialize if NOT ACCEPTED
+        if (match.status !== 'ACCEPTED') {
+            return res.status(400).json({
+                success: false,
+                message: 'Collaboration can only be initialized after a match has been ACCEPTED by the brand.'
+            });
+        }
+
         // Authorization: user must be seller or creator
         const profile = match.creatorId ? await prisma.creatorProfile.findUnique({ where: { id: match.creatorId } }) : null;
         const isAuthorized = match.promotion.sellerId === req.userId || (profile && profile.userId === req.userId);
@@ -111,6 +119,13 @@ router.get('/:matchId', auth, async (req, res) => {
 
         if (!collaboration) {
             return res.status(404).json({ success: false, message: 'Collaboration not found' });
+        }
+
+        // IDOR PROTECTION: Verify ownership
+        const sellerId = collaboration.matchedCreator.promotion.sellerId;
+        const creatorId = collaboration.matchedCreator.creator.userId;
+        if (sellerId !== req.userId && creatorId !== req.userId) {
+            return res.status(403).json({ success: false, message: 'Unauthorized access to collaboration details' });
         }
 
         // Enrich with state machine metadata
@@ -232,10 +247,28 @@ router.patch('/:id', auth, async (req, res) => {
         const { id } = req.params;
         const { deliverables, startDate, endDate, milestones } = req.body;
 
-        // Fetch current to check editability
-        const existing = await prisma.collaboration.findUnique({ where: { id } });
+        // Fetch current to check editability and ownership
+        const existing = await prisma.collaboration.findUnique({
+            where: { id },
+            include: {
+                matchedCreator: {
+                    include: {
+                        promotion: { select: { sellerId: true } },
+                        creator: { select: { userId: true } }
+                    }
+                }
+            }
+        });
         if (!existing) {
             return res.status(404).json({ success: false, message: 'Collaboration not found' });
+        }
+
+        // IDOR PROTECTION: Verify ownership
+        const isAuthorized =
+            existing.matchedCreator.promotion.sellerId === req.userId ||
+            existing.matchedCreator.creator.userId === req.userId;
+        if (!isAuthorized) {
+            return res.status(403).json({ success: false, message: 'Unauthorized to modify this collaboration' });
         }
 
         if (!isEditable(existing.status)) {

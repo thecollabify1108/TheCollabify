@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FaHashtag, FaRupeeSign } from 'react-icons/fa';
 import { creatorAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+import { trackEvent } from '../../utils/analytics';
 
 const CATEGORIES = [
     'Fashion', 'Tech', 'Fitness', 'Food', 'Travel', 'Lifestyle',
@@ -130,6 +131,7 @@ const ProfileForm = ({ profile, onSave }) => {
             }
 
             toast.success(profile ? 'Profile updated!' : 'Profile created!');
+            trackEvent('profile_completed');
             onSave(res.data.data.profile);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to save profile');

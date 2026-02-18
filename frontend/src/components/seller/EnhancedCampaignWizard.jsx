@@ -6,6 +6,7 @@ import CampaignTemplateSelector from './CampaignTemplateSelector';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 import AIAssistantPanel from '../common/AIAssistantPanel';
 import toast from 'react-hot-toast';
+import { trackEvent } from '../../utils/analytics';
 
 /**
  * Enhanced Campaign Creation Wizard
@@ -101,6 +102,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
 
         onSubmit?.(payload);
         onClose?.();
+        trackEvent('campaign_created');
         toast.success('Campaign created successfully!');
     };
 

@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { FaInstagram, FaHeart, FaTimes, FaComments, FaStar, FaUndo, FaCheck, FaUserPlus } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
+import { trackEvent } from '../../utils/analytics';
 
 const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -16,6 +17,7 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
         setTimeout(() => {
             if (direction === 'right') {
                 onAccept(currentCreator.requestId, currentCreator.creatorId);
+                trackEvent('match_clicked');
                 setLastAction({ type: 'accept', creator: currentCreator });
             } else {
                 onReject(currentCreator.requestId, currentCreator.creatorId);
