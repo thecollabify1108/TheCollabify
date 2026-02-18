@@ -1,3 +1,4 @@
+const newrelic = require('newrelic');
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
@@ -626,6 +627,12 @@ router.post('/conversations/:id/messages', auth, [
         }
 
 
+        newrelic.addCustomParameters({
+            conversationId,
+            senderId: userId,
+            isSeller
+        });
+
         // Create message
         const message = await prisma.message.create({
             data: {
@@ -641,6 +648,9 @@ router.post('/conversations/:id/messages', auth, [
                 sender: { select: { id: true, name: true, avatar: true } }
             }
         });
+
+        // Record custom metric for successful messages
+        newrelic.recordMetric('Custom/Chat/MessageSent', 1);
 
         // Update conversation with last message and unread count
         const unreadUpdate = isSeller
@@ -658,9 +668,11 @@ router.post('/conversations/:id/messages', auth, [
 
         res.status(201).json({
             success: true,
-            data: { message }
+            data: message
         });
+
     } catch (error) {
+        newrelic.noticeError(error);
         console.error('Send message error:', error);
         res.status(500).json({
             success: false,

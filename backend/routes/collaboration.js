@@ -1,4 +1,4 @@
-
+const newrelic = require('newrelic');
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
@@ -213,10 +213,19 @@ router.post('/:id/transition', auth, [
             updateData.completedAt = new Date();
         }
 
+        newrelic.addCustomParameters({
+            collaborationId: id,
+            oldStatus: collaboration.status,
+            newStatus: newStatus
+        });
+
         const updated = await prisma.collaboration.update({
             where: { id },
             data: updateData
         });
+
+        // Record custom metric for status transitions
+        newrelic.recordMetric('Custom/Collaboration/Transition/' + newStatus, 1);
 
         // Enrich response with next valid actions
         res.json({
@@ -232,6 +241,7 @@ router.post('/:id/transition', auth, [
             }
         });
     } catch (error) {
+        newrelic.noticeError(error);
         console.error('Transition collaboration error:', error);
         res.status(500).json({ success: false, message: 'Server error' });
     }

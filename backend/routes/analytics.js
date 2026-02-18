@@ -1,3 +1,4 @@
+const newrelic = require('newrelic');
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
@@ -263,13 +264,22 @@ router.post('/outcome', auth, async (req, res) => {
             return res.status(403).json({ success: false, message: 'Unauthorized outcome tracking' });
         }
 
+        newrelic.addCustomParameters({
+            matchId,
+            outcomeStatus: status
+        });
+
         await AnalyticsService.trackMatchOutcome({
             matchId,
             status
         });
 
+        // Record custom metric for business tracking
+        newrelic.recordMetric('Custom/Match/Outcome/' + status, 1);
+
         res.status(200).json({ success: true });
     } catch (error) {
+        newrelic.noticeError(error);
         console.error('Outcome endpoint error:', error);
         res.status(200).json({ success: true });
     }
