@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FaShieldAlt, FaUserSecret, FaCookieBite, FaCheckCircle } from 'react-icons/fa';
+import Icon from '../components/common/Icon';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 
@@ -17,7 +17,7 @@ const PrivacyPolicy = () => {
                             animate={{ opacity: 1, scale: 1 }}
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-medium text-sm mb-6"
                         >
-                            <FaShieldAlt /> Privacy First Protocol
+                            <Icon name="shield-check" size={16} /> Privacy First Protocol
                         </motion.div>
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
@@ -36,21 +36,21 @@ const PrivacyPolicy = () => {
                     {/* Key Promises Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
                         <div className="p-8 rounded-2xl bg-white dark:bg-dark-800 shadow-sm border border-gray-100 dark:border-dark-700">
-                            <FaUserSecret className="text-4xl text-primary-500 mb-4" />
+                            <Icon name="user" size={40} className="text-primary-500 mb-4" />
                             <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Zero Personal Tracking</h3>
                             <p className="text-gray-600 dark:text-gray-400">
                                 We don't track who you are. We only count anonymous page views to verify campaign reach.
                             </p>
                         </div>
                         <div className="p-8 rounded-2xl bg-white dark:bg-dark-800 shadow-sm border border-gray-100 dark:border-dark-700">
-                            <FaCookieBite className="text-4xl text-secondary-500 mb-4" />
+                            <Icon name="cookie" size={40} className="text-secondary-500 mb-4" />
                             <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">No Creepy Cookies</h3>
                             <p className="text-gray-600 dark:text-gray-400">
                                 We do not use persistent cookies to follow you around the internet. Your browsing habit is yours alone.
                             </p>
                         </div>
                         <div className="p-8 rounded-2xl bg-white dark:bg-dark-800 shadow-sm border border-gray-100 dark:border-dark-700">
-                            <FaShieldAlt className="text-4xl text-green-500 mb-4" />
+                            <Icon name="shield-check" size={40} className="text-green-500 mb-4" />
                             <h3 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">Data Ownership</h3>
                             <p className="text-gray-600 dark:text-gray-400">
                                 Your detailed profile data belongs to you. You can export or delete it at any time.
@@ -64,15 +64,15 @@ const PrivacyPolicy = () => {
                         <p>We believe in minimal data collection. Here is exactly what we store:</p>
                         <ul className="space-y-2">
                             <li className="flex items-start gap-3">
-                                <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0" />
+                                <Icon name="check" size={16} className="text-green-500 mt-1 flex-shrink-0" />
                                 <span><strong>Account Info:</strong> Name, Email, and Password (encrypted) when you sign up.</span>
                             </li>
                             <li className="flex items-start gap-3">
-                                <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0" />
+                                <Icon name="check" size={16} className="text-green-500 mt-1 flex-shrink-0" />
                                 <span><strong>Profile Data:</strong> Social media stats you choose to connect (for matchmaking).</span>
                             </li>
                             <li className="flex items-start gap-3">
-                                <FaCheckCircle className="text-green-500 mt-1 flex-shrink-0" />
+                                <Icon name="check" size={16} className="text-green-500 mt-1 flex-shrink-0" />
                                 <span><strong>Anonymous Analytics:</strong> We count "1 visit to /home" without attaching IP addresses or IDs.</span>
                             </li>
                         </ul>

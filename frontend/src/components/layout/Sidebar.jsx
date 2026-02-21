@@ -15,13 +15,15 @@ const Sidebar = ({ tabs, activeTab, setActiveTab, user }) => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === tab.id
-                                ? 'bg-primary-500/10 text-primary-400'
-                                : 'text-dark-400 hover:bg-dark-800 hover:text-dark-200'
+                            ? 'bg-primary-500/10 text-primary-400'
+                            : 'text-dark-400 hover:bg-dark-800 hover:text-dark-200'
                             }`}
                     >
-                        <span className={`text-xl ${activeTab === tab.id ? 'text-primary-500' : 'text-dark-400 group-hover:text-dark-300'}`}>
-                            {tab.icon}
-                        </span>
+                        <Icon
+                            name={tab.iconName || 'grid'}
+                            size={20}
+                            className={activeTab === tab.id ? 'text-primary-500' : 'text-dark-400 group-hover:text-dark-300'}
+                        />
                         <span className="font-medium">{tab.label}</span>
 
                         {/* Badges */}

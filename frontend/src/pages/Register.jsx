@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaStore, FaCamera, FaGoogle, FaArrowLeft, FaCheck, FaArrowRight } from 'react-icons/fa';
 import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -11,6 +10,7 @@ import Confetti from '../components/common/Confetti';
 import OTPInput from '../components/common/OTPInput';
 import PasswordStrengthIndicator from '../components/common/PasswordStrengthIndicator';
 import AuthLayout from '../components/auth/AuthLayout';
+import Icon from '../components/common/Icon';
 
 const Register = () => {
     const { isDark } = useTheme();
@@ -47,8 +47,6 @@ const Register = () => {
         const roleFromUrl = searchParams.get('role');
         if (roleFromUrl && ['creator', 'seller'].includes(roleFromUrl)) {
             setFormData(prev => ({ ...prev, role: roleFromUrl }));
-            // If role is pre-selected, maybe jump to step 2? 
-            // setStep(2); // Optional: un-comment if we want to skip role selection automatically
         }
     }, [searchParams]);
 
@@ -202,7 +200,7 @@ const Register = () => {
                     onClick={() => setStep(prev => prev - 1)}
                     className="flex items-center text-dark-400 hover:text-dark-200 mb-6 transition-colors text-sm"
                 >
-                    <FaArrowLeft className="mr-2" /> Back
+                    <Icon name="arrow-left" size={16} className="mr-2" /> Back
                 </button>
             )}
 
@@ -228,14 +226,14 @@ const Register = () => {
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'seller' ? 'bg-primary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
                                     }`}>
-                                    <FaStore className="text-xl" />
+                                    <Icon name="store" size={20} />
                                 </div>
                                 <h3 className={`text-lg font-bold mb-1 ${formData.role === 'seller' ? 'text-primary-400' : 'text-dark-100'}`}>Brand / Seller</h3>
                                 <p className="text-sm text-dark-400">hire creators to promote your products.</p>
 
                                 {formData.role === 'seller' && (
                                     <div className="absolute top-6 right-6 text-primary-500">
-                                        <FaCheck className="text-xl" />
+                                        <Icon name="check" size={20} />
                                     </div>
                                 )}
                             </button>
@@ -250,22 +248,18 @@ const Register = () => {
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'creator' ? 'bg-secondary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
                                     }`}>
-                                    <FaCamera className="text-xl" />
+                                    <Icon name="camera" size={20} />
                                 </div>
                                 <h3 className={`text-lg font-bold mb-1 ${formData.role === 'creator' ? 'text-secondary-400' : 'text-dark-100'}`}>Content Creator</h3>
                                 <p className="text-sm text-dark-400">Find sponsorships and monetize content.</p>
 
                                 {formData.role === 'creator' && (
                                     <div className="absolute top-6 right-6 text-secondary-500">
-                                        <FaCheck className="text-xl" />
+                                        <Icon name="check" size={20} />
                                     </div>
                                 )}
                             </button>
                         </div>
-
-
-
-
 
                         {/* Google Signup & Next Button - Conditional on Role Selection */}
                         <AnimatePresence>
@@ -281,7 +275,7 @@ const Register = () => {
                                         className="btn-3d w-full py-4 flex items-center justify-center gap-2 group"
                                     >
                                         <span>Continue with Details</span>
-                                        <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+                                        <Icon name="arrow-right" size={18} className="group-hover:translate-x-1 transition-transform" />
                                     </button>
 
                                     <div className="relative my-6">
@@ -299,7 +293,7 @@ const Register = () => {
                                         disabled={loading}
                                         className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 hover:bg-white/20 dark:hover:bg-black/20 text-dark-900 dark:text-dark-100 font-medium rounded-xl transition-all shadow-lg"
                                     >
-                                        <FaGoogle className="text-lg" />
+                                        <Icon name="google" size={20} />
                                         <span>Signup with Google</span>
                                     </button>
                                 </motion.div>
@@ -350,10 +344,10 @@ const Register = () => {
                                         className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50 pl-8"
                                         required
                                     />
-                                    <FaEnvelope className="absolute left-0 top-3 text-dark-400" />
+                                    <Icon name="mail" className="absolute left-0 top-3 text-dark-400" size={18} />
                                 </div>
                                 <p className="text-xs text-dark-400 flex items-center gap-1 mt-1">
-                                    <FaLock className="w-2.5 h-2.5" /> We'll keep this private.
+                                    <Icon name="lock" size={10} /> We'll keep this private.
                                 </p>
                             </div>
 
@@ -369,13 +363,13 @@ const Register = () => {
                                         className="w-full py-2 bg-transparent border-b-2 border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50 pl-8"
                                         required
                                     />
-                                    <FaLock className="absolute left-0 top-3 text-dark-400" />
+                                    <Icon name="lock" className="absolute left-0 top-3 text-dark-400" size={18} />
                                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-2 text-dark-400 hover:text-dark-600 transition-colors">
-                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                        {showPassword ? <Icon name="eye-off" size={18} /> : <Icon name="eye" size={18} />}
                                     </button>
                                 </div>
                                 <p className="text-xs text-emerald-500/80 flex items-center gap-1 mt-1">
-                                    <FaLock className="w-2.5 h-2.5" /> Encrypted before leaving your device.
+                                    <Icon name="lock" size={10} /> Encrypted before leaving your device.
                                 </p>
                                 <PasswordStrengthIndicator password={formData.password} />
                             </div>
@@ -436,7 +430,7 @@ const Register = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </AuthLayout >
+        </AuthLayout>
     );
 };
 

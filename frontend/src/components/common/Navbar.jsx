@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaInstagram, FaUser, FaSignOutAlt, FaCog, FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import LiveNotificationBell from '../realtime/LiveNotificationBell';
 import ThemeToggle from './ThemeToggle';
+import Icon from './Icon';
+import Logo from './Logo';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -57,13 +58,7 @@ const Navbar = () => {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link to="/" className="flex items-center space-x-2 md:space-x-3 group">
-                        <motion.img
-                            src="/favicon.png"
-                            alt="Logo"
-                            className="h-8 w-8 md:h-9 md:w-9 object-contain"
-                            whileHover={{ rotate: 12, scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                        />
+                        <Logo className="h-8 w-8 md:h-9 md:w-9 object-contain transition-all duration-300 group-hover:scale-110" />
                         <div className="flex flex-col">
                             <span className="text-xl md:text-2xl font-black italic tracking-tighter gradient-text">
                                 TheCollabify
@@ -116,14 +111,14 @@ const Navbar = () => {
                                                 onClick={() => setShowUserMenu(false)}
                                                 className="flex items-center px-4 py-2 text-dark-300 hover:text-dark-100 hover:bg-dark-700 transition"
                                             >
-                                                <FaUser className="mr-3" />
+                                                <Icon name="user" size={16} className="mr-3" />
                                                 Dashboard
                                             </Link>
                                             <button
                                                 onClick={handleLogout}
                                                 className="w-full flex items-center px-4 py-2 text-red-400 hover:text-red-300 hover:bg-dark-700 transition"
                                             >
-                                                <FaSignOutAlt className="mr-3" />
+                                                <Icon name="logout" size={16} className="mr-3" />
                                                 Sign Out
                                             </button>
                                         </div>
@@ -140,7 +135,7 @@ const Navbar = () => {
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="p-2 rounded-xl bg-dark-800 text-dark-200 hover:bg-dark-700 transition-colors"
                         >
-                            {isMobileMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+                            {isMobileMenuOpen ? <Icon name="close" size={24} /> : <Icon name="menu" size={24} />}
                         </button>
                     </div>
                 </div>
@@ -175,7 +170,7 @@ const Navbar = () => {
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className="flex items-center space-x-3 px-4 py-3 rounded-xl bg-dark-900 text-dark-200 font-medium hover:bg-dark-800 transition"
                                 >
-                                    <FaUser className="text-primary-400" />
+                                    <Icon name="user" size={16} className="text-primary-400" />
                                     <span>Dashboard</span>
                                 </Link>
                                 <button
@@ -185,7 +180,7 @@ const Navbar = () => {
                                     }}
                                     className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 font-medium hover:bg-red-500/10 transition"
                                 >
-                                    <FaSignOutAlt />
+                                    <Icon name="logout" size={16} />
                                     <span>Sign Out</span>
                                 </button>
                             </div>

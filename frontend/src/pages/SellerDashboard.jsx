@@ -450,38 +450,38 @@ const SellerDashboard = () => {
         {
             id: 'dashboard',
             label: 'Home',
-            icon: <HiHome />,
+            iconName: 'home',
             description: 'Campaigns'
         },
         {
             id: 'search',
             label: 'Search',
-            icon: <FaSearch />,
+            iconName: 'search',
             description: 'Find Creators'
         },
         {
             id: 'analytics',
             label: 'Stats',
-            icon: <FaStream />,
+            iconName: 'grid',
             description: 'Analytics'
         },
         {
             id: 'team',
             label: 'Team',
-            icon: <FaUsers />,
+            iconName: 'users',
             description: 'Manage Team'
         },
         {
             id: 'discover',
             label: 'Matches',
-            icon: <HiUserGroup />,
+            iconName: 'users',
             badge: pendingCreators.length,
             description: 'Applicants'
         },
         {
             id: 'messages',
             label: 'Chat',
-            icon: <HiChat />,
+            iconName: 'chat',
             badge: conversations.filter(c => c.unreadCount > 0).length,
             description: 'Messages'
         }

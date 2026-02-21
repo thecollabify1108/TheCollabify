@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fa';
 import NewsletterSignup from './NewsletterSignup';
 import { useTheme } from '../../context/ThemeContext';
+import Logo from './Logo';
 
 const Footer = () => {
     const { isDark } = useTheme();
@@ -70,13 +71,7 @@ const Footer = () => {
                     {/* Branding Section */}
                     <div className="md:col-span-4">
                         <Link to="/" className="inline-flex items-center gap-3 mb-6 group">
-                            <motion.div
-                                className="w-10 h-10 relative"
-                                whileHover={{ rotate: 180 }}
-                                transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                            >
-                                <img src="/favicon.png" alt="Logo" className="w-full h-full object-contain" />
-                            </motion.div>
+                            <Logo className="w-10 h-10 object-contain transition-all duration-300 group-hover:rotate-12 group-hover:scale-110" />
                             <div className="flex flex-col">
                                 <span className={`text-2xl font-black italic tracking-tighter bg-gradient-to-r from-primary-400 via-secondary-400 to-pink-400 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]`}>
                                     TheCollabify

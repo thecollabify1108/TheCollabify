@@ -1,17 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    HiSparkles,
-    HiUserGroup,
-    HiChartBar,
-    HiLightningBolt,
-    HiShieldCheck,
-    HiCash,
-    HiBadgeCheck,
-    HiCheck
-} from 'react-icons/hi';
-import { FaInstagram, FaBuilding, FaUserAlt, FaHandshake, FaChartLine, FaLock, FaWallet } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedCounter from '../components/common/AnimatedCounter';
@@ -19,6 +8,8 @@ import AnimatedCounter from '../components/common/AnimatedCounter';
 import FAQAccordion from '../components/common/FAQAccordion';
 import Leaderboard from '../components/common/Leaderboard';
 import SocialProofWidget from '../components/common/SocialProofWidget';
+import Icon from '../components/common/Icon';
+import Logo from '../components/common/Logo';
 
 // TIER 1: Premium Visual Effects
 import ParallaxSection from '../components/effects/ParallaxSection';
@@ -112,28 +103,28 @@ const Landing = () => {
     // Bento-box style feature cards
     const features = [
         {
-            icon: <HiSparkles className="w-10 h-10" />,
+            icon: <Icon name="sparkles" size={40} />,
             title: 'AI-Powered Matching',
             description: 'Smart algorithm connects you with the perfect creators based on engagement, niche, and campaign goals.',
             badge: 'AI Powered',
             badgeColor: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
         },
         {
-            icon: <HiChartBar className="w-10 h-10" />,
+            icon: <Icon name="chart" size={40} />,
             title: 'Real Analytics',
             description: 'Get detailed insights on creator performance, audience authenticity, and engagement quality.',
             badge: 'Real ROI',
             badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
         },
         {
-            icon: <HiShieldCheck className="w-10 h-10" />,
+            icon: <Icon name="shield" size={40} />,
             title: 'Verified Creators',
             description: 'All creators are verified with authentic engagement metrics and transparent pricing.',
             badge: 'Trusted',
             badgeColor: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
         },
         {
-            icon: <FaWallet className="w-10 h-10" />,
+            icon: <Icon name="wallet" size={40} />,
             title: 'Secure Payments',
             description: 'Set your budget and find creators that match. No hidden fees, transparent negotiations.',
             badge: 'Safe & Secure',
@@ -215,12 +206,7 @@ const Landing = () => {
                         <div className="flex items-center justify-between h-16">
                             {/* Logo */}
                             <Link to="/" className="flex items-center space-x-2 md:space-x-3 group">
-                                <motion.img
-                                    src="/favicon.png"
-                                    alt=""
-                                    className="h-8 w-8 object-contain"
-                                    whileTap={{ scale: 0.9 }}
-                                />
+                                <Logo className="h-8 w-8 object-contain transition-all duration-300 group-hover:rotate-12 group-hover:scale-110" />
                                 <div className="flex flex-col">
                                     <div className="flex items-baseline">
                                         <span className="text-base md:text-lg italic text-dark-100 mr-1">The</span>
@@ -269,13 +255,9 @@ const Landing = () => {
                                     aria-label="Toggle menu"
                                 >
                                     {mobileMenuOpen ? (
-                                        <svg className="w-5 h-5 text-dark-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
+                                        <Icon name="close" size={20} className="text-dark-100" />
                                     ) : (
-                                        <svg className="w-5 h-5 text-dark-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                                        </svg>
+                                        <Icon name="menu" size={20} className="text-dark-100" />
                                     )}
                                 </motion.button>
                             </div>
@@ -351,7 +333,7 @@ const Landing = () => {
                             transition={{ duration: 0.6 }}
                         >
                             <span className="inline-flex items-center px-5 py-2 rounded-full text-sm font-medium bg-primary-500/10 text-primary-400 border border-primary-500/20 mb-8">
-                                <HiSparkles className="w-4 h-4 mr-2" />
+                                <Icon name="sparkles" size={16} className="mr-2" />
                                 Smart Influencer Marketing Platform
                             </span>
                         </motion.div>
@@ -413,7 +395,7 @@ const Landing = () => {
                                 className="group flex items-center gap-4 px-8 py-5 rounded-2xl bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white font-semibold text-lg shadow-xl shadow-primary-500/25 hover:shadow-2xl hover:shadow-primary-500/30 transform hover:-translate-y-1 transition-all duration-300"
                             >
                                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                                    <FaBuilding className="w-6 h-6" />
+                                    <Icon name="building" size={24} />
                                 </div>
                                 <div className="text-left">
                                     <div className="text-sm opacity-80">I'm a</div>
@@ -426,7 +408,7 @@ const Landing = () => {
                                 className="group flex items-center gap-4 px-8 py-5 rounded-2xl bg-dark-800 hover:bg-dark-700 border border-dark-600 hover:border-dark-500 text-dark-100 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300"
                             >
                                 <div className="w-12 h-12 bg-primary-500/20 rounded-xl flex items-center justify-center text-primary-400">
-                                    <FaUserAlt className="w-6 h-6" />
+                                    <Icon name="user" size={24} />
                                 </div>
                                 <div className="text-left">
                                     <div className="text-sm text-dark-400">I'm a</div>
@@ -445,7 +427,7 @@ const Landing = () => {
                                 onClick={() => navigate('/demo')}
                                 className="text-dark-400 hover:text-primary-400 transition-colors flex items-center justify-center gap-2 mx-auto text-sm font-medium border-b border-transparent hover:border-primary-400 pb-0.5"
                             >
-                                <HiLightningBolt />
+                                <Icon name="zap" size={14} />
                                 Not ready to join? Try the Interactive Demo
                             </button>
                         </motion.div>
@@ -753,7 +735,7 @@ const Landing = () => {
                                         <ul className="space-y-2">
                                             {step.points.map((point, i) => (
                                                 <li key={i} className="flex items-center text-dark-400 text-sm">
-                                                    <HiCheck className="w-4 h-4 text-emerald-400 mr-2 flex-shrink-0" />
+                                                    <Icon name="check" size={16} className="text-emerald-400 mr-2 flex-shrink-0" />
                                                     {point}
                                                 </li>
                                             ))}

@@ -1,6 +1,6 @@
 import { useTheme } from '../../context/ThemeContext';
-import { FaSun, FaMoon } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import Icon from './Icon';
 
 const ThemeToggle = () => {
     const { theme, toggleTheme, isDark } = useTheme();
@@ -15,9 +15,9 @@ const ThemeToggle = () => {
             title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
         >
             {isDark ? (
-                <FaSun className="w-5 h-5" />
+                <Icon name="sun" size={20} />
             ) : (
-                <FaMoon className="w-5 h-5 text-dark-600" />
+                <Icon name="moon" size={20} className="text-dark-600" />
             )}
         </motion.button>
     );

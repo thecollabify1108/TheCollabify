@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiBell, HiX } from 'react-icons/hi';
 import { formatDistanceToNow } from 'date-fns';
 import useWebSocket from '../../hooks/useWebSocket';
+import Icon from '../common/Icon';
 
 /**
  * LiveNotificationBell - Real-time notification center
@@ -30,7 +30,7 @@ const LiveNotificationBell = ({ userId }) => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
             >
-                <HiBell className="w-6 h-6 text-dark-300" />
+                <Icon name="bell" size={24} className="text-dark-300" />
 
                 {/* Online Indicator */}
                 {isConnected && (
@@ -82,7 +82,7 @@ const LiveNotificationBell = ({ userId }) => {
                                         onClick={() => setIsOpen(false)}
                                         className="text-dark-500 hover:text-dark-300"
                                     >
-                                        <HiX className="w-5 h-5" />
+                                        <Icon name="close" size={20} />
                                     </button>
                                 </div>
                             </div>
@@ -91,7 +91,7 @@ const LiveNotificationBell = ({ userId }) => {
                             <div className="overflow-y-auto flex-1">
                                 {notifications.length === 0 ? (
                                     <div className="p-8 text-center text-dark-500">
-                                        <HiBell className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                                        <Icon name="bell" size={48} className="mx-auto mb-2 opacity-30" />
                                         <p>No notifications yet</p>
                                     </div>
                                 ) : (
@@ -111,7 +111,7 @@ const LiveNotificationBell = ({ userId }) => {
                                                             notif.type === 'warning' ? 'bg-amber-500/20 text-amber-400' :
                                                                 notif.type === 'error' ? 'bg-red-500/20 text-red-400' :
                                                                     'bg-primary-500/20 text-primary-400'}`}>
-                                                        {notif.icon || '🔔'}
+                                                        {notif.icon || <Icon name="bell" size={16} />}
                                                     </div>
 
                                                     {/* Content */}

@@ -312,39 +312,39 @@ const CreatorDashboard = () => {
         {
             id: 'dashboard',
             label: 'Home',
-            icon: <HiHome />,
+            iconName: 'home',
             description: 'Overview & Activity'
         },
         {
             id: 'opportunities',
             label: 'Jobs',
-            icon: <HiBriefcase />,
+            iconName: 'briefcase',
             badge: promotions.length,
             description: 'Browse Brands'
         },
         {
             id: 'analytics',
             label: 'Stats',
-            icon: <FaTrophy />,
+            iconName: 'trophy',
             description: 'Performance'
         },
         {
             id: 'calendar',
             label: 'Calendar',
-            icon: <FaCalendar />,
+            iconName: 'calendar',
             description: 'Schedule'
         },
         {
             id: 'messages',
             label: 'Chat',
-            icon: <HiChat />,
+            iconName: 'chat',
             badge: pendingRequests,
             description: 'Messages'
         },
         {
             id: 'profile',
             label: 'Profile',
-            icon: <FaCog />,
+            iconName: 'settings',
             description: 'Settings'
         }
     ];

@@ -51,7 +51,7 @@ const DashboardLayout = ({
                                     : 'text-dark-400 hover:text-dark-200'
                                     }`}
                             >
-                                <span className="text-xl">{tab.icon}</span>
+                                <Icon name={tab.iconName || 'grid'} size={20} />
                                 <span className="text-xs font-medium">{tab.label}</span>
                                 {tab.badge > 0 && (
                                     <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary-500 text-white text-xs flex items-center justify-center font-bold">

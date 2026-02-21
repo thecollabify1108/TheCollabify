@@ -817,6 +817,40 @@
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
+/* ============================================
+   PREMIUM LOGO ANIMATIONS
+   ============================================ */
+@keyframes logo-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-logo-mount {
+  animation: logo-rotate 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-logo-tilt {
+  transform: rotate(15deg) scale(1.1) !important;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-logo-mount {
+    animation: none !important;
+  }
+
+  .animate-logo-tilt {
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 .page-transition-exit {
   opacity: 1;
   transform: translateY(0);

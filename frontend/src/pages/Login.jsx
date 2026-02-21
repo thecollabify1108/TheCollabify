@@ -1,13 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle, FaArrowRight, FaArrowLeft } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import Confetti from '../components/common/Confetti';
 import AuthLayout from '../components/auth/AuthLayout';
+import Icon from '../components/common/Icon';
 
 const Login = () => {
     const { isDark } = useTheme();
@@ -187,10 +187,10 @@ const Login = () => {
                                         required
                                         autoFocus
                                     />
-                                    <FaEnvelope className="absolute left-3.5 top-3.5 text-dark-400" />
+                                    <Icon name="mail" className="absolute left-3.5 top-3.5 text-dark-400" size={18} />
                                 </div>
                                 <p className="text-xs text-dark-400 pl-1 flex items-center gap-1">
-                                    <FaLock className="w-3 h-3" /> We'll keep this private.
+                                    <Icon name="lock" size={12} /> We'll keep this private.
                                 </p>
                             </div>
                         </motion.div>
@@ -211,7 +211,7 @@ const Login = () => {
                                 onClick={handleBack}
                                 className="absolute -top-12 left-0 text-sm text-dark-400 hover:text-dark-200 flex items-center gap-1 transition-colors"
                             >
-                                <FaArrowLeft className="w-3 h-3" /> Back
+                                <Icon name="arrow-left" size={12} /> Back
                             </button>
 
                             <div className="space-y-1 group">
@@ -235,17 +235,17 @@ const Login = () => {
                                         required
                                         autoFocus
                                     />
-                                    <FaLock className="absolute left-3.5 top-3.5 text-dark-400" />
+                                    <Icon name="lock" className="absolute left-3.5 top-3.5 text-dark-400" size={18} />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="absolute inset-y-0 right-0 top-0 px-3 flex items-center text-dark-400 hover:text-dark-600"
                                     >
-                                        {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                        {showPassword ? <Icon name="eye-off" size={20} /> : <Icon name="eye" size={20} />}
                                     </button>
                                 </div>
                                 <p className="text-xs text-emerald-500/80 pl-1 flex items-center gap-1">
-                                    <FaLock className="w-3 h-3" /> Encrypted before leaving your device.
+                                    <Icon name="lock" size={12} /> Encrypted before leaving your device.
                                 </p>
                             </div>
                         </motion.div>
@@ -268,7 +268,7 @@ const Login = () => {
                         </>
                     ) : (
                         step === 1 ? (
-                            <>Type Password <FaArrowRight /></>
+                            <>Type Password <Icon name="arrow-right" size={16} /></>
                         ) : (
                             'Sign In'
                         )
@@ -292,7 +292,7 @@ const Login = () => {
                 disabled={googleLoading}
                 className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 dark:bg-black/20 backdrop-blur-md border border-dark-200 dark:border-dark-700 hover:bg-white/10 dark:hover:bg-dark-800 font-medium rounded-xl transition-all text-dark-900 dark:text-dark-100 group"
             >
-                <FaGoogle className="text-lg group-hover:text-primary-400 transition-colors" />
+                <Icon name="google" size={20} className="group-hover:text-primary-400 transition-colors" />
                 <span>Google</span>
             </motion.button>
 

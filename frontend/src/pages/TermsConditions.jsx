@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaArrowLeft } from 'react-icons/fa';
+import Icon from '../components/common/Icon';
 import Footer from '../components/common/Footer';
+import Logo from '../components/common/Logo';
 
 const TermsConditions = () => {
     return (
@@ -10,7 +11,7 @@ const TermsConditions = () => {
             <div className="bg-dark-900 border-b border-dark-800 py-8">
                 <div className="max-w-4xl mx-auto px-4">
                     <Link to="/" className="flex items-center space-x-3 mb-6">
-                        <img src="/favicon.png" alt="" className="w-8 h-8 object-contain" />
+                        <Logo className="w-8 h-8 object-contain" />
                         <div className="flex items-baseline">
                             <span className="text-lg italic text-dark-100 mr-1">The</span>
                             <span className="text-xl font-bold text-dark-100">Collabify</span>
@@ -143,7 +144,7 @@ const TermsConditions = () => {
                         to="/"
                         className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-dark-800 text-dark-100 hover:bg-dark-700 transition"
                     >
-                        <FaArrowLeft />
+                        <Icon name="arrow-left" size={16} />
                         Back to Home
                     </Link>
                 </div>
