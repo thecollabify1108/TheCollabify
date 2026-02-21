@@ -784,17 +784,11 @@ const SellerDashboard = () => {
 
                                 {requests.length === 0 ? (
                                     <EmptyState
-                                        icon={<HiViewGrid />}
-                                        title="No campaigns yet"
-                                        description="Launch your first campaign to find creators"
-                                        action={
-                                            <LoadingButton
-                                                onClick={() => setShowRequestWizard(true)}
-                                                className="px-6 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-semibold border-none shadow-lg shadow-primary-500/20"
-                                            >
-                                                Launch Campaign
-                                            </LoadingButton>
-                                        }
+                                        icon="box-empty"
+                                        title="No Campaigns Launched Yet"
+                                        description="Ready to scale your brand? Launch your first campaign and let our AI find the perfect creators for you."
+                                        actionLabel="Launch Campaign"
+                                        onAction={() => setShowRequestWizard(true)}
                                     />
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

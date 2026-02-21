@@ -12,6 +12,7 @@ import {
     FaHandshake
 } from 'react-icons/fa';
 import { HiSparkles, HiTrendingUp } from 'react-icons/hi';
+import EmptyState from '../common/EmptyState';
 
 /**
  * Campaign Analytics Dashboard
@@ -176,8 +177,8 @@ const CampaignAnalytics = ({ requests = [] }) => {
                             key={range}
                             onClick={() => setTimeRange(range)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${timeRange === range
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
                                 }`}
                         >
                             {range === 'week' ? '7 Days' : range === 'month' ? '30 Days' : 'All Time'}
@@ -273,15 +274,13 @@ const CampaignAnalytics = ({ requests = [] }) => {
 
             {/* Empty State */}
             {stats.totalCampaigns === 0 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-12 bg-dark-800/30 rounded-xl border border-dark-700"
-                >
-                    <FaChartLine className="text-5xl text-dark-600 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-dark-300 mb-2">No Campaign Data Yet</h3>
-                    <p className="text-dark-400">Create your first campaign to see analytics!</p>
-                </motion.div>
+                <EmptyState
+                    icon="chart"
+                    title="No Campaign Data Yet"
+                    description="Launch your first campaign to unlock powerful AI-driven insights and track your brand's growth."
+                    actionLabel="Setup Campaign"
+                    onAction={() => { }} // Usually parent handles wizard
+                />
             )}
         </div>
     );

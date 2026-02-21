@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import useWebSocket from '../../hooks/useWebSocket';
 import Icon from '../common/Icon';
+import EmptyState from '../common/EmptyState';
 
 /**
  * LiveNotificationBell - Real-time notification center
@@ -90,9 +91,13 @@ const LiveNotificationBell = ({ userId }) => {
                             {/* Notifications List */}
                             <div className="overflow-y-auto flex-1">
                                 {notifications.length === 0 ? (
-                                    <div className="p-8 text-center text-dark-500">
-                                        <Icon name="bell" size={48} className="mx-auto mb-2 opacity-30" />
-                                        <p>No notifications yet</p>
+                                    <div className="p-4">
+                                        <EmptyState
+                                            icon="bell-off"
+                                            title="All Caught Up!"
+                                            description="No new notifications at the moment. We'll alert you when there's an update on your campaigns."
+                                            className="py-10 border-none bg-transparent"
+                                        />
                                     </div>
                                 ) : (
                                     <div className="divide-y divide-dark-700">

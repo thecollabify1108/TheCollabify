@@ -14,6 +14,7 @@ import {
     FaBriefcase
 } from 'react-icons/fa';
 import { HiSparkles, HiTrendingUp, HiLightningBolt } from 'react-icons/hi';
+import EmptyState from '../common/EmptyState';
 
 /**
  * Creator Analytics Dashboard
@@ -156,8 +157,8 @@ const CreatorAnalytics = ({ profile, applications = [] }) => {
                             key={range}
                             onClick={() => setTimeRange(range)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${timeRange === range
-                                    ? 'bg-primary-600 text-white'
-                                    : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
+                                ? 'bg-primary-600 text-white'
+                                : 'bg-dark-700 text-dark-300 hover:bg-dark-600'
                                 }`}
                         >
                             {range === 'week' ? '7 Days' : range === 'month' ? '30 Days' : 'All Time'}
@@ -255,15 +256,13 @@ const CreatorAnalytics = ({ profile, applications = [] }) => {
 
             {/* Empty State */}
             {stats.totalApplications === 0 && (
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-8 bg-dark-800/30 rounded-xl border border-dark-700"
-                >
-                    <FaChartLine className="text-4xl text-dark-600 mx-auto mb-3" />
-                    <h3 className="text-lg font-semibold text-dark-300 mb-2">No Application Data Yet</h3>
-                    <p className="text-dark-400">Apply to promotions to see your analytics!</p>
-                </motion.div>
+                <EmptyState
+                    icon="chart"
+                    title="No Application Data Yet"
+                    description="Your journey starts with your first application. Apply to promotions to see your performance metrics grow!"
+                    actionLabel="Explore Promotions"
+                    onAction={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                />
             )}
         </div>
     );

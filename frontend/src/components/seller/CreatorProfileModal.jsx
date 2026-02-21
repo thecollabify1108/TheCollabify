@@ -8,6 +8,7 @@ import {
     HiSparkles, HiLightningBolt, HiUserGroup, HiCash, HiChat,
     HiPhotograph, HiChartBar, HiStar
 } from 'react-icons/hi';
+import EmptyState from '../common/EmptyState';
 
 /**
  * Full-Screen Creator Profile Modal
@@ -310,13 +311,13 @@ const AnalyticsTab = ({ profile }) => (
 // Reviews Tab Component
 const ReviewsTab = ({ profile }) => (
     <div className="space-y-4">
-        <div className="text-center py-8">
-            <HiStar className="mx-auto text-amber-400 text-5xl mb-4" />
-            <h4 className="text-lg font-semibold text-dark-100 mb-2">No Reviews Yet</h4>
-            <p className="text-sm text-dark-400">
-                This creator hasn't received any reviews yet. Be the first to collaborate!
-            </p>
-        </div>
+        <EmptyState
+            icon="heart-broken"
+            title="No Reviews Yet"
+            description="This creator hasn't received any feedback from brands yet. Be the first to collaborate and leave a review!"
+            variant="default"
+            className="border-none bg-transparent py-4"
+        />
     </div>
 );
 

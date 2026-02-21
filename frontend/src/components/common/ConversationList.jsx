@@ -4,6 +4,7 @@ import { FaComments, FaTrash } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import EmptyState from './EmptyState';
 
 const ConversationList = ({ onSelectConversation }) => {
     const { user } = useAuth();
@@ -72,15 +73,14 @@ const ConversationList = ({ onSelectConversation }) => {
         );
     }
 
-    if (conversations.length === 0) {
+    if (!loading && conversations.length === 0) {
         return (
-            <div className="glass-card p-8 text-center">
-                <FaComments className="text-4xl text-dark-600 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-dark-300 mb-2">No conversations yet</h3>
-                <p className="text-dark-400 text-sm">
-                    Conversations will appear here after a promotion is accepted.
-                </p>
-            </div>
+            <EmptyState
+                icon="mail-open"
+                title="Your Inbox is Empty"
+                description="Conversations with brands will appear here once you accept a promotion or start a collaboration."
+                className="mx-4 my-6"
+            />
         );
     }
 

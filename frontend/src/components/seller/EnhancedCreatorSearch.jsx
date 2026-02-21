@@ -1,4 +1,9 @@
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { AdvancedSearchFilters } from './AdvancedSearchFilters';
+import { SmartRecommendationsPanel } from './SmartRecommendationsPanel';
 import { creatorAPI } from '../../services/api';
+import EmptyState from '../common/EmptyState';
 
 /**
  * Enhanced Creator Search Interface
@@ -137,12 +142,14 @@ const EnhancedCreatorSearch = ({ onSearch, onSelect }) => {
                 ))}
             </div>
 
-            {results.length === 0 && (
-                <div className="text-center py-20">
-                    <FaSearch className="text-6xl text-dark-700 mx-auto mb-4" />
-                    <p className="text-dark-400 text-lg">No creators found</p>
-                    <p className="text-dark-500 text-sm mt-2">Try adjusting your filters</p>
-                </div>
+            {results.length === 0 && !loading && (
+                <EmptyState
+                    icon="search-off"
+                    title="No Creators Found"
+                    description="We couldn't find any creators matching your current filters. Try expanding your search radius or selecting broader categories."
+                    actionLabel="Clear Filters"
+                    onAction={() => setFilters({})}
+                />
             )}
         </div>
     );

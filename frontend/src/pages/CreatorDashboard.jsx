@@ -719,12 +719,14 @@ const CreatorDashboard = () => {
 };
 
 const ApplicationsView = ({ applications }) => {
-    if (applications.length === 0) {
+    if (!applications || applications.length === 0) {
         return (
             <EmptyState
-                icon={<FaBriefcase />}
-                title="No applications yet"
-                description="Browse opportunities to get started!"
+                icon="box-empty"
+                title="No Applications Yet"
+                description="Your journey starts here! Explore available campaigns and apply to the ones that match your creative style."
+                actionLabel="Explore Jobs"
+                onAction={() => window.scrollTo({ top: 0, behavior: 'smooth' })} // Assuming opportunities are on the same page or user needs to scroll
             />
         );
     }

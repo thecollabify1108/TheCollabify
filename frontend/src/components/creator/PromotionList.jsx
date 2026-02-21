@@ -13,9 +13,11 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null }) => {
     if (!promotions || promotions.length === 0) {
         return (
             <EmptyState
-                icon={<HiBriefcase />}
-                title="No matching opportunities yet"
-                description="We'll notify you when new campaigns match your profile. Make sure your profile is complete and you're marked as available for work."
+                icon="search-off"
+                title="No Matching Opportunities Yet"
+                description="Our AI is scanning for the best matches. Complete your profile and stay active to increase your visibility to premium brands."
+                actionLabel="Complete Profile"
+                onAction={() => { }} // This should ideally trigger a tab switch or navigate to profile
             />
         );
     }
@@ -49,8 +51,8 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null }) => {
                                     {/* AI Confidence Badge */}
                                     {promotion.matchScore && (
                                         <span className={`badge ${promotion.confidenceLevel === 'High' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                promotion.confidenceLevel === 'Medium' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                    'bg-purple-500/10 text-purple-400 border-purple-500/20' // Experimental
+                                            promotion.confidenceLevel === 'Medium' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                'bg-purple-500/10 text-purple-400 border-purple-500/20' // Experimental
                                             } border`}>
                                             {promotion.confidenceLevel === 'High' ? 'High Match' :
                                                 promotion.confidenceLevel === 'Medium' ? 'Good Match' : 'Experimental'}
