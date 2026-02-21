@@ -1,139 +1,100 @@
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+
+// Initialize Gemini client
+const genAI = process.env.GEMINI_API_KEY
+    ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+    : null;
+
 /**
  * AI Content Generation Service
  * 
  * High-fidelity content engine for generating professional captions, 
- * hashtags, ideas, and posting schedules.
+ * hashtags, ideas, and posting schedules using Google Gemini.
  */
-
 class AIContentService {
     /**
      * Generate content based on topic, platform, and tone
      */
     static async generateCaption(topic, platform, tone) {
-        // Simulate API latency
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        if (!genAI) {
+            console.warn('⚠️ GEMINI_API_KEY missing - falling back to mock caption');
+            return `Looking for ${topic} inspo? ✨ We've got you covered on ${platform}! #${topic.replace(/\s+/g, '')} #Professional`;
+        }
 
-        const templates = {
-            professional: {
-                linkedin: [
-                    `Excited to share my thoughts on ${topic}. It's a game-changer for the industry. What are your perspectives? #Professional #${topic.replace(/\s+/g, '')} #Growth`,
-                    `Exploring the impact of ${topic} on today's market. Only by staying ahead can we truly innovate. #${topic.replace(/\s+/g, '')} #Business`,
-                    `Reflecting on ${topic} and what it means for the future of our work. Consistency is key. #${topic.replace(/\s+/g, '')} #Motivation`
-                ],
-                twitter: [
-                    `Big things coming with ${topic}. Stay tuned. 🚀 #${topic.replace(/\s+/g, '')}`,
-                    `Here's why ${topic} matters more than ever. 🧵👇`,
-                    `Just finished a deep dive into ${topic}. The results are surprising. 📊 #${topic.replace(/\s+/g, '')}`
-                ],
-                instagram: [
-                    `Behind the scenes working on ${topic}. Consistency creates mastery. ✨\n\n#${topic.replace(/\s+/g, '')} #WorkMode #Goals`,
-                    `Bringing ${topic} to life. Every detail counts. 💼\n\nLink in bio for more!\n\n#${topic.replace(/\s+/g, '')} #Creator`,
-                    `Leveling up with ${topic}. Ready for what's next. 🚀\n\n#${topic.replace(/\s+/g, '')} #Mindset`
-                ]
-            },
-            fun: {
-                instagram: [
-                    `Just another day obsessing over ${topic} 😂 Who else relates??\n\n#${topic.replace(/\s+/g, '')} #Fun #Vibes`,
-                    `You: ${topic} isn't that cool.\nMe: 🤯✨🔥\n\n#${topic.replace(/\s+/g, '')} #Trending`,
-                    `Current mood: ${topic} all day every day. 🌈✨\n\n#${topic.replace(/\s+/g, '')} #Mood`
-                ],
-                tiktok: [
-                    `Tell me you love ${topic} without telling me you love ${topic}... I'll go first. 🤪 #${topic.replace(/\s+/g, '')}`,
-                    `POV: You just discovered ${topic} ✨👄✨ #${topic.replace(/\s+/g, '')} #fyp`,
-                    `When ${topic} hits just right 😮💨 #${topic.replace(/\s+/g, '')} #viral`
-                ],
-                twitter: [
-                    `If ${topic} has 0 fans, I am dead. 💀`,
-                    `Thinking about ${topic} again... send help. 😂`,
-                    `${topic}. That's the tweet. ✨`
-                ]
-            },
-            witty: {
-                instagram: [
-                    `They said ${topic} couldn't be done. Hold my coffee. ☕️😏\n\n#${topic.replace(/\s+/g, '')} #Challenge`,
-                    `Maybe she's born with it, maybe it's ${topic}. ✨💅\n\n#${topic.replace(/\s+/g, '')} #Style`,
-                    `Keep your friends close and your ${topic} closer. 👀\n\n#${topic.replace(/\s+/g, '')} #Wisdom`
-                ],
-                twitter: [
-                    `I don't know who needs to hear this, but ${topic} is the answer. 💅`,
-                    `My toxic trait is thinking I can master ${topic} in one day. 🙃`,
-                    `Me 🤝 ${topic} \n     Validation`
-                ],
-                linkedin: [
-                    `Unpopular opinion: ${topic} is actually over-rated... just kidding. Here's why. 😉 #${topic.replace(/\s+/g, '')}`,
-                    `Work smart, not hard. Or just use ${topic}. 🧠 #${topic.replace(/\s+/g, '')}`,
-                    `Stop ignoring ${topic}. It's time to pay attention. 🚨 #${topic.replace(/\s+/g, '')}`
-                ]
-            }
-        };
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `Generate a high-engagement ${platform} caption for a creator. 
+            Topic: ${topic}
+            Tone: ${tone}
+            Include relevant emojis and call to action. 
+            Maximum 3 paragraphs. 
+            Return ONLY the caption text.`;
 
-        const platformKey = platform.toLowerCase();
-        const toneKey = tone.toLowerCase();
-
-        // Fallback logic
-        const toneTemplates = templates[toneKey] || templates.professional;
-        const platformTemplates = toneTemplates[platformKey] || toneTemplates.instagram;
-
-        // Get random template
-        const randomIndex = Math.floor(Math.random() * platformTemplates.length);
-        return platformTemplates[randomIndex];
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text().trim();
+        } catch (error) {
+            console.error('Gemini caption error:', error.message);
+            return `Elevating ${topic} today. 🚀 Check the link in bio for more! #${topic.replace(/\s+/g, '')}`;
+        }
     }
 
     /**
      * Generate hashtags based on topic and niche
      */
     static async generateHashtags(topic, niche) {
-        const baseTags = [
-            `#${topic.replace(/\s+/g, '')}`,
-            `#${topic.replace(/\s+/g, '')}${(niche || '').replace(/\s+/g, '')}`,
-            `#${(niche || 'Digital').replace(/\s+/g, '')}Creator`,
-            `#${(niche || 'Lifestyle').replace(/\s+/g, '')}Inspo`
-        ];
+        if (!genAI) {
+            return [`#${topic.replace(/\s+/g, '')}`, '#FYP', '#Trending', '#Viral', '#TheCollabify'];
+        }
 
-        const trendingTags = ['#FYP', '#Trending', '#Viral', '#ExplorePage', '#Collabify'];
-        return [...new Set([...baseTags, ...trendingTags])].slice(0, 10);
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `As a social media expert, provide 15 trending and relevant hashtags for:
+            Topic: ${topic}, Niche: ${niche}.
+            Return ONLY a space-separated string of hashtags.`;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            const text = response.text().trim();
+            const tags = text.split(/\s+/);
+            return tags.filter(t => t.startsWith('#')).slice(0, 15);
+        } catch (error) {
+            console.error('Gemini hashtag error:', error.message);
+            return [`#${topic.replace(/\s+/g, '')}`, '#Trending'];
+        }
     }
 
     /**
      * Generate content ideas for specific campaign types
      */
     static async generateContentIdeas(category, platform) {
-        const ideas = {
-            Fashion: [
-                `📸 OOTD Carousel featuring the collection`,
-                `✨ Styling tips for different occasions`,
-                `🔄 Transition reel: Morning to Night looks`,
-                `💬 Q&A: Addressing common wardrobe challenges`
-            ],
-            Tech: [
-                `🎥 Unboxing and first impressions video`,
-                `💡 3 Hidden features you didn't know about`,
-                `📊 Comparison vs competitors infographic`,
-                `🛠️ Setup guide for beginners`
-            ],
-            Lifestyle: [
-                `📱 Day-in-the-life vlog with product integration`,
-                `✅ 5 Ways this improved my daily routine`,
-                `🎨 Aesthetic workspace tour`,
-                `🌟 Why I swapped my old product for this`
-            ],
-            default: [
-                `✨ Product reveal with trending audio`,
-                `Before & After transformation`,
-                `Education: Why this matters now`,
-                `Behind the scenes creation process`
-            ]
-        };
+        if (!genAI) {
+            return [
+                `📸 Key features of the ${category} project`,
+                `✨ Styling/Usage tips for ${platform}`,
+                `🔄 Comparison vs traditional methods`,
+                `💬 Ask your audience about ${category}`
+            ];
+        }
 
-        return ideas[category] || ideas.default;
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `Generate 4 creative content ideas for a ${category} campaign on ${platform}. Keep each idea under 20 words. Return only the list of ideas.`;
+
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            return response.text().split('\n').filter(line => line.trim().length > 5).slice(0, 4);
+        } catch (error) {
+            return [`✨ Trending in ${category}`, `🔥 Viral ${platform} tips`].slice(0, 4);
+        }
     }
 
     /**
      * Get market insights for sellers based on current trends
      */
     static async getMarketInsights(campaignData) {
-        // In a real production app, this would query a trends database 
-        // or an external social analytics API.
+        // Keeping this as a simulated rule-based return for stability, 
+        // as trending data usually comes from specialized scrapers/APIs
         return [
             {
                 id: 'timing',
@@ -163,44 +124,6 @@ class AIContentService {
                 confidence: 94
             }
         ];
-    }
-
-    /**
-     * Get personalized profile tips for creators
-     */
-    static async getProfileTips(profileData) {
-        const tips = [];
-
-        if ((profileData.engagementRate || 0) < 4) {
-            tips.push({
-                id: 'engagement',
-                title: '📈 Boost Your Interaction',
-                description: 'Your engagement rate is slightly below the platform average. Try using 2+ interactive stickers in your stories.',
-                action: 'Learn tactics',
-                impact: 'high',
-                confidence: 85
-            });
-        }
-
-        tips.push({
-            id: 'niche',
-            title: '🌟 Category Expansion',
-            description: 'Creators who bridge Fashion and Lifestyle see 30% higher brand interest.',
-            action: 'Expand niche',
-            impact: 'medium',
-            confidence: 78
-        });
-
-        tips.push({
-            id: 'pricing',
-            title: '💰 Pricing Intelligence',
-            description: 'Based on your recent growth, your rates are 15% lower than similar-sized creators.',
-            action: 'Update rates',
-            impact: 'high',
-            confidence: 92
-        });
-
-        return tips;
     }
 }
 

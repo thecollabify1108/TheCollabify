@@ -97,7 +97,7 @@ const NotificationPrompt = () => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 50, scale: 0.9 }}
                     transition={{ type: "spring", damping: 20 }}
-                    className="fixed bottom-4 right-4 z-[9999] max-w-sm"
+                    className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-[9999] max-w-sm"
                 >
                     <div className="bg-dark-800 border border-dark-700 rounded-2xl p-4 shadow-2xl">
                         {/* Close button */}

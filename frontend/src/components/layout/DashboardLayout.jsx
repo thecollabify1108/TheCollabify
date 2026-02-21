@@ -39,7 +39,7 @@ const DashboardLayout = ({
             </main>
 
             {/* Mobile Bottom Navigation (Hidden on Desktop) */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-dark-900/95 backdrop-blur-xl border-t border-dark-800 z-50 lg:hidden">
+            <nav className="fixed bottom-0 left-0 right-0 bg-dark-900/95 backdrop-blur-xl border-t border-dark-800 z-50 lg:hidden pb-[env(safe-area-inset-bottom)]">
                 <div className="max-w-lg mx-auto px-1 md:px-2 py-1 md:py-2">
                     <div className="flex items-center justify-around">
                         {tabs.map(tab => (

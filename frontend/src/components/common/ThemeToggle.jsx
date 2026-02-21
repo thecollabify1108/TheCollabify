@@ -19,11 +19,6 @@ const ThemeToggle = () => {
             ) : (
                 <FaMoon className="w-5 h-5 text-dark-600" />
             )}
-            {isDark ? (
-                <FaSun className="w-5 h-5" />
-            ) : (
-                <FaMoon className="w-5 h-5 text-dark-600" />
-            )}
         </motion.button>
     );
 };

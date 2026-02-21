@@ -109,18 +109,16 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
     return (
         <>
             {/* Floating Button */}
-            {!isOpen && (
-                <motion.button
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                    onClick={() => setIsOpen(true)}
-                    className="fixed bottom-24 right-6 z-40 w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl flex items-center justify-center text-white"
-                >
-                    <FaMagic className="text-xl" />
-                </motion.button>
-            )}
+            <motion.button
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsOpen(true)}
+                className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl flex items-center justify-center text-white md:bottom-[calc(8rem+env(safe-area-inset-bottom))]"
+            >
+                <FaMagic className="text-xl" />
+            </motion.button>
 
             {/* Panel */}
             <AnimatePresence>
@@ -132,7 +130,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsOpen(false)}
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90]"
                         />
 
                         {/* Panel */}
@@ -141,7 +139,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'spring', damping: 25 }}
-                            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-dark-900 border-l border-dark-800 shadow-2xl z-50 overflow-y-auto"
+                            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-dark-900 border-l border-dark-800 shadow-2xl z-[100] overflow-y-auto"
                         >
                             {/* Header */}
                             <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 p-6 z-10">

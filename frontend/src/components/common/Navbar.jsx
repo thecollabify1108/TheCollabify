@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaInstagram, FaUser, FaSignOutAlt, FaCog } from 'react-icons/fa';
+import { FaInstagram, FaUser, FaSignOutAlt, FaCog, FaBars, FaTimes } from 'react-icons/fa';
 import { useAuth } from '../../context/AuthContext';
 import LiveNotificationBell from '../realtime/LiveNotificationBell';
 import ThemeToggle from './ThemeToggle';
@@ -10,6 +10,7 @@ const Navbar = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const menuRef = useRef(null);
 
@@ -73,27 +74,21 @@ const Navbar = () => {
                         </div>
                     </Link>
 
-                    {/* Right side */}
-                    <div className="flex items-center space-x-2 md:space-x-4">
-                        {/* Live Notifications - Real-time */}
+                    {/* Right side (Desktop) */}
+                    <div className="hidden md:flex items-center space-x-4">
                         <LiveNotificationBell userId={user?._id} />
+                        <ThemeToggle />
 
-                        {/* Theme Toggle */}
-                        <div className="scale-90 md:scale-100 origin-right">
-                            <ThemeToggle />
-                        </div>
-
-                        {/* User Menu */}
                         <div className="relative" ref={menuRef}>
                             <motion.button
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => setShowUserMenu(!showUserMenu)}
-                                className="flex items-center space-x-2 p-1 md:p-2 rounded-xl hover:bg-dark-800 transition"
+                                className="flex items-center space-x-2 p-2 rounded-xl hover:bg-dark-800 transition"
                             >
                                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-medium text-sm border-2 border-dark-950 ring-2 ring-transparent hover:ring-primary-500/50 transition-all">
                                     {user?.name?.charAt(0).toUpperCase()}
                                 </div>
-                                <span className="hidden md:block text-dark-200 font-medium">{user?.name}</span>
+                                <span className="text-dark-200 font-medium">{user?.name}</span>
                             </motion.button>
 
                             <AnimatePresence>
@@ -137,8 +132,67 @@ const Navbar = () => {
                             </AnimatePresence>
                         </div>
                     </div>
+
+                    {/* Right side (Mobile) */}
+                    <div className="flex md:hidden items-center space-x-2">
+                        <LiveNotificationBell userId={user?._id} />
+                        <button
+                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            className="p-2 rounded-xl bg-dark-800 text-dark-200 hover:bg-dark-700 transition-colors"
+                        >
+                            {isMobileMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+                        </button>
+                    </div>
                 </div>
             </div>
+
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="md:hidden border-t border-dark-800 bg-dark-950 overflow-hidden"
+                    >
+                        <div className="px-4 pt-4 pb-6 space-y-4">
+                            <div className="flex items-center space-x-3 pb-4 border-b border-dark-900">
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold">
+                                    {user?.name?.charAt(0).toUpperCase()}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-dark-100 font-bold">{user?.name}</span>
+                                    <span className="text-xs text-dark-400">{user?.email}</span>
+                                </div>
+                                <div className="ml-auto">
+                                    <ThemeToggle />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <Link
+                                    to={getDashboardLink()}
+                                    onClick={() => setIsMobileMenuOpen(false)}
+                                    className="flex items-center space-x-3 px-4 py-3 rounded-xl bg-dark-900 text-dark-200 font-medium hover:bg-dark-800 transition"
+                                >
+                                    <FaUser className="text-primary-400" />
+                                    <span>Dashboard</span>
+                                </Link>
+                                <button
+                                    onClick={() => {
+                                        setIsMobileMenuOpen(false);
+                                        handleLogout();
+                                    }}
+                                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 font-medium hover:bg-red-500/10 transition"
+                                >
+                                    <FaSignOutAlt />
+                                    <span>Sign Out</span>
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </nav>
     );
 };

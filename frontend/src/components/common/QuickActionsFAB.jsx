@@ -61,7 +61,7 @@ const QuickActionsFAB = ({ userRole, onBrowse, onQuickApply, onCreateCampaign })
     const actions = userRole === 'creator' ? creatorActions : sellerActions;
 
     return (
-        <div className="fixed bottom-24 md:bottom-8 right-6 z-40">
+        <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] md:bottom-8 right-6 z-50">
             {/* Action Buttons */}
             {isOpen && (
                 <motion.div

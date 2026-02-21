@@ -131,10 +131,6 @@ model User {
   // API Keys for rotation system
   apiKeys               ApiKey[]
   
-  // Stripe Integration
-  stripeCustomerId      String?        @unique
-  stripeAccountId       String?        @unique // For Connect (Creators)
-  stripeOnboardingComplete Boolean     @default(false)
   userIntent            UserIntent?
 
   createdAt             DateTime       @default(now())

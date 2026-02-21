@@ -70,7 +70,7 @@ function validateEnv(strictMode = process.env.NODE_ENV === 'production') {
 
     // Warn about missing optional but recommended variables in production
     if (strictMode) {
-        const recommendedProd = ['EMAIL_HOST', 'EMAIL_USER', 'SENTRY_DSN', 'STRIPE_SECRET_KEY'];
+        const recommendedProd = ['EMAIL_HOST', 'EMAIL_USER', 'SENTRY_DSN'];
         for (const key of recommendedProd) {
             if (!process.env[key]) {
                 warnings.push(`${key} is not set (recommended for production)`);

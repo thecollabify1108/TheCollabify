@@ -7,6 +7,7 @@ const { isCreator } = require('../middleware/roleCheck');
 const { generateInsights } = require('../services/aiInsights');
 const { notifyProfileInsights, notifySellerCreatorApplied } = require('../services/notificationService');
 const { sendCreatorAppliedEmail } = require('../utils/brevoEmailService');
+const { upload } = require('../services/storageService');
 
 /**
  * Validation middleware
@@ -714,6 +715,83 @@ router.put('/profile/availability', auth, isCreator, [
         res.status(500).json({
             success: false,
             message: 'Failed to update availability'
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /creators/upload-portfolio:
+ *   post:
+ *     summary: Upload and add an image to creator portfolio
+ *     tags: [Creators]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Image added to portfolio successfully
+ */
+router.post('/upload-portfolio', auth, isCreator, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload an image file'
+            });
+        }
+
+        const imageUrl = req.file.path; // Cloudinary URL
+
+        // Get current portfolio links
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId },
+            select: { portfolioLinks: true }
+        });
+
+        if (!profile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Profile not found'
+            });
+        }
+
+        // Add to portfolio links (limit to 10 images)
+        const updatedLinks = [...(profile.portfolioLinks || [])];
+        if (updatedLinks.length >= 10) {
+            return res.status(400).json({
+                success: false,
+                message: 'Portfolio limit reached (max 10 images)'
+            });
+        }
+        updatedLinks.push(imageUrl);
+
+        await prisma.creatorProfile.update({
+            where: { userId: req.userId },
+            data: {
+                portfolioLinks: updatedLinks,
+                profileCompletionPercentage: calculateCompletion({ ...profile, portfolioLinks: updatedLinks })
+            }
+        });
+
+        res.json({
+            success: true,
+            message: 'Image added to portfolio successfully',
+            imageUrl: imageUrl
+        });
+    } catch (error) {
+        console.error('Portfolio upload error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to upload image'
         });
     }
 });

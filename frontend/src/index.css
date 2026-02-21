@@ -2,8 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --primary: #6366f1;
+  --secondary: #ec4899;
+  --dark-bg: #0f172a;
+
+  /* Safe Area Support */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
 /* Custom base styles */
 @layer base {
+
+  html {
+    scroll-behavior: smooth;
+    /* Prevent horizontal overflow scrolling globally */
+    overflow-x: hidden;
+  }
 
   /* Accessibility: Better focus indicators for keyboard navigation */
   *:focus-visible {

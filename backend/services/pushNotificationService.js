@@ -2,15 +2,20 @@ const webpush = require('web-push');
 const prisma = require('../config/prisma');
 
 // Configure web-push with VAPID keys
+// Generate new keys using: npx web-push generate-vapid-keys
 const vapidKeys = {
-    publicKey: process.env.VAPID_PUBLIC_KEY || 'BH7j9WqF5pIL8QxK3mT2vN9rC1eA6wX4sY8oZ0pD5fG7hJ2kL9mQ3wE6rT1yU8iO4pA7sD6fG3hJ5kL2mN9qW0zX',
-    privateKey: process.env.VAPID_PRIVATE_KEY || 'cF2eR4tY6uI8oP0aS3dF5gH7jK9lZ1xC3vB5nM7qW9eR2tY4uI6oP8aS0dF2gH4j'
+    publicKey: process.env.VAPID_PUBLIC_KEY,
+    privateKey: process.env.VAPID_PRIVATE_KEY
 };
+
+if (!vapidKeys.publicKey || !vapidKeys.privateKey) {
+    console.warn('⚠️ VAPID keys are missing! Push notifications will not work in production.');
+}
 
 webpush.setVapidDetails(
     process.env.VAPID_EMAIL || 'mailto:thecollabify1108@gmail.com',
-    vapidKeys.publicKey,
-    vapidKeys.privateKey
+    vapidKeys.publicKey || 'placeholder_public_key',
+    vapidKeys.privateKey || 'placeholder_private_key'
 );
 
 class PushNotificationService {

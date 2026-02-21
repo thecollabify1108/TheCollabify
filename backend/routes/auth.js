@@ -8,6 +8,7 @@ const { auth, generateToken } = require('../middleware/auth');
 const { notifyWelcome } = require('../services/notificationService');
 const { createAndSendOTP, verifyOTP } = require('../services/otpService');
 const { sendEmail } = require('../services/emailTemplates');
+const { upload } = require('../services/storageService');
 // Removed legacy emailService
 
 /**
@@ -41,9 +42,6 @@ const sanitizeUser = (user) => {
     // Add optional fields if they exist
     if (user.roles) {
         sanitized.availableRoles = user.roles.map(r => r.type);
-    }
-    if (user.stripeOnboardingComplete !== undefined) {
-        sanitized.stripeOnboardingComplete = user.stripeOnboardingComplete;
     }
 
     return sanitized;
@@ -1110,6 +1108,57 @@ router.post('/newsletter', [
         res.status(500).json({
             success: false,
             message: 'Failed to subscribe. Please try again.'
+        });
+    }
+});
+
+/**
+ * @swagger
+ * /auth/upload-avatar:
+ *   post:
+ *     summary: Upload and update user avatar
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Avatar uploaded successfully
+ */
+router.post('/upload-avatar', auth, upload.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'Please upload an image file'
+            });
+        }
+
+        const avatarUrl = req.file.path; // Cloudinary URL
+
+        const user = await prisma.user.update({
+            where: { id: req.userId },
+            data: { avatar: avatarUrl }
+        });
+
+        res.json({
+            success: true,
+            message: 'Avatar updated successfully',
+            avatar: avatarUrl
+        });
+    } catch (error) {
+        console.error('Avatar upload error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to upload avatar'
         });
     }
 });

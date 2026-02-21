@@ -5,7 +5,7 @@ const FloatingCreateButton = ({ onClick }) => {
     return (
         <motion.button
             onClick={onClick}
-            className="fixed bottom-6 right-6 z-40 w-16 h-16 rounded-full bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 text-white shadow-2xl shadow-primary-500/40 flex items-center justify-center"
+            className="fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-16 h-16 rounded-full bg-gradient-to-r from-primary-600 via-primary-500 to-secondary-500 text-white shadow-2xl shadow-primary-500/40 flex items-center justify-center"
             whileHover={{ scale: 1.1, rotate: 90 }}
             whileTap={{ scale: 0.9 }}
             initial={{ scale: 0, rotate: -180 }}
