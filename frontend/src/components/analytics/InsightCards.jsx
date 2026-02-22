@@ -25,28 +25,28 @@ const StatCard = ({ icon: Icon, label, value, suffix = '', color = 'primary', de
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay * 0.08, duration: 0.3 }}
-            className={`bg-gradient-to-br ${colors[color]} border rounded-xl p-4 sm:p-5`}
+            className={`bg-gradient-to-br ${colors[color]} border rounded-premium-xl p-s4 sm:p-s5 shadow-md hover:shadow-glow transition-all duration-300`}
         >
-            <div className="flex items-start justify-between mb-3">
-                <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center`}>
+            <div className="flex items-start justify-between mb-s3">
+                <div className={`w-9 h-9 rounded-premium-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center shadow-sm`}>
                     <Icon size={16} />
                 </div>
             </div>
-            <div className="text-2xl font-bold text-white mb-1">
+            <div className="text-h2 font-bold text-white mb-s1">
                 {value !== null && value !== undefined ? `${value}${suffix}` : '—'}
             </div>
-            <div className="text-xs text-dark-400 font-medium">{label}</div>
+            <div className="text-xs-pure font-bold text-dark-400 uppercase tracking-widest">{label}</div>
         </motion.div>
     );
 };
 
 // ─── Loading Skeleton ───────────────────────────────────────────
 const SkeletonGrid = ({ count = 5 }) => (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-s3 sm:gap-s4">
         {Array.from({ length: count }).map((_, i) => (
-            <div key={i} className="bg-dark-800/50 border border-dark-700 rounded-xl p-4 sm:p-5 animate-pulse">
-                <div className="w-9 h-9 rounded-lg bg-dark-700 mb-3" />
-                <div className="h-7 w-16 bg-dark-700 rounded mb-2" />
+            <div key={i} className="bg-dark-800/50 border border-dark-700 rounded-premium-xl p-s4 sm:p-s5 animate-pulse">
+                <div className="w-9 h-9 rounded-premium-lg bg-dark-700 mb-s3" />
+                <div className="h-7 w-16 bg-dark-700 rounded mb-s2" />
                 <div className="h-3 w-24 bg-dark-700 rounded" />
             </div>
         ))}
@@ -88,10 +88,10 @@ export const AdminInsightCards = () => {
 
     return (
         <div>
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 className="text-h3 font-bold text-white mb-s4 flex items-center gap-s2 uppercase tracking-wider">
                 <FaShieldAlt className="text-primary-400" /> Platform Insights
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-s3 sm:gap-s4">
                 {cards.map((card, i) => <StatCard key={i} {...card} delay={i} />)}
             </div>
         </div>
@@ -130,10 +130,10 @@ export const BrandInsightCards = () => {
 
     return (
         <div>
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 className="text-h3 font-bold text-white mb-s4 flex items-center gap-s2 uppercase tracking-wider">
                 <FaChartLine className="text-primary-400" /> Your Brand Insights
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-s3 sm:gap-s4">
                 {cards.map((card, i) => <StatCard key={i} {...card} delay={i} />)}
             </div>
         </div>
@@ -176,10 +176,10 @@ export const CreatorInsightCards = () => {
 
     return (
         <div>
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+            <h3 className="text-h3 font-bold text-white mb-s4 flex items-center gap-s2 uppercase tracking-wider">
                 <FaChartLine className="text-primary-400" /> Your Insights
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-s3 sm:gap-s4">
                 {cards.map((card, i) => <StatCard key={i} {...card} delay={i} />)}
             </div>
         </div>

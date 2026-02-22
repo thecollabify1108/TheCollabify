@@ -67,22 +67,22 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="fixed inset-0 md:inset-4 z-50 flex items-center justify-center p-0 md:p-4"
                     >
-                        <div className="bg-dark-900 w-full h-full md:h-auto md:max-w-4xl md:rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-screen md:max-h-[90vh]">
+                        <div className="bg-dark-900 w-full h-full md:h-auto md:max-w-4xl md:rounded-premium-2xl overflow-hidden shadow-premium flex flex-col max-h-screen md:max-h-[90vh] border border-dark-700/50">
                             {/* Header */}
-                            <div className="bg-dark-800 border-b border-dark-700 p-4 md:p-6">
-                                <div className="flex items-center justify-between mb-4">
+                            <div className="bg-dark-800/80 backdrop-blur-xl border-b border-dark-700/50 p-s4 md:p-s6">
+                                <div className="flex items-center justify-between mb-s4">
                                     <button
                                         onClick={onClose}
-                                        className="p-2 hover:bg-dark-700 rounded-lg transition-colors"
+                                        className="p-s2 hover:bg-dark-700 rounded-premium-lg transition-colors border border-transparent hover:border-dark-600/30"
                                     >
                                         <FaArrowLeft className="text-dark-300" />
                                     </button>
-                                    <h2 className="text-lg md:text-xl font-bold text-dark-100 flex-1 text-center">
+                                    <h2 className="text-body font-black text-dark-100 flex-1 text-center uppercase tracking-widest leading-none">
                                         Creator Profile
                                     </h2>
                                     <button
                                         onClick={handleSaveToggle}
-                                        className={`p-2 hover:bg-dark-700 rounded-lg transition-colors ${isSaved ? 'text-red-400' : 'text-dark-400'
+                                        className={`p-s2 hover:bg-dark-700 rounded-premium-lg transition-colors border border-transparent hover:border-dark-600/30 ${isSaved ? 'text-red-400' : 'text-dark-400'
                                             }`}
                                     >
                                         {isSaved ? <FaHeart className="fill-current" /> : <FaStar />}
@@ -90,91 +90,95 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
                                 </div>
 
                                 {/* Creator Info */}
-                                <div className="flex items-start gap-4">
-                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
+                                <div className="flex items-start gap-s4">
+                                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-black text-2xl flex-shrink-0 shadow-glow border-2 border-white/20">
                                         {user.name?.charAt(0).toUpperCase() || 'C'}
                                     </div>
                                     <div className="flex-1">
-                                        <h3 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+                                        <h3 className="text-h3 font-black text-dark-100 flex items-center gap-s2 tracking-tight">
                                             {user.name || 'Creator'}
                                             {profile.instagramVerified && (
-                                                <FaCheckCircle className="text-primary-400 text-sm" />
+                                                <FaCheckCircle className="text-primary-400 text-sm shadow-sm" />
                                             )}
                                         </h3>
-                                        <span className="badge badge-info text-xs">
+                                        <span className="inline-block mt-s1 px-s2 py-0.5 rounded-premium-md bg-primary-500/10 text-primary-400 text-[10px] font-black uppercase tracking-wider border border-primary-500/20">
                                             {profile.category} Creator
                                         </span>
                                     </div>
 
                                     {/* Match Score */}
                                     <div className="text-center hidden md:block">
-                                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${getScoreColor(matchScore)} p-0.5`}>
+                                        <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${getScoreColor(matchScore)} p-0.5 shadow-glow`}>
                                             <div className="w-full h-full rounded-full bg-dark-800 flex flex-col items-center justify-center">
-                                                <span className="text-2xl font-bold text-dark-100">{matchScore}</span>
-                                                <span className="text-xs text-dark-400">Match</span>
+                                                <span className="text-h3 font-black text-dark-100 leading-none">{matchScore}</span>
+                                                <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Match</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Quick Stats */}
-                                <div className="grid grid-cols-3 gap-3 mt-4">
-                                    <div className="bg-dark-900/50 rounded-xl p-3 text-center">
+                                <div className="grid grid-cols-3 gap-s3 mt-s4">
+                                    <div className="bg-dark-900/50 rounded-premium-xl p-s3 text-center border border-dark-700/30">
                                         <HiUserGroup className="mx-auto text-primary-400 mb-1 text-xl" />
-                                        <p className="text-lg font-bold text-dark-100">{formatFollowers(profile.followerCount)}</p>
-                                        <p className="text-xs text-dark-400">Followers</p>
+                                        <p className="text-h3 font-black text-dark-100">{formatFollowers(profile.followerCount)}</p>
+                                        <p className="text-xs-pure font-black text-dark-500 uppercase tracking-widest mt-0.5">Followers</p>
                                     </div>
-                                    <div className="bg-dark-900/50 rounded-xl p-3 text-center">
+                                    <div className="bg-dark-900/50 rounded-premium-xl p-s3 text-center border border-dark-700/30">
                                         <HiLightningBolt className="mx-auto text-amber-400 mb-1 text-xl" />
-                                        <p className="text-lg font-bold text-dark-100">{profile.engagementRate}%</p>
-                                        <p className="text-xs text-dark-400">Engagement</p>
+                                        <p className="text-h3 font-black text-dark-100">{profile.engagementRate}%</p>
+                                        <p className="text-xs-pure font-black text-dark-500 uppercase tracking-widest mt-0.5">Engagement</p>
                                     </div>
-                                    <div className="bg-dark-900/50 rounded-xl p-3 text-center">
+                                    <div className="bg-dark-900/50 rounded-premium-xl p-s3 text-center border border-dark-700/30">
                                         <HiSparkles className="mx-auto text-secondary-400 mb-1 text-xl" />
-                                        <p className="text-lg font-bold text-dark-100">{profile.insights?.score || 0}</p>
-                                        <p className="text-xs text-dark-400">AI Score</p>
+                                        <p className="text-h3 font-black text-dark-100">{profile.insights?.score || 0}</p>
+                                        <p className="text-xs-pure font-black text-dark-500 uppercase tracking-widest mt-0.5">AI Score</p>
                                     </div>
                                 </div>
 
                                 {/* CTAs */}
-                                <div className="flex gap-3 mt-4">
-                                    <button
+                                <div className="flex gap-s3 mt-s4">
+                                    <motion.button
+                                        whileHover={{ scale: 1.02, y: -2 }}
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={() => onMessage?.(creator)}
-                                        className="flex-1 btn-secondary py-3 flex items-center justify-center gap-2"
+                                        className="flex-1 py-s3 flex items-center justify-center gap-s2 rounded-premium-xl bg-dark-700/50 text-dark-100 font-black text-xs-pure uppercase tracking-widest border border-dark-600/30 hover:bg-dark-700 transition-all hover:shadow-premium"
                                     >
-                                        <HiChat />
+                                        <HiChat className="text-lg" />
                                         <span>Message</span>
-                                    </button>
-                                    <button
+                                    </motion.button>
+                                    <motion.button
+                                        whileHover={{ scale: 1.02, y: -2 }}
+                                        whileTap={{ scale: 0.98 }}
                                         onClick={() => onInvite?.(creator)}
-                                        className="flex-1 btn-3d py-3 flex items-center justify-center gap-2"
+                                        className="flex-1 py-s3 flex items-center justify-center gap-s2 rounded-premium-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-black text-xs-pure uppercase tracking-widest shadow-glow hover:shadow-glow-lg transition-all"
                                     >
-                                        <FaEnvelope />
+                                        <FaEnvelope className="text-sm" />
                                         <span>Invite to Campaign</span>
-                                    </button>
+                                    </motion.button>
                                 </div>
                             </div>
 
                             {/* Tabs */}
-                            <div className="bg-dark-800 border-b border-dark-700 overflow-x-auto">
-                                <div className="flex">
+                            <div className="bg-dark-800/80 backdrop-blur-md border-b border-dark-700/50 overflow-x-auto">
+                                <div className="flex px-s4">
                                     {tabs.map(tab => {
                                         const Icon = tab.icon;
                                         return (
                                             <button
                                                 key={tab.id}
                                                 onClick={() => setActiveTab(tab.id)}
-                                                className={`flex-1 px-4 py-3 flex items-center justify-center gap-2 whitespace-nowrap transition-colors relative ${activeTab === tab.id
+                                                className={`flex-1 px-s4 py-s3.5 flex items-center justify-center gap-s2 whitespace-nowrap transition-all relative ${activeTab === tab.id
                                                     ? 'text-primary-400'
-                                                    : 'text-dark-400 hover:text-dark-200'
+                                                    : 'text-dark-500 hover:text-dark-200'
                                                     }`}
                                             >
                                                 <Icon className="text-lg" />
-                                                <span className="hidden sm:inline text-sm font-medium">{tab.label}</span>
+                                                <span className="hidden sm:inline text-xs-pure font-black uppercase tracking-widest">{tab.label}</span>
                                                 {activeTab === tab.id && (
                                                     <motion.div
                                                         layoutId="activeTab"
-                                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-secondary-500"
+                                                        className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary-500 to-secondary-500 shadow-glow"
                                                     />
                                                 )}
                                             </button>
@@ -184,7 +188,7 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
                             </div>
 
                             {/* Tab Content */}
-                            <div className="flex-1 overflow-y-auto p-4 md:p-6">
+                            <div className="flex-1 overflow-y-auto p-s4 md:p-s6 scrollbar-thin">
                                 <AnimatePresence mode="wait">
                                     <motion.div
                                         key={activeTab}
@@ -210,34 +214,36 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
 
 // Overview Tab Component
 const OverviewTab = ({ profile, user }) => (
-    <div className="space-y-6">
+    <div className="space-y-s6">
         {/* Bio */}
-        <div>
-            <h4 className="text-sm font-semibold text-dark-100 mb-2 flex items-center gap-2">
-                <HiSparkles className="text-primary-400" />
+        <div className="bg-dark-800/40 backdrop-blur-sm p-s6 rounded-premium-2xl border border-dark-700/30 shadow-inner">
+            <h4 className="text-xs-pure font-black text-dark-100 mb-s3 flex items-center gap-s2 uppercase tracking-widest">
+                <HiSparkles className="text-primary-400 text-lg" />
                 About
             </h4>
-            <p className="text-dark-300 text-sm leading-relaxed">
+            <p className="text-dark-400 text-small leading-relaxed font-medium">
                 {profile.bio || 'No bio available yet. This creator is building an amazing presence on Instagram!'}
             </p>
         </div>
 
         {/* Detailed Stats */}
         <div>
-            <h4 className="text-sm font-semibold text-dark-100 mb-3">Detailed Statistics</h4>
-            <div className="grid grid-cols-2 gap-3">
-                <div className="bg-dark-800/50 rounded-xl p-4">
-                    <p className="text-xs text-dark-400 mb-1">Engagement Quality</p>
-                    <span className={`badge ${profile.insights?.engagementQuality === 'High' ? 'badge-success' :
-                        profile.insights?.engagementQuality === 'Medium' ? 'badge-warning' : 'badge-danger'
-                        }`}>
-                        {profile.insights?.engagementQuality || 'Unknown'}
-                    </span>
+            <h4 className="text-xs-pure font-black text-dark-500 mb-s4 uppercase tracking-widest">Detailed Statistics</h4>
+            <div className="grid grid-cols-2 gap-s4">
+                <div className="bg-dark-800/40 backdrop-blur-sm rounded-premium-xl p-s5 border border-dark-700/30 shadow-md">
+                    <p className="text-[10px] font-black text-dark-400 mb-s2 uppercase tracking-widest leading-none">Engagement Quality</p>
+                    <div className="flex items-center gap-s2">
+                        <span className={`px-s2 py-0.5 rounded-premium-md text-[10px] font-black uppercase tracking-wider ${profile.insights?.engagementQuality === 'High' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
+                            profile.insights?.engagementQuality === 'Medium' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                            }`}>
+                            {profile.insights?.engagementQuality || 'Unknown'}
+                        </span>
+                    </div>
                 </div>
-                <div className="bg-dark-800/50 rounded-xl p-4">
-                    <p className="text-xs text-dark-400 mb-1">Price Range</p>
-                    <p className="text-sm font-semibold text-dark-100">
-                        ${profile.priceRange?.min} - ${profile.priceRange?.max}
+                <div className="bg-dark-800/40 backdrop-blur-sm rounded-premium-xl p-s5 border border-dark-700/30 shadow-md">
+                    <p className="text-[10px] font-black text-dark-400 mb-s2 uppercase tracking-widest leading-none">Est. Price Range</p>
+                    <p className="text-h3 font-black text-dark-100 uppercase tracking-tight">
+                        ₹{profile.priceRange?.min?.toLocaleString()} - ₹{profile.priceRange?.max?.toLocaleString()}
                     </p>
                 </div>
             </div>
@@ -245,10 +251,10 @@ const OverviewTab = ({ profile, user }) => (
 
         {/* Content Specialties */}
         <div>
-            <h4 className="text-sm font-semibold text-dark-100 mb-3">Content Specialties</h4>
-            <div className="flex flex-wrap gap-2">
+            <h4 className="text-xs-pure font-black text-dark-500 mb-s4 uppercase tracking-widest">Content Specialties</h4>
+            <div className="flex flex-wrap gap-s2">
                 {profile.promotionTypes?.map(type => (
-                    <span key={type} className="badge badge-neutral">
+                    <span key={type} className="px-s4 py-1.5 rounded-premium-full bg-dark-900/60 text-dark-300 text-[10px] font-black uppercase tracking-widest border border-dark-700/50 shadow-sm">
                         {type}
                     </span>
                 ))}
@@ -256,20 +262,20 @@ const OverviewTab = ({ profile, user }) => (
         </div>
 
         {/* Location & Languages */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-dark-800/50 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
+            <div className="bg-dark-800/40 backdrop-blur-sm rounded-premium-xl p-s5 border border-dark-700/30 shadow-md">
+                <div className="flex items-center gap-s2 mb-s2">
                     <FaMapMarkerAlt className="text-primary-400" />
-                    <h5 className="text-sm font-semibold text-dark-100">Location</h5>
+                    <h5 className="text-[10px] font-black text-dark-500 uppercase tracking-widest leading-none">Location</h5>
                 </div>
-                <p className="text-sm text-dark-300">{profile.location || 'India'}</p>
+                <p className="text-body font-black text-dark-200 uppercase tracking-tight">{profile.location || 'India'}</p>
             </div>
-            <div className="bg-dark-800/50 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-2">
+            <div className="bg-dark-800/40 backdrop-blur-sm rounded-premium-xl p-s5 border border-dark-700/30 shadow-md">
+                <div className="flex items-center gap-s2 mb-s2">
                     <FaLanguage className="text-secondary-400" />
-                    <h5 className="text-sm font-semibold text-dark-100">Languages</h5>
+                    <h5 className="text-[10px] font-black text-dark-500 uppercase tracking-widest leading-none">Languages</h5>
                 </div>
-                <p className="text-sm text-dark-300">{profile.languages?.join(', ') || 'English, Hindi'}</p>
+                <p className="text-body font-black text-dark-200 uppercase tracking-tight">{profile.languages?.join(', ') || 'English, Hindi'}</p>
             </div>
         </div>
     </div>
@@ -277,15 +283,19 @@ const OverviewTab = ({ profile, user }) => (
 
 // Portfolio Tab Component
 const PortfolioTab = ({ profile }) => (
-    <div className="space-y-4">
-        <p className="text-sm text-dark-400 text-center py-8">
-            Portfolio integration coming soon! Connect your Instagram to showcase your best work.
-        </p>
-        {/* Instagram feed grid - Coming soon */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    <div className="space-y-s6">
+        <div className="bg-dark-800/40 backdrop-blur-sm p-s8 rounded-premium-2xl border border-dark-700/30 text-center shadow-inner">
+            <HiPhotograph className="mx-auto text-dark-600 text-5xl mb-s4 opacity-50" />
+            <h4 className="text-body font-black text-dark-200 mb-s2 uppercase tracking-widest">Portfolio Coming Soon</h4>
+            <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">
+                Connecting Instagram insights to showcase top-performing content.
+            </p>
+        </div>
+        {/* Instagram feed grid - Coming soon placeholder */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-s4">
             {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="aspect-square bg-dark-800/50 rounded-xl flex items-center justify-center">
-                    <HiPhotograph className="text-dark-600 text-4xl" />
+                <div key={i} className="aspect-square bg-dark-800/40 backdrop-blur-sm rounded-premium-2xl flex items-center justify-center border border-dark-700/30 group cursor-not-allowed hover:bg-dark-800/60 transition-all">
+                    <HiPhotograph className="text-dark-600 text-3xl group-hover:scale-110 transition-transform opacity-30" />
                 </div>
             ))}
         </div>

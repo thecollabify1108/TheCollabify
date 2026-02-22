@@ -52,58 +52,58 @@ const CampaignHealthCard = ({ campaign, onClick }) => {
         <motion.div
             whileHover={{ y: -2 }}
             onClick={onClick}
-            className="glass-card p-4 cursor-pointer transition-all hover:border-primary-500/30 relative overflow-hidden"
+            className="glass-card p-s4 rounded-premium-xl cursor-pointer transition-all hover:border-primary-500/30 relative overflow-hidden shadow-premium"
         >
             {/* Health Indicator Bar */}
-            <div className={`absolute top-0 left-0 w-1 h-full bg-${category.color}-500`} />
+            <div className={`absolute top-0 left-0 w-1.5 h-full bg-${category.color}-500 shadow-glow`} />
 
             {/* Header */}
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-s3 pl-s1">
                 <div className="flex-1">
-                    <h3 className="font-semibold text-dark-100 mb-1 line-clamp-1">{campaign.title}</h3>
-                    <div className="flex items-center gap-2 text-xs">
-                        <span className={`px-2 py-0.5 rounded-full bg-${category.color}-500/20 text-${category.color}-400 flex items-center gap-1`}>
+                    <h3 className="text-body font-black text-dark-100 mb-s1 line-clamp-1 uppercase tracking-tight">{campaign.title}</h3>
+                    <div className="flex items-center gap-s2 text-xs">
+                        <span className={`px-s2 py-0.5 rounded-premium-full bg-${category.color}-500/10 text-${category.color}-400 flex items-center gap-s1 border border-${category.color}-500/20 text-[10px] font-black uppercase tracking-wider`}>
                             {category.icon}
                             {category.label}
                         </span>
-                        <span className="text-dark-500">{health}% healthy</span>
+                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">{health}% healthy</span>
                     </div>
                 </div>
 
                 {/* Status Badge */}
-                <div className={`px-2 py-1 rounded-lg text-xs font-medium ${campaign.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                        campaign.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
-                            'bg-blue-500/20 text-blue-400'
+                <div className={`px-s2 py-1 rounded-premium-lg text-[10px] font-black uppercase tracking-widest border ${campaign.status === 'Completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                    campaign.status === 'Accepted' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                        'bg-blue-500/10 text-blue-400 border-blue-500/20'
                     }`}>
                     {campaign.status}
                 </div>
             </div>
-
+            Broadway
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-2 mb-3">
-                <div className="text-center p-2 rounded-lg bg-dark-800/40">
-                    <div className="text-lg font-bold text-dark-100">{applicants}</div>
-                    <div className="text-xs text-dark-500">Applicants</div>
+            <div className="grid grid-cols-3 gap-s2 mb-s3">
+                <div className="text-center p-s2 rounded-premium-lg bg-dark-800/40 border border-dark-700/30">
+                    <div className="text-h3 font-black text-dark-100">{applicants}</div>
+                    <div className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Applicants</div>
                 </div>
-                <div className="text-center p-2 rounded-lg bg-dark-800/40">
-                    <div className="text-lg font-bold text-emerald-400">{accepted}</div>
-                    <div className="text-xs text-dark-500">Accepted</div>
+                <div className="text-center p-s2 rounded-premium-lg bg-dark-800/40 border border-dark-700/30">
+                    <div className="text-h3 font-black text-emerald-400">{accepted}</div>
+                    <div className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Accepted</div>
                 </div>
-                <div className="text-center p-2 rounded-lg bg-dark-800/40">
-                    <div className="text-lg font-bold text-primary-400">₹{(campaign.budget / 1000).toFixed(0)}K</div>
-                    <div className="text-xs text-dark-500">Budget</div>
+                <div className="text-center p-s2 rounded-premium-lg bg-dark-800/40 border border-dark-700/30">
+                    <div className="text-h3 font-black text-primary-400">₹{(campaign.budget / 1000).toFixed(0)}K</div>
+                    <div className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Budget</div>
                 </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="space-y-1">
+            <div className="space-y-s1">
                 <div className="flex items-center justify-between text-xs">
-                    <span className="text-dark-400">Collaboration Progress</span>
-                    <span className="text-dark-300 font-medium">{Math.round(progress)}%</span>
+                    <span className="text-[10px] font-black text-dark-500 uppercase tracking-widest">Progress</span>
+                    <span className="text-xs-pure font-black text-dark-200">{Math.round(progress)}%</span>
                 </div>
-                <div className="h-1.5 bg-dark-700 rounded-full overflow-hidden">
+                <div className="h-1 rounded-premium-full bg-dark-700/50 overflow-hidden border border-dark-800">
                     <motion.div
-                        className={`h-full rounded-full bg-gradient-to-r from-${category.color}-500 to-${category.color}-400`}
+                        className={`h-full rounded-premium-full bg-gradient-to-r from-${category.color}-500 to-${category.color}-400 shadow-glow`}
                         initial={{ width: 0 }}
                         animate={{ width: `${progress}%` }}
                         transition={{ duration: 0.8, ease: "easeOut" }}

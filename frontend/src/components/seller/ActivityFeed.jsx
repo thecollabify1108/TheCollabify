@@ -80,21 +80,21 @@ const ActivityFeed = ({ requests }) => {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-dark-800/60 to-dark-900/60 backdrop-blur-xl border border-dark-700/50 h-full"
+            className="relative overflow-hidden rounded-premium-2xl bg-dark-800/60 backdrop-blur-xl border border-dark-700/50 shadow-premium h-full"
         >
             {/* Background decoration */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full blur-3xl"></div>
 
             {/* Header */}
-            <div className="relative p-5 border-b border-dark-700/50">
+            <div className="relative p-s5 border-b border-dark-700/50 bg-dark-800/40">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20">
+                    <div className="flex items-center gap-s3">
+                        <div className="p-2.5 rounded-premium-xl bg-gradient-to-br from-blue-500/20 to-cyan-500/20 shadow-glow">
                             <HiLightningBolt className="text-lg text-blue-400" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-dark-100">Activity</h3>
-                            <p className="text-xs text-dark-400">Recent updates</p>
+                            <h3 className="text-body font-black text-dark-100 uppercase tracking-wider">Activity</h3>
+                            <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">Recent updates</p>
                         </div>
                     </div>
                     {activities.length > 0 && (
@@ -108,32 +108,32 @@ const ActivityFeed = ({ requests }) => {
             </div>
 
             {/* Activity List */}
-            <div className="p-4 overflow-y-auto max-h-80 scrollbar-thin">
+            <div className="p-s4 overflow-y-auto max-h-80 scrollbar-thin">
                 {activities.length === 0 ? (
-                    <div className="text-center py-8">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-dark-800/50 flex items-center justify-center">
-                            <FaClock className="text-2xl text-dark-500" />
+                    <div className="text-center py-s8">
+                        <div className="w-16 h-16 mx-auto mb-s4 rounded-premium-2xl bg-dark-800/50 flex items-center justify-center border border-dark-700/50 shadow-inner">
+                            <FaClock className="text-2xl text-dark-600" />
                         </div>
-                        <p className="text-dark-400 font-medium">No activity yet</p>
-                        <p className="text-sm text-dark-500">Create a campaign to see updates</p>
+                        <p className="text-body font-bold text-dark-400 uppercase tracking-widest">No activity yet</p>
+                        <p className="text-xs-pure font-bold text-dark-600 uppercase tracking-widest mt-2">Create a campaign to see updates</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-s3">
                         {activities.map((activity, index) => (
                             <motion.div
                                 key={activity.id}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.05 }}
-                                className="group flex items-start gap-3 p-3 rounded-xl hover:bg-dark-800/50 transition-all cursor-pointer"
+                                className="group flex items-start gap-s3 p-s3 rounded-premium-xl hover:bg-dark-800/80 hover:shadow-premium transition-all cursor-pointer border border-transparent hover:border-dark-700/30"
                             >
-                                <div className={`p-2 rounded-lg bg-gradient-to-br ${activity.gradient} shadow-lg flex-shrink-0`}>
-                                    <span className="text-white text-xs">{activity.icon}</span>
+                                <div className={`p-s2 rounded-premium-lg bg-gradient-to-br ${activity.gradient} shadow-glow flex-shrink-0`}>
+                                    <span className="text-white text-[10px]">{activity.icon}</span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-dark-100">{activity.title}</p>
-                                    <p className="text-xs text-dark-400 truncate">{activity.subtitle}</p>
-                                    <p className="text-xs text-dark-500 mt-1">{formatTime(activity.time)}</p>
+                                    <p className="text-small font-bold text-dark-200">{activity.title}</p>
+                                    <p className="text-xs-pure font-bold text-dark-500 truncate uppercase mt-0.5">{activity.subtitle}</p>
+                                    <p className="text-[10px] font-black text-dark-600 uppercase tracking-tighter mt-1">{formatTime(activity.time)}</p>
                                 </div>
                             </motion.div>
                         ))}

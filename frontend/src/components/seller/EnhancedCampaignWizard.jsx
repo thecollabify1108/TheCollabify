@@ -142,28 +142,30 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="fixed inset-4 md:inset-10 bg-dark-900 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col"
+                className="fixed inset-4 md:inset-10 bg-dark-900/90 backdrop-blur-2xl rounded-premium-2xl shadow-premium z-50 overflow-hidden flex flex-col border border-dark-700/50"
             >
                 {/* Header */}
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6">
+                <div className="bg-gradient-to-r from-primary-600 to-secondary-600 p-s6 border-b border-white/10 relative">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <HiSparkles className="text-3xl text-white" />
+                        <div className="flex items-center gap-s4">
+                            <div className="p-s3 rounded-premium-xl bg-white/20 shadow-glow backdrop-blur-md border border-white/20">
+                                <HiSparkles className="text-3xl text-white" />
+                            </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-white">Create Campaign</h2>
-                                <p className="text-white/80 text-sm">AI-Powered Campaign Builder</p>
+                                <h2 className="text-h2 font-black text-white uppercase tracking-widest leading-tight">Create Campaign</h2>
+                                <p className="text-white/80 text-xs-pure font-bold uppercase tracking-widest">AI-Powered Campaign Builder</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-s3">
                             <button
                                 onClick={() => setShowTemplates(true)}
-                                className="px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg font-medium transition-colors"
+                                className="px-s4 py-s2 bg-white/10 hover:bg-white/20 text-white rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all border border-white/20 shadow-sm"
                             >
                                 Use Template
                             </button>
                             <button
                                 onClick={onClose}
-                                className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                className="p-s2 hover:bg-white/20 rounded-premium-lg transition-all"
                             >
                                 <FaTimes className="text-white text-xl" />
                             </button>
@@ -203,7 +205,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                 className="space-y-6"
                             >
                                 <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
+                                    <label className="block text-xs-pure font-black text-dark-400 mb-s2 uppercase tracking-widest">
                                         Campaign Title *
                                     </label>
                                     <input
@@ -211,7 +213,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="e.g., Summer Fashion Collection Launch"
-                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
+                                        className="w-full px-s4 py-s3.5 bg-dark-800/40 border border-dark-700/50 rounded-premium-xl text-dark-100 placeholder-dark-500 focus:border-primary-500/50 focus:outline-none transition-all shadow-inner"
                                     />
                                 </div>
 
@@ -232,14 +234,14 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                     <label className="block text-sm font-semibold text-dark-200 mb-2">
                                         Content Type
                                     </label>
-                                    <div className="grid grid-cols-3 gap-3">
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-s3">
                                         {['Post', 'Story', 'Reel', 'Video', 'IGTV', 'Live'].map(type => (
                                             <button
                                                 key={type}
                                                 onClick={() => setFormData({ ...formData, promotionType: type })}
-                                                className={`py-3 rounded-xl font-medium transition-colors ${formData.promotionType === type
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                                className={`py-s3 rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all border ${formData.promotionType === type
+                                                    ? 'bg-primary-600 text-white border-primary-500 shadow-glow'
+                                                    : 'bg-dark-800/40 text-dark-300 border-dark-700/50 hover:bg-dark-700'
                                                     }`}
                                             >
                                                 {type}
@@ -263,14 +265,14 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                     <label className="block text-sm font-semibold text-dark-200 mb-3">
                                         Target Categories
                                     </label>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-s2">
                                         {categories.map(category => (
                                             <button
                                                 key={category}
                                                 onClick={() => toggleCategory(category)}
-                                                className={`px-4 py-2 rounded-lg font-medium transition-colors ${formData.targetNiche.includes(category)
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                                className={`px-s4 py-s2 rounded-premium-lg text-xs-pure font-black uppercase tracking-widest transition-all border ${formData.targetNiche.includes(category)
+                                                    ? 'bg-primary-600 text-white border-primary-500 shadow-glow'
+                                                    : 'bg-dark-800/40 text-dark-300 border-dark-700/50 hover:bg-dark-700'
                                                     }`}
                                             >
                                                 {category}
@@ -487,44 +489,49 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                 exit={{ opacity: 0, x: -20 }}
                                 className="space-y-6"
                             >
-                                <div className="bg-dark-800 rounded-xl p-6 space-y-4">
-                                    <h3 className="text-xl font-bold text-dark-100">Campaign Summary</h3>
+                                <div className="bg-dark-800/40 backdrop-blur-md rounded-premium-2xl p-s6 space-y-s6 border border-dark-700/50 shadow-inner">
+                                    <h3 className="text-h3 font-black text-dark-100 uppercase tracking-widest">Campaign Summary</h3>
 
-                                    <div className="space-y-3">
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Title:</span>
-                                            <p className="text-dark-100 font-semibold">{formData.title || 'Not set'}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Type:</span>
-                                            <p className="text-dark-100">{formData.promotionType}</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Budget Range:</span>
-                                            <p className="text-dark-100 font-semibold">
-                                                ₹{parseInt(formData.minBudget || 0).toLocaleString()} - ₹{parseInt(formData.maxBudget || 0).toLocaleString()}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Duration:</span>
-                                            <p className="text-dark-100">{formData.duration} days</p>
-                                        </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Target Categories:</span>
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                                {formData.targetNiche.map(cat => (
-                                                    <span key={cat} className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-sm">
-                                                        {cat}
-                                                    </span>
-                                                ))}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-s6">
+                                        <div className="space-y-s4">
+                                            <div>
+                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Campaign Title</span>
+                                                <p className="text-body font-black text-dark-100 uppercase tracking-tight">{formData.title || 'Not set'}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Content Type</span>
+                                                <p className="text-body font-black text-primary-400 uppercase tracking-widest">{formData.promotionType}</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Budget Allocation</span>
+                                                <p className="text-h3 font-black text-emerald-400">
+                                                    ₹{parseInt(formData.minBudget || 0).toLocaleString()} - ₹{parseInt(formData.maxBudget || 0).toLocaleString()}
+                                                </p>
                                             </div>
                                         </div>
-                                        <div>
-                                            <span className="text-dark-500 text-sm">Location:</span>
-                                            <p className="text-dark-100 font-medium">
-                                                {formData.locationType}
-                                                {formData.locationType !== 'REMOTE' && formData.location?.city && ` • ${formData.location.city}`}
-                                            </p>
+
+                                        <div className="space-y-s4">
+                                            <div>
+                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Project Duration</span>
+                                                <p className="text-body font-black text-dark-100 uppercase tracking-widest">{formData.duration} DAYS</p>
+                                            </div>
+                                            <div>
+                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Target Niche</span>
+                                                <div className="flex flex-wrap gap-s2 mt-2">
+                                                    {formData.targetNiche.map(cat => (
+                                                        <span key={cat} className="px-s3 py-1 bg-primary-500/10 text-primary-400 border border-primary-500/20 rounded-premium-full text-[10px] font-black uppercase tracking-widest">
+                                                            {cat}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Collaboration Type</span>
+                                                <p className="text-body font-black text-indigo-400 uppercase tracking-widest">
+                                                    {formData.locationType}
+                                                    {formData.locationType !== 'REMOTE' && formData.location?.city && ` • ${formData.location.city.toUpperCase()}`}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -534,11 +541,11 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                 </div>
 
                 {/* Footer */}
-                <div className="border-t border-dark-800 p-6 flex items-center justify-between">
+                <div className="border-t border-dark-700/50 p-s6 flex items-center justify-between bg-dark-900/50">
                     <button
                         onClick={handleBack}
                         disabled={currentStep === 0}
-                        className="px-6 py-3 bg-dark-800 hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed text-dark-300 rounded-xl font-medium transition-colors"
+                        className="px-s6 py-s3 bg-dark-800/40 hover:bg-dark-800 border border-dark-700/50 disabled:opacity-30 disabled:cursor-not-allowed text-dark-300 rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all shadow-md"
                     >
                         Back
                     </button>
@@ -546,7 +553,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                     {currentStep < steps.length - 1 ? (
                         <button
                             onClick={handleNext}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity flex items-center gap-2"
+                            className="px-s8 py-s3 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all shadow-glow hover:shadow-glow-lg flex items-center gap-s2"
                         >
                             Next
                             <FaChevronRight />
@@ -554,7 +561,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                     ) : (
                         <button
                             onClick={handleSubmit}
-                            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity flex items-center gap-2"
+                            className="px-s8 py-s3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all shadow-glow hover:shadow-glow-lg flex items-center gap-s2"
                         >
                             <FaRocket />
                             Launch Campaign

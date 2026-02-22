@@ -30,18 +30,18 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
         <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-3xl p-5 md:p-8 bg-gradient-to-r from-violet-600 to-indigo-600 relative overflow-hidden shadow-2xl shadow-indigo-500/20"
+            className="rounded-premium-2xl p-s5 md:p-s8 bg-gradient-to-r from-violet-600 to-indigo-600 relative overflow-hidden shadow-premium"
         >
             <div className="relative z-10">
-                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-s6">
                     <div>
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center gap-s3 mb-s3">
                             <motion.div
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: 0.2 }}
                             >
-                                <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-medium text-white backdrop-blur-sm border border-white/10 uppercase tracking-wider flex items-center gap-1">
+                                <span className="px-s3 py-1 bg-white/20 rounded-full text-xs-pure font-bold text-white backdrop-blur-sm border border-white/10 uppercase tracking-widest flex items-center gap-1">
                                     <HiSparkles className="text-yellow-300" />
                                     {role} Dashboard
                                 </span>
@@ -52,17 +52,17 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     onClick={onToggleAvailability}
-                                    className={`px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-sm transition-all flex items-center gap-1.5 ${availInfo.color}`}
+                                    className={`px-s3 py-1 rounded-full text-xs-pure font-bold border backdrop-blur-sm transition-all flex items-center gap-1.5 ${availInfo.color}`}
                                 >
                                     <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
                                     {availInfo.label}
                                 </motion.button>
                             )}
                         </div>
-                        <h1 className="text-2xl md:text-4xl font-bold text-white mb-3 leading-tight">
+                        <h1 className="text-h2 md:text-h1 font-bold text-white mb-s3 leading-tight">
                             {getGreeting()}, {userName}! 👋
                         </h1>
-                        <p className="text-indigo-100 max-w-lg text-lg">
+                        <p className="text-indigo-100 max-w-lg text-body">
                             Ready to make an impact? Here's your daily edge.
                         </p>
                     </div>
@@ -72,17 +72,17 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5, type: "spring" }}
-                        className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-start gap-4 max-w-md hover:bg-white/15 transition-colors cursor-default group"
+                        className="p-s4 rounded-premium-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-start gap-s4 max-w-md hover:bg-white/15 transition-colors cursor-default group shadow-premium"
                     >
-                        <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-2.5 rounded-xl text-white shadow-lg shadow-orange-500/30 group-hover:scale-110 transition-transform duration-300">
-                            <HiSparkles className="text-xl" />
+                        <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-2.5 rounded-premium-lg text-white shadow-glow group-hover:scale-110 transition-transform duration-300">
+                            <HiSparkles className="text-h3" />
                         </div>
                         <div>
-                            <h4 className="font-bold text-white text-sm flex items-center gap-2">
+                            <h4 className="font-bold text-white text-xs-pure flex items-center gap-s2 uppercase tracking-widest">
                                 Today's AI Insight
-                                <span className="px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-medium tracking-wide">DAILY</span>
+                                <span className="px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-bold tracking-widest">DAILY</span>
                             </h4>
-                            <p className="text-indigo-50 text-sm mt-1 leading-relaxed">
+                            <p className="text-indigo-50 text-small mt-s1 leading-relaxed">
                                 "{dailyInsight || "Complete your profile to increase visibility! 🌟"}"
                             </p>
                         </div>

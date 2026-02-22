@@ -7,7 +7,8 @@ import {
     FaComments,
     FaCog,
     FaCalendar,
-    FaBriefcase
+    FaBriefcase,
+    FaHandshake
 } from 'react-icons/fa';
 import { HiHome, HiSparkles, HiUserGroup, HiLightningBolt, HiViewGrid, HiChat, HiBriefcase } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +25,8 @@ import CreatorOnboarding from '../components/creator/CreatorOnboarding';
 import PromotionList from '../components/creator/PromotionList';
 import ChatBox from '../components/common/ChatBox';
 import ConversationList from '../components/common/ConversationList';
+import CollaborationHub from '../components/common/CollaborationHub';
+import CollaborationStepper from '../components/common/CollaborationStepper';
 
 import CreatorAnalytics from '../components/creator/CreatorAnalytics';
 import { CreatorInsightCards } from '../components/analytics/InsightCards';
@@ -43,7 +46,6 @@ import AIAssistantPanel from '../components/common/AIAssistantPanel';
 import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import ContentCalendar from '../components/calendar/ContentCalendar';
-import PaymentModal from '../components/payment/PaymentModal';
 import { subscriptionPlans } from '../config/subscriptions';
 
 // Modern Dashboard Widgets
@@ -78,11 +80,11 @@ const CreatorDashboard = () => {
     const [selectedConversation, setSelectedConversation] = useState(null);
     const [messageSubTab, setMessageSubTab] = useState('conversations'); // 'conversations' or 'requests'
     const [isEditingProfile, setIsEditingProfile] = useState(false);
-    const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [focusMode, setFocusMode] = useState(null);
     const [showGuide, setShowGuide] = useState(true);
     const [availabilityStatus, setAvailabilityStatus] = useState('idle');
+    const [activeCollab, setActiveCollab] = useState(null);
 
     const [searchParams] = useSearchParams();
 
@@ -159,12 +161,7 @@ const CreatorDashboard = () => {
 
     const handleUpgrade = () => {
         setSelectedPlan(subscriptionPlans.pro);
-        setShowPaymentModal(true);
-    };
-
-    const handlePaymentSuccess = (data) => {
-        fetchData(); // Refresh user data to show new subscription status
-        toast.success('Welcome to Pro!');
+        toast.success('Pro features coming soon!');
     };
 
     const handleApplyToPromotion = async (promotionId) => {
@@ -250,17 +247,17 @@ const CreatorDashboard = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-dark-950 pb-20">
+            <div className="min-h-screen bg-dark-950 pb-s20">
                 <Navbar />
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
+                <div className="max-w-7xl mx-auto px-s4 sm:px-s6 lg:px-s8 pt-s6 space-y-s8">
                     {/* Hero Skeleton */}
-                    <div className="glass-card p-8 rounded-3xl relative overflow-hidden">
-                        <div className="relative z-10 space-y-4">
+                    <div className="glass-card p-s8 rounded-premium-2xl relative overflow-hidden">
+                        <div className="relative z-10 space-y-s4">
                             <Skeleton variant="title" width="40%" height={40} />
                             <Skeleton variant="text" width="60%" height={24} />
-                            <div className="flex gap-4 mt-6">
-                                <Skeleton width={120} height={48} className="rounded-xl" />
-                                <Skeleton width={120} height={48} className="rounded-xl" />
+                            <div className="flex gap-s4 mt-s6">
+                                <Skeleton width={120} height={48} className="rounded-premium-xl" />
+                                <Skeleton width={120} height={48} className="rounded-premium-xl" />
                             </div>
                         </div>
                     </div>
@@ -269,33 +266,33 @@ const CreatorDashboard = () => {
                     <SkeletonStats />
 
                     {/* Charts Skeleton */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-                        <div className="lg:col-span-2 glass-card p-6">
-                            <Skeleton variant="title" width="30%" height={28} className="mb-6" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-s6 h-[400px]">
+                        <div className="lg:col-span-2 glass-card p-s6">
+                            <Skeleton variant="title" width="30%" height={28} className="mb-s6" />
                             <Skeleton variant="rectangular" width="100%" height="80%" />
                         </div>
-                        <div className="glass-card p-6">
-                            <Skeleton variant="title" width="40%" height={28} className="mb-6" />
+                        <div className="glass-card p-s6">
+                            <Skeleton variant="title" width="40%" height={28} className="mb-s6" />
                             <SkeletonList count={4} />
                         </div>
                     </div>
 
                     {/* Action Items Skeleton */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="glass-card p-6 h-40">
-                            <Skeleton variant="title" width="50%" height={24} className="mb-4" />
-                            <Skeleton variant="rectangular" width="100%" height={8} className="rounded-full mb-4" />
-                            <Skeleton width="100%" height={40} className="rounded-lg" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
+                        <div className="glass-card p-s6 h-40">
+                            <Skeleton variant="title" width="50%" height={24} className="mb-s4" />
+                            <Skeleton variant="rectangular" width="100%" height={8} className="rounded-full mb-s4" />
+                            <Skeleton width="100%" height={40} className="rounded-premium-lg" />
                         </div>
-                        <div className="glass-card p-6 h-40">
-                            <div className="flex gap-4 items-center mb-4">
+                        <div className="glass-card p-s6 h-40">
+                            <div className="flex gap-s4 items-center mb-s4">
                                 <Skeleton variant="circular" width={48} height={48} />
-                                <div className="space-y-2">
+                                <div className="space-y-s2">
                                     <Skeleton width={120} height={20} />
                                     <Skeleton width={180} height={16} />
                                 </div>
                             </div>
-                            <Skeleton width="100%" height={40} className="rounded-lg" />
+                            <Skeleton width="100%" height={40} className="rounded-premium-lg" />
                         </div>
                     </div>
                 </div>
@@ -375,7 +372,7 @@ const CreatorDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="space-y-8 pb-6"
+                        className="space-y-s8 pb-s6"
                     >
                         {profile ? (
                             <>
@@ -390,7 +387,7 @@ const CreatorDashboard = () => {
 
                                 {/* 2. Stats Grid */}
                                 <FocusWrapper sectionId="stats" currentFocus={focusMode}>
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-s4 md:gap-s6">
                                         <StatCard
                                             label="Active Jobs"
                                             value={pendingApplications}
@@ -428,15 +425,65 @@ const CreatorDashboard = () => {
 
                                 {/* 3. Charts & Activity Split */}
                                 <FocusWrapper sectionId="stats" currentFocus={focusMode}>
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
-                                        <div className="lg:col-span-2 h-[300px] lg:h-full">
-                                            <PerformanceChart
-                                                title="Earnings Overview"
-                                                data={[]} // Empty until analytics
-                                                color="#10b981"
-                                            />
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-s6 min-h-[450px]">
+                                        {/* Active Collaborations Section */}
+                                        <div className="lg:col-span-2 space-y-s4">
+                                            <div className="flex items-center justify-between">
+                                                <h3 className="text-body font-black text-dark-100 uppercase tracking-wider">Active Collaborations</h3>
+                                                <span className="px-s3 py-1 rounded-full bg-primary-500/10 text-primary-400 border border-primary-500/20 text-xs-pure font-black">
+                                                    {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length} ACTIVE
+                                                </span>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
+                                                {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length === 0 ? (
+                                                    <div className="md:col-span-2 p-s8 rounded-premium-2xl bg-dark-800/20 border border-dark-700/50 flex flex-col items-center justify-center text-center">
+                                                        <FaHandshake className="text-4xl text-dark-700 mb-s3" />
+                                                        <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">No active collaborations yet</p>
+                                                    </div>
+                                                ) : (
+                                                    applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').map(app => (
+                                                        <motion.div
+                                                            key={app._id}
+                                                            whileHover={{ y: -4 }}
+                                                            onClick={() => setActiveCollab({ id: app._id, promotion: app.promotion, seller: app.sellerId || app.seller })}
+                                                            className="p-s4 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm cursor-pointer hover:border-primary-500/30 transition-all group"
+                                                        >
+                                                            <div className="flex items-center gap-s3 mb-s4">
+                                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-black shadow-glow">
+                                                                    {(app.sellerId?.name || app.seller?.name || 'B').charAt(0)}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-small font-bold text-dark-100 truncate">{app.promotion?.title}</p>
+                                                                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">{app.sellerId?.name || app.seller?.name || 'Brand'}</p>
+                                                                </div>
+                                                            </div>
+
+                                                            <CollaborationStepper
+                                                                currentStatus={app.collaborationStatus || 'ACCEPTED'}
+                                                                className="scale-90 origin-left mb-s2"
+                                                            />
+
+                                                            <div className="mt-s2 flex items-center justify-between">
+                                                                <span className="text-[10px] font-black text-primary-400 uppercase tracking-widest group-hover:underline">Manage Collab →</span>
+                                                                <span className="text-[10px] font-black text-dark-500 uppercase">{new Date(app.updatedAt).toLocaleDateString()}</span>
+                                                            </div>
+                                                        </motion.div>
+                                                    ))
+                                                )}
+                                            </div>
+
+                                            {/* Earnings overview (moved lower) */}
+                                            <div className="h-[250px] pt-s2">
+                                                <PerformanceChart
+                                                    title="Earnings Overview"
+                                                    data={[]}
+                                                    color="#10b981"
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="h-[400px] lg:h-full">
+
+                                        <div className="lg:col-span-1 h-full">
                                             <ActivityFeed
                                                 activities={applications.slice(0, 5).map(app => ({
                                                     id: app._id,
@@ -455,27 +502,27 @@ const CreatorDashboard = () => {
                                 <CreatorInsightCards />
 
                                 {/* 4. Action Items (Today's Focus - Modernized) */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
                                     <FocusWrapper sectionId="profile" currentFocus={focusMode} className="h-full">
                                         <motion.div
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.5 }}
-                                            className="p-1 rounded-2xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 h-full"
+                                            className="p-1 rounded-premium-2xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 h-full"
                                         >
-                                            <div className="bg-dark-900 rounded-xl p-5 h-full">
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <h3 className="font-bold text-white">Profile Strength</h3>
-                                                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-yellow-500">
+                                            <div className="bg-dark-900 rounded-premium-xl p-s5 h-full">
+                                                <div className="flex justify-between items-center mb-s2">
+                                                    <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure">Profile Strength</h3>
+                                                    <span className="text-h3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-yellow-500">
                                                         {calculateProfileCompletion()}%
                                                     </span>
                                                 </div>
-                                                <div className="w-full bg-dark-800 rounded-full h-2 mb-4">
-                                                    <div className="bg-gradient-to-r from-pink-500 to-yellow-500 h-2 rounded-full" style={{ width: `${calculateProfileCompletion()}%` }} />
+                                                <div className="w-full bg-dark-800 rounded-full h-2 mb-s4">
+                                                    <div className="bg-gradient-to-r from-pink-500 to-yellow-500 h-2 rounded-full shadow-glow" style={{ width: `${calculateProfileCompletion()}%` }} />
                                                 </div>
                                                 <LoadingButton
                                                     onClick={() => setActiveTab('profile')}
-                                                    className="w-full py-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-sm font-medium text-white transition-colors border-none"
+                                                    className="w-full py-s2 rounded-premium-lg bg-dark-800 hover:bg-dark-700 text-small font-bold text-white transition-all border-none"
                                                 >
                                                     Complete Profile
                                                 </LoadingButton>
@@ -488,20 +535,20 @@ const CreatorDashboard = () => {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.6 }}
-                                            className="p-5 rounded-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm h-full"
+                                            className="p-s5 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm h-full shadow-md hover:shadow-glow transition-all"
                                         >
-                                            <div className="flex items-center gap-4 mb-3">
-                                                <div className="p-3 rounded-full bg-purple-500/20 text-purple-400">
-                                                    <HiSparkles className="text-xl" />
+                                            <div className="flex items-center gap-s4 mb-s3">
+                                                <div className="p-s3 rounded-full bg-purple-500/20 text-purple-400 shadow-sm">
+                                                    <HiSparkles className="text-h3" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-bold text-white">Opportunity Match</h3>
-                                                    <p className="text-sm text-dark-400">{promotions.length} new campaigns fit your niche</p>
+                                                    <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure">Opportunity Match</h3>
+                                                    <p className="text-small text-dark-400">{promotions.length} new campaigns fit your niche</p>
                                                 </div>
                                             </div>
                                             <LoadingButton
                                                 onClick={() => setActiveTab('opportunities')}
-                                                className="w-full py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-sm font-medium text-white transition-colors border-none"
+                                                className="w-full py-s2 rounded-premium-lg bg-purple-600 hover:bg-purple-700 text-small font-bold text-white transition-all border-none shadow-md"
                                             >
                                                 Explore Matches
                                             </LoadingButton>
@@ -524,11 +571,11 @@ const CreatorDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="p-4"
+                        className="p-s4"
                     >
-                        <div className="mb-4">
-                            <h2 className="text-xl font-bold text-dark-100 mb-1">Available Opportunities</h2>
-                            <p className="text-sm text-dark-400">{promotions.length} brand collaborations</p>
+                        <div className="mb-s4">
+                            <h2 className="text-h2 font-bold text-dark-100 mb-s1">Available Opportunities</h2>
+                            <p className="text-body text-dark-400">{promotions.length} brand collaborations</p>
                         </div>
                         <PromotionList
                             promotions={promotions}
@@ -545,11 +592,11 @@ const CreatorDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="p-4"
+                        className="p-s4"
                     >
-                        <div className="mb-4">
-                            <h2 className="text-xl font-bold text-dark-100 mb-1">Your Analytics</h2>
-                            <p className="text-sm text-dark-400">Track your performance and earnings</p>
+                        <div className="mb-s4">
+                            <h2 className="text-h2 font-bold text-dark-100 mb-s1">Your Analytics</h2>
+                            <p className="text-body text-dark-400">Track your performance and earnings</p>
                         </div>
                         <AnalyticsDashboard userType="creator" />
                     </motion.div>
@@ -575,11 +622,11 @@ const CreatorDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="p-4"
+                        className="p-s4"
                     >
-                        <div className="mb-4">
-                            <h2 className="text-xl font-bold text-dark-100 mb-3">Messages</h2>
-                            <div className="flex gap-2 p-1 bg-dark-800/40 rounded-lg border border-dark-700/50">
+                        <div className="mb-s4">
+                            <h2 className="text-h2 font-bold text-dark-100 mb-s3">Messages</h2>
+                            <div className="flex gap-s2 p-1 bg-dark-800/40 rounded-premium-lg border border-dark-700/50">
                                 <button
                                     onClick={() => setMessageSubTab('conversations')}
                                     className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'conversations'
@@ -619,24 +666,24 @@ const CreatorDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="p-4 space-y-6"
+                        className="p-s4 space-y-s6"
                     >
-                        <div className="mb-4">
-                            <h2 className="text-xl font-bold text-dark-100 mb-1">Profile Settings</h2>
-                            <p className="text-sm text-dark-400">Manage your creator profile</p>
+                        <div className="mb-s4">
+                            <h2 className="text-h2 font-bold text-dark-100 mb-s1">Profile Settings</h2>
+                            <p className="text-body text-dark-400">Manage your creator profile</p>
                         </div>
 
                         {user.subscription?.status !== 'active' && (
-                            <div className="p-6 rounded-3xl bg-gradient-to-br from-purple-600 to-indigo-700 shadow-xl shadow-purple-900/20 relative overflow-hidden group">
+                            <div className="p-s6 rounded-premium-2xl bg-gradient-to-br from-purple-600 to-indigo-700 shadow-premium relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-                                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-s6">
                                     <div>
-                                        <h3 className="text-2xl font-bold text-white mb-2">Unlock Pro Features</h3>
-                                        <p className="text-purple-100 max-w-md">Get AI-powered analytics, custom reports, and priority support to scale your creator career.</p>
+                                        <h3 className="text-h2 font-bold text-white mb-s2">Unlock Pro Features</h3>
+                                        <p className="text-purple-100 max-w-md text-body">Get AI-powered analytics, custom reports, and priority support to scale your creator career.</p>
                                     </div>
                                     <LoadingButton
                                         onClick={handleUpgrade}
-                                        className="px-8 py-3 bg-white text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition-colors shadow-lg shadow-black/10 border-none"
+                                        className="px-s8 py-s3 bg-white text-purple-600 rounded-premium-xl font-bold hover:bg-purple-50 transition-all shadow-premium border-none"
                                     >
                                         Upgrade Now
                                     </LoadingButton>
@@ -652,17 +699,17 @@ const CreatorDashboard = () => {
                         ) : (
                             <>
                                 {profile && (
-                                    <div className="p-4 rounded-2xl bg-dark-800/40 border border-dark-700/50">
+                                    <div className="p-s4 rounded-premium-xl bg-dark-800/40 border border-dark-700/50 shadow-md">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <h3 className="font-semibold text-dark-100 mb-1">Availability Status</h3>
-                                                <p className="text-sm text-dark-400">Let brands know you're open for work</p>
+                                                <h3 className="font-bold text-dark-100 mb-s1 uppercase tracking-wider text-xs-pure">Availability Status</h3>
+                                                <p className="text-small text-dark-400">Let brands know you're open for work</p>
                                             </div>
                                             <LoadingButton
                                                 onClick={handleToggleAvailability}
                                                 status={availabilityStatus}
-                                                className={`px-4 py-2 rounded-full text-sm font-medium transition-all border-none ${profile.isAvailable
-                                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                                className={`px-s4 py-s2 rounded-full text-xs-pure font-bold transition-all border-none shadow-sm ${profile.isAvailable
+                                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-glow'
                                                     : 'bg-dark-700 text-dark-400 border border-dark-600'
                                                     }`}
                                             >
@@ -696,6 +743,26 @@ const CreatorDashboard = () => {
             />
 
             <AnimatePresence>
+                {activeCollab && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="w-full max-w-4xl h-[85vh] bg-dark-900 rounded-premium-2xl overflow-hidden shadow-premium border border-dark-700/50"
+                        >
+                            <CollaborationHub
+                                match={activeCollab}
+                                isOwner={false}
+                                onClose={() => setActiveCollab(null)}
+                                onComplete={() => fetchData(true)}
+                            />
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
                 {selectedConversation && (
                     <ChatBox
                         conversationId={selectedConversation._id}
@@ -706,14 +773,6 @@ const CreatorDashboard = () => {
                     />
                 )}
             </AnimatePresence>
-
-            {showPaymentModal && (
-                <PaymentModal
-                    plan={selectedPlan}
-                    onClose={() => setShowPaymentModal(false)}
-                    onSuccess={handlePaymentSuccess}
-                />
-            )}
         </DashboardLayout>
     );
 };
@@ -732,39 +791,39 @@ const ApplicationsView = ({ applications }) => {
     }
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-s4">
             {applications.map((app, index) => (
                 <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="p-4 rounded-2xl bg-dark-800/40 border border-dark-700/50"
+                    className="p-s4 rounded-premium-xl bg-dark-800/40 border border-dark-700/50 shadow-md hover:shadow-glow transition-all"
                 >
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                    <div className="flex items-start justify-between gap-s3 mb-s3">
                         <div className="flex-1">
-                            <h4 className="font-semibold text-dark-100 mb-1">{app.promotion.title}</h4>
-                            <p className="text-sm text-dark-400 line-clamp-2">{app.promotion.description}</p>
+                            <h4 className="font-bold text-dark-100 mb-s1 uppercase tracking-wider text-small">{app.promotion.title}</h4>
+                            <p className="text-small text-dark-400 line-clamp-2 leading-relaxed">{app.promotion.description}</p>
                         </div>
                         <span
-                            className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${app.applicationStatus === 'Accepted'
-                                ? 'bg-emerald-500/20 text-emerald-400'
+                            className={`px-s3 py-1 rounded-full text-xs-pure font-bold whitespace-nowrap shadow-sm ${app.applicationStatus === 'Accepted'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                                 : app.applicationStatus === 'Rejected'
-                                    ? 'bg-red-500/20 text-red-400'
-                                    : 'bg-amber-500/20 text-amber-400'
+                                    ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                    : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                                 }`}
                         >
                             {app.applicationStatus}
                         </span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                        <span className="px-2 py-1 bg-dark-700/50 rounded text-xs text-dark-300">
+                    <div className="flex flex-wrap gap-s2">
+                        <span className="px-s2 py-1 bg-dark-700/50 rounded-premium-sm text-xs-pure font-bold text-dark-300 border border-dark-600/30 uppercase tracking-widest">
                             {app.promotion.promotionType}
                         </span>
-                        <span className="px-2 py-1 bg-dark-700/50 rounded text-xs text-dark-300">
+                        <span className="px-s2 py-1 bg-dark-700/50 rounded-premium-sm text-xs-pure font-bold text-emerald-400 border border-emerald-500/20">
                             ₹{app.promotion.budgetRange?.min} - ₹{app.promotion.budgetRange?.max}
                         </span>
-                        <span className="px-2 py-1 bg-dark-700/50 rounded text-xs text-dark-400">
+                        <span className="px-s2 py-1 bg-dark-700/50 rounded-premium-sm text-xs-pure font-bold text-dark-400 border border-dark-600/30">
                             {new Date(app.appliedAt).toLocaleDateString()}
                         </span>
                     </div>

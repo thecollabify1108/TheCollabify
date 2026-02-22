@@ -103,23 +103,23 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
     ) || [];
 
     return (
-        <div className="glass-card overflow-hidden h-[calc(100vh-200px)] md:h-[600px] flex flex-col md:flex-row w-full">
+        <div className="rounded-premium-2xl bg-dark-800/40 backdrop-blur-xl border border-dark-700/50 shadow-premium overflow-hidden h-[calc(100vh-200px)] md:h-[600px] flex flex-col md:flex-row w-full">
             {/* Conversation List */}
             <motion.div
-                className={`w-full md:w-80 border-r border-dark-700 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'
+                className={`w-full md:w-80 border-r border-dark-700/50 flex flex-col ${selectedConversation ? 'hidden md:flex' : 'flex'
                     }`}
             >
                 {/* Search Header */}
-                <div className="p-4 border-b border-dark-700">
-                    <h3 className="text-lg font-semibold text-dark-100 mb-3">Messages</h3>
+                <div className="p-s4 border-b border-dark-700/50">
+                    <h3 className="text-body font-black text-dark-100 mb-s3 uppercase tracking-wider">Messages</h3>
                     <div className="relative">
-                        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400" />
+                        <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" />
                         <input
                             type="text"
                             placeholder="Search conversations..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-200 placeholder-dark-500 focus:outline-none focus:border-primary-500"
+                            className="w-full pl-10 pr-4 py-2 bg-dark-900/60 border border-dark-700/50 rounded-premium-lg text-dark-200 placeholder-dark-600 focus:outline-none focus:border-primary-500 transition-all font-medium text-sm"
                         />
                     </div>
                 </div>
@@ -127,9 +127,9 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                 {/* Conversation Items */}
                 <div className="flex-1 overflow-y-auto">
                     {filteredConversations.length === 0 ? (
-                        <div className="text-center py-12">
-                            <FaUser className="text-4xl text-dark-600 mx-auto mb-3" />
-                            <p className="text-dark-400">No conversations yet</p>
+                        <div className="text-center py-s12">
+                            <FaUser className="text-4xl text-dark-700 mx-auto mb-s3" />
+                            <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">No conversations yet</p>
                         </div>
                     ) : (
                         filteredConversations.map((conv, index) => (
@@ -152,23 +152,23 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                 {selectedConversation ? (
                     <>
                         {/* Chat Header */}
-                        <div className="p-4 border-b border-dark-700 flex items-center gap-3">
+                        <div className="p-s4 border-b border-dark-700/50 flex items-center gap-s3 bg-dark-800/40">
                             <button
                                 onClick={onBack}
-                                className="md:hidden p-2 hover:bg-dark-800 rounded-lg text-dark-400"
+                                className="md:hidden p-s2 hover:bg-dark-700 rounded-premium-lg text-dark-400"
                             >
                                 <FaArrowLeft />
                             </button>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-                                <span className="text-white font-bold">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-glow">
+                                <span className="text-white font-black">
                                     {selectedConversation.creatorUserId?.name?.charAt(0) || 'C'}
                                 </span>
                             </div>
                             <div className="flex-1">
-                                <p className="font-medium text-dark-100">
+                                <p className="text-body font-bold text-dark-100">
                                     {selectedConversation.creatorUserId?.name || 'Creator'}
                                 </p>
-                                <p className="text-xs text-dark-400">
+                                <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-wider">
                                     {selectedConversation.promotionRequestId?.title || 'Campaign'}
                                 </p>
                             </div>
@@ -178,12 +178,12 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-dark-900/50">
+                        <div className="flex-1 overflow-y-auto p-s4 space-y-s4 bg-dark-900/30">
                             {loading ? (
                                 <SkeletonMessage />
                             ) : messages.length === 0 ? (
-                                <div className="text-center py-8">
-                                    <p className="text-dark-400">No messages yet. Start the conversation!</p>
+                                <div className="text-center py-s8">
+                                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">No messages yet. Start the conversation!</p>
                                 </div>
                             ) : (
                                 messages.map((msg, index) => (
@@ -194,19 +194,19 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                                         className={`flex ${msg.senderRole === 'seller' ? 'justify-end' : 'justify-start'}`}
                                     >
                                         <div
-                                            className={`max-w-[70%] p-3 rounded-2xl ${msg.senderRole === 'seller'
-                                                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-md'
-                                                : 'bg-dark-800 text-dark-200 rounded-bl-md'
+                                            className={`max-w-[75%] p-s3 rounded-premium-xl shadow-sm ${msg.senderRole === 'seller'
+                                                ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-none'
+                                                : 'bg-dark-800 border border-dark-700/50 text-dark-200 rounded-bl-none'
                                                 }`}
                                         >
-                                            <p className="text-sm">{msg.content}</p>
-                                            <div className={`flex items-center gap-1 mt-1 ${msg.senderRole === 'seller' ? 'justify-end' : ''
+                                            <p className="text-sm font-medium leading-relaxed">{msg.content}</p>
+                                            <div className={`flex items-center gap-1 mt-s1 ${msg.senderRole === 'seller' ? 'justify-end' : ''
                                                 }`}>
-                                                <span className="text-xs opacity-70">
+                                                <span className="text-[10px] font-bold opacity-70 uppercase">
                                                     {formatMessageTime(msg.createdAt)}
                                                 </span>
                                                 {msg.senderRole === 'seller' && (
-                                                    <FaCheckDouble className="text-xs opacity-70" />
+                                                    <FaCheckDouble className="text-[10px] opacity-70" />
                                                 )}
                                             </div>
                                         </div>
@@ -217,22 +217,22 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                         </div>
 
                         {/* Message Input - Always enabled but sanitized if pending */}
-                        <div className="border-t border-dark-700 bg-dark-800">
+                        <div className="border-t border-dark-700/50 bg-dark-800/80 backdrop-blur-md">
                             {isPending && (
-                                <div className={`px-4 py-2 border-b text-center transition-colors ${canSendMessage ? 'bg-amber-500/10 border-amber-500/20' : 'bg-dark-800 border-dark-700'}`}>
-                                    <p className={`text-xs flex items-center justify-center gap-2 ${canSendMessage ? 'text-amber-500' : 'text-dark-400'}`}>
-                                        <FaLock className="text-xs" />
+                                <div className={`px-s4 py-s2 border-b text-center transition-colors ${canSendMessage ? 'bg-amber-500/10 border-amber-500/20' : 'bg-dark-900/60 border-dark-700/30'}`}>
+                                    <p className={`text-xs-pure font-bold flex items-center justify-center gap-2 uppercase tracking-wide ${canSendMessage ? 'text-amber-500' : 'text-dark-500'}`}>
+                                        <FaLock className="text-[10px]" />
                                         <span>
                                             {canSendMessage
-                                                ? "You can send 1 pre-inquiry message. Full messaging unlocks after acceptance."
-                                                : "Pre-inquiry sent. Wait for the creator to accept your request."}
+                                                ? "1 pre-inquiry message enabled. Full chat unlocks after acceptance."
+                                                : "Pre-inquiry sent. Waiting for response."}
                                         </span>
                                     </p>
                                 </div>
                             )}
-                            <form onSubmit={sendMessage} className="p-4 flex items-center gap-3">
+                            <form onSubmit={sendMessage} className="p-s4 flex items-center gap-s3">
                                 {canSendMessage && (
-                                    <button type="button" className="p-2 hover:bg-dark-700 rounded-lg text-dark-400 transition-colors">
+                                    <button type="button" className="p-s2 hover:bg-dark-700 rounded-premium-lg text-dark-500 transition-colors">
                                         <FaSmile />
                                     </button>
                                 )}
@@ -241,7 +241,7 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder={isPending ? (canSendMessage ? "Send your pre-inquiry question..." : "Waiting for acceptance...") : "Type a message..."}
-                                    className="flex-1 px-4 py-2 bg-dark-900 border border-dark-700 rounded-full text-dark-200 placeholder-dark-500 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 px-s4 py-2 bg-dark-900 border border-dark-700/50 rounded-full text-dark-200 placeholder-dark-600 focus:outline-none focus:border-primary-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
                                     disabled={!canSendMessage}
                                 />
                                 <motion.button
@@ -249,10 +249,10 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                                     disabled={!newMessage.trim() || !canSendMessage}
                                     whileHover={{ scale: canSendMessage ? 1.05 : 1 }}
                                     whileTap={{ scale: canSendMessage ? 0.95 : 1 }}
-                                    className="p-3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-primary-900/20 flex items-center gap-2"
+                                    className="p-s3 bg-gradient-to-r from-primary-600 to-secondary-600 rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-glow flex items-center gap-2"
                                 >
                                     <FaPaperPlane />
-                                    {isPending && canSendMessage && <span className="text-xs font-bold">Pre-inquiry</span>}
+                                    {isPending && canSendMessage && <span className="text-xs-pure font-black uppercase tracking-widest px-1">SEND</span>}
                                 </motion.button>
                             </form>
                         </div>
@@ -260,9 +260,9 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                 ) : (
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center">
-                            <FaComments className="text-6xl text-dark-600 mx-auto mb-4" />
-                            <p className="text-dark-400">Select a conversation</p>
-                            <p className="text-sm text-dark-500">Choose from your existing chats to start messaging</p>
+                            <FaComments className="text-6xl text-dark-800 mx-auto mb-s4" />
+                            <p className="text-body font-black text-dark-400 uppercase tracking-widest">Select a conversation</p>
+                            <p className="text-xs-pure font-bold text-dark-600 uppercase tracking-widest mt-2">Choose a chat to start messaging</p>
                         </div>
                     </div>
                 )}

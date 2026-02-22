@@ -6,10 +6,10 @@ const PerformanceChart = ({ data, title, color = "#8b5cf6" }) => {
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="rounded-2xl bg-dark-800/40 border border-dark-700/50 p-5 backdrop-blur-sm h-full flex flex-col"
+            className="rounded-premium-xl bg-dark-800/40 border border-dark-700/50 p-s5 backdrop-blur-sm h-full flex flex-col shadow-md"
         >
-            <div className="mb-4">
-                <h3 className="text-lg font-bold text-white">{title}</h3>
+            <div className="mb-s4">
+                <h3 className="text-h3 font-bold text-white uppercase tracking-wider">{title}</h3>
             </div>
 
             <div className="flex-1 min-h-[200px]">
@@ -38,8 +38,8 @@ const PerformanceChart = ({ data, title, color = "#8b5cf6" }) => {
                             dx={-10}
                         />
                         <Tooltip
-                            contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
-                            itemStyle={{ color: '#fff' }}
+                            contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4)' }}
+                            itemStyle={{ color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
                             cursor={{ stroke: color, strokeWidth: 1 }}
                         />
                         <Area

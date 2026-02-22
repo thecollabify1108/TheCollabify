@@ -54,47 +54,49 @@ const CampaignTemplateSelector = ({ onSelect, onClose }) => {
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                 className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-5xl max-h-[90vh] overflow-hidden"
             >
-                <div className="bg-dark-900 border border-dark-800 rounded-2xl shadow-2xl m-4">
+                <div className="bg-dark-800/60 backdrop-blur-xl border border-dark-700/50 rounded-premium-2xl shadow-premium m-s4 overflow-hidden">
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 p-6 relative">
+                    <div className="bg-gradient-to-r from-primary-600 to-secondary-600 p-s6 relative border-b border-white/10">
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors"
+                            className="absolute top-4 right-4 p-s2 hover:bg-white/20 rounded-premium-lg transition-all"
                         >
                             <FaTimes className="text-white" />
                         </button>
-                        <div className="flex items-center gap-3">
-                            <HiSparkles className="text-3xl text-white" />
+                        <div className="flex items-center gap-s4">
+                            <div className="p-s3 rounded-premium-xl bg-white/20 shadow-glow backdrop-blur-md border border-white/20">
+                                <HiSparkles className="text-3xl text-white" />
+                            </div>
                             <div>
-                                <h2 className="text-2xl font-bold text-white">Campaign Templates</h2>
-                                <p className="text-white/80 mt-1">Choose a template to get started quickly</p>
+                                <h2 className="text-h2 font-black text-white uppercase tracking-widest leading-tight">Campaign Templates</h2>
+                                <p className="text-white/80 text-xs-pure font-bold uppercase tracking-widest mt-1">Choose a template to get started quickly</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Search & Filter */}
-                    <div className="p-6 border-b border-dark-800 space-y-4">
+                    <div className="p-s6 border-b border-dark-700/50 space-y-s4 bg-dark-900/40">
                         {/* Search */}
-                        <div className="relative">
-                            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-500" />
+                        <div className="relative group">
+                            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-500 group-focus-within:text-primary-400 transition-colors" />
                             <input
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 placeholder="Search templates..."
-                                className="w-full pl-12 pr-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-primary-500 focus:outline-none transition-colors"
+                                className="w-full pl-12 pr-s4 py-s3.5 bg-dark-800/40 backdrop-blur-md border border-dark-700/50 rounded-premium-xl text-dark-100 placeholder-dark-500 focus:border-primary-500/50 focus:outline-none transition-all shadow-inner"
                             />
                         </div>
 
                         {/* Category Filter */}
-                        <div className="flex gap-2 overflow-x-auto pb-2">
+                        <div className="flex gap-s2 overflow-x-auto pb-s2 custom-scrollbar">
                             {categories.map(category => (
                                 <button
                                     key={category}
                                     onClick={() => setSelectedCategory(category)}
-                                    className={`px-4 py-2 rounded-xl font-medium whitespace-nowrap transition-colors ${selectedCategory === category
-                                            ? 'bg-primary-600 text-white'
-                                            : 'bg-dark-800 text-dark-400 hover:bg-dark-700 hover:text-dark-200'
+                                    className={`px-s4 py-s2 rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all border ${selectedCategory === category
+                                        ? 'bg-primary-600 text-white border-primary-500 shadow-glow'
+                                        : 'bg-dark-800/40 text-dark-400 border-dark-700/50 hover:bg-dark-700'
                                         }`}
                                 >
                                     {category}
@@ -104,27 +106,27 @@ const CampaignTemplateSelector = ({ onSelect, onClose }) => {
                     </div>
 
                     {/* Templates Grid */}
-                    <div className="p-6 overflow-y-auto max-h-96">
+                    <div className="p-s6 overflow-y-auto max-h-96 bg-dark-900/20">
                         {filteredTemplates.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-s4">
                                 {filteredTemplates.map(template => (
                                     <motion.div
                                         key={template.id}
                                         whileHover={{ scale: 1.02 }}
                                         onClick={() => handleSelectTemplate(template)}
-                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedTemplate?.id === template.id
-                                                ? 'border-primary-500 bg-primary-500/10'
-                                                : 'border-dark-700 bg-dark-800/50 hover:border-dark-600'
+                                        className={`p-s4 rounded-premium-xl border-2 cursor-pointer transition-all shadow-md hover:shadow-premium ${selectedTemplate?.id === template.id
+                                            ? 'border-primary-500 bg-primary-500/10 shadow-glow'
+                                            : 'border-dark-700/50 bg-dark-800/40 backdrop-blur-sm hover:border-dark-600'
                                             }`}
                                     >
-                                        <div className="text-4xl mb-3">{template.icon}</div>
-                                        <h3 className="font-bold text-dark-100 mb-2">{template.name}</h3>
-                                        <p className="text-sm text-dark-400 mb-3">{template.description}</p>
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-xs px-2 py-1 bg-dark-700 text-dark-300 rounded">
+                                        <div className="text-4xl mb-s3 filter drop-shadow-md">{template.icon}</div>
+                                        <h3 className="text-body font-black text-dark-100 mb-s2 uppercase tracking-tight">{template.name}</h3>
+                                        <p className="text-small text-dark-400 mb-s4 line-clamp-2">{template.description}</p>
+                                        <div className="flex items-center justify-between mt-auto">
+                                            <span className="text-[10px] font-black px-s2.5 py-1 bg-dark-700/50 text-dark-300 rounded-premium-full border border-dark-600/30 uppercase tracking-widest">
                                                 {template.category}
                                             </span>
-                                            <span className="text-xs text-primary-400">
+                                            <span className="text-xs-pure font-black text-primary-400 uppercase tracking-widest">
                                                 ₹{template.template.budget.toLocaleString()}
                                             </span>
                                         </div>

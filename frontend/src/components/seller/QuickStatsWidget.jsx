@@ -46,7 +46,7 @@ const QuickStatsWidget = ({ stats }) => {
     ];
 
     return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-s4">
             {statCards.map((stat, index) => (
                 <motion.div
                     key={stat.label}
@@ -54,15 +54,15 @@ const QuickStatsWidget = ({ stats }) => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ delay: index * 0.1, type: "spring", stiffness: 200 }}
                     whileHover={{ y: -5, scale: 1.02 }}
-                    className={`relative overflow-hidden rounded-2xl bg-gradient-to-br from-dark-800/80 to-dark-900/80 backdrop-blur-xl border border-dark-700/50 p-5 cursor-pointer group shadow-xl ${stat.shadowColor}`}
+                    className={`relative overflow-hidden rounded-premium-2xl bg-dark-800/60 backdrop-blur-xl border border-dark-700/50 p-s6 cursor-pointer group shadow-premium`}
                 >
                     {/* Background glow */}
                     <div className={`absolute -top-12 -right-12 w-32 h-32 ${stat.bgGlow} rounded-full blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
 
                     {/* Content */}
                     <div className="relative z-10">
-                        <div className="flex items-start justify-between mb-4">
-                            <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg ${stat.shadowColor}`}>
+                        <div className="flex items-start justify-between mb-s4">
+                            <div className={`p-s3 rounded-premium-xl bg-gradient-to-br ${stat.gradient} shadow-glow`}>
                                 <span className="text-white text-lg">{stat.icon}</span>
                             </div>
                             {stat.pulse && stat.value > 0 && (
@@ -75,14 +75,14 @@ const QuickStatsWidget = ({ stats }) => {
                         </div>
 
                         <motion.div
-                            className="text-4xl font-black text-dark-100 mb-1"
+                            className="text-h1 font-black text-dark-100 mb-s1 group-hover:scale-110 transition-transform origin-left"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.3 + index * 0.1 }}
                         >
                             {stat.value}
                         </motion.div>
-                        <div className="text-sm font-medium text-dark-400">{stat.label}</div>
+                        <div className="text-xs-pure font-black text-dark-500 uppercase tracking-widest">{stat.label}</div>
                     </div>
 
                     {/* Hover shimmer effect */}

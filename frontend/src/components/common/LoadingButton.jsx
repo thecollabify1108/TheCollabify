@@ -29,14 +29,14 @@ const LoadingButton = ({
     // Map legacy 'loading' prop to status if status is strictly 'idle' but loading is true
     const currentStatus = loading && status === 'idle' ? 'loading' : status;
 
-    const baseClasses = 'btn relative overflow-hidden transition-all duration-200 flex items-center justify-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500';
+    const baseClasses = 'btn relative overflow-hidden transition-all duration-200 flex items-center justify-center gap-s2 outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500';
 
     const variantClasses = {
-        primary: 'btn-primary shadow-lg shadow-primary-500/20 hover:shadow-primary-500/30',
+        primary: 'btn-3d shadow-premium hover:shadow-glow',
         secondary: 'btn-secondary',
-        danger: 'bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-500/20',
-        outline: 'border-2 border-primary text-primary hover:bg-primary/10',
-        ghost: 'bg-transparent hover:bg-dark-800 text-dark-200 hover:text-white',
+        danger: 'bg-red-600 hover:bg-red-700 text-white shadow-premium rounded-premium-xl',
+        outline: 'btn-outline',
+        ghost: 'bg-transparent hover:bg-dark-800 text-dark-200 hover:text-white rounded-premium-xl px-s3 py-s1.5',
     };
 
     const widthClass = fullWidth ? 'w-full' : '';
@@ -115,8 +115,8 @@ const LoadingButton = ({
 
     // Dynamic background for success/error states
     let finalVariantClass = variantClasses[variant] || variantClasses.primary;
-    if (currentStatus === 'success') finalVariantClass = 'bg-emerald-600 border-transparent text-white shadow-lg shadow-emerald-500/20';
-    if (currentStatus === 'error') finalVariantClass = 'bg-red-600 border-transparent text-white shadow-lg shadow-red-500/20';
+    if (currentStatus === 'success') finalVariantClass = 'bg-emerald-600 border-transparent text-white shadow-premium rounded-premium-xl px-s3 py-s1.5';
+    if (currentStatus === 'error') finalVariantClass = 'bg-red-600 border-transparent text-white shadow-premium rounded-premium-xl px-s3 py-s1.5';
 
     return (
         <button

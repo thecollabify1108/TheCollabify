@@ -84,21 +84,21 @@ const AICampaignSuggestions = ({ requests = [], onCreateCampaign, onApplySuggest
     };
 
     return (
-        <div className="space-y-4">
+        <div className="space-y-s6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-                        <HiSparkles className="text-white text-xl" />
+                <div className="flex items-center gap-s3">
+                    <div className="w-12 h-12 rounded-premium-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-glow border border-white/20">
+                        <HiSparkles className="text-white text-2xl" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-dark-100">AI Suggestions</h3>
-                        <p className="text-dark-400 text-sm">Smart recommendations for you</p>
+                        <h3 className="text-h3 font-black text-dark-100 uppercase tracking-tight">AI Insights</h3>
+                        <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">Smart recommendations for you</p>
                     </div>
                 </div>
                 <button
                     onClick={generateSuggestions}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-700 text-dark-300 hover:bg-dark-600 transition-colors text-sm"
+                    className="flex items-center gap-s2 px-s4 py-s2 rounded-premium-xl bg-dark-800/80 text-dark-300 hover:text-dark-100 border border-dark-700/50 transition-all text-xs-pure font-black uppercase tracking-widest shadow-sm hover:shadow-premium"
                 >
                     <FaMagic className="text-primary-400" />
                     Refresh
@@ -107,9 +107,9 @@ const AICampaignSuggestions = ({ requests = [], onCreateCampaign, onApplySuggest
 
             {/* Loading State */}
             {loading && (
-                <div className="space-y-3">
+                <div className="space-y-s4">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="h-24 bg-dark-800 rounded-xl animate-pulse shimmer" />
+                        <div key={i} className="h-28 bg-dark-800/40 rounded-premium-2xl animate-pulse shimmer border border-dark-700/30" />
                     ))}
                 </div>
             )}
@@ -117,7 +117,7 @@ const AICampaignSuggestions = ({ requests = [], onCreateCampaign, onApplySuggest
             {/* Suggestions List */}
             {!loading && (
                 <AnimatePresence mode="popLayout">
-                    <div className="space-y-3">
+                    <div className="space-y-s4">
                         {suggestions.slice(0, 4).map((suggestion, index) => (
                             <motion.div
                                 key={suggestion.id}
@@ -125,39 +125,39 @@ const AICampaignSuggestions = ({ requests = [], onCreateCampaign, onApplySuggest
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ delay: index * 0.1 }}
-                                className={`relative bg-dark-800/50 border border-dark-700 rounded-xl p-4 overflow-hidden ${activeSuggestion === suggestion.id ? 'border-green-500' : ''
+                                className={`relative bg-dark-800/40 backdrop-blur-sm border-2 rounded-premium-2xl p-s5 overflow-hidden transition-all hover:shadow-premium ${activeSuggestion === suggestion.id ? 'border-emerald-500 bg-emerald-500/5 shadow-glow' : 'border-dark-700/50 hover:border-dark-600'
                                     }`}
                             >
                                 {/* Background gradient */}
                                 <div className={`absolute inset-0 bg-gradient-to-r ${suggestion.color} opacity-5`} />
 
-                                <div className="relative flex items-start gap-4">
+                                <div className="relative flex items-start gap-s5">
                                     {/* Icon */}
-                                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${suggestion.color} flex items-center justify-center flex-shrink-0`}>
-                                        <suggestion.icon className="text-white text-xl" />
+                                    <div className={`w-14 h-14 rounded-premium-2xl bg-gradient-to-br ${suggestion.color} flex items-center justify-center flex-shrink-0 shadow-lg border border-white/10`}>
+                                        <suggestion.icon className="text-white text-2xl" />
                                     </div>
 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h4 className="font-semibold text-dark-100">{suggestion.title}</h4>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full border ${getImpactBadge(suggestion.impact)}`}>
+                                        <div className="flex items-center gap-s3 mb-s2">
+                                            <h4 className="text-body font-black text-dark-100 uppercase tracking-tight">{suggestion.title}</h4>
+                                            <span className={`text-[10px] px-s2.5 py-1 rounded-premium-full border font-black uppercase tracking-widest shadow-sm ${getImpactBadge(suggestion.impact)}`}>
                                                 {suggestion.impact} impact
                                             </span>
                                         </div>
-                                        <p className="text-dark-400 text-sm mb-3">{suggestion.description}</p>
+                                        <p className="text-small text-dark-400 mb-s4 leading-relaxed">{suggestion.description}</p>
 
                                         {/* Action Button */}
                                         <motion.button
-                                            whileHover={{ scale: 1.02 }}
+                                            whileHover={{ scale: 1.02, y: -2 }}
                                             whileTap={{ scale: 0.98 }}
                                             onClick={() => handleApplySuggestion(suggestion)}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r ${suggestion.color} text-white text-sm font-medium`}
+                                            className={`flex items-center gap-s2 px-s5 py-s2.5 rounded-premium-xl bg-gradient-to-r ${suggestion.color} text-white text-xs-pure font-black uppercase tracking-widest shadow-glow hover:shadow-glow-lg transition-all`}
                                         >
                                             {activeSuggestion === suggestion.id ? (
                                                 <>
-                                                    <FaCheckCircle />
-                                                    Applied!
+                                                    <FaCheckCircle className="text-sm" />
+                                                    Applied Successfully
                                                 </>
                                             ) : (
                                                 <>
@@ -169,9 +169,9 @@ const AICampaignSuggestions = ({ requests = [], onCreateCampaign, onApplySuggest
                                     </div>
 
                                     {/* Confidence Score */}
-                                    <div className="text-right flex-shrink-0">
-                                        <div className="text-2xl font-bold text-dark-100">{suggestion.confidence}%</div>
-                                        <div className="text-xs text-dark-400">confidence</div>
+                                    <div className="text-right flex-shrink-0 hidden sm:block">
+                                        <div className="text-h2 font-black text-dark-100 tracking-tighter">{suggestion.confidence}%</div>
+                                        <div className="text-[10px] font-black text-dark-500 uppercase tracking-widest">Confidence</div>
                                     </div>
                                 </div>
                             </motion.div>

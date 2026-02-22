@@ -499,17 +499,17 @@ const SellerDashboard = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-dark-950 pb-20">
+            <div className="min-h-screen bg-dark-950 pb-s20">
                 <Navbar />
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-8">
+                <div className="max-w-7xl mx-auto px-s4 sm:px-s6 lg:px-s8 pt-s6 space-y-s8">
                     {/* Hero Skeleton */}
-                    <div className="glass-card p-8 rounded-3xl relative overflow-hidden">
-                        <div className="relative z-10 space-y-4">
+                    <div className="glass-card p-s8 rounded-premium-2xl relative overflow-hidden">
+                        <div className="relative z-10 space-y-s4">
                             <Skeleton variant="title" width="40%" height={40} />
                             <Skeleton variant="text" width="60%" height={24} />
-                            <div className="flex gap-4 mt-6">
-                                <Skeleton width={120} height={48} className="rounded-xl" />
-                                <Skeleton width={120} height={48} className="rounded-xl" />
+                            <div className="flex gap-s4 mt-s6">
+                                <Skeleton width={120} height={48} className="rounded-premium-xl" />
+                                <Skeleton width={120} height={48} className="rounded-premium-xl" />
                             </div>
                         </div>
                     </div>
@@ -518,24 +518,24 @@ const SellerDashboard = () => {
                     <SkeletonStats />
 
                     {/* Charts Skeleton */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
-                        <div className="lg:col-span-2 glass-card p-6">
-                            <Skeleton variant="title" width="30%" height={28} className="mb-6" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-s6 h-[400px]">
+                        <div className="lg:col-span-2 glass-card p-s6">
+                            <Skeleton variant="title" width="30%" height={28} className="mb-s6" />
                             <Skeleton variant="rectangular" width="100%" height="80%" />
                         </div>
-                        <div className="glass-card p-6">
-                            <Skeleton variant="title" width="40%" height={28} className="mb-6" />
+                        <div className="glass-card p-s6">
+                            <Skeleton variant="title" width="40%" height={28} className="mb-s6" />
                             <SkeletonList count={4} />
                         </div>
                     </div>
 
                     {/* Active Campaigns Skeleton */}
                     <div>
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex justify-between items-center mb-s6">
                             <Skeleton variant="title" width={200} height={32} />
-                            <Skeleton width={140} height={40} className="rounded-xl" />
+                            <Skeleton width={140} height={40} className="rounded-premium-xl" />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-s4">
                             <SkeletonCard />
                             <SkeletonCard />
                             <SkeletonCard />
@@ -576,7 +576,7 @@ const SellerDashboard = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="w-full max-w-4xl h-[85vh] bg-dark-900 rounded-3xl overflow-hidden shadow-2xl border border-dark-700"
+                            className="w-full max-w-4xl h-[85vh] bg-dark-900 rounded-premium-2xl overflow-hidden shadow-premium border border-dark-700/50"
                         >
                             <CollaborationHub
                                 match={activeCollabMatch}
@@ -609,7 +609,7 @@ const SellerDashboard = () => {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="space-y-4"
+                        className="space-y-s4"
                     >
                         {/* Enhanced Creator Search */}
                         <EnhancedCreatorSearch
@@ -666,9 +666,9 @@ const SellerDashboard = () => {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                     >
-                        <div className="mb-4">
-                            <h2 className="text-xl font-bold text-dark-100 mb-1">Campaign Analytics</h2>
-                            <p className="text-sm text-dark-400">Track your campaign performance</p>
+                        <div className="mb-s4">
+                            <h2 className="text-h2 font-black text-dark-100 mb-s1 uppercase tracking-widest">Campaign Analytics</h2>
+                            <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">Track your campaign performance</p>
                         </div>
                         <AnalyticsDashboard userType="seller" requests={requests} />
                     </motion.div>
@@ -693,7 +693,7 @@ const SellerDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="space-y-8 pb-6"
+                        className="space-y-s8 pb-s6"
                     >
                         {/* 1. Hero Section */}
                         <DashboardHero
@@ -705,7 +705,7 @@ const SellerDashboard = () => {
 
 
                         {/* 2. Campaign Pipeline Stats */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-s4 md:gap-s6">
                             <StatCard
                                 label="Total Budget"
                                 value="₹0" // Placeholder until real budget logic
@@ -744,7 +744,7 @@ const SellerDashboard = () => {
                         <BrandInsightCards />
 
                         {/* 3. Charts & Applicant Feed */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[450px]">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-s6 lg:h-[450px]">
                             <div className="lg:col-span-2 h-[300px] lg:h-full">
                                 <PerformanceChart
                                     title="Campaign Spend & ROI"
@@ -769,14 +769,14 @@ const SellerDashboard = () => {
 
                         {/* 4. Active Campaigns List (Modernized) */}
                         <FocusWrapper sectionId="campaigns" currentFocus={focusMode}>
-                            <div>
-                                <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+                            <div className="space-y-s6">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-h2 font-black text-dark-100 flex items-center gap-s3 uppercase tracking-widest">
                                         <HiSparkles className="text-primary-400" /> Active Campaigns
                                     </h2>
                                     <LoadingButton
                                         onClick={() => setShowRequestWizard(true)}
-                                        className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors border-none shadow-lg shadow-primary-500/20"
+                                        className="px-s6 py-s3 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all border-none shadow-glow hover:shadow-glow-lg"
                                     >
                                         + New Campaign
                                     </LoadingButton>
@@ -791,7 +791,7 @@ const SellerDashboard = () => {
                                         onAction={() => setShowRequestWizard(true)}
                                     />
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-s4">
                                         {requests.slice(0, 6).map((request, index) => (
                                             <motion.div
                                                 key={request._id}
@@ -799,32 +799,39 @@ const SellerDashboard = () => {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: index * 0.05 }}
                                                 onClick={() => setSelectedRequest(request)}
-                                                className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800"
+                                                className="p-s5 rounded-premium-2xl bg-dark-800/40 backdrop-blur-md border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800/60 shadow-md hover:shadow-premium"
                                             >
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                <div className="flex items-start justify-between mb-s4">
+                                                    <div className={`w-12 h-12 rounded-premium-xl flex items-center justify-center shadow-glow border border-white/10 text-lg font-black ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
                                                         request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
                                                             'bg-blue-500/20 text-blue-400'
                                                         }`}>
                                                         {request.title?.charAt(0).toUpperCase()}
                                                     </div>
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${request.status === 'Open' ? 'bg-green-500/10 text-green-400' : 'bg-dark-700 text-dark-400'
+                                                    <span className={`px-s2.5 py-1 rounded-premium-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-dark-700/50 text-dark-400 border-dark-600/30'
                                                         }`}>
                                                         {request.status}
                                                     </span>
                                                 </div>
 
-                                                <h3 className="font-semibold text-dark-100 mb-1 group-hover:text-primary-400 transition-colors">{request.title}</h3>
-                                                <div className="flex items-center justify-between text-sm text-dark-400">
-                                                    <span>Budget: ₹{request.budget?.toLocaleString()}</span>
-                                                    <span>{request.matchedCreators?.length || 0} Matches</span>
+                                                <h3 className="text-body font-black text-dark-100 mb-s2 group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-tight">{request.title}</h3>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Budget</span>
+                                                        <span className="text-xs-pure font-black text-dark-100">₹{request.budget?.toLocaleString()}</span>
+                                                    </div>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Matches</span>
+                                                        <span className="text-xs-pure font-black text-primary-400">{request.matchedCreators?.length || 0}</span>
+                                                    </div>
                                                 </div>
 
                                                 {/* Progress Bar Simulation */}
-                                                <div className="w-full bg-dark-700 rounded-full h-1.5 mt-4 overflow-hidden">
-                                                    <div
-                                                        className="bg-primary-500 h-full rounded-full"
-                                                        style={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
+                                                <div className="w-full bg-dark-950/50 rounded-free h-1 mt-s5 overflow-hidden border border-dark-800/50">
+                                                    <motion.div
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
+                                                        className="bg-gradient-to-r from-primary-500 to-secondary-500 h-full rounded-free shadow-glow"
                                                     />
                                                 </div>
                                             </motion.div>
@@ -843,7 +850,7 @@ const SellerDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="p-4"
+                        className="p-s4"
                     >
                         <MessagingPanel
                             conversations={conversations}
@@ -904,14 +911,7 @@ const SellerDashboard = () => {
                 }}
             />
 
-            {/* Payment Modal */}
-            {showPaymentModal && (
-                <PaymentModal
-                    plan={selectedPlan}
-                    onClose={() => setShowPaymentModal(false)}
-                    onSuccess={handlePaymentSuccess}
-                />
-            )}
+
         </DashboardLayout>
     );
 };

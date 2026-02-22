@@ -55,13 +55,13 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="flex flex-col items-center justify-center py-16 px-6"
+                className="flex flex-col items-center justify-center py-s16 px-s6"
             >
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center mb-6">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center mb-s6 shadow-premium">
                     <HiSparkles className="text-4xl text-primary-400" />
                 </div>
-                <h3 className="text-xl font-bold text-dark-100 mb-2">All caught up! 🎉</h3>
-                <p className="text-dark-400 text-center max-w-sm">
+                <h3 className="text-h1 font-bold text-dark-100 mb-s2">All caught up! 🎉</h3>
+                <p className="text-body text-dark-400 text-center max-w-sm">
                     You've reviewed all pending creator applications. Create a new campaign to get more matches.
                 </p>
             </motion.div>
@@ -76,7 +76,7 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
                 {creators.slice(currentIndex + 1, currentIndex + 3).map((_, i) => (
                     <div
                         key={i}
-                        className="absolute inset-x-0 top-0 h-full rounded-3xl bg-dark-800/60 border border-dark-700/50"
+                        className="absolute inset-x-0 top-0 h-full rounded-premium-2xl bg-dark-800/60 border border-dark-700/50 shadow-sm"
                         style={{
                             transform: `scale(${1 - (i + 1) * 0.05}) translateY(${(i + 1) * 15}px)`,
                             opacity: 1 - (i + 1) * 0.3,
@@ -99,13 +99,13 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-center gap-4 mt-6">
+            <div className="flex items-center justify-center gap-s4 mt-s6">
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={handleUndo}
                     disabled={!lastAction}
-                    className="w-12 h-12 rounded-full bg-dark-700/50 border border-dark-600 flex items-center justify-center text-dark-400 hover:text-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-12 h-12 rounded-full bg-dark-700/50 border border-dark-600 flex items-center justify-center text-dark-400 hover:text-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-premium"
                 >
                     <FaUndo />
                 </motion.button>
@@ -114,7 +114,7 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleSwipe('left')}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-white shadow-lg shadow-red-500/30"
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center text-white shadow-glow-lg"
                 >
                     <FaTimes className="text-2xl" />
                 </motion.button>
@@ -124,12 +124,12 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={handleRequest} // Use handleRequest instead of onMessage
-                    className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 relative group"
+                    className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-glow relative group"
                     title="Request Collaboration"
                 >
                     <FaUserPlus /> {/* Changed icon to represent request */}
 
-                    <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-dark-900 border border-dark-700 rounded text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                    <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-s2 py-1 bg-dark-900 border border-dark-700 rounded-premium-md text-xs-pure font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-premium">
                         Request Collaboration
                     </span>
                 </motion.button>
@@ -139,7 +139,7 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => handleSwipe('right')}
-                    className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30"
+                    className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white shadow-glow-lg"
                 >
                     <FaHeart className="text-2xl" />
                 </motion.button>
@@ -148,18 +148,18 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={() => onSave?.(currentCreator)}
-                    className="w-12 h-12 rounded-full bg-dark-700/50 border border-dark-600 flex items-center justify-center text-dark-400 hover:text-primary-400 transition-colors"
+                    className="w-12 h-12 rounded-full bg-dark-700/50 border border-dark-600 flex items-center justify-center text-dark-400 hover:text-primary-400 transition-colors shadow-premium"
                 >
                     <FaStar />
                 </motion.button>
             </div>
 
             {/* Swipe Instructions */}
-            <div className="flex justify-center gap-8 mt-4">
-                <span className="text-xs text-dark-500 flex items-center gap-1">
+            <div className="flex justify-center gap-s8 mt-s4">
+                <span className="text-xs-pure font-bold text-dark-500 flex items-center gap-1 uppercase tracking-wider">
                     <FaTimes className="text-red-400" /> Swipe left to reject
                 </span>
-                <span className="text-xs text-dark-500 flex items-center gap-1">
+                <span className="text-xs-pure font-bold text-dark-500 flex items-center gap-1 uppercase tracking-wider">
                     <FaHeart className="text-emerald-400" /> Swipe right to accept
                 </span>
             </div>
@@ -206,7 +206,7 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
             }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         >
-            <div className="relative h-full rounded-3xl overflow-hidden bg-gradient-to-br from-dark-800 to-dark-900 border border-dark-700/50 shadow-2xl">
+            <div className="relative h-full rounded-premium-2xl overflow-hidden bg-gradient-to-br from-dark-800 to-dark-900 border border-dark-700/50 shadow-2xl">
 
                 {/* Accept Overlay */}
                 <motion.div
@@ -236,20 +236,20 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                 </div>
 
                 {/* Creator Info */}
-                <div className="p-6 space-y-4">
+                <div className="p-s6 space-y-s4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="text-2xl font-bold text-dark-100">{creator.creatorName}</h3>
-                            <div className="flex items-center gap-2 text-dark-400">
+                            <h3 className="text-h2 font-bold text-dark-100">{creator.creatorName}</h3>
+                            <div className="flex items-center gap-s2 text-body text-dark-400">
                                 <FaInstagram className="text-pink-400" />
-                                <span className="font-medium">{(creator.followerCount || 0).toLocaleString()} followers</span>
+                                <span className="font-bold">{(creator.followerCount || 0).toLocaleString()} followers</span>
                             </div>
                         </div>
-                        <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${creator.availabilityStatus === 'AVAILABLE_NOW'
-                            ? 'bg-emerald-500/20 text-emerald-400'
+                        <div className={`flex items-center gap-1.5 px-s2 py-1 rounded-full text-xs-pure font-bold shadow-sm ${creator.availabilityStatus === 'AVAILABLE_NOW'
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20'
                             : creator.availabilityStatus === 'LIMITED_AVAILABILITY'
-                                ? 'bg-amber-500/20 text-amber-400'
-                                : 'bg-dark-700 text-dark-400'
+                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/20'
+                                : 'bg-dark-700 text-dark-400 border border-dark-600'
                             }`}>
                             <span className={`w-2 h-2 rounded-full ${creator.availabilityStatus === 'AVAILABLE_NOW'
                                 ? 'bg-emerald-500 animate-pulse'
@@ -265,50 +265,50 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                         </div>
                     </div>
                     {creator.location?.city && (
-                        <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/20 text-purple-400">
-                            <span className="text-sm font-medium">{creator.location.city}</span>
+                        <div className="inline-flex items-center gap-1 px-s2 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                            <span className="text-xs-pure font-bold uppercase tracking-wider">{creator.location.city}</span>
                         </div>
                     )}
                 </div>
 
                 {/* Campaign Info */}
-                <div className="p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50 relative">
+                <div className="mx-s6 p-s4 rounded-premium-xl bg-dark-800/60 border border-dark-700/50 relative shadow-sm">
                     {/* Confidence Badge */}
                     {creator.confidenceLevel && (
-                        <div className={`absolute -top-3 right-4 px-3 py-1 rounded-full text-xs font-bold border shadow-lg ${creator.confidenceLevel === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                        <div className={`absolute -top-3 right-4 px-s3 py-1 rounded-full text-xs-pure font-bold border shadow-glow ${creator.confidenceLevel === 'High' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
                             creator.confidenceLevel === 'Medium' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
                                 'bg-purple-500/20 text-purple-400 border-purple-500/30'
                             }`}>
-                            {creator.confidenceLevel === 'High' ? 'High Confidence' :
-                                creator.confidenceLevel === 'Medium' ? 'Medium Confidence' : 'Experimental'}
+                            {creator.confidenceLevel === 'High' ? 'HIGH CONFIDENCE' :
+                                creator.confidenceLevel === 'Medium' ? 'MEDIUM CONFIDENCE' : 'EXPERIMENTAL'}
                         </div>
                     )}
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-dark-400 uppercase tracking-wider">Charge Range</span>
+                    <div className="flex items-center justify-between mb-s2">
+                        <span className="text-xs-pure font-bold text-dark-400 uppercase tracking-widest">Charge Range</span>
                         <div className="text-right">
-                            <span className="text-lg font-bold text-emerald-400">
+                            <span className="text-h3 font-bold text-emerald-400">
                                 ₹{creator.minPrice ? creator.minPrice.toLocaleString() : '0'}
                             </span>
                             {creator.maxPrice && (
-                                <span className="text-sm text-emerald-500/80 ml-1">
+                                <span className="text-small text-emerald-500/80 ml-1">
                                     - {(creator.maxPrice).toLocaleString()}
                                 </span>
                             )}
                         </div>
                     </div>
-                    <p className="text-dark-200 font-medium">{creator.requestTitle}</p>
+                    <p className="text-body font-bold text-dark-200 uppercase tracking-tight line-clamp-1">{creator.requestTitle}</p>
                 </div>
 
                 {/* Quick Stats */}
-                <div className="flex justify-around text-center">
+                <div className="flex justify-around text-center py-s4">
                     <div>
-                        <div className="text-xl font-bold text-dark-100">{creator.promotionType || 'Story'}</div>
-                        <div className="text-xs text-dark-400">Type</div>
+                        <div className="text-body font-bold text-dark-100">{creator.promotionType || 'Story'}</div>
+                        <div className="text-xs-pure font-bold text-dark-400 uppercase tracking-wider">Type</div>
                     </div>
-                    <div className="w-px bg-dark-700"></div>
+                    <div className="w-px bg-dark-700/50 h-8 mt-1"></div>
                     <div>
-                        <div className="text-xl font-bold text-dark-100">{creator.niche || 'General'}</div>
-                        <div className="text-xs text-dark-400">Niche</div>
+                        <div className="text-body font-bold text-dark-100">{creator.niche || 'General'}</div>
+                        <div className="text-xs-pure font-bold text-dark-400 uppercase tracking-wider">Niche</div>
                     </div>
                 </div>
             </div>
@@ -371,10 +371,10 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
             {!showWhy && (
                 <button
                     onClick={(e) => { e.stopPropagation(); setShowWhy(true); }}
-                    className="absolute top-4 right-4 z-20 px-3 py-1.5 rounded-full bg-dark-900/80 backdrop-blur text-xs font-bold text-primary-400 border border-primary-500/30 shadow-lg hover:bg-primary-500/20 transition-all flex items-center gap-2"
+                    className="absolute top-s4 right-s4 z-20 px-s3 py-1.5 rounded-full bg-dark-900/80 backdrop-blur-md text-xs-pure font-bold text-primary-400 border border-primary-500/30 shadow-glow hover:bg-primary-500/20 transition-all flex items-center gap-s2"
                 >
-                    <HiSparkles />
-                    Why?
+                    <HiSparkles className="animate-pulse" />
+                    WHY?
                 </button>
             )}
         </motion.div>

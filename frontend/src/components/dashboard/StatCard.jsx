@@ -30,25 +30,25 @@ const StatCard = ({ label, value, icon, trend, trendLabel, color = 'primary', de
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay }}
-            className={`p-4 md:p-5 rounded-2xl border backdrop-blur-sm relative overflow-hidden group ${bgColors[color] || bgColors.primary}`}
+            className={`p-s4 md:p-s5 rounded-premium-xl border backdrop-blur-sm relative overflow-hidden group shadow-md hover:shadow-glow transition-all duration-300 ${bgColors[color] || bgColors.primary}`}
         >
             <div className="relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                    <div className={`p-3 rounded-xl bg-dark-900/50 ${textColors[color] || textColors.primary}`}>
+                <div className="flex justify-between items-start mb-s4">
+                    <div className={`p-s3 rounded-premium-lg bg-dark-900/50 ${textColors[color] || textColors.primary}`}>
                         {icon}
                     </div>
                     {trend && (
-                        <div className={`flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full bg-dark-900/50 ${trend > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <div className={`flex items-center gap-s1 text-xs-pure font-bold px-s2 py-0.5 rounded-full bg-dark-900/50 ${trend > 0 ? 'text-emerald-400' : 'text-red-400'} uppercase tracking-wider`}>
                             {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
                         </div>
                     )}
                 </div>
 
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-1 group-hover:scale-105 transition-transform origin-left">
+                <h3 className="text-h2 md:text-h1 font-bold text-white mb-s1 group-hover:scale-105 transition-transform origin-left">
                     {value}
                 </h3>
-                <p className="text-dark-400 text-sm">{label}</p>
-                {trendLabel && <p className="text-xs text-dark-500 mt-1">{trendLabel}</p>}
+                <p className="text-dark-400 text-small font-medium uppercase tracking-wider">{label}</p>
+                {trendLabel && <p className="text-xs-pure text-dark-500 mt-s1">{trendLabel}</p>}
             </div>
 
             {/* Decorative Gradient Blob */}

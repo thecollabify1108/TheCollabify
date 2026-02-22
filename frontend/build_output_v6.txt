@@ -1,0 +1,29 @@
+
+> creator-seller-marketplace-frontend@1.0.1 build
+> node node_modules/vite/bin/vite.js build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 1816 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                           [39m[1m[2m  5.73 kB[22m[1m[22m[2m Γöé gzip:   1.84 kB[22m
+[2mdist/[22m[35massets/index-DH6SKiet.css            [39m[1m[2m136.30 kB[22m[1m[22m[2m Γöé gzip:  20.40 kB[22m
+[2mdist/[22m[36massets/TypingIndicator-ByqXsDMS.js   [39m[1m[2m  3.59 kB[22m[1m[22m[2m Γöé gzip:   1.59 kB[22m
+[2mdist/[22m[36massets/EmptyState-Ud-7fzns.js        [39m[1m[2m  4.05 kB[22m[1m[22m[2m Γöé gzip:   1.63 kB[22m
+[2mdist/[22m[36massets/PrivacyPolicy-DxABz6VD.js     [39m[1m[2m  6.16 kB[22m[1m[22m[2m Γöé gzip:   1.94 kB[22m
+[2mdist/[22m[36massets/TermsConditions-DV35bOTc.js   [39m[1m[2m  6.62 kB[22m[1m[22m[2m Γöé gzip:   2.04 kB[22m
+[2mdist/[22m[36massets/HowAIWorks-J1npaNez.js        [39m[1m[2m 10.15 kB[22m[1m[22m[2m Γöé gzip:   3.43 kB[22m
+[2mdist/[22m[36massets/ForBrands-C2OSoxza.js         [39m[1m[2m 11.02 kB[22m[1m[22m[2m Γöé gzip:   3.03 kB[22m
+[2mdist/[22m[36massets/DemoWalkthrough-Ft-kD2-4.js   [39m[1m[2m 11.09 kB[22m[1m[22m[2m Γöé gzip:   3.08 kB[22m
+[2mdist/[22m[36massets/ForCreators-CQygbkf4.js       [39m[1m[2m 11.57 kB[22m[1m[22m[2m Γöé gzip:   3.17 kB[22m
+[2mdist/[22m[36massets/Landing-BgAyVDIh.js           [39m[1m[2m 48.18 kB[22m[1m[22m[2m Γöé gzip:  10.50 kB[22m
+[2mdist/[22m[36massets/AdminPanel-Dkk_BvoA.js        [39m[1m[2m 54.04 kB[22m[1m[22m[2m Γöé gzip:  14.55 kB[22m
+[2mdist/[22m[36massets/Navbar-CseZxKKC.js            [39m[1m[2m 63.35 kB[22m[1m[22m[2m Γöé gzip:  19.72 kB[22m
+[2mdist/[22m[36massets/CreatorDashboard-Dr-65qnQ.js  [39m[1m[2m 91.27 kB[22m[1m[22m[2m Γöé gzip:  22.29 kB[22m
+[2mdist/[22m[36massets/SellerDashboard-Dp8HPa12.js   [39m[1m[2m154.98 kB[22m[1m[22m[2m Γöé gzip:  35.18 kB[22m
+[2mdist/[22m[36massets/FocusWrapper-CBSbCSjk.js      [39m[1m[2m223.07 kB[22m[1m[22m[2m Γöé gzip:  73.95 kB[22m
+[2mdist/[22m[36massets/Skeleton-Dbdm93KD.js          [39m[1m[2m340.43 kB[22m[1m[22m[2m Γöé gzip: 102.86 kB[22m
+[2mdist/[22m[36massets/Messages-DNUp0N4I.js          [39m[1m[2m390.42 kB[22m[1m[22m[2m Γöé gzip: 134.80 kB[22m
+[2mdist/[22m[36massets/index-DjaPQhQc.js             [39m[1m[2m740.11 kB[22m[1m[22m[2m Γöé gzip: 241.81 kB[22m
+[32mΓ£ô built in 15.12s[39m

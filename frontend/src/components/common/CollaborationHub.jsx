@@ -10,16 +10,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { collaborationAPI } from '../../services/api';
 import { trackEvent } from '../../utils/analytics';
-
-// ─── Stage configuration ────────────────────────────────────────
-const STAGE_CONFIG = {
-    REQUESTED: { icon: FaHandshake, color: 'text-amber-400', bg: 'bg-amber-500', label: 'Requested' },
-    ACCEPTED: { icon: FaCheckCircle, color: 'text-blue-400', bg: 'bg-blue-500', label: 'Accepted' },
-    IN_DISCUSSION: { icon: FaComments, color: 'text-purple-400', bg: 'bg-purple-500', label: 'Discussing' },
-    AGREED: { icon: FaFileContract, color: 'text-indigo-400', bg: 'bg-indigo-500', label: 'Agreed' },
-    IN_PROGRESS: { icon: FaRocket, color: 'text-cyan-400', bg: 'bg-cyan-500', label: 'In Progress' },
-    COMPLETED: { icon: FaStar, color: 'text-emerald-400', bg: 'bg-emerald-500', label: 'Completed' },
-};
+import CollaborationStepper from './CollaborationStepper';
 
 const STAGE_ORDER = ['REQUESTED', 'ACCEPTED', 'IN_DISCUSSION', 'AGREED', 'IN_PROGRESS', 'COMPLETED'];
 
@@ -30,64 +21,6 @@ const ACTION_LABELS = {
     IN_PROGRESS: 'Begin Work',
     COMPLETED: 'Mark Completed',
     CANCELLED: 'Cancel Collaboration'
-};
-
-// ─── Progress Tracker Component ─────────────────────────────────
-const ProgressTracker = ({ currentStatus }) => {
-    const currentIndex = STAGE_ORDER.indexOf(currentStatus);
-    const isCancelled = currentStatus === 'CANCELLED';
-
-    return (
-        <div className="w-full px-2 py-6">
-            <div className="flex items-center justify-between relative">
-                {/* Background line */}
-                <div className="absolute top-5 left-6 right-6 h-0.5 bg-dark-700 z-0" />
-                {/* Progress line */}
-                <div
-                    className="absolute top-5 left-6 h-0.5 bg-gradient-to-r from-emerald-500 to-primary-500 z-0 transition-all duration-700"
-                    style={{ width: `calc(${(Math.max(0, currentIndex) / (STAGE_ORDER.length - 1)) * 100}% - 48px)` }}
-                />
-
-                {STAGE_ORDER.map((stage, index) => {
-                    const config = STAGE_CONFIG[stage];
-                    const Icon = config.icon;
-                    const isPast = index < currentIndex;
-                    const isCurrent = index === currentIndex && !isCancelled;
-                    const isFuture = index > currentIndex || isCancelled;
-
-                    return (
-                        <div key={stage} className="flex flex-col items-center relative z-10" style={{ flex: 1 }}>
-                            <motion.div
-                                initial={false}
-                                animate={{
-                                    scale: isCurrent ? 1.2 : 1,
-                                    boxShadow: isCurrent ? '0 0 20px rgba(99,102,241,0.4)' : '0 0 0px transparent'
-                                }}
-                                className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors duration-300 ${isPast ? `${config.bg} border-transparent text-white` :
-                                    isCurrent ? `${config.bg} border-transparent text-white ring-4 ring-${config.bg}/20` :
-                                        'bg-dark-800 border-dark-600 text-dark-500'
-                                    }`}
-                            >
-                                {isPast ? <FaCheckCircle size={16} /> : <Icon size={14} />}
-                            </motion.div>
-                            <span className={`text-[10px] mt-2 font-medium text-center leading-tight ${isCurrent ? config.color : isPast ? 'text-dark-300' : 'text-dark-500'
-                                }`}>
-                                {config.label}
-                            </span>
-                        </div>
-                    );
-                })}
-            </div>
-
-            {isCancelled && (
-                <div className="mt-4 text-center">
-                    <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-400 text-xs font-semibold">
-                        <FaBan className="inline mr-1" /> Cancelled
-                    </span>
-                </div>
-            )}
-        </div>
-    );
 };
 
 // ─── Main Component ─────────────────────────────────────────────
@@ -244,7 +177,9 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
             </div>
 
             {/* Progress Tracker */}
-            <ProgressTracker currentStatus={collaboration.status} />
+            <div className="px-6 py-4">
+                <CollaborationStepper currentStatus={collaboration.status} />
+            </div>
 
             {/* Content */}
             <div className="flex-1 overflow-y-auto px-6 pb-6 space-y-6">

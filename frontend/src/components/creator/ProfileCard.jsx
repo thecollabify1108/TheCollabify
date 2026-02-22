@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { FaEdit, FaInstagram, FaUserCircle, FaRupeeSign, FaStripe, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import { HiUserGroup, HiLightningBolt, HiSparkles, HiCreditCard } from 'react-icons/hi';
-import { paymentAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const ProfileCard = ({ profile, onEdit }) => {
@@ -157,19 +156,12 @@ const ProfileCard = ({ profile, onEdit }) => {
                         <div className="space-y-3">
                             <p className="text-xs text-dark-300">Set up your Stripe account to receive secure escrow payments from sellers.</p>
                             <button
-                                onClick={async () => {
-                                    try {
-                                        const res = await paymentAPI.onboard();
-                                        if (res.data.success && res.data.data.url) {
-                                            window.location.href = res.data.data.url;
-                                        }
-                                    } catch (error) {
-                                        toast.error('Failed to start onboarding');
-                                    }
+                                onClick={() => {
+                                    toast.success('Payment system upgrade in progress! ⚡');
                                 }}
-                                className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
+                                className="w-full py-2 bg-indigo-600/50 hover:bg-indigo-600/60 text-white/50 cursor-not-allowed rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
                             >
-                                <HiCreditCard /> Complete Setup
+                                <HiCreditCard /> Coming Soon
                             </button>
                         </div>
                     ) : (

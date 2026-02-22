@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
 
-const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage, viewMode, onViewProfile }) => {
+const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage, viewMode, onViewProfile, children }) => {
     const profile = creator.creatorId || creator;
     const user = profile.userId || {};
 
@@ -20,80 +20,79 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
 
     return (
         <motion.div
-            className="glass-card p-6 card-hover"
+            className="p-s6 rounded-premium-2xl bg-dark-800/60 backdrop-blur-xl border border-dark-700/50 shadow-premium hover:shadow-glow transition-all duration-300"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
+            whileHover={{ y: -5 }}
         >
             {/* Header */}
-            <div className="flex items-start justify-between mb-4">
+            <div className="flex items-start justify-between mb-s4">
                 <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-lg mr-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-black text-lg mr-s3 shadow-glow">
                         {user.name?.charAt(0).toUpperCase() || 'C'}
                     </div>
                     <div>
-                        <h3 className="font-semibold text-dark-100">{user.name || 'Creator'}</h3>
+                        <h3 className="text-body font-bold text-dark-100">{user.name || 'Creator'}</h3>
                     </div>
                 </div>
 
                 {/* Match Score */}
                 <div className="text-center">
-                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${getScoreColor(matchScore)} p-0.5`}>
-                        <div className="w-full h-full rounded-full bg-dark-800 flex items-center justify-center">
-                            <span className="text-lg font-bold text-dark-100">{matchScore}</span>
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${getScoreColor(matchScore)} p-[2px] shadow-glow`}>
+                        <div className="w-full h-full rounded-full bg-dark-900 flex items-center justify-center">
+                            <span className="text-lg font-black text-dark-100">{matchScore}</span>
                         </div>
                     </div>
-                    <span className="text-xs text-dark-400 mt-1">Match</span>
+                    <span className="text-xs-pure font-bold text-dark-400 mt-1 uppercase tracking-wider">Match</span>
                 </div>
             </div>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-4 mb-4">
-                <div className="text-center p-3 bg-dark-800/50 rounded-xl">
+            <div className="grid grid-cols-3 gap-s3 mb-s4">
+                <div className="text-center p-s3 bg-dark-900/40 rounded-premium-xl border border-dark-700/30">
                     <HiUserGroup className="mx-auto text-primary-400 mb-1" />
-                    <span className="text-dark-100 font-semibold">{formatFollowers(profile.followerCount)}</span>
-                    <p className="text-xs text-dark-400">Followers</p>
+                    <span className="text-body font-bold text-dark-100">{formatFollowers(profile.followerCount)}</span>
+                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tighter">Followers</p>
                 </div>
-                <div className="text-center p-3 bg-dark-800/50 rounded-xl">
+                <div className="text-center p-s3 bg-dark-900/40 rounded-premium-xl border border-dark-700/30">
                     <HiLightningBolt className="mx-auto text-amber-400 mb-1" />
-                    <span className="text-dark-100 font-semibold">{profile.engagementRate}%</span>
-                    <p className="text-xs text-dark-400">Engagement</p>
+                    <span className="text-body font-bold text-dark-100">{profile.engagementRate}%</span>
+                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tighter">Engage</p>
                 </div>
-                <div className="text-center p-3 bg-dark-800/50 rounded-xl">
+                <div className="text-center p-s3 bg-dark-900/40 rounded-premium-xl border border-dark-700/30">
                     <HiSparkles className="mx-auto text-secondary-400 mb-1" />
-                    <span className="text-dark-100 font-semibold">{profile.insights?.score || 0}</span>
-                    <p className="text-xs text-dark-400">AI Score</p>
+                    <span className="text-body font-bold text-dark-100">{profile.insights?.score || 0}</span>
+                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tighter">AI Score</p>
                 </div>
             </div>
 
             {/* Insights Badges */}
-            <div className="flex flex-wrap gap-2 mb-4">
-                <span className="badge badge-info">{profile.category}</span>
+            <div className="flex flex-wrap gap-s2 mb-s4">
+                <span className="px-s2 py-1 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs-pure font-bold uppercase tracking-wider">{profile.category}</span>
                 {profile.insights?.engagementQuality && (
-                    <span className={`badge ${profile.insights.engagementQuality === 'High' ? 'badge-success' :
-                        profile.insights.engagementQuality === 'Medium' ? 'badge-warning' : 'badge-danger'
+                    <span className={`px-s2 py-1 rounded-full text-xs-pure font-bold uppercase tracking-wider border shadow-sm ${profile.insights.engagementQuality === 'High' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                        profile.insights.engagementQuality === 'Medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
                         }`}>
-                        {profile.insights.engagementQuality} Engagement
+                        {profile.insights.engagementQuality} Engage
                     </span>
                 )}
-                <span className="badge badge-neutral">
+                <span className="px-s2 py-1 rounded-full bg-dark-700/50 text-dark-300 border border-dark-600 text-xs-pure font-bold uppercase tracking-wider">
                     ₹{profile.priceRange?.min} - ₹{profile.priceRange?.max}
                 </span>
             </div>
 
             {/* Match Reason */}
             {matchReason && (
-                <div className="flex items-start p-3 bg-primary-500/5 border border-primary-500/20 rounded-xl mb-4">
-                    <FaInfoCircle className="text-primary-400 mt-1 mr-2 flex-shrink-0" />
-                    <p className="text-sm text-dark-300">{matchReason}</p>
+                <div className="flex items-start p-s3 bg-primary-500/5 border border-primary-500/20 rounded-premium-xl mb-s4 shadow-sm">
+                    <FaInfoCircle className="text-primary-400 mt-1 mr-s2 flex-shrink-0" />
+                    <p className="text-small text-dark-300 font-medium leading-relaxed">{matchReason}</p>
                 </div>
             )}
 
             {/* Promotion Types */}
-            <div className="flex flex-wrap gap-1 mb-4">
+            <div className="flex flex-wrap gap-s1 mb-s4">
                 {profile.promotionTypes?.map(type => (
-                    <span key={type} className="text-xs px-2 py-1 bg-dark-700 text-dark-300 rounded">
+                    <span key={type} className="text-xs-pure font-bold uppercase tracking-widest px-s2 py-1 bg-dark-900/60 border border-dark-700/50 text-dark-400 rounded-premium-sm">
                         {type}
                     </span>
                 ))}
@@ -101,32 +100,32 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
 
             {/* Actions */}
             {status === 'Applied' ? (
-                <div className="flex gap-3">
+                <div className="flex gap-s3">
                     <button
                         onClick={onAccept}
-                        className="flex-1 btn-3d py-3 flex items-center justify-center"
+                        className="flex-1 py-s3 rounded-premium-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold text-xs-pure uppercase tracking-wider shadow-glow hover:shadow-glow-lg transition-all flex items-center justify-center"
                     >
                         <FaCheck className="mr-2" />
                         Accept
                     </button>
                     <button
                         onClick={onReject}
-                        className="flex-1 btn-secondary py-3 flex items-center justify-center text-red-400 hover:text-red-300"
+                        className="flex-1 py-s3 rounded-premium-xl bg-dark-700/50 border border-dark-600/50 text-red-400 hover:bg-red-400/10 font-bold text-xs-pure uppercase tracking-wider transition-all flex items-center justify-center shadow-premium"
                     >
                         <FaTimes className="mr-2" />
                         Reject
                     </button>
                 </div>
             ) : status === 'Accepted' ? (
-                <div className="space-y-2">
-                    <div className="badge badge-success w-full justify-center py-3">
+                <div className="space-y-s2">
+                    <div className="w-full py-s3 rounded-premium-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-black text-xs-pure uppercase tracking-widest flex items-center justify-center shadow-sm">
                         <FaCheck className="mr-2" />
                         Accepted
                     </div>
                     {onMessage && (
                         <button
                             onClick={onMessage}
-                            className="w-full btn-3d py-3 flex items-center justify-center"
+                            className="w-full py-s3 rounded-premium-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-bold text-xs-pure uppercase tracking-wider shadow-glow flex items-center justify-center"
                         >
                             <FaComments className="mr-2" />
                             Message
@@ -134,23 +133,25 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                     )}
                 </div>
             ) : status === 'Rejected' ? (
-                <div className="badge badge-danger w-full justify-center py-3">
+                <div className="w-full py-s3 rounded-premium-xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs-pure uppercase tracking-widest flex items-center justify-center shadow-sm">
                     <FaTimes className="mr-2" />
                     Rejected
                 </div>
             ) : viewMode === 'discovery' ? (
                 <button
                     onClick={onViewProfile}
-                    className="w-full btn-3d py-3 flex items-center justify-center group"
+                    className="w-full py-s3 rounded-premium-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white font-bold text-xs-pure uppercase tracking-wider shadow-glow flex items-center justify-center group"
                 >
                     <HiUserGroup className="mr-2 group-hover:scale-110 transition-transform" />
                     View Profile
                 </button>
             ) : (
-                <div className="badge badge-neutral w-full justify-center py-3">
+                <div className="w-full py-s3 rounded-premium-xl bg-dark-700/50 border border-dark-600 text-dark-400 font-bold text-xs-pure uppercase tracking-widest flex items-center justify-center shadow-sm">
                     Awaiting Application
                 </div>
             )}
+            {/* Extra Content (Children) */}
+            {children}
         </motion.div>
     );
 };

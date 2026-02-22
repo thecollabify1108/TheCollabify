@@ -1,3 +1,4 @@
+@import './styles/tokens.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -76,7 +77,7 @@
   .glass-card {
     background-color: rgba(30, 41, 59, 0.25) !important;
     /* 25% opacity - highly transparent like footer */
-    @apply border border-dark-700 rounded-2xl;
+    @apply border border-dark-700 rounded-premium-2xl shadow-high;
   }
 
   /* Gradient text */
@@ -88,33 +89,27 @@
 
   /* 3D Button with Animated Glow */
   .btn-3d {
-    @apply relative px-6 py-3 font-semibold rounded-xl transition-all duration-200;
+    @apply relative px-s3 py-s1.5 font-semibold rounded-premium-xl transition-all duration-200;
     @apply bg-gradient-to-r from-primary-600 to-secondary-600;
     @apply hover:from-primary-500 hover:to-secondary-500;
-    @apply shadow-lg hover:shadow-xl;
+    @apply shadow-premium;
     @apply transform hover:-translate-y-1 active:translate-y-0;
     @apply text-white;
-    box-shadow:
-      0 10px 25px -5px rgba(139, 92, 246, 0.3),
-      0 8px 10px -6px rgba(236, 72, 153, 0.2);
   }
 
   .btn-3d:hover {
-    box-shadow:
-      0 20px 40px -10px rgba(139, 92, 246, 0.4),
-      0 8px 16px -6px rgba(236, 72, 153, 0.3),
-      0 0 20px rgba(139, 92, 246, 0.5);
+    @apply shadow-glow;
     animation: button-glow 1.5s ease-in-out infinite;
   }
 
   .btn-3d::before {
     content: '';
-    @apply absolute inset-0 rounded-xl bg-gradient-to-b from-white/20 to-transparent;
+    @apply absolute inset-0 rounded-premium-xl bg-gradient-to-b from-white/20 to-transparent;
   }
 
   /* Secondary button */
   .btn-secondary {
-    @apply px-6 py-3 font-semibold rounded-xl transition-all duration-200;
+    @apply px-s3 py-s1.5 font-semibold rounded-premium-xl transition-all duration-200;
     @apply bg-dark-700 hover:bg-dark-600 text-dark-100;
     @apply border border-dark-600 hover:border-dark-500;
     @apply transform hover:-translate-y-0.5;
@@ -122,14 +117,14 @@
 
   /* Outline button */
   .btn-outline {
-    @apply px-6 py-3 font-semibold rounded-xl transition-all duration-200;
+    @apply px-s3 py-s1.5 font-semibold rounded-premium-xl transition-all duration-200;
     @apply bg-transparent hover:bg-primary-500/10 text-primary-400;
     @apply border-2 border-primary-500/50 hover:border-primary-400;
   }
 
   /* Input styles */
   .input-field {
-    @apply w-full px-4 py-3 rounded-xl transition-all duration-200;
+    @apply w-full px-s2 py-s1.5 rounded-premium-xl transition-all duration-200;
     @apply bg-dark-800 border border-dark-600;
     @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20;
     @apply placeholder:text-dark-400 text-dark-100;
@@ -138,7 +133,7 @@
 
   /* Select styles */
   .select-field {
-    @apply w-full px-4 py-3 rounded-xl transition-all duration-200;
+    @apply w-full px-s2 py-s1.5 rounded-premium-xl transition-all duration-200;
     @apply bg-dark-800 border border-dark-600;
     @apply focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20;
     @apply text-dark-100 outline-none;

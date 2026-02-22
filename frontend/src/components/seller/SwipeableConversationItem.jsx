@@ -41,7 +41,7 @@ const SwipeableConversationItem = ({ conversation, isSelected, onClick, onDelete
     };
 
     return (
-        <div className="relative overflow-hidden border-b border-dark-800">
+        <div className="relative overflow-hidden border-b border-dark-700/30">
             {/* Delete Action Background */}
             <motion.div
                 className="absolute inset-0 bg-red-500 flex items-center justify-end px-6 z-0"
@@ -52,7 +52,7 @@ const SwipeableConversationItem = ({ conversation, isSelected, onClick, onDelete
 
             {/* Swipeable Content */}
             <motion.div
-                className={`relative z-10 p-4 cursor-pointer bg-dark-900 transition-colors ${isSelected ? 'bg-dark-800' : 'hover:bg-dark-800/50'
+                className={`relative z-10 p-s4 cursor-pointer bg-dark-900 transition-colors ${isSelected ? 'bg-dark-800' : 'hover:bg-dark-800/50'
                     }`}
                 style={{ x }}
                 drag="x"
@@ -64,22 +64,22 @@ const SwipeableConversationItem = ({ conversation, isSelected, onClick, onDelete
                     if (x.get() === 0) onClick(conversation);
                 }}
             >
-                <div className="flex items-center gap-3 pointer-events-none"> {/* Disable pointer events on children to prevent drag interference */}
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0">
-                        <span className="text-white font-bold">
+                <div className="flex items-center gap-s3 pointer-events-none"> {/* Disable pointer events on children to prevent drag interference */}
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0 shadow-glow">
+                        <span className="text-white font-black">
                             {conversation.creatorUserId?.name?.charAt(0) || 'C'}
                         </span>
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                            <p className="font-medium text-dark-100 truncate">
+                            <p className="text-body font-bold text-dark-100 truncate">
                                 {conversation.creatorUserId?.name || 'Creator'}
                             </p>
-                            <span className="text-xs text-dark-500">
+                            <span className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">
                                 {formatTime(conversation.updatedAt)}
                             </span>
                         </div>
-                        <p className="text-sm text-dark-400 truncate">
+                        <p className="text-small text-dark-400 truncate font-medium">
                             {conversation.promotionRequestId?.title || 'Campaign'}
                         </p>
                     </div>
