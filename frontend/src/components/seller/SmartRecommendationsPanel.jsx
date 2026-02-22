@@ -4,6 +4,7 @@ import { FaRobot, FaStar, FaCheckCircle, FaEnvelope } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
+import MatchExplanation from '../common/MatchExplanation';
 
 /**
  * Smart Recommendations Panel
@@ -206,10 +207,10 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                                         <span>•</span>
                                                         <div className="group relative inline-block">
                                                             <span className={`px-2 py-0.5 rounded text-[10px] font-medium border ${creator.budgetValue.color === 'emerald' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                                                    creator.budgetValue.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
-                                                                        creator.budgetValue.color === 'indigo' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
-                                                                            creator.budgetValue.color === 'purple' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-                                                                                'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                                                creator.budgetValue.color === 'blue' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                                                                    creator.budgetValue.color === 'indigo' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' :
+                                                                        creator.budgetValue.color === 'purple' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                                                                            'bg-amber-500/10 text-amber-400 border-amber-500/20'
                                                                 }`}>
                                                                 {creator.budgetValue.label}
                                                             </span>
@@ -264,25 +265,8 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                                         className="overflow-hidden cursor-default w-full"
                                                     >
                                                         <div className="bg-dark-800 rounded-xl p-3 border border-purple-500/20 relative">
-                                                            <div className="flex gap-2 mb-2">
-                                                                <FaRobot className="text-purple-400 mt-0.5" />
-                                                                <div>
-                                                                    <h5 className="text-xs font-bold text-dark-200">AI Logic</h5>
-                                                                    <p className="text-[10px] text-dark-400">Why {creator.name} is a match:</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="grid grid-cols-1 gap-2">
-                                                                {creator.reasons?.map((reason, i) => (
-                                                                    <div key={i} className="flex items-start gap-1.5 text-[11px] text-dark-300 bg-dark-900/50 p-1.5 rounded">
-                                                                        <FaCheckCircle className="text-emerald-500/50 mt-0.5 flex-shrink-0" />
-                                                                        <span dangerouslySetInnerHTML={{ __html: reason }} />
-                                                                    </div>
-                                                                ))}
-                                                                {(!creator.reasons || creator.reasons.length === 0) && (
-                                                                    <div className="text-[11px] text-dark-400 italic px-1">
-                                                                        High audience alignment and engagement overlap.
-                                                                    </div>
-                                                                )}
+                                                            <div className="w-full">
+                                                                <MatchExplanation explanation={creator.matchReason || creator.reasons} isInitialExpanded={true} />
                                                             </div>
                                                         </div>
                                                     </motion.div>
@@ -291,16 +275,6 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                         </div>
                                     </div>
 
-                                    {/* Reasons */}
-                                    <div className="flex flex-wrap gap-2">
-                                        {creator.reasons?.slice(0, 3).map((reason, i) => (
-                                            <span
-                                                key={i}
-                                                className="px-2 py-1 bg-purple-500/10 text-purple-400 rounded text-xs"
-                                                dangerouslySetInnerHTML={{ __html: reason.replace(/<[^>]+>/g, '') }}
-                                            />
-                                        ))}
-                                    </div>
 
                                     {/* Quick Stats */}
                                     <div className="text-right">

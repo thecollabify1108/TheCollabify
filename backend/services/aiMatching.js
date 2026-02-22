@@ -288,88 +288,75 @@ const calculateConfidenceLevel = (totalScore) => {
 };
 
 /**
- * Generate human-readable match explanation
+ * Generate a structured, category-based match explanation
+ */
+const generateStructuredExplanation = (creator, request, scores) => {
+    const explanation = {
+        relevance: "Meets basic criteria for this campaign.",
+        budget: "Pricing is visible in your collaboration range.",
+        location: "Available for your specified location type.",
+        reliability: "Establishing a track record on the platform.",
+        campaign: "Matches the requested collaboration format."
+    };
+
+    // 1. Relevance Fit
+    if (scores.niche > 90) {
+        explanation.relevance = `Specialist alignment with ${creator.category} category.`;
+    } else if (scores.engagement > 85) {
+        explanation.relevance = "Demonstrates higher engagement signals than average peers.";
+    }
+
+    // 2. Budget Compatibility
+    if (scores.price >= 95) {
+        explanation.budget = "Highly competitive pricing for this campaign type.";
+    } else if (scores.price >= 85) {
+        explanation.budget = "Aligned with your set budget parameters.";
+    } else if (scores.price >= 70) {
+        explanation.budget = "Standard market rates for this niche and reach.";
+    }
+
+    // 3. Location Alignment
+    if (scores.location >= 100) {
+        explanation.location = request.locationType === 'REMOTE'
+            ? "Fully equipped for remote collaboration delivery."
+            : `Primary presence in ${request.location?.district || "target area"}.`;
+    } else if (scores.location >= 80) {
+        explanation.location = "Willing to travel or nearby target location.";
+    }
+
+    // 4. Reliability Signal
+    if (scores.reliability >= 115) {
+        explanation.reliability = "Elite track record with high completion rates.";
+    } else if (scores.reliability >= 100) {
+        explanation.reliability = "Strong history of successful brand partnerships.";
+    } else if (scores.reliability < 85) {
+        explanation.reliability = "Building consistency; initial projects completed.";
+    }
+
+    // 5. Campaign Type Match
+    if (scores.campaignType >= 100) {
+        explanation.campaign = `Expertise in ${request.promotionType?.[0] || 'requested'} format.`;
+    } else if (scores.personalization > 70) {
+        explanation.campaign = "Matches your preference for similar creator styles.";
+    }
+
+    return explanation;
+};
+
+/**
+ * Generate match reasons (Legacy support for string list)
  */
 const generateMatchReasons = (creator, request, scores) => {
-    const reasons = [];
+    const structured = generateStructuredExplanation(creator, request, scores);
 
-    // 1. High-Level Confidence (The "Hook")
-    const totalScore = Math.round(
-        (scores.engagement * SCORING_WEIGHTS.engagementRate) +
-        (scores.niche * SCORING_WEIGHTS.nicheSimilarity) +
-        (scores.price * SCORING_WEIGHTS.priceCompatibility) +
-        (scores.roi * SCORING_WEIGHTS.predictedROI) +
-        (scores.insight * SCORING_WEIGHTS.insightScore) +
-        (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
-        (scores.intent * SCORING_WEIGHTS.intentMatch) +
-        (scores.personalization * SCORING_WEIGHTS.personalization) +
-        (scores.location * SCORING_WEIGHTS.locationMatch) +
-        (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
-        (scores.availability * SCORING_WEIGHTS.availabilityMatch) +
-        (scores.reliability * SCORING_WEIGHTS.reliability)
-    );
-
-    if (totalScore >= 85) {
-        reasons.push("⚡ <strong class='text-emerald-400'>Highly Relevant:</strong> Matches your budget and niche perfectly.");
-    } else if (scores.roi > 80) {
-        reasons.push("📈 <strong class='text-blue-400'>High ROI Potential:</strong> Predicted to deliver strong engagement value.");
-    }
-
-    // 2. Specific Strengths (The "Why")
-    if (scores.niche > 90) {
-        reasons.push(`🎯 <strong>Niche Expert:</strong> Deeply aligned with ${creator.category}.`);
-    }
-    if (scores.engagement > 85) {
-        reasons.push("🔥 <strong>Viral Potential:</strong> Higher engagement rate than peers.");
-    }
-
-    if (scores.price >= 90) {
-        reasons.push("💰 <strong>Under Budget:</strong> Great value for your money.");
-    } else if (scores.price >= 80) {
-        reasons.push("✅ <strong>In Budget:</strong> Matches your spending range.");
-    } else if (scores.price >= 60 && scores.price < 70) {
-        reasons.push("💎 <strong>Premium Choice:</strong> Slightly above budget, but high quality.");
-    }
-    if (scores.availability >= 100) {
-        reasons.push("⚡ <strong class='text-amber-400'>Available Now:</strong> Ready to start collaborating immediately.");
-    }
-    if (scores.trackRecord > 80) {
-        reasons.push("🏆 <strong>Proven Track Record:</strong> Consistently delivers for brands.");
-    }
-    if (scores.reliability >= 110) {
-        reasons.push("🛡️ <strong class='text-blue-400'>Elite Reliability:</strong> Exceptional track record of completed collaborations.");
-    }
-    if (scores.reliability < 85) {
-        reasons.push("⚠️ <strong>Developing History:</strong> Relatively new or has some cancelled projects.");
-    }
-
-    if (scores.location >= 100 && request.locationType !== 'REMOTE') {
-        reasons.push(`📍 <strong>Local Expert:</strong> Located right in ${request.location?.district || "your area"}.`);
-    } else if (scores.location >= 80 && request.locationType !== 'REMOTE') {
-        reasons.push("🚗 <strong>Nearby & Willing:</strong> Just a short trip away.");
-    }
-
-    // 3. AI Behavioral Signals (The "Smart" part)
-    if (scores.intent > 70) {
-        reasons.push("🧠 <strong>Smart Match:</strong> Aligns with your recent search intent.");
-    }
-
-    // 4. Campaign Type Match
-    if (scores.campaignType >= 100) {
-        if (request.locationType === 'EVENT') reasons.push("🎉 <strong>Event Ready:</strong> Experienced in event collaborations.");
-        if (request.locationType === 'ONSITE') reasons.push("🏢 <strong>On-Site Ready:</strong> Available for on-site work.");
-    }
-    if (scores.personalization > 70) {
-        reasons.push("✨ <strong>Tailored for You:</strong> Similar to creators you've liked before.");
-    }
-
-    // Fallback if we have too few
-    if (reasons.length === 0) {
-        reasons.push("✅ <strong>Solid Option:</strong> Meets your basic criteria.");
-    }
-
-    return reasons.slice(0, 3); // Return top 3 reasons
+    // Return top 3 signals as the legacy list
+    return [
+        structured.relevance,
+        structured.budget,
+        structured.reliability
+    ].slice(0, 3);
 };
+
 
 /**
  * Generate a learning narrative based on history and intent
@@ -575,6 +562,7 @@ const rankCreators = async (creators, request, userId = null) => {
             console.log(`[Matching] Creator: ${creator.user.name} | Total: ${matchScore} | Reliability: ${scores.reliability.toFixed(1)} | ROI: ${scores.roi.toFixed(1)}`);
         }
 
+        const structuredExplanation = generateStructuredExplanation(creator, request, scores);
         const matchReasons = generateMatchReasons(creator, request, scores);
         const learningInsight = generateLearningInsight(creator, scores, userIntent, userHistory);
 
@@ -589,7 +577,8 @@ const rankCreators = async (creators, request, userId = null) => {
             personalization: calculatePersonalizationScore(creator.id, userHistory),
             matchScore,
             confidenceLevel,
-            matchReasons,
+            matchReason: JSON.stringify(structuredExplanation), // Structured JSON for DB
+            matchReasons, // Legacy support
             learningInsight,
             scores,
             prediction: roiPrediction,
@@ -654,8 +643,11 @@ const explainMatch = async (creatorId, promotionRequest) => {
         ((creator.reliabilityScore || 1.0) * 100 * (SCORING_WEIGHTS.reliability || 0.08))
     );
 
+    const structuredExplanation = generateStructuredExplanation(creator, promotionRequest, scores);
+
     return {
         matchScore,
+        matchReason: JSON.stringify(structuredExplanation),
         breakdown: {
             engagement: {
                 score: scores.engagement,

@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
+import MatchExplanation from '../common/MatchExplanation';
 
 const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage, viewMode, onViewProfile, children }) => {
     const profile = creator.creatorId || creator;
@@ -83,9 +84,8 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
 
             {/* Match Reason */}
             {matchReason && (
-                <div className="flex items-start p-s3 bg-primary-500/5 border border-primary-500/20 rounded-premium-xl mb-s4 shadow-sm">
-                    <FaInfoCircle className="text-primary-400 mt-1 mr-s2 flex-shrink-0" />
-                    <p className="text-small text-dark-300 font-medium leading-relaxed">{matchReason}</p>
+                <div className="mb-s4">
+                    <MatchExplanation explanation={matchReason} />
                 </div>
             )}
 
