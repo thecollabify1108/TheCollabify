@@ -6,17 +6,18 @@ const { calculateResponseLikelihood } = require('./responseLogic');
  * Scoring weights for different factors
  */
 const SCORING_WEIGHTS = {
-    engagementRate: 0.12,      // 12%
-    nicheSimilarity: 0.12,     // 12%
-    priceCompatibility: 0.12,  // 12%
-    predictedROI: 0.10,        // 10%
-    locationMatch: 0.10,       // 10%
-    campaignTypeMatch: 0.10,   // 10%
-    availabilityMatch: 0.10,   // 10% (New)
-    insightScore: 0.08,        // 8%
-    trackRecord: 0.08,         // 8%
-    intentMatch: 0.04,         // 4%
-    personalization: 0.04      // 4%
+    engagementRate: 0.11,      // 11%
+    nicheSimilarity: 0.11,     // 11%
+    priceCompatibility: 0.11,  // 11%
+    locationMatch: 0.08,       // 8%
+    campaignTypeMatch: 0.08,   // 8%
+    reliability: 0.08,         // 8% (NEW)
+    availabilityMatch: 0.08,   // 8%
+    predictedROI: 0.07,        // 7%
+    trackRecord: 0.07,         // 7%
+    insightScore: 0.07,        // 7%
+    intentMatch: 0.07,         // 7%
+    personalization: 0.07      // 7%
 };
 
 /**
@@ -304,7 +305,8 @@ const generateMatchReasons = (creator, request, scores) => {
         (scores.personalization * SCORING_WEIGHTS.personalization) +
         (scores.location * SCORING_WEIGHTS.locationMatch) +
         (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
-        (scores.availability * SCORING_WEIGHTS.availabilityMatch)
+        (scores.availability * SCORING_WEIGHTS.availabilityMatch) +
+        (scores.reliability * SCORING_WEIGHTS.reliability)
     );
 
     if (totalScore >= 85) {
@@ -333,6 +335,12 @@ const generateMatchReasons = (creator, request, scores) => {
     }
     if (scores.trackRecord > 80) {
         reasons.push("🏆 <strong>Proven Track Record:</strong> Consistently delivers for brands.");
+    }
+    if (scores.reliability >= 110) {
+        reasons.push("🛡️ <strong class='text-blue-400'>Elite Reliability:</strong> Exceptional track record of completed collaborations.");
+    }
+    if (scores.reliability < 85) {
+        reasons.push("⚠️ <strong>Developing History:</strong> Relatively new or has some cancelled projects.");
     }
 
     if (scores.location >= 100 && request.locationType !== 'REMOTE') {
@@ -543,7 +551,8 @@ const rankCreators = async (creators, request, userId = null) => {
                 creator.collaborationTypes,
                 request.locationType
             ),
-            availability: calculateAvailabilityScore(creator.availabilityStatus)
+            availability: calculateAvailabilityScore(creator.availabilityStatus),
+            reliability: Math.min(150, (creator.reliabilityScore || 1.0) * 100) // Normalize 1.0 to 100, capped at 150
         };
 
         const matchScore = Math.round(
@@ -557,8 +566,14 @@ const rankCreators = async (creators, request, userId = null) => {
             (scores.personalization * SCORING_WEIGHTS.personalization) +
             (scores.location * SCORING_WEIGHTS.locationMatch) +
             (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
-            (scores.availability * SCORING_WEIGHTS.availabilityMatch)
+            (scores.availability * SCORING_WEIGHTS.availabilityMatch) +
+            (scores.reliability * SCORING_WEIGHTS.reliability)
         );
+
+        // --- INTERNAL LOGGING (Safe, not exposed to client) ---
+        if (process.env.NODE_ENV !== 'production' || matchScore > 80) {
+            console.log(`[Matching] Creator: ${creator.user.name} | Total: ${matchScore} | Reliability: ${scores.reliability.toFixed(1)} | ROI: ${scores.roi.toFixed(1)}`);
+        }
 
         const matchReasons = generateMatchReasons(creator, request, scores);
         const learningInsight = generateLearningInsight(creator, scores, userIntent, userHistory);
@@ -635,7 +650,8 @@ const explainMatch = async (creatorId, promotionRequest) => {
         (scores.price * SCORING_WEIGHTS.priceCompatibility) +
         (scores.insight * SCORING_WEIGHTS.insightScore) +
         (scores.availability * SCORING_WEIGHTS.availability) +
-        (scores.trackRecord * SCORING_WEIGHTS.trackRecord)
+        (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
+        ((creator.reliabilityScore || 1.0) * 100 * (SCORING_WEIGHTS.reliability || 0.08))
     );
 
     return {

@@ -8,6 +8,7 @@ const { generateInsights } = require('../services/aiInsights');
 const { notifyProfileInsights, notifySellerCreatorApplied } = require('../services/notificationService');
 const { sendCreatorAppliedEmail } = require('../utils/brevoEmailService');
 const { upload } = require('../services/storageService');
+const { updateReliabilityScore } = require('../services/reliabilityService');
 
 /**
  * Validation middleware
@@ -643,6 +644,11 @@ router.post('/respond-request', auth, isCreator, [
                 respondedAt: new Date()
             }
         });
+
+        // --- RELIABILITY SCORE UPDATES ---
+        if (status === 'REJECTED') {
+            await updateReliabilityScore(req.userId, 'CREATOR', 'DECLINED_INVITE', promotionId);
+        }
 
         if (status === 'ACCEPTED') {
             // Unlock/Create Conversation

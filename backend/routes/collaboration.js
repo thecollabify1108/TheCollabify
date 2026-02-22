@@ -12,6 +12,7 @@ const {
     STAGE_ORDER,
     STAGE_LABELS
 } = require('../services/collaborationStateMachine');
+const { updateReliabilityScore } = require('../services/reliabilityService');
 
 // Middleware to handle validation errors
 const handleValidation = (req, res, next) => {
@@ -227,6 +228,26 @@ router.post('/:id/transition', auth, [
         // Record custom metric for status transitions
         newrelic.recordMetric('Custom/Collaboration/Transition/' + newStatus, 1);
 
+        // --- RELIABILITY SCORE UPDATES ---
+        const sellerId = collaboration.matchedCreator.promotion.sellerId;
+        const creatorUserId = collaboration.matchedCreator.creator.userId;
+
+        if (newStatus === 'COMPLETED') {
+            // Both benefit from completion
+            await Promise.all([
+                updateReliabilityScore(creatorUserId, 'CREATOR', 'COLLABORATION_COMPLETED', id),
+                updateReliabilityScore(sellerId, 'SELLER', 'COLLABORATION_COMPLETED', id)
+            ]);
+        } else if (newStatus === 'CANCELLED') {
+            // Unilateral cancellation? Or penalized both? 
+            // The requirement says: "Decrease slightly for: cancelled collaborations" for both.
+            // Let's penalize the whole collaboration if it fails.
+            await Promise.all([
+                updateReliabilityScore(creatorUserId, 'CREATOR', 'COLLABORATION_CANCELLED', id),
+                updateReliabilityScore(sellerId, 'SELLER', 'COLLABORATION_CANCELLED', id)
+            ]);
+        }
+
         // Enrich response with next valid actions
         res.json({
             success: true,
@@ -340,6 +361,17 @@ router.post('/:id/feedback', auth, [
             where: { id },
             data: updateData
         });
+
+        // --- RELIABILITY SCORE UPDATES (Feedback) ---
+        // Positive feedback boost
+        if (feedback && feedback.rating >= 4) {
+            const userId = role === 'SELLER'
+                ? collaboration.matchedCreator.creator.userId  // Seller gave good rating to creator
+                : collaboration.matchedCreator.promotion.sellerId; // Creator gave good rating to seller
+
+            const targetRole = role === 'SELLER' ? 'CREATOR' : 'SELLER';
+            await updateReliabilityScore(userId, targetRole, 'POSITIVE_FEEDBACK', id);
+        }
 
         res.json({ success: true, data: collaboration });
     } catch (error) {

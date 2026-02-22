@@ -135,6 +135,7 @@ model User {
 
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
+  reliabilityScore      Float          @default(1.0)
 
   @@index([activeRole])
   @@index([isActive])
@@ -210,6 +211,7 @@ model CreatorProfile {
 
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
+  reliabilityScore      Float            @default(1.0)
 
   @@index([category])
   @@index([isAvailable])
