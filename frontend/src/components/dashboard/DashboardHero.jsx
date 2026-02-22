@@ -1,4 +1,8 @@
-const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onToggleAvailability }) => {
+import { motion } from 'framer-motion';
+import { HiSparkles } from 'react-icons/hi';
+import ReliabilityBadge from '../creator/ReliabilityBadge';
+
+const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onToggleAvailability, reliability }) => {
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return "Good morning";
@@ -59,9 +63,18 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                                 </motion.button>
                             )}
                         </div>
-                        <h1 className="text-h2 md:text-h1 font-bold text-white mb-s3 leading-tight">
-                            {getGreeting()}, {userName}! 👋
-                        </h1>
+                        <div className="flex items-center gap-4 mb-s3">
+                            <h1 className="text-h2 md:text-h1 font-bold text-white leading-tight">
+                                {getGreeting()}, {userName}! 👋
+                            </h1>
+                            {reliability && (
+                                <ReliabilityBadge
+                                    level={reliability.level}
+                                    score={reliability.score}
+                                    size="md"
+                                />
+                            )}
+                        </div>
                         <p className="text-indigo-100 max-w-lg text-body">
                             Ready to make an impact? Here's your daily edge.
                         </p>

@@ -27,6 +27,9 @@ const requiredEnvVars = {
     EMAIL_HOST: 'SMTP Host',
     EMAIL_USER: 'SMTP User',
     EMAIL_PASS: 'SMTP Password',
+
+    // Monitoring
+    NEW_RELIC_LICENSE_KEY: 'New Relic License Key for APM',
 };
 
 const optionalEnvVars = {
@@ -38,19 +41,14 @@ const optionalEnvVars = {
     // JWT
     JWT_EXPIRE: '7d',
 
-    // OAuth (optional)
-    // moved to required
-
-    // Monitoring (optional but recommended for production)
-    SENTRY_DSN: undefined,
-
-
-
     // Monitoring (optional but recommended for production)
     SENTRY_DSN: undefined,
 
     // Admin Security (optional)
     ADMIN_ALLOWED_IPS: '127.0.0.1,::1',
+
+    // Redis (optional — falls back to in-memory)
+    REDIS_URL: undefined,
 };
 
 /**
@@ -121,12 +119,13 @@ function validateJWTSecret() {
     const secret = process.env.JWT_SECRET;
     if (!secret) return false;
 
-    // In production, ensure JWT_SECRET is strong (at least 32 characters)
-    // In production, ensure JWT_SECRET is strong (at least 32 characters)
+    // In production, enforce that JWT_SECRET is at least 32 characters.
+    // A weak secret makes authentication trivially breakable.
     if (process.env.NODE_ENV === 'production' && secret.length < 32) {
-        // CHANGED: Warn only, do not crash. This prevents deployment loops if secret is 31 chars.
-        console.warn(`⚠️  WARNING: JWT_SECRET is weak (Length: ${secret.length}). Recommended: 32+ chars.`);
-        // throw new Error('Weak JWT_SECRET detected'); // DISABLED for stability
+        throw new Error(
+            `Weak JWT_SECRET detected (length: ${secret.length}). ` +
+            'Set a secret of at least 32 random characters in Azure App Service Configuration.'
+        );
     }
 
     return true;

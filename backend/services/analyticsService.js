@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { getReliabilityLevel } = require('./reliabilityService');
 
 /**
  * Service for analytics data aggregation and calculations
@@ -66,6 +67,25 @@ class AnalyticsService {
         } catch (error) {
             console.error('Error recording match feedback:', error);
             // Non-blocking failure
+            return null;
+        }
+    }
+
+    /**
+     * Record friction event for drop-off intelligence
+     */
+    static async recordFrictionEvent(data) {
+        try {
+            return await prisma.frictionEvent.create({
+                data: {
+                    userId: data.userId,
+                    type: data.type,
+                    severity: data.severity || 'MEDIUM',
+                    meta: data.meta || {}
+                }
+            });
+        } catch (error) {
+            console.error('Error recording friction event:', error);
             return null;
         }
     }
@@ -355,9 +375,20 @@ class AnalyticsService {
                 id: true,
                 status: true,
                 matchedCreators: {
-                    select: { id: true, status: true, collaboration: true }
+                    select: {
+                        id: true,
+                        status: true,
+                        collaboration: true,
+                        creatorId: true
+                    }
                 }
             }
+        });
+
+        // Get brand's own reliability score
+        const seller = await prisma.user.findUnique({
+            where: { id: sellerId },
+            select: { reliabilityScore: true }
         });
 
         const campaignsLaunched = campaigns.length;
@@ -367,9 +398,22 @@ class AnalyticsService {
         let completedCollabs = 0;
         const durations = [];
 
+        let totalReliabilitySum = 0;
+        let creatorCountWithReliability = 0;
+
         for (const campaign of campaigns) {
             creatorsShortlisted += campaign.matchedCreators.length;
             for (const mc of campaign.matchedCreators) {
+                // Fetch creator reliability score for averaging
+                const cp = await prisma.creatorProfile.findUnique({
+                    where: { userId: mc.creatorId },
+                    select: { reliabilityScore: true }
+                });
+                if (cp) {
+                    totalReliabilitySum += cp.reliabilityScore;
+                    creatorCountWithReliability++;
+                }
+
                 if (mc.collaboration) {
                     totalCollabs++;
                     const c = mc.collaboration;
@@ -394,7 +438,11 @@ class AnalyticsService {
             completionRate: totalCollabs > 0 ? Math.round((completedCollabs / totalCollabs) * 100) : 0,
             avgCollaborationDays: durations.length > 0
                 ? Math.round((durations.reduce((a, b) => a + b, 0) / durations.length) * 10) / 10
-                : null
+                : null,
+            reliabilityScore: seller?.reliabilityScore || 1.0,
+            matchReliabilityAvg: creatorCountWithReliability > 0
+                ? (totalReliabilitySum / creatorCountWithReliability).toFixed(2)
+                : 1.0
         };
     }
 
@@ -405,7 +453,11 @@ class AnalyticsService {
         // Get creator profile for completion %
         const profile = await prisma.creatorProfile.findUnique({
             where: { userId },
-            select: { id: true, profileCompletionPercentage: true }
+            select: {
+                id: true,
+                profileCompletionPercentage: true,
+                reliabilityScore: true
+            }
         });
 
         if (!profile) {
@@ -452,7 +504,9 @@ class AnalyticsService {
             acceptanceRate,
             completedCollaborations: completed,
             responseLikelihood,
-            profileCompletion: profile.profileCompletionPercentage || 0
+            profileCompletion: profile.profileCompletionPercentage || 0,
+            reliabilityScore: profile.reliabilityScore || 1.0,
+            reliabilityLevel: getReliabilityLevel(profile.reliabilityScore || 1.0)
         };
     }
 }

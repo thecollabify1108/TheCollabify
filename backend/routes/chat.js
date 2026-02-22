@@ -82,7 +82,7 @@ router.get('/pgp-key/:userId', auth, async (req, res) => {
 
         if (!checkConnection) {
             return res.status(403).json({
-                success: true,
+                success: false,
                 data: { publicKey: null, name: user.name, isLocked: true },
                 message: 'PGP key access restricted. You must have an accepted collaboration to view this key.'
             });
@@ -240,6 +240,23 @@ router.post('/message-request', auth, async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: 'Creator profile not found'
+            });
+        }
+
+        // H5 FIX: Verify an accepted/matched match exists between this seller and creator
+        // before allowing a conversation to be opened. Prevents contact without prior matching.
+        const existingMatch = await prisma.matchedCreator.findFirst({
+            where: {
+                creator: { userId: creatorId },
+                promotion: { sellerId: sellerId },
+                status: { in: ['MATCHED', 'INVITED', 'ACCEPTED'] }
+            }
+        });
+
+        if (!existingMatch) {
+            return res.status(403).json({
+                success: false,
+                message: 'You can only message creators who have been matched to your campaign.'
             });
         }
 

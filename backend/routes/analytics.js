@@ -1,4 +1,6 @@
 const newrelic = require('newrelic');
+const FrictionService = require('../services/frictionService');
+
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
@@ -14,6 +16,13 @@ router.get('/dashboard', auth, async (req, res) => {
     try {
         const { period = 'monthly', limit = 12 } = req.query;
         const userType = req.user.activeRole; // 'CREATOR' or 'SELLER'
+
+        // Lazy detect friction points if admin triggers or periodic
+        if (req.user.activeRole === 'ADMIN') {
+            FrictionService.detectOnboardingDropOffs().catch(console.error);
+            FrictionService.detectCollaborationStalls().catch(console.error);
+            FrictionService.detectCreatorNonResponse().catch(console.error);
+        }
 
         const analytics = await AnalyticsService.getDashboardAnalytics(
             req.userId,

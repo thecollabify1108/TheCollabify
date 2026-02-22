@@ -134,6 +134,10 @@ router.post('/requests', auth, isSeller, [
             deadline
         } = req.body;
 
+        // Log Campaign Flow Start
+        const FrictionService = require('../services/frictionService');
+        await FrictionService.trackCampaignStart(req.userId, { title, targetCategory });
+
         // Create promotion request
         const request = await prisma.promotionRequest.create({
             data: {

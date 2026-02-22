@@ -1,4 +1,6 @@
 const express = require('express');
+const AnalyticsService = require('../services/analyticsService');
+
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
@@ -36,6 +38,7 @@ const sanitizeUser = (user) => {
         avatar: user.avatar || null,
         activeRole: user.activeRole,
         emailVerified: user.emailVerified,
+        reliabilityScore: user.reliabilityScore || 1.0,
         createdAt: user.createdAt
     };
 
@@ -277,6 +280,14 @@ router.post('/register/verify-otp', [
 
             token = generateToken(user.id);
         }
+
+        // Log Onboarding Start Friction Event
+        await AnalyticsService.recordFrictionEvent({
+            userId: user.id,
+            type: 'ONBOARDING_START',
+            severity: 'LOW',
+            meta: { role: role.toUpperCase(), method: 'OTP' }
+        });
 
         // Send welcome notification
         try {

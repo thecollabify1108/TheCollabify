@@ -633,3 +633,19 @@ model UserIntent {
 }
 
 
+
+model FrictionEvent {
+  id           String   @id @default(uuid())
+  userId       String?
+  type         String   // ONBOARDING_DROP_OFF, CAMPAIGN_ABANDONMENT, COLLABORATION_STALL, CREATOR_NON_RESPONSE
+  severity     String   @default("MEDIUM") // LOW, MEDIUM, HIGH
+  
+  // Specific context
+  meta         Json?    // { campaignId, collaborationId, lastStatus, timeElapsed }
+  
+  createdAt    DateTime @default(now())
+  
+  @@index([type])
+  @@index([createdAt])
+  @@index([userId])
+}

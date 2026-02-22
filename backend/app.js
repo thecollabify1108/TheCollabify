@@ -3,11 +3,8 @@ const express = require('express');
 const http = require('http');
 const dotenv = require('dotenv');
 
-console.log('🔍 [Startup] Modules imported');
-
 // Load environment variables FIRST (Critical for middleware config)
 dotenv.config();
-console.log('🔍 [Startup] Environment loaded');
 
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
@@ -15,19 +12,15 @@ const session = require('express-session');
 const morgan = require('morgan');
 const helmet = require('helmet');
 
-console.log('🔍 [Startup] Standard middleware imported');
-
 // Advanced Security Middleware
 const requestTracker = require('./middleware/requestTracker');
 const { globalLimiter, authLimiter, apiLimiter, strictLimiter } = require('./middleware/rateLimiter');
 const ipAllowlist = require('./middleware/ipAllowlist');
 const apiKeyAuth = require('./middleware/apiKeyAuth');
-console.log('🔍 [Startup] Security middleware imported');
 
 // Resilience Middleware
 const { timeoutMiddleware, timeoutErrorHandler } = require('./middleware/timeout');
 const { cacheMiddleware } = require('./middleware/cache');
-console.log('🔍 [Startup] Resilience middleware imported');
 
 // Error Handling Middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -72,7 +65,6 @@ app.use((req, res, next) => {
         'https://www.thecollabify.tech',
         'https://api.thecollabify.tech',
         'https://thecollabify.pages.dev',
-        'https://thecollabify-frontend.vercel.app',
     ];
 
     // For development, allow localhost with any port
@@ -100,30 +92,12 @@ app.use((req, res, next) => {
     next();
 });
 
-// Security Headers
-app.use(helmet({
-    contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://www.google-analytics.com", "https://apis.google.com"],
-            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-            fontSrc: ["'self'", "https://fonts.gstatic.com"],
-            imgSrc: ["'self'", "data:", "https:", "blob:"],
-            connectSrc: ["'self'", "https://api.thecollabify.tech", "https://thecollabify.tech", "wss://api.thecollabify.tech", "https://www.google-analytics.com"],
-        },
-    },
-    crossOriginEmbedderPolicy: false,
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-}));
-
 // Diagnostic Ping - Absolute first route, no dependencies
 app.get('/api/ping', (req, res) => {
     res.status(200).json({
         success: true,
         message: 'pong',
-        timestamp: new Date().toISOString(),
-        env: process.env.NODE_ENV,
-        origin: req.headers.origin
+        timestamp: new Date().toISOString()
     });
 });
 
@@ -291,7 +265,6 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Register Routes Synchronously (Must be before Error Handlers)
-console.log('🔄 Registering routes...');
 app.use('/api/auth', authLimiter, require('./routes/auth'));
 app.use('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset'));
 app.use('/api/oauth', require('./routes/oauth'));
@@ -309,7 +282,6 @@ app.use('/api/calendar', require('./routes/contentCalendar'));
 app.use('/api/team', require('./routes/teamManagement'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/collaboration', require('./routes/collaboration'));
-console.log('✅ Routes registered');
 
 // Root endpoint
 app.get('/', (req, res) => {

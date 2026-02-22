@@ -273,7 +273,12 @@ router.post('/:id/transition', auth, [
  * @desc    Update deliverables, timeline, milestones (only in editable states)
  * @access  Private
  */
-router.patch('/:id', auth, async (req, res) => {
+router.patch('/:id', auth, [
+    body('deliverables').optional().isArray().withMessage('Deliverables must be an array'),
+    body('milestones').optional().isArray().withMessage('Milestones must be an array'),
+    body('startDate').optional({ nullable: true }).isISO8601().withMessage('startDate must be a valid ISO date'),
+    body('endDate').optional({ nullable: true }).isISO8601().withMessage('endDate must be a valid ISO date')
+], handleValidation, async (req, res) => {
     try {
         const { id } = req.params;
         const { deliverables, startDate, endDate, milestones } = req.body;
@@ -340,8 +345,18 @@ router.post('/:id/feedback', auth, [
         const { id } = req.params;
         const { role, feedback } = req.body;
 
-        // Verify collaboration exists and is completed
-        const existing = await prisma.collaboration.findUnique({ where: { id } });
+        // Verify collaboration exists, is completed, AND fetch relations needed for reliability update
+        const existing = await prisma.collaboration.findUnique({
+            where: { id },
+            include: {
+                matchedCreator: {
+                    include: {
+                        promotion: { select: { sellerId: true } },
+                        creator: { select: { userId: true } }
+                    }
+                }
+            }
+        });
         if (!existing) {
             return res.status(404).json({ success: false, message: 'Collaboration not found' });
         }

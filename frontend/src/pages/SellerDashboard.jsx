@@ -30,6 +30,7 @@ import CreatorSearch from '../components/seller/CreatorSearch';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
 import { haptic } from '../utils/haptic';
+import { getReliabilityLevel } from '../utils/reliability';
 
 // NEW: Enhanced Components
 import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
@@ -697,9 +698,13 @@ const SellerDashboard = () => {
                     >
                         {/* 1. Hero Section */}
                         <DashboardHero
-                            userName={(user?.companyName || user?.name || '').split(' ')[0] || 'Seller'}
+                            userName={user?.name?.split(' ')[0] || 'Brand'}
                             role="Seller"
-                            dailyInsight="Welcome to your campaign dashboard! 🚀"
+                            dailyInsight={requests?.[0]?.aiInsight || "Launch a new campaign to discover top matches! 🚀"}
+                            reliability={{
+                                level: getReliabilityLevel(user?.reliabilityScore || 1.0),
+                                score: user?.reliabilityScore || 1.0
+                            }}
                         />
 
 

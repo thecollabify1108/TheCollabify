@@ -1,12 +1,16 @@
 {
-    "buildCommand": "npm install && npm run build",
-    "outputDirectory": "dist",
-    "installCommand": "npm install",
-    "framework": "vite",
-    "rewrites": [
-        {
-            "source": "/(.*)",
-            "destination": "/"
-        }
-    ]
+    "_deactivated": true,
+    "_reason": "Frontend is deployed to Cloudflare Pages (thecollabify.pages.dev). This vercel.json is intentionally disabled. If re-enabling Vercel hosting, restore the rewrites config below.",
+    "_original_config": {
+        "buildCommand": "npm install && npm run build",
+        "outputDirectory": "dist",
+        "installCommand": "npm install",
+        "framework": "vite",
+        "rewrites": [
+            {
+                "source": "/(.*)",
+                "destination": "/"
+            }
+        ]
+    }
 }

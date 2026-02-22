@@ -46,7 +46,11 @@ const filterCreators = async (request) => {
                 select: { name: true, email: true, avatar: true }
             }
         },
-        take: 100 // Performance Safety: Cap matching pool to top 100 candidates by DB order first
+        orderBy: [
+            { engagementRate: 'desc' },   // Prioritise high-engagement creators in the pool
+            { followerCount: 'desc' }
+        ],
+        take: 100 // Performance Safety: Cap matching pool to top 100 candidates
     });
 
     return creators;

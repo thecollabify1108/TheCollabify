@@ -1,4 +1,5 @@
 const prisma = require('../config/prisma');
+const { createNotification } = require('./notificationService');
 
 /**
  * Reliability Score Adjustments
@@ -40,7 +41,20 @@ async function updateReliabilityScore(userId, role, action, contextId = '') {
                     data: { reliabilityScore: newScore }
                 });
 
-                console.log(`[Reliability] CREATOR ${userId} | Action: ${action} | Score: ${profile.reliabilityScore.toFixed(3)} -> ${newScore.toFixed(3)} | Context: ${contextId}`);
+                // Check for level milestones
+                const oldLevel = getReliabilityLevel(profile.reliabilityScore).label;
+                const newLevelLabel = getReliabilityLevel(newScore).label;
+
+                if (oldLevel !== newLevelLabel && newScore > profile.reliabilityScore) {
+                    await createNotification({
+                        userId,
+                        type: 'MILESTONE',
+                        title: 'Trust Milestone Reached! 🚀',
+                        message: `Congratulations! Your reliability has increased to "${newLevelLabel}". This will boost your ranking in AI recommendations.`,
+                        data: { level: newLevelLabel, score: newScore }
+                    });
+                }
+
             }
         } else if (role === 'SELLER') {
             const user = await prisma.user.findUnique({
@@ -56,7 +70,6 @@ async function updateReliabilityScore(userId, role, action, contextId = '') {
                     data: { reliabilityScore: newScore }
                 });
 
-                console.log(`[Reliability] BRAND ${userId} | Action: ${action} | Score: ${user.reliabilityScore.toFixed(3)} -> ${newScore.toFixed(3)} | Context: ${contextId}`);
             }
         }
     } catch (error) {
@@ -64,7 +77,19 @@ async function updateReliabilityScore(userId, role, action, contextId = '') {
     }
 }
 
+/**
+ * Get human-readable reliability level based on score
+ */
+function getReliabilityLevel(score) {
+    if (score >= 4.0) return { label: 'Elite', color: 'text-purple-400', icon: 'crown' };
+    if (score >= 3.0) return { label: 'Reliable', color: 'text-emerald-400', icon: 'check_circle' };
+    if (score >= 2.0) return { label: 'Rising Star', color: 'text-blue-400', icon: 'stars' };
+    if (score >= 1.2) return { label: 'Standard', color: 'text-dark-400', icon: 'shield' };
+    return { label: 'Building Trust', color: 'text-amber-400', icon: 'clock' };
+}
+
 module.exports = {
     updateReliabilityScore,
+    getReliabilityLevel,
     SCORE_CHANGES
 };

@@ -15,6 +15,7 @@ import {
 } from 'react-icons/fa';
 import { HiSparkles, HiTrendingUp, HiLightningBolt } from 'react-icons/hi';
 import EmptyState from '../common/EmptyState';
+import ReliabilityBadge from './ReliabilityBadge';
 
 /**
  * Creator Analytics Dashboard
@@ -117,11 +118,19 @@ const CreatorAnalytics = ({ profile, applications = [] }) => {
             color: 'text-amber-400'
         },
         {
-            title: 'Creator Tier',
-            value: profile?.followerCount >= 100000 ? 'Macro' : profile?.followerCount >= 10000 ? 'Mid-Tier' : 'Micro',
-            description: profile?.followerCount >= 10000 ? 'influencer' : 'higher engagement',
+            title: 'Reliability Status',
+            value: (
+                <div className="mt-1">
+                    <ReliabilityBadge
+                        level={profile?.insights?.reliabilityLevel}
+                        score={profile?.insights?.reliabilityScore}
+                        size="md"
+                    />
+                </div>
+            ),
+            description: 'Platform trust rating',
             icon: FaStar,
-            color: 'text-purple-400'
+            color: 'text-emerald-400'
         }
     ];
 

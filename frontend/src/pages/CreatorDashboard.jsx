@@ -40,6 +40,7 @@ import PullToRefresh from '../components/common/PullToRefresh';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
 import { haptic } from '../utils/haptic';
+import { getReliabilityLevel } from '../utils/reliability';
 
 // NEW: Enhanced Components
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
@@ -378,11 +379,15 @@ const CreatorDashboard = () => {
                             <>
                                 {/* 1. Hero Section */}
                                 <DashboardHero
-                                    userName={user?.name?.split(' ')[0] || 'Creator'}
+                                    userName={user?.name}
                                     role="Creator"
-                                    dailyInsight="Complete your profile to increase visibility! 🌟"
-                                    availabilityStatus={profile.availabilityStatus}
+                                    dailyInsight={profile?.aiInsights?.daily}
+                                    availabilityStatus={profile?.availabilityStatus}
                                     onToggleAvailability={handleToggleAvailability}
+                                    reliability={{
+                                        level: getReliabilityLevel(profile?.reliabilityScore || 1.0),
+                                        score: profile?.reliabilityScore || 1.0
+                                    }}
                                 />
 
                                 {/* 2. Stats Grid */}
