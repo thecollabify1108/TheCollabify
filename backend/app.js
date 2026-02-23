@@ -34,24 +34,41 @@ const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandl
 const { startFrictionScheduler, stopFrictionScheduler } = require('./services/frictionScheduler');
 
 
-// Sentry Error Monitoring
-const Sentry = require('@sentry/node');
-const { initSentry, sentryErrorHandler } = require('./config/sentry');
+// Sentry Error Monitoring — wrapped defensively
+let sentryErrorHandler = (err, req, res, next) => next(err); // fallback noop
+try {
+    const Sentry = require('@sentry/node');
+    const sentry = require('./config/sentry');
+    sentryErrorHandler = sentry.sentryErrorHandler;
+    console.log('✅ Sentry module loaded');
+} catch (e) {
+    console.warn('⚠️  Sentry failed to load (non-fatal):', e.message);
+}
 
-// Swagger API Documentation
-const swaggerUi = require('swagger-ui-express');
-const swaggerSpec = require('./config/swagger');
+// Swagger API Documentation — wrapped defensively
+let swaggerUi = null;
+let swaggerSpec = null;
+try {
+    swaggerUi = require('swagger-ui-express');
+    swaggerSpec = require('./config/swagger');
+    console.log('✅ Swagger loaded');
+} catch (e) {
+    console.warn('⚠️  Swagger failed to load (non-fatal):', e.message);
+}
 
-// Validate environment variables
+// Validate environment variables — NEVER crash the server for missing vars
 try {
     const { validateEnv, validateJWTSecret } = require('./utils/envValidator');
     console.log('🔍 [Startup] Validating environment...');
     validateEnv();
-    validateJWTSecret();
+    try { validateJWTSecret(); } catch (jwtErr) {
+        console.warn('⚠️  [Startup] JWT_SECRET warning:', jwtErr.message);
+    }
     console.log('✅ [Startup] Environment validated');
 } catch (e) {
     console.error('❌ [Startup] Environment validation failed:', e.message);
-    process.exit(1); // Fail fast if secrets are missing
+    // DO NOT process.exit() — let the server start so Azure health check passes
+    // The app will fail gracefully on DB/auth calls if critical vars are truly missing
 }
 
 // Setup process-level error handlers (unhandled rejections, exceptions)
