@@ -61,35 +61,29 @@ app.use((req, res, next) => {
     const origin = req.headers.origin;
     const requestedHeaders = req.headers['access-control-request-headers'];
 
-    // Whitelist of exact allowed origins for production security
-    const allowedOrigins = [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        'https://thecollabify.tech',
-        'https://www.thecollabify.tech',
-        'https://api.thecollabify.tech',
-        'https://thecollabify.pages.dev',
-        // Raw Azure hostname — needed when Cloudflare proxy is bypassed or during DNS propagation
-        'https://thecollabify-api-hhc2nuheexeqapff.centralindia-01.azurewebsites.net',
-    ];
+    // Helper: is this origin allowed?
+    const isOriginAllowed = (o) => {
+        if (!o) return true; // no origin = server-to-server, always allow
+        // Localhost (any port) in all environments
+        if (o.startsWith('http://localhost:') || o.startsWith('http://127.0.0.1:')) return true;
+        // Any *.thecollabify.tech subdomain + apex domain
+        if (/^https:\/\/([\w-]+\.)*thecollabify\.(tech|pages\.dev)$/.test(o)) return true;
+        // Raw Azure hostname (needed when Cloudflare proxy is bypassed)
+        if (o === 'https://thecollabify-api-hhc2nuheexeqapff.centralindia-01.azurewebsites.net') return true;
+        return false;
+    };
 
-    // For development, allow localhost with any port
-    const isDevelopment = process.env.NODE_ENV !== 'production';
-    const isAllowedDev = isDevelopment && origin && (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:'));
-    const isAllowedProd = allowedOrigins.includes(origin);
-    const isAllowed = !origin || isAllowedDev || isAllowedProd;
-
-    if (origin) {
-        if (isAllowed) {
+    if (isOriginAllowed(origin)) {
+        if (origin) {
             res.setHeader('Access-Control-Allow-Origin', origin);
             res.setHeader('Access-Control-Allow-Credentials', 'true');
             res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
             res.setHeader('Access-Control-Allow-Headers', requestedHeaders || 'Content-Type, Authorization, X-Requested-With, Accept, Origin, X-API-KEY');
             res.setHeader('Access-Control-Max-Age', '86400');
             res.setHeader('Vary', 'Origin');
-        } else {
-            console.warn(`CORS Blocked Origin: ${origin}`);
         }
+    } else {
+        console.warn(`CORS Blocked Origin: ${origin}`);
     }
 
     if (req.method === 'OPTIONS') {

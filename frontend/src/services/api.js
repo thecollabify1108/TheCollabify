@@ -2,10 +2,12 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import * as Sentry from "@sentry/react";
 
-// Production Azure URL as fallback if env var not set
-const AZURE_API_URL = 'https://api.thecollabify.tech/api';
-const API_URL = import.meta.env.VITE_API_URL ||
-    (import.meta.env.PROD || window.location.hostname !== 'localhost' ? AZURE_API_URL : '/api');
+// Always use the custom domain — never the raw Azure hostname (which causes CORS failures)
+// VITE_API_URL from Cloudflare env may be set to the raw Azure URL; we override that here.
+const PRODUCTION_API = 'https://api.thecollabify.tech/api';
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? (import.meta.env.VITE_API_URL || '/api')
+    : PRODUCTION_API;
 
 const api = axios.create({
     baseURL: API_URL,
