@@ -1,4 +1,8 @@
-const newrelic = require('newrelic');
+// New Relic APM — must be loaded FIRST but only if license key is configured
+// Wrapped in try-catch so a missing/invalid key never crashes the server
+if (process.env.NEW_RELIC_LICENSE_KEY) {
+    try { require('newrelic'); } catch (e) { console.warn('⚠️  NewRelic failed to load:', e.message); }
+}
 const express = require('express');
 const http = require('http');
 const dotenv = require('dotenv');
