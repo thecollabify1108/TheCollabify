@@ -36,8 +36,8 @@ router.get('/stats', auth, isAdmin, async (req, res) => {
             completedRequests
         ] = await Promise.all([
             prisma.user.count({ where: { isActive: true } }),
-            prisma.user.count({ where: { role: 'CREATOR', isActive: true } }),
-            prisma.user.count({ where: { role: 'SELLER', isActive: true } }),
+            prisma.user.count({ where: { activeRole: 'CREATOR', isActive: true } }),
+            prisma.user.count({ where: { activeRole: 'SELLER', isActive: true } }),
             prisma.promotionRequest.count(),
             prisma.promotionRequest.count({ where: { status: { in: ['OPEN', 'CREATOR_INTERESTED', 'ACCEPTED'] } } }),
             prisma.promotionRequest.count({ where: { status: 'COMPLETED' } })
