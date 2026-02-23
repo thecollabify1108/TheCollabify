@@ -19,10 +19,10 @@ const { upload } = require('../services/storageService');
  */
 const setCookieToken = (res, token) => {
     res.cookie('token', token, {
-        httpOnly: true,                    // Prevents XSS access via JavaScript
-        secure: process.env.NODE_ENV === 'production',  // HTTPS only in production
-        sameSite: 'strict',                // CSRF protection (strict for same-site only)
-        maxAge: 7 * 24 * 60 * 60 * 1000   // 7 days
+        httpOnly: true,
+        secure: true,            // Always true (HTTPS in production)
+        sameSite: 'none',        // Required for cross-origin (frontend at .tech, API at api.tech)
+        maxAge: 7 * 24 * 60 * 60 * 1000
     });
 };
 
@@ -291,7 +291,7 @@ router.post('/register/verify-otp', [
 
         // Send welcome notification
         try {
-            await notifyWelcome(user._id, role);
+            await notifyWelcome(user.id, role);
 
             // Send welcome email based on role
             if (role === 'creator') {
@@ -303,13 +303,14 @@ router.post('/register/verify-otp', [
             console.error('Failed to send welcome notification/email:', err);
         }
 
-        // Set secure HTTPOnly cookie (token NOT in response body)
+        // Set cross-origin cookie + return token in body (both required)
         setCookieToken(res, token);
 
         res.status(201).json({
             success: true,
             message: 'Email verified! Registration successful',
             data: {
+                token,
                 user: sanitizeUser({ ...user, activeRole: role.toUpperCase() })
             }
         });
@@ -382,8 +383,8 @@ router.post('/register', [
     try {
         const { email, password, name, role } = req.body;
 
-        // Check if user already exists
-        const existingUser = await User.findOne({ email });
+        // Check if user already exists (Prisma)
+        const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -391,31 +392,46 @@ router.post('/register', [
             });
         }
 
-        // Create user
-        const user = await User.create({
-            email,
-            password,
-            name,
-            role
+        // Hash password
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash(password, salt);
+
+        // Create user + role via Prisma
+        const user = await prisma.user.create({
+            data: {
+                email,
+                name,
+                authProvider: 'EMAIL',
+                emailVerified: false,
+                activeRole: role.toUpperCase(),
+                roles: {
+                    create: {
+                        type: role.toUpperCase(),
+                        password: hashedPassword
+                    }
+                }
+            },
+            include: { roles: true }
         });
 
         // Generate token
-        const token = generateToken(user._id);
+        const token = generateToken(user.id);
 
         // Send welcome notification
         try {
-            await notifyWelcome(user._id, role);
+            await notifyWelcome(user.id, role);
         } catch (err) {
             console.error('Failed to send welcome notification:', err);
         }
 
-        // Set secure HTTPOnly cookie (token NOT in response body)
+        // Set cross-origin cookie + return token in body (both required)
         setCookieToken(res, token);
 
         res.status(201).json({
             success: true,
             message: 'Registration successful',
             data: {
+                token,
                 user: sanitizeUser({ ...user, activeRole: role.toUpperCase() })
             }
         });
@@ -532,13 +548,14 @@ router.post('/login', [
         // Generate token
         const token = generateToken(user.id);
 
-        // Set secure HTTPOnly cookie (token NOT in response body)
+        // Set cross-origin cookie + return token in body (both required)
         setCookieToken(res, token);
 
         res.json({
             success: true,
             message: 'Login successful',
             data: {
+                token,
                 user: sanitizeUser({ ...user, activeRole: matchedRole })
             }
         });

@@ -2,15 +2,11 @@ import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import * as Sentry from "@sentry/react";
 
-// Raw Azure App Service hostname (always works — GitHub Actions deploys here)
-// api.thecollabify.tech is a Cloudflare alias but NOT configured as Azure custom domain (returns 503)
-const AZURE_RAW = 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net/api';
+// api.thecollabify.tech is the Azure custom domain (confirmed Secured w/ SNI SSL in Azure Portal)
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const API_URL = isLocalDev
-    ? (import.meta.env.VITE_API_URL || '/api')
-    : (import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_URL.includes('api.thecollabify.tech')
-        ? import.meta.env.VITE_API_URL
-        : AZURE_RAW);
+    ? '/api'
+    : (import.meta.env.VITE_API_URL || 'https://api.thecollabify.tech/api');
 
 const api = axios.create({
     baseURL: API_URL,
