@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
@@ -139,30 +139,32 @@ const Register = () => {
         }
     };
 
-    // Google Auth — uses GoogleLogin component (avoids COOP issue with popup)
-    const handleGoogleSuccess = async (credentialResponse) => {
-        setGoogleLoading(true);
-        try {
-            // Decode the signed JWT credential to get user profile (no network call needed)
-            const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
-            const user = await googleLogin({
-                email: payload.email,
-                name: payload.name,
-                googleId: payload.sub,
-                avatar: payload.picture,
-                role: formData.role || undefined
-            });
-            toast.success('Welcome to TheCollabify!');
-            if (user.role === 'creator') navigate('/creator/dashboard');
-            else if (user.role === 'seller') navigate('/seller/dashboard');
-            else if (user.role === 'admin') navigate('/admin');
-        } catch (error) {
-            const message = error.response?.data?.message || 'Google sign-in failed';
-            toast.error(message);
-        } finally {
+    // Google Auth — custom styled button using useGoogleLogin
+    // COOP is fixed via public/_headers (Cross-Origin-Opener-Policy: unsafe-none)
+    const loginWithGoogle = useGoogleLogin({
+        flow: 'implicit',
+        onSuccess: async (tokenResponse) => {
+            setGoogleLoading(true);
+            try {
+                const user = await googleLogin({
+                    accessToken: tokenResponse.access_token,
+                    role: formData.role || undefined
+                });
+                toast.success('Welcome to TheCollabify!');
+                if (user.role === 'creator') navigate('/creator/dashboard');
+                else if (user.role === 'seller') navigate('/seller/dashboard');
+                else if (user.role === 'admin') navigate('/admin');
+            } catch (error) {
+                toast.error(error.response?.data?.message || 'Google sign-in failed');
+            } finally {
+                setGoogleLoading(false);
+            }
+        },
+        onError: () => {
+            toast.error('Google authentication failed');
             setGoogleLoading(false);
         }
-    };
+    });
 
     // UI Helpers
     const getStepTitle = () => {
@@ -284,17 +286,19 @@ const Register = () => {
                                         </div>
                                     </div>
 
-                                    <div className="mt-2 w-full flex justify-center">
-                                        <GoogleLogin
-                                            onSuccess={handleGoogleSuccess}
-                                            onError={() => toast.error('Google sign-in failed')}
-                                            theme="filled_black"
-                                            size="large"
-                                            width={380}
-                                            text="continue_with"
-                                            shape="rectangular"
+                                    <button
+                                        type="button"
+                                        onClick={() => loginWithGoogle()}
+                                        disabled={googleLoading}
+                                        className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/10 dark:bg-white/5 backdrop-blur-md border border-dark-700 hover:border-dark-500 hover:bg-white/15 text-dark-100 font-medium rounded-xl transition-all shadow-lg"
+                                    >
+                                        <img
+                                            src="https://img.icons8.com/color/48/google-logo.png"
+                                            alt="Google"
+                                            className="w-5 h-5 object-contain flex-shrink-0"
                                         />
-                                    </div>
+                                        <span>{googleLoading ? 'Signing in...' : 'Continue with Google'}</span>
+                                    </button>
                                 </motion.div>
                             )}
                         </AnimatePresence>

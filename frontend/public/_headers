@@ -1,0 +1,6 @@
+/*
+  # Allow Google OAuth popup to communicate with opener window
+  # Without this Cloudflare Pages sets COOP: same-origin by default,
+  # which blocks window.postMessage between the OAuth popup and this page.
+  Cross-Origin-Opener-Policy: unsafe-none
+  Cross-Origin-Embedder-Policy: unsafe-none
