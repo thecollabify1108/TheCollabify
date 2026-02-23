@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
@@ -139,40 +139,29 @@ const Register = () => {
         }
     };
 
-    // Google Auth Logic
-    const loginWithGoogle = useGoogleLogin({
-        flow: 'implicit',
-        onSuccess: async (tokenResponse) => {
-            setGoogleLoading(true);
-            try {
-                const user = await googleLogin({
-                    accessToken: tokenResponse.access_token,
-                    role: formData.role || undefined
-                });
-
-                toast.success('Welcome to TheCollabify!');
-                if (user.role === 'creator') {
-                    navigate('/creator/dashboard');
-                } else if (user.role === 'seller') {
-                    navigate('/seller/dashboard');
-                } else if (user.role === 'admin') {
-                    navigate('/admin');
-                }
-            } catch (error) {
-                const message = error.response?.data?.message || 'Google registration failed';
-                toast.error(message);
-            } finally {
-                setGoogleLoading(false);
-            }
-        },
-        onError: () => {
-            toast.error('Google authentication failed');
+    // Google Auth — uses GoogleLogin component (avoids COOP issue with popup)
+    const handleGoogleSuccess = async (credentialResponse) => {
+        setGoogleLoading(true);
+        try {
+            // Decode the signed JWT credential to get user profile (no network call needed)
+            const payload = JSON.parse(atob(credentialResponse.credential.split('.')[1]));
+            const user = await googleLogin({
+                email: payload.email,
+                name: payload.name,
+                googleId: payload.sub,
+                avatar: payload.picture,
+                role: formData.role || undefined
+            });
+            toast.success('Welcome to TheCollabify!');
+            if (user.role === 'creator') navigate('/creator/dashboard');
+            else if (user.role === 'seller') navigate('/seller/dashboard');
+            else if (user.role === 'admin') navigate('/admin');
+        } catch (error) {
+            const message = error.response?.data?.message || 'Google sign-in failed';
+            toast.error(message);
+        } finally {
             setGoogleLoading(false);
         }
-    });
-
-    const googleLoginHandler = () => {
-        loginWithGoogle();
     };
 
     // UI Helpers
@@ -226,10 +215,10 @@ const Register = () => {
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-all duration-300 ${formData.role === 'seller' ? 'bg-primary-500/20 shadow-lg scale-110' : 'bg-dark-800/60 group-hover:bg-dark-700'}`}>
                                     <img
-                                        src="https://img.icons8.com/external-justicon-lineal-color-justicon/64/external-shopping-bag-e-commerce-justicon-lineal-color-justicon.png"
+                                        src="https://img.icons8.com/fluency/96/shopping-bag.png"
                                         alt="Brand / Seller"
                                         className="w-10 h-10 object-contain"
-                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                        onError={(e) => { e.target.outerHTML = '<span style="font-size:2rem">🛍️</span>'; }}
                                     />
                                 </div>
                                 <h3 className={`text-lg font-bold mb-1 ${formData.role === 'seller' ? 'text-primary-400' : 'text-dark-100'}`}>Brand / Seller</h3>
@@ -252,10 +241,10 @@ const Register = () => {
                             >
                                 <div className={`p-3 rounded-xl w-fit mb-4 transition-all duration-300 ${formData.role === 'creator' ? 'bg-secondary-500/20 shadow-lg scale-110' : 'bg-dark-800/60 group-hover:bg-dark-700'}`}>
                                     <img
-                                        src="https://img.icons8.com/external-justicon-lineal-color-justicon/64/external-camera-photography-justicon-lineal-color-justicon.png"
+                                        src="https://img.icons8.com/fluency/96/camera.png"
                                         alt="Content Creator"
                                         className="w-10 h-10 object-contain"
-                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                        onError={(e) => { e.target.outerHTML = '<span style="font-size:2rem">📷</span>'; }}
                                     />
                                 </div>
                                 <h3 className={`text-lg font-bold mb-1 ${formData.role === 'creator' ? 'text-secondary-400' : 'text-dark-100'}`}>Content Creator</h3>
@@ -295,19 +284,17 @@ const Register = () => {
                                         </div>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={googleLoginHandler}
-                                        disabled={loading}
-                                        className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-700 hover:bg-gray-50 dark:hover:bg-dark-700 text-dark-900 dark:text-dark-100 font-semibold rounded-xl transition-all shadow-md hover:shadow-lg"
-                                    >
-                                        <img
-                                            src="https://img.icons8.com/color/48/google-logo.png"
-                                            alt="Google"
-                                            className="w-5 h-5 object-contain"
+                                    <div className="mt-2 w-full flex justify-center">
+                                        <GoogleLogin
+                                            onSuccess={handleGoogleSuccess}
+                                            onError={() => toast.error('Google sign-in failed')}
+                                            theme="filled_black"
+                                            size="large"
+                                            width={380}
+                                            text="continue_with"
+                                            shape="rectangular"
                                         />
-                                        <span>Continue with Google</span>
-                                    </button>
+                                    </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
