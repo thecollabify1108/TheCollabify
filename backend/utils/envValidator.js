@@ -4,75 +4,56 @@
  */
 
 const requiredEnvVars = {
-    // Database
+    // Database — app cannot function without this
     DATABASE_URL: 'PostgreSQL connection string',
-
-    // Authentication
+    // Auth — app cannot authenticate users without this
     JWT_SECRET: 'Secret key for JWT token signing (must be strong and random)',
+};
 
-    // Session
+// These are important but missing ones should NOT crash the app — features degrade gracefully
+const recommendedEnvVars = {
     SESSION_SECRET: 'Secret key for session management',
-
-    // Google OAuth
-    GOOGLE_CLIENT_ID: 'Google OAuth Client ID',
+    GOOGLE_CLIENT_ID: 'Google OAuth Client ID (Google login disabled if missing)',
     GOOGLE_CLIENT_SECRET: 'Google OAuth Client Secret',
     GOOGLE_CALLBACK_URL: 'Google OAuth Callback URL',
-
-    // Push Notifications
-    VAPID_PUBLIC_KEY: 'VAPID Public Key',
+    VAPID_PUBLIC_KEY: 'VAPID Public Key (push notifications disabled if missing)',
     VAPID_PRIVATE_KEY: 'VAPID Private Key',
     VAPID_EMAIL: 'VAPID Email',
-
-    // Email Service
-    EMAIL_HOST: 'SMTP Host',
+    EMAIL_HOST: 'SMTP Host (email sending disabled if missing)',
     EMAIL_USER: 'SMTP User',
     EMAIL_PASS: 'SMTP Password',
-
-    // Monitoring
-    NEW_RELIC_LICENSE_KEY: 'New Relic License Key for APM',
+    NEW_RELIC_LICENSE_KEY: 'New Relic License Key (APM monitoring disabled if missing)',
 };
 
 const optionalEnvVars = {
-    // Server
     PORT: '5000',
     NODE_ENV: 'development',
     FRONTEND_URL: 'http://localhost:5173',
-
-    // JWT
     JWT_EXPIRE: '7d',
-
-    // Monitoring (optional but recommended for production)
     SENTRY_DSN: undefined,
-
-    // Admin Security (optional)
     ADMIN_ALLOWED_IPS: '127.0.0.1,::1',
-
-    // Redis (optional — falls back to in-memory)
     REDIS_URL: undefined,
 };
 
 /**
  * Validate environment variables
- * @param {boolean} strictMode - If true, throws error on missing required vars
+ * @param {boolean} strictMode - If true, throws error on missing *required* vars
  */
 function validateEnv(strictMode = process.env.NODE_ENV === 'production') {
     const missing = [];
     const warnings = [];
 
-    // Check required variables
+    // Check truly required variables (missing = app cannot start)
     for (const [key, description] of Object.entries(requiredEnvVars)) {
         if (!process.env[key] || process.env[key].trim() === '') {
             missing.push(`${key}: ${description}`);
         }
     }
 
-    // Warn about missing optional but recommended variables in production
-    if (strictMode) {
-        const recommendedProd = ['EMAIL_HOST', 'EMAIL_USER', 'SENTRY_DSN'];
-        for (const key of recommendedProd) {
-            if (!process.env[key]) {
-                warnings.push(`${key} is not set (recommended for production)`);
-            }
+    // Check recommended variables (missing = warn only, feature degrades gracefully)
+    for (const [key, description] of Object.entries(recommendedEnvVars)) {
+        if (!process.env[key] || process.env[key].trim() === '') {
+            warnings.push(`${key} not set — ${description}`);
         }
     }
 
@@ -85,22 +66,21 @@ function validateEnv(strictMode = process.env.NODE_ENV === 'production') {
 
     // Report results
     if (missing.length > 0) {
-        console.error('\n❌ MISSING REQUIRED ENVIRONMENT VARIABLES:');
+        console.error('\n❌ MISSING CRITICAL ENVIRONMENT VARIABLES:');
         missing.forEach(msg => console.error(`   - ${msg}`));
 
         if (strictMode) {
-            console.error('\n💥 Cannot start server without required environment variables in production mode.');
-            console.error('   Please set these variables in your .env file or deployment configuration.\n');
-            throw new Error('Missing required environment variables');
+            console.error('\n💥 Cannot start server without critical environment variables.');
+            throw new Error('Missing required environment variables: ' + missing.map(m => m.split(':')[0]).join(', '));
         } else {
-            console.warn('\n⚠️  WARNING: Missing required environment variables (continuing in development mode)\n');
+            console.warn('\n⚠️  WARNING: Missing critical environment variables (continuing in development mode)\n');
         }
     } else {
-        console.log('✅ All required environment variables are set');
+        console.log('✅ All critical environment variables are set');
     }
 
     if (warnings.length > 0) {
-        console.warn('\n⚠️  PRODUCTION WARNINGS:');
+        console.warn('\n⚠️  MISSING RECOMMENDED ENV VARS (features will degrade gracefully):');
         warnings.forEach(msg => console.warn(`   - ${msg}`));
         console.warn('');
     }
