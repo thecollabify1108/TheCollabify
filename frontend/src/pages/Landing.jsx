@@ -821,7 +821,7 @@ const Landing = () => {
                             transition={{ duration: 0.5 }}
                         >
                             <div className="relative z-10">
-                                <FaHandshake className="w-16 h-16 text-primary-400 mx-auto mb-s6" />
+                                <Icon name="handshake" size={64} className="text-primary-400 mx-auto mb-s6" />
                                 <h2 className="text-h2 md:text-h1 font-bold mb-s6 text-dark-100">
                                     Ready to Start Collaborating?
                                 </h2>
