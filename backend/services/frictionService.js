@@ -26,20 +26,14 @@ class FrictionService {
                 }
             });
 
-            const dropOffs = [];
-            for (const user of potentialDropOffs) {
-                // Check if we already logged this drop-off
-                const existingEvent = await prisma.frictionEvent.findFirst({
-                    where: {
-                        userId: user.id,
-                        type: 'ONBOARDING_DROP_OFF'
-                    }
-                });
-
-                if (!existingEvent) {
-                    dropOffs.push(user);
-                }
-            }
+            // H6 Fix: batch-fetch all existing drop-off events in ONE query, deduplicate in-memory
+            const potentialUserIds = potentialDropOffs.map(u => u.id);
+            const existingDropOffEvents = await prisma.frictionEvent.findMany({
+                where: { userId: { in: potentialUserIds }, type: 'ONBOARDING_DROP_OFF' },
+                select: { userId: true }
+            });
+            const alreadyLoggedDropOffIds = new Set(existingDropOffEvents.map(e => e.userId));
+            const dropOffs = potentialDropOffs.filter(u => !alreadyLoggedDropOffIds.has(u.id));
 
             for (const user of dropOffs) {
                 await AnalyticsService.recordFrictionEvent({
@@ -85,21 +79,21 @@ class FrictionService {
             });
 
             const allStalls = [...requestedStalls, ...acceptedStalls, ...discussionStalls];
+            if (allStalls.length === 0) return 0;
+
+            // H6 Fix: batch-fetch ALL existing COLLABORATION_STALL events in a single query,
+            // then deduplicate in-memory using a Set — eliminates N+1 pattern
+            const existingStallEvents = await prisma.frictionEvent.findMany({
+                where: { type: 'COLLABORATION_STALL' },
+                select: { meta: true }
+            });
+            const alreadyLoggedCollabIds = new Set(
+                existingStallEvents.map(e => e.meta?.collaborationId).filter(Boolean)
+            );
+
             let logged = 0;
-
             for (const stall of allStalls) {
-                // DEDUPLICATION: only log if no existing COLLABORATION_STALL event exists for this collaboration
-                const existingEvent = await prisma.frictionEvent.findFirst({
-                    where: {
-                        type: 'COLLABORATION_STALL',
-                        meta: {
-                            path: ['collaborationId'],
-                            equals: stall.id
-                        }
-                    }
-                });
-
-                if (!existingEvent) {
+                if (!alreadyLoggedCollabIds.has(stall.id)) {
                     await AnalyticsService.recordFrictionEvent({
                         type: 'COLLABORATION_STALL',
                         severity: 'MEDIUM',

@@ -196,7 +196,7 @@ router.post('/push/subscribe', auth, async (req, res) => {
             }
         });
 
-        console.log(`✅ User ${req.userId} subscribed to push notifications`);
+
 
         res.json({
             success: true,
@@ -225,7 +225,7 @@ router.post('/push/unsubscribe', auth, async (req, res) => {
             }
         });
 
-        console.log(`User ${req.userId} unsubscribed from push notifications`);
+
 
         res.json({
             success: true,

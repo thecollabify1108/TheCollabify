@@ -22,6 +22,14 @@
     scroll-behavior: smooth;
     /* Prevent horizontal overflow scrolling globally */
     overflow-x: hidden;
+    /* iOS 100vh fix: dvh accounts for dynamic viewport (browser chrome) */
+    height: -webkit-fill-available;
+  }
+
+  body {
+    min-height: 100vh;
+    /* Fallback for older iOS Safari (pre dvh support) */
+    min-height: -webkit-fill-available;
   }
 
   /* Accessibility: Better focus indicators for keyboard navigation */

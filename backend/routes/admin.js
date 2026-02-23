@@ -255,7 +255,7 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
             });
         }
 
-        console.log(`Starting comprehensive deletion for user: ${user.email} (${user.role})`);
+
 
         // With Prisma and PostgreSQL CASCADE, many deletions might be handled by DB.
         // But for safety and explicit cleanup of linked relationships in different tables:
@@ -343,7 +343,7 @@ router.post('/bulk-delete', auth, isAdmin, [
             });
         }
 
-        console.log(`Starting bulk deletion for ${users.length} users`);
+
 
         const deletedCount = await prisma.$transaction(async (tx) => {
             let count = 0;

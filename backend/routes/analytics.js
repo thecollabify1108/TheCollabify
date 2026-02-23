@@ -328,4 +328,31 @@ router.get('/insights', auth, async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/analytics/campaign-intent
+ * @desc    Track when a seller opens the campaign creation wizard (before submission)
+ *          Used for campaign abandonment detection in friction analysis.
+ *          Call this the moment the wizard step renders; if no CAMPAIGN_CREATED event
+ *          follows within the detection window, it is counted as CAMPAIGN_ABANDONMENT.
+ * @access  Private (Seller)
+ */
+router.post('/campaign-intent', auth, async (req, res) => {
+    try {
+        const { context } = req.body; // Optional metadata: template used, step reached, etc.
+
+        await FrictionService.trackCampaignIntent(req.userId, context || {});
+
+        res.json({
+            success: true,
+            message: 'Campaign intent tracked'
+        });
+    } catch (error) {
+        console.error('Track campaign intent error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to track campaign intent'
+        });
+    }
+});
+
 module.exports = router;

@@ -26,6 +26,10 @@ const { cacheMiddleware } = require('./middleware/cache');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandlers');
 
+// Friction Detection Scheduler (M12 fix: runs automatically every 24h)
+const { startFrictionScheduler, stopFrictionScheduler } = require('./services/frictionScheduler');
+
+
 // Sentry Error Monitoring
 const Sentry = require('@sentry/node');
 const { initSentry, sentryErrorHandler } = require('./config/sentry');
@@ -310,6 +314,9 @@ if (process.env.NODE_ENV !== 'test') {
     server.listen(PORT, '0.0.0.0', async () => {
         console.log(`✅ Server listening on port ${PORT}`);
 
+        // Start friction detection scheduler (runs every 24h automatically)
+        startFrictionScheduler();
+
         if (initializeSocketServer) {
             try {
                 const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
@@ -324,8 +331,8 @@ if (process.env.NODE_ENV !== 'test') {
     });
 
     // Graceful shutdown handlers
-    process.on('SIGTERM', () => gracefulShutdown(server, prisma));
-    process.on('SIGINT', () => gracefulShutdown(server, prisma));
+    process.on('SIGTERM', () => { stopFrictionScheduler(); gracefulShutdown(server, prisma); });
+    process.on('SIGINT', () => { stopFrictionScheduler(); gracefulShutdown(server, prisma); });
 }
 
 // Export for testing
