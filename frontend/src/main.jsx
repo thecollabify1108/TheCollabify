@@ -59,8 +59,10 @@ Sentry.init({
     },
 });
 
-// Google OAuth Client ID — sourced from environment variable for easy rotation
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+// Google OAuth Client ID — env var takes precedence; falls back to known value
+// (Client IDs are non-secret public values embedded in every OAuth redirect URL)
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    || '223460533138-nkmmomsvj3nvjd8geg77gdp2rqho3o22.apps.googleusercontent.com';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
