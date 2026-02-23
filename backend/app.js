@@ -69,6 +69,8 @@ app.use((req, res, next) => {
         'https://www.thecollabify.tech',
         'https://api.thecollabify.tech',
         'https://thecollabify.pages.dev',
+        // Raw Azure hostname — needed when Cloudflare proxy is bypassed or during DNS propagation
+        'https://thecollabify-api-hhc2nuheexeqapff.centralindia-01.azurewebsites.net',
     ];
 
     // For development, allow localhost with any port

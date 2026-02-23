@@ -224,9 +224,13 @@ const Register = () => {
                                     : 'border-dark-700 bg-dark-900/40 dark:bg-dark-800/40 hover:border-dark-500 hover:shadow-lg'
                                     }`}
                             >
-                                <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'seller' ? 'bg-primary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
-                                    }`}>
-                                    <Icon name="store" size={20} />
+                                <div className={`p-3 rounded-xl w-fit mb-4 transition-all duration-300 ${formData.role === 'seller' ? 'bg-primary-500/20 shadow-lg scale-110' : 'bg-dark-800/60 group-hover:bg-dark-700'}`}>
+                                    <img
+                                        src="https://img.icons8.com/external-justicon-lineal-color-justicon/64/external-shopping-bag-e-commerce-justicon-lineal-color-justicon.png"
+                                        alt="Brand / Seller"
+                                        className="w-10 h-10 object-contain"
+                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
                                 </div>
                                 <h3 className={`text-lg font-bold mb-1 ${formData.role === 'seller' ? 'text-primary-400' : 'text-dark-100'}`}>Brand / Seller</h3>
                                 <p className="text-sm text-dark-400">hire creators to promote your products.</p>
@@ -246,9 +250,13 @@ const Register = () => {
                                     : 'border-dark-700 bg-dark-900/40 dark:bg-dark-800/40 hover:border-dark-500 hover:shadow-lg'
                                     }`}
                             >
-                                <div className={`p-3 rounded-xl w-fit mb-4 transition-colors ${formData.role === 'creator' ? 'bg-secondary-500 text-white' : 'bg-dark-800 text-dark-300 group-hover:bg-dark-700'
-                                    }`}>
-                                    <Icon name="camera" size={20} />
+                                <div className={`p-3 rounded-xl w-fit mb-4 transition-all duration-300 ${formData.role === 'creator' ? 'bg-secondary-500/20 shadow-lg scale-110' : 'bg-dark-800/60 group-hover:bg-dark-700'}`}>
+                                    <img
+                                        src="https://img.icons8.com/external-justicon-lineal-color-justicon/64/external-camera-photography-justicon-lineal-color-justicon.png"
+                                        alt="Content Creator"
+                                        className="w-10 h-10 object-contain"
+                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
                                 </div>
                                 <h3 className={`text-lg font-bold mb-1 ${formData.role === 'creator' ? 'text-secondary-400' : 'text-dark-100'}`}>Content Creator</h3>
                                 <p className="text-sm text-dark-400">Find sponsorships and monetize content.</p>
@@ -291,10 +299,14 @@ const Register = () => {
                                         type="button"
                                         onClick={googleLoginHandler}
                                         disabled={loading}
-                                        className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 hover:bg-white/20 dark:hover:bg-black/20 text-dark-900 dark:text-dark-100 font-medium rounded-xl transition-all shadow-lg"
+                                        className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white dark:bg-dark-800 border border-dark-200 dark:border-dark-700 hover:bg-gray-50 dark:hover:bg-dark-700 text-dark-900 dark:text-dark-100 font-semibold rounded-xl transition-all shadow-md hover:shadow-lg"
                                     >
-                                        <Icon name="google" size={20} />
-                                        <span>Signup with Google</span>
+                                        <img
+                                            src="https://img.icons8.com/color/48/google-logo.png"
+                                            alt="Google"
+                                            className="w-5 h-5 object-contain"
+                                        />
+                                        <span>Continue with Google</span>
                                     </button>
                                 </motion.div>
                             )}
