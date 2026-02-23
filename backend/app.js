@@ -285,24 +285,32 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
-// Register Routes Synchronously (Must be before Error Handlers)
-app.use('/api/auth', authLimiter, require('./routes/auth'));
-app.use('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset'));
-app.use('/api/oauth', require('./routes/oauth'));
-app.use('/api/search', cacheMiddleware(300), require('./routes/search'));
-app.use('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard'));
-app.use('/api/achievements', cacheMiddleware(300), require('./routes/achievements'));
-app.use('/api/public', cacheMiddleware(300), require('./routes/public'));
-app.use('/api/creators', require('./routes/creators'));
-app.use('/api/sellers', require('./routes/sellers'));
-app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/chat', require('./routes/chat'));
-app.use('/api/admin', ipAllowlist, require('./routes/admin'));
-app.use('/api/analytics', require('./routes/analytics'));
-app.use('/api/calendar', require('./routes/contentCalendar'));
-app.use('/api/team', require('./routes/teamManagement'));
-app.use('/api/ai', require('./routes/ai'));
-app.use('/api/collaboration', require('./routes/collaboration'));
+// Register Routes — each wrapped in try-catch so one broken route can't crash the server
+const safeRoute = (path, ...handlers) => {
+    try {
+        app.use(path, ...handlers);
+    } catch (e) {
+        console.error(`❌ Failed to load route ${path}:`, e.message);
+    }
+};
+
+try { safeRoute('/api/auth', authLimiter, require('./routes/auth')); } catch (e) { console.error('auth route failed:', e.message); }
+try { safeRoute('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset')); } catch (e) { console.error('passwordReset route failed:', e.message); }
+try { safeRoute('/api/oauth', require('./routes/oauth')); } catch (e) { console.error('oauth route failed:', e.message); }
+try { safeRoute('/api/search', cacheMiddleware(300), require('./routes/search')); } catch (e) { console.error('search route failed:', e.message); }
+try { safeRoute('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard')); } catch (e) { console.error('leaderboard route failed:', e.message); }
+try { safeRoute('/api/achievements', cacheMiddleware(300), require('./routes/achievements')); } catch (e) { console.error('achievements route failed:', e.message); }
+try { safeRoute('/api/public', cacheMiddleware(300), require('./routes/public')); } catch (e) { console.error('public route failed:', e.message); }
+try { safeRoute('/api/creators', require('./routes/creators')); } catch (e) { console.error('creators route failed:', e.message); }
+try { safeRoute('/api/sellers', require('./routes/sellers')); } catch (e) { console.error('sellers route failed:', e.message); }
+try { safeRoute('/api/notifications', require('./routes/notifications')); } catch (e) { console.error('notifications route failed:', e.message); }
+try { safeRoute('/api/chat', require('./routes/chat')); } catch (e) { console.error('chat route failed:', e.message); }
+try { safeRoute('/api/admin', ipAllowlist, require('./routes/admin')); } catch (e) { console.error('admin route failed:', e.message); }
+try { safeRoute('/api/analytics', require('./routes/analytics')); } catch (e) { console.error('analytics route failed:', e.message); }
+try { safeRoute('/api/calendar', require('./routes/contentCalendar')); } catch (e) { console.error('calendar route failed:', e.message); }
+try { safeRoute('/api/team', require('./routes/teamManagement')); } catch (e) { console.error('team route failed:', e.message); }
+try { safeRoute('/api/ai', require('./routes/ai')); } catch (e) { console.error('ai route failed:', e.message); }
+try { safeRoute('/api/collaboration', require('./routes/collaboration')); } catch (e) { console.error('collaboration route failed:', e.message); }
 
 // Root endpoint
 app.get('/', (req, res) => {
