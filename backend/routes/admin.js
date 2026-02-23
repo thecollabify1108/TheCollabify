@@ -39,7 +39,7 @@ router.get('/stats', auth, isAdmin, async (req, res) => {
             prisma.user.count({ where: { role: 'CREATOR', isActive: true } }),
             prisma.user.count({ where: { role: 'SELLER', isActive: true } }),
             prisma.promotionRequest.count(),
-            prisma.promotionRequest.count({ where: { status: { in: ['OPEN', 'INTERESTED', 'ACCEPTED'] } } }),
+            prisma.promotionRequest.count({ where: { status: { in: ['OPEN', 'CREATOR_INTERESTED', 'ACCEPTED'] } } }),
             prisma.promotionRequest.count({ where: { status: 'COMPLETED' } })
         ]);
 

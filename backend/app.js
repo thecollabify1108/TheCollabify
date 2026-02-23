@@ -122,6 +122,29 @@ app.get('/api/ping', (req, res) => {
     });
 });
 
+// Diagnostic Routes list - only in non-production or if special key provided
+app.get('/api/routes', (req, res) => {
+    // Basic route exploration
+    const paths = [];
+    app._router.stack.forEach(middleware => {
+        if (middleware.route) { // routes registered directly on the app
+            paths.push(`${Object.keys(middleware.route.methods).join(',').toUpperCase()} ${middleware.route.path}`);
+        } else if (middleware.name === 'router') { // router middleware
+            const parentPath = middleware.regexp.toString()
+                .replace('\\/?(?=\\/|$)', '')
+                .replace('^\\', '')
+                .replace('\\', '');
+            middleware.handle.stack.forEach(handler => {
+                if (handler.route) {
+                    const path = handler.route.path;
+                    paths.push(`${Object.keys(handler.route.methods).join(',').toUpperCase()} ${parentPath}${path}`);
+                }
+            });
+        }
+    });
+    res.json({ success: true, count: paths.length, paths: paths.sort() });
+});
+
 // CRITICAL: Initialize Sentry DEFENSIVELY
 try {
     initSentry(app);

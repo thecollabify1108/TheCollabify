@@ -1,4 +1,10 @@
-const newrelic = require('newrelic');
+let newrelic;
+try {
+    newrelic = require('newrelic');
+} catch (e) {
+    newrelic = { recordCustomEvent: () => { }, startSegment: (name, record, fn) => fn ? fn() : null };
+}
+
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');

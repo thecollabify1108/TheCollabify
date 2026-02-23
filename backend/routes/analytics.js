@@ -1,4 +1,11 @@
-const newrelic = require('newrelic');
+let newrelic;
+try {
+    newrelic = require('newrelic');
+} catch (e) {
+    // New Relic failed to load, which is fine, we'll just skip it
+    newrelic = { recordCustomEvent: () => { }, startSegment: (name, record, fn) => fn ? fn() : null };
+}
+
 const FrictionService = require('../services/frictionService');
 
 const express = require('express');
