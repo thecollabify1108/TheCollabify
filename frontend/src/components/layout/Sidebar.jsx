@@ -1,58 +1,61 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
-const Sidebar = ({ tabs, activeTab, setActiveTab, user }) => {
+const Sidebar = ({ tabs, activeTab, setActiveTab }) => {
+    const { logout } = useAuth();
+
     return (
-        <aside className="hidden lg:flex flex-col w-64 h-screen fixed top-0 left-0 bg-dark-950 border-r border-dark-800 z-40 pt-20">
-            {/* Navigation Links */}
-            <div className="flex-1 px-s4 py-s6 space-y-s2 overflow-y-auto custom-scrollbar">
-                <div className="mb-s6 px-s4">
-                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">Menu</p>
+        <aside className="fixed left-0 top-16 bottom-0 w-64 bg-bg-prime border-r border-white/5 z-[90] hidden lg:flex flex-col px-6 py-12">
+            <div className="flex-1 space-y-12">
+                <div className="space-y-4">
+                    <span className="text-[10px] uppercase tracking-[0.4em] text-text-muted font-bold px-4">Navigation</span>
+                    <nav className="space-y-2">
+                        {tabs.map(tab => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`w-full group relative flex items-center gap-4 px-4 py-3 rounded-soft transition-all duration-500 ${activeTab === tab.id
+                                        ? 'bg-white/5 text-text-prime border border-white/5'
+                                        : 'text-text-muted hover:text-text-sec hover:bg-white/[0.02]'
+                                    }`}
+                            >
+                                <div className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${activeTab === tab.id ? 'bg-text-prime scale-100' : 'bg-transparent scale-0 group-hover:scale-50 group-hover:bg-text-muted'
+                                    }`} />
+                                <span className="text-[11px] uppercase tracking-[0.2em] font-black">{tab.label}</span>
+
+                                {tab.badge > 0 && (
+                                    <span className="ml-auto text-[10px] bg-white text-black px-1.5 py-0.5 rounded font-black">
+                                        {tab.badge}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </nav>
                 </div>
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center gap-s3 px-s4 py-s3 rounded-premium-xl transition-all duration-200 group ${activeTab === tab.id
-                            ? 'bg-primary-500/10 text-primary-400'
-                            : 'text-dark-400 hover:bg-dark-800 hover:text-dark-200'
-                            }`}
-                    >
-                        <Icon
-                            name={tab.iconName || 'grid'}
-                            size={20}
-                            className={activeTab === tab.id ? 'text-primary-500' : 'text-dark-400 group-hover:text-dark-300'}
-                        />
-                        <span className="text-body font-bold uppercase tracking-wider">{tab.label}</span>
 
-                        {/* Badges */}
-                        {tab.badge > 0 && (
-                            <span className="ml-auto bg-primary-500 text-white text-xs-pure font-bold px-s2 py-0.5 rounded-full shadow-glow">
-                                {tab.badge > 9 ? '9+' : tab.badge}
-                            </span>
-                        )}
-
-                        {/* Active Indicator */}
-                        {activeTab === tab.id && (
-                            <motion.div
-                                layoutId="activeSidebar"
-                                className="absolute left-0 w-1 h-8 bg-primary-500 rounded-r-full"
-                            />
-                        )}
-                    </button>
-                ))}
+                <div className="space-y-4">
+                    <span className="text-[10px] uppercase tracking-[0.4em] text-text-muted font-bold px-4">Workspace</span>
+                    <div className="space-y-2">
+                        {['Security', 'Status', 'Archives'].map(item => (
+                            <button key={item} className="w-full flex items-center gap-4 px-4 py-2 text-[10px] uppercase tracking-[0.2em] text-text-muted hover:text-text-sec transition-colors font-bold">
+                                <div className="w-1 h-1 bg-surface-3 rounded-full" />
+                                {item}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
 
-            {/* User Profile Snippet (Bottom) */}
-            <div className="p-s4 border-t border-dark-800 bg-dark-900/50">
-                <div className="flex items-center gap-s3 p-s2 rounded-premium-xl hover:bg-dark-800 transition cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold shadow-premium">
-                        {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <p className="text-small font-bold text-dark-100 truncate">{user?.name}</p>
-                        <p className="text-xs-pure font-bold text-dark-500 truncate uppercase tracking-widest">{user?.activeRole?.toLowerCase() || 'Creator'}</p>
-                    </div>
+            <div className="pt-12 border-t border-white/5 space-y-6">
+                <button
+                    onClick={logout}
+                    className="w-full text-left px-4 text-[10px] uppercase tracking-[0.4em] text-text-muted hover:text-red-400 transition-colors font-bold"
+                >
+                    Terminate Session
+                </button>
+                <div className="px-4">
+                    <div className="h-[1px] w-full bg-white/5 mb-4" />
+                    <span className="text-[8px] uppercase tracking-[0.4em] text-text-muted font-bold opacity-30">Authority Verified</span>
                 </div>
             </div>
         </aside>
