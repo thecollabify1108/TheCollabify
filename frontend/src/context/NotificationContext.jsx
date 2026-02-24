@@ -32,7 +32,7 @@ export const NotificationProvider = ({ children }) => {
 
         try {
             setLoading(true);
-            const response = await api.get('/notifications');
+            const response = await api.get('notifications');
             setNotifications(response.data.data.notifications);
             setUnreadCount(response.data.data.unreadCount);
         } catch (error) {
@@ -60,7 +60,7 @@ export const NotificationProvider = ({ children }) => {
     // Mark single notification as read
     const markAsRead = async (notificationId) => {
         try {
-            await api.put(`/notifications/${notificationId}/read`);
+            await api.put(`notifications/${notificationId}/read`);
             setNotifications(prev =>
                 prev.map(n => n._id === notificationId ? { ...n, isRead: true } : n)
             );
@@ -73,7 +73,7 @@ export const NotificationProvider = ({ children }) => {
     // Mark all as read
     const markAllAsRead = async () => {
         try {
-            await api.put('/notifications/read-all');
+            await api.put('notifications/read-all');
             setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
             setUnreadCount(0);
         } catch (error) {
@@ -84,7 +84,7 @@ export const NotificationProvider = ({ children }) => {
     // Delete notification
     const deleteNotification = async (notificationId) => {
         try {
-            await api.delete(`/notifications/${notificationId}`);
+            await api.delete(`notifications/${notificationId}`);
             const notification = notifications.find(n => n._id === notificationId);
             setNotifications(prev => prev.filter(n => n._id !== notificationId));
             if (!notification?.isRead) {
@@ -98,7 +98,7 @@ export const NotificationProvider = ({ children }) => {
     // Clear all notifications
     const clearAllNotifications = async () => {
         try {
-            await api.delete('/notifications/clear-all');
+            await api.delete('notifications/clear-all');
             setNotifications([]);
             setUnreadCount(0);
         } catch (error) {

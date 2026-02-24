@@ -49,7 +49,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await api.post('/auth/password-reset/send-otp', { email });
+            const response = await api.post('auth/password-reset/send-otp', { email });
 
             if (response.data.success) {
                 setTempUserId(response.data.data.tempUserId);
@@ -77,7 +77,7 @@ const ForgotPassword = () => {
         setOtpLoading(true);
 
         try {
-            const response = await api.post('/auth/password-reset/verify-otp', {
+            const response = await api.post('auth/password-reset/verify-otp', {
                 tempUserId,
                 otp: otpCode
             });
@@ -111,7 +111,7 @@ const ForgotPassword = () => {
         setLoading(true);
 
         try {
-            const response = await api.post('/auth/password-reset/reset', {
+            const response = await api.post('auth/password-reset/reset', {
                 tempUserId,
                 newPassword
             });
@@ -141,7 +141,7 @@ const ForgotPassword = () => {
         if (!canResend) return;
 
         try {
-            const response = await api.post('/auth/password-reset/send-otp', { email });
+            const response = await api.post('auth/password-reset/send-otp', { email });
 
             if (response.data.success) {
                 setTempUserId(response.data.data.tempUserId);

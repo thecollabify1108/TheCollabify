@@ -22,7 +22,7 @@ const usePrivacyAnalytics = () => {
                 const payload = { path: location.pathname };
 
                 // We use our own backend endpoint, NO third-party scripts
-                await api.post('/analytics/track', payload);
+                await api.post('analytics/track', payload);
             } catch (error) {
                 // Silently fail - never disrupt user experience for analytics
                 console.error('Analytics error:', error);

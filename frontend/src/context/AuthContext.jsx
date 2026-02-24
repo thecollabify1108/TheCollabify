@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
             if (currentToken) {
                 try {
-                    const response = await api.get('/auth/me');
+                    const response = await api.get('auth/me');
                     setUser(response.data.data.user);
                 } catch (error) {
                     console.error('Failed to fetch user:', error);
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     }, [token]);
 
     const login = async (email, password) => {
-        const response = await api.post('/auth/login', { email, password });
+        const response = await api.post('auth/login', { email, password });
         const { token: newToken, user: userData } = response.data.data;
 
         localStorage.setItem('token', newToken);
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const register = async (name, email, password, role) => {
-        const response = await api.post('/auth/register', { name, email, password, role });
+        const response = await api.post('auth/register', { name, email, password, role });
         const { token: newToken, user: userData } = response.data.data;
 
         localStorage.setItem('token', newToken);
@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const verifyOTP = async (tempUserId, otpCode) => {
-        const response = await api.post('/auth/register/verify-otp', {
+        const response = await api.post('auth/register/verify-otp', {
             tempUserId,
             otp: otpCode
         });
@@ -95,7 +95,7 @@ export const AuthProvider = ({ children }) => {
     const logout = async () => {
         try {
             // Call backend to clear HTTPOnly cookie
-            await api.post('/auth/logout');
+            await api.post('auth/logout');
         } catch (error) {
             console.error('Logout API error:', error);
             // Continue with local cleanup even if API call fails
@@ -108,18 +108,18 @@ export const AuthProvider = ({ children }) => {
     };
 
     const updateProfile = async (data) => {
-        const response = await api.put('/auth/update', data);
+        const response = await api.put('auth/update', data);
         setUser(response.data.data.user);
         return response.data.data.user;
     };
 
     const forgotPassword = async (email) => {
-        const response = await api.post('/auth/forgot-password', { email });
+        const response = await api.post('auth/forgot-password', { email });
         return response.data;
     };
 
     const resetPassword = async (token, password) => {
-        const response = await api.post(`/auth/reset-password/${token}`, { password });
+        const response = await api.post(`auth/reset-password/${token}`, { password });
         if (response.data.data?.token) {
             localStorage.setItem('token', response.data.data.token);
             setToken(response.data.data.token);
@@ -128,7 +128,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const changePassword = async (currentPassword, newPassword) => {
-        const response = await api.post('/auth/change-password', { currentPassword, newPassword });
+        const response = await api.post('auth/change-password', { currentPassword, newPassword });
         return response.data;
     };
 
@@ -154,7 +154,7 @@ export const AuthProvider = ({ children }) => {
             }
         }
 
-        const response = await api.post('/auth/google', finalData);
+        const response = await api.post('auth/google', finalData);
         const { token: newToken, user: userData } = response.data.data;
 
         localStorage.setItem('token', newToken);

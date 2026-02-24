@@ -93,7 +93,7 @@ const Register = () => {
 
         setLoading(true);
         try {
-            const response = await api.post('/auth/register/send-otp', {
+            const response = await api.post('auth/register/send-otp', {
                 email: formData.email,
                 name: formData.name,
                 password: formData.password,

@@ -36,7 +36,7 @@ const SetPassword = () => {
         setLoading(true);
 
         try {
-            const response = await api.post('/auth/set-password', formData);
+            const response = await api.post('auth/set-password', formData);
 
             if (response.data.success) {
                 toast.success(response.data.message);

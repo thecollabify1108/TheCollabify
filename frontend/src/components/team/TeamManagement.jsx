@@ -35,7 +35,7 @@ const TeamManagement = () => {
     const fetchTeamMembers = async () => {
         try {
             setLoading(true);
-            const res = await api.get('/api/team');
+            const res = await api.get('team');
             setMembers(res.data.data.members || []);
         } catch (error) {
             console.error('Error fetching team members:', error);
@@ -47,7 +47,7 @@ const TeamManagement = () => {
 
     const handleInviteMember = async (email, role) => {
         try {
-            await api.post('/api/team/invite', { email, role });
+            await api.post('team/invite', { email, role });
             toast.success(`Invitation sent to ${email}!`);
             setShowInviteModal(false);
             fetchTeamMembers();
@@ -58,7 +58,7 @@ const TeamManagement = () => {
 
     const handleUpdateRole = async (memberId, newRole) => {
         try {
-            await api.put(`/api/team/${memberId}/role`, { role: newRole });
+            await api.put(`team/${memberId}/role`, { role: newRole });
             toast.success('Role updated successfully!');
             fetchTeamMembers();
         } catch (error) {
@@ -70,7 +70,7 @@ const TeamManagement = () => {
         if (!window.confirm('Remove this team member?')) return;
 
         try {
-            await api.delete(`/api/team/${memberId}`);
+            await api.delete(`team/${memberId}`);
             toast.success('Member removed');
             fetchTeamMembers();
         } catch (error) {
