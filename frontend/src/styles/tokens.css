@@ -1,8 +1,8 @@
 :root {
     /* 
-   * CORPORATE ELITE DESIGN TOKENS
-   * Aesthetic: BlackRock x OpenAI x Porsche
-   * Minimal, powerful, executive-level.
+   * COLLABIFY LAB DESIGN TOKENS
+   * Aesthetic: Futuristic AI Lab — Human-crafted 3D spatial UI
+   * Spatial layers, material realism, controlled motion.
    */
 
     /* Core Palette: Dark Mode (Default) */
@@ -60,6 +60,7 @@
     --radius-sharp: 0.125rem;
     --radius-soft: 0.375rem;
     --radius-panel: 0.75rem;
+    --radius-full: 9999px;
 
     /* Elevation: Physical Objects */
     --elev-low: 0 4px 12px rgba(0, 0, 0, 0.5);
@@ -69,4 +70,44 @@
     /* Tactile Interactions */
     --lift-hover: -4px;
     --press-depth: 2px;
+
+    /* ── SPATIAL LAYER SYSTEM ──────────────────────────────
+     * Z0: Environment  — static background, grain, radial gradient
+     * Z1: Surfaces     — page content planes (glass cards, sections)
+     * Z2: Floating UI  — nav pills, modals, tooltips
+     * Z3: 3D Artifacts — decorative 3D elements (CollabifyCore)
+     * Z4: Spotlight    — glow halos, bloom accents
+     */
+    --z-env:       0;
+    --z-surface:  10;
+    --z-content:  20;
+    --z-float:    50;
+    --z-artifact: 30;
+    --z-spotlight: 5;
+    --z-nav:     100;
+    --z-overlay: 200;
+
+    /* Glass recipe — consistent across all floating UI */
+    --glass-bg-dark:   rgba(18, 20, 26, 0.55);
+    --glass-border-dark: rgba(255, 255, 255, 0.06);
+    --glass-bg-light:  rgba(255, 255, 255, 0.70);
+    --glass-border-light: rgba(0, 0, 0, 0.06);
+    --glass-blur: 24px;
+    --glass-saturate: 160%;
+
+    /* Signature easing curves (2 curves) */
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out-circ: cubic-bezier(0.85, 0, 0.15, 1);
+
+    /* Signature transition durations */
+    --dur-fast:   200ms;
+    --dur-mid:    500ms;
+    --dur-slow:  1200ms;
+
+    /* Environment grain opacity */
+    --grain-opacity: 0.035;
+
+    /* Light direction for material consistency — top-left */
+    --light-x: -1;
+    --light-y: -1;
 }

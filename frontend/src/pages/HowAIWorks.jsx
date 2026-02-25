@@ -9,9 +9,10 @@ import {
     HiChevronDown
 } from 'react-icons/hi';
 import { FaRobot, FaBrain, FaBalanceScale, FaLock } from 'react-icons/fa';
-import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import SEO from '../components/common/SEO';
+import CollabifyCore from '../components/effects/CollabifyCore';
+import MarketingLayout from '../components/layout/MarketingLayout';
 
 const HowAIWorks = () => {
     // State for interactive sections
@@ -101,17 +102,12 @@ const HowAIWorks = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-950 relative overflow-hidden font-sans">
+        <MarketingLayout>
+            <CollabifyCore mode="ai" />
             <SEO
                 title="How Our AI Works - Transparent Matchmaking"
                 description="Understand the intelligence behind TheCollabify's AI. No black boxes, just smarter connections."
             />
-
-            {/* Background Effects */}
-            <div className="grid-pattern fixed inset-0 z-0 opacity-40"></div>
-            <div className="fixed top-0 left-1/2 -translate-x-1/2 w-full h-[500px] bg-primary-900/10 blur-[120px] rounded-full pointer-events-none"></div>
-
-            <Navbar />
 
             <main className="relative z-10 pt-32 pb-24 px-4">
                 {/* Hero Section - Compacted */}
@@ -330,7 +326,7 @@ const HowAIWorks = () => {
             </main>
 
             <Footer />
-        </div>
+        </MarketingLayout>
     );
 };
 

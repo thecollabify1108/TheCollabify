@@ -93,7 +93,8 @@
 
   /* Tactile Button Depth System */
   .btn-executive {
-    @apply relative px-space-6 py-space-3 font-bold transition-all duration-300;
+    @apply relative font-bold transition-all duration-300;
+    padding: 0.75rem var(--space-6);
     background: var(--text-prime);
     color: var(--bg-prime);
     border-radius: var(--radius-sharp);
@@ -112,7 +113,8 @@
 
   /* Secondary Executive Button */
   .btn-secondary-exec {
-    @apply px-space-6 py-space-3 font-bold transition-all duration-300;
+    @apply font-bold transition-all duration-300;
+    padding: 0.75rem var(--space-6);
     background: transparent;
     color: var(--text-prime);
     border: 1px solid var(--surface-3);
@@ -126,7 +128,8 @@
 
   /* High-End Input Fields */
   .input-executive {
-    @apply w-full px-space-4 py-space-4 transition-all duration-300;
+    @apply w-full transition-all duration-300;
+    padding: var(--space-2);
     background: var(--surface-1);
     border: 1px solid var(--surface-3);
     color: var(--text-prime);
@@ -193,6 +196,86 @@
   /* Minimum tap target size for accessibility */
   .min-tap-target {
     @apply min-w-[44px] min-h-[44px] flex items-center justify-center;
+  }
+}
+
+/* ============================================
+   SPATIAL LAYER SYSTEM
+   Z0 Environment → Z1 Surfaces → Z2 Floating UI → Z3 Artifacts → Z4 Spotlight
+   ============================================ */
+
+/* Z0 — Environment: static background layer */
+.z-env {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-env);
+  pointer-events: none;
+}
+
+/* Z0 — Grain texture overlay */
+.env-grain {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-env);
+  pointer-events: none;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+  background-repeat: repeat;
+}
+
+/* Z0 — Radial depth gradient (environment halo) */
+.env-radial {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-spotlight);
+  pointer-events: none;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.04) 0%, transparent 70%);
+}
+
+/* Glass recipe — Z1/Z2 surfaces */
+.glass {
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-dark);
+}
+.light-theme .glass {
+  background: var(--glass-bg-light);
+  border-color: var(--glass-border-light);
+}
+
+/* Floating pill nav container — Z2 */
+.nav-pill {
+  background: var(--glass-bg-dark);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border: 1px solid var(--glass-border-dark);
+  border-radius: var(--radius-full);
+}
+.light-theme .nav-pill {
+  background: var(--glass-bg-light);
+  border-color: var(--glass-border-light);
+}
+
+/* ============================================
+   PREFERS-REDUCED-MOTION
+   Disable all continuous animations & parallax
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .floating-orb {
+    animation: none !important;
+  }
+
+  .env-grain {
+    display: none;
   }
 }
 
