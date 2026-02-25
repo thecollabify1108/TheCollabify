@@ -30,7 +30,9 @@ import PageTransition from './components/common/PageTransition';
 import AppLoader from './components/common/AppLoader';
 import NotificationPrompt from './components/common/NotificationPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
-import DigitalIntelligenceAssistant from './components/effects/DigitalIntelligenceAssistant';
+
+// Lazy load 3D effects (heavy, should not block app if they fail)
+const DigitalIntelligenceAssistant = lazy(() => import('./components/effects/DigitalIntelligenceAssistant'));
 
 // Lazy load heavy dashboard components (already optimized)
 const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
@@ -98,7 +100,9 @@ function App() {
     return (
         <ErrorBoundary>
             {/* 3D CORE ARCHITECTURE & IA ASSISTANT */}
-            <DigitalIntelligenceAssistant />
+            <Suspense fallback={null}>
+                <DigitalIntelligenceAssistant />
+            </Suspense>
 
             {/* Centered Institutional Watermark */}
             <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
