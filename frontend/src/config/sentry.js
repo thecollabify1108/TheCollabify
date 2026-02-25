@@ -10,7 +10,7 @@ import {
 // Initialize Sentry only in production
 if (import.meta.env.PROD) {
     Sentry.init({
-        dsn: import.meta.env.VITE_SENTRY_DSN || '', // Add VITE_SENTRY_DSN to Vercel env vars
+        dsn: import.meta.env.VITE_SENTRY_DSN || '', // Add VITE_SENTRY_DSN to your deployment env vars
         integrations: [
             new Sentry.BrowserTracing({
                 routingInstrumentation: Sentry.reactRouterV6Instrumentation(

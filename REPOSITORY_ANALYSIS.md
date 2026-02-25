@@ -251,18 +251,17 @@ TheCollabify/
 - [x] Environment configured (.env.example provided)
 - [x] Database schema defined (Prisma)
 - [x] Build scripts present
-- [x] Production configs (vercel.json, wrangler.toml, render.yaml)
+- [x] Production configs (wrangler.toml, Dockerfile, docker-compose.yml)
 - [ ] Dependencies installed
 - [ ] Database migrated
 - [ ] Environment variables set
 
 ### Deployment Options Supported
 
-1. **Vercel** (Frontend) - ✅ vercel.json configured
-2. **Cloudflare Workers/Pages** - ✅ wrangler.toml present
-3. **Render** - ✅ render.yaml configured
-4. **Docker** - ✅ Dockerfile + docker-compose.yml
-5. **Traditional hosting** - ✅ Nginx config provided
+1. **Cloudflare Pages** (Frontend) - ✅ wrangler.toml configured
+2. **Azure App Service** (Backend) - ✅ GitHub Actions CI/CD configured
+3. **Docker** - ✅ Dockerfile + docker-compose.yml
+4. **Traditional hosting** - ✅ Nginx config provided
 
 ---
 

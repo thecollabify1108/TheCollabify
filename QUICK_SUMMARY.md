@@ -131,7 +131,7 @@ The website is **now production-ready** after critical security vulnerabilities 
 - **Payment Issues:** Stripe dashboard, webhook logs
 - **High Error Rate:** Check Sentry, recent deployments
 - **Socket.io Down:** Check JWT_SECRET, connection limits
-- **Server Down:** Check Azure/Render dashboard, logs
+- **Server Down:** Check Azure dashboard, logs
 
 ---
 
@@ -139,7 +139,7 @@ The website is **now production-ready** after critical security vulnerabilities 
 
 - 📋 [Full Production Readiness Report](./PRODUCTION_READINESS_REPORT.md)
 - 🔒 [Frontend Security Guide](./frontend/SECURITY.md)
-- 🚀 [Deployment Config](./render.yaml)
+- 🚀 [CI/CD Workflow](./.github/workflows/azure-deploy.yml)
 - 🐳 [Docker Setup](./backend/Dockerfile)
 - 📊 [Database Schema](./backend/prisma/schema.prisma)
 

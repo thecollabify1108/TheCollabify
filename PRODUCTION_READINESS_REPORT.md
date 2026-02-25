@@ -61,14 +61,14 @@ const user = await prisma.user.findUnique({
 
 #### 3. CORS Whitelist Security (HIGH) - ✅ FIXED
 **File:** `/backend/server.js`  
-**Issue:** Used `.includes('vercel.app')` allowing any subdomain  
+**Issue:** Used permissive pattern matching allowing any subdomain  
 **Fix Applied:**
 ```javascript
 const allowedOrigins = [
     'http://localhost:5173',
     'https://thecollabify.tech',
     'https://thecollabify.pages.dev',
-    'https://thecollabify-frontend.vercel.app'
+    'https://thecollabify.pages.dev'
 ];
 const isAllowed = allowedOrigins.includes(origin);
 ```
@@ -198,7 +198,7 @@ npm install --save-dev jest supertest @types/jest
   - npm ci for reproducible builds
 - **Deployment Targets**: 
   - Backend: Azure App Service (Guardian Elite Setup)
-  - Frontend: Cloudflare Pages (Production) / Vercel (Staging)
+  - Frontend: Cloudflare Pages (Production)
 
 ### ⚠️ Recommendations
 1. **Add Health Checks to Dockerfile**
