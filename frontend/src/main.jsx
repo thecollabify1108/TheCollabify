@@ -10,54 +10,46 @@ import { NotificationProvider } from './context/NotificationContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import './index.css'
 
-// Initialize Sentry for error monitoring
-Sentry.init({
-    dsn: import.meta.env.VITE_SENTRY_DSN,
-
-    // Environment (development, production)
-    environment: import.meta.env.MODE,
-
-    // Performance Monitoring
-    integrations: [
-        Sentry.browserTracingIntegration(),
-        Sentry.replayIntegration({
-            maskAllText: true,  // Privacy: mask all text content
-            blockAllMedia: true, // Privacy: don't record images/videos
-        }),
-    ],
-
-    // Performance traces (10% sample rate for low overhead)
-    tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 0,
-
-    // Session Replay (record 10% of sessions, 100% of error sessions)
-    replaysSessionSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 0,
-    replaysOnErrorSampleRate: 1.0, // Always record when error occurs
-
-    // SECURITY: Filter sensitive data before sending
-    beforeSend(event, hint) {
-        // Don't send events in development unless explicitly enabled
-        if (import.meta.env.MODE !== 'production' && !import.meta.env.VITE_SENTRY_ENABLE_DEV) {
-            return null;
-        }
-
-        // Remove sensitive data from breadcrumbs
-        if (event.breadcrumbs) {
-            event.breadcrumbs = event.breadcrumbs.map(crumb => {
-                if (crumb.data) {
-                    // Remove passwords, tokens from form data
-                    const sanitized = { ...crumb.data };
-                    delete sanitized.password;
-                    delete sanitized.token;
-                    delete sanitized.apiKey;
-                    crumb.data = sanitized;
+// Initialize Sentry for error monitoring — only when a DSN is configured
+const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
+if (SENTRY_DSN) {
+    try {
+        Sentry.init({
+            dsn: SENTRY_DSN,
+            environment: import.meta.env.MODE,
+            integrations: [
+                Sentry.browserTracingIntegration(),
+                Sentry.replayIntegration({
+                    maskAllText: true,
+                    blockAllMedia: true,
+                }),
+            ],
+            tracesSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 0,
+            replaysSessionSampleRate: import.meta.env.MODE === 'production' ? 0.1 : 0,
+            replaysOnErrorSampleRate: 1.0,
+            beforeSend(event) {
+                if (import.meta.env.MODE !== 'production' && !import.meta.env.VITE_SENTRY_ENABLE_DEV) {
+                    return null;
                 }
-                return crumb;
-            });
-        }
-
-        return event;
-    },
-});
+                if (event.breadcrumbs) {
+                    event.breadcrumbs = event.breadcrumbs.map(crumb => {
+                        if (crumb.data) {
+                            const sanitized = { ...crumb.data };
+                            delete sanitized.password;
+                            delete sanitized.token;
+                            delete sanitized.apiKey;
+                            crumb.data = sanitized;
+                        }
+                        return crumb;
+                    });
+                }
+                return event;
+            },
+        });
+    } catch (e) {
+        console.warn('Sentry initialization failed:', e.message);
+    }
+}
 
 // Google OAuth Client ID — env var takes precedence; falls back to known value
 // (Client IDs are non-secret public values embedded in every OAuth redirect URL)
