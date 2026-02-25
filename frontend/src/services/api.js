@@ -5,10 +5,13 @@ import * as Sentry from "@sentry/react";
 // api.thecollabify.tech is the Azure custom domain (confirmed Secured w/ SNI SSL in Azure Portal)
 const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
-// Ensure the base URL ends with /api/ to correctly append relative endpoint paths
+// Ensure the base URL always ends with /api/ to correctly append relative endpoint paths
+const envUrl = import.meta.env.VITE_API_URL;
 const API_BASE = isLocalDev
     ? '/api'
-    : (import.meta.env.VITE_API_URL || 'https://api.thecollabify.tech/api');
+    : envUrl
+        ? (envUrl.replace(/\/+$/, '').endsWith('/api') ? envUrl : `${envUrl.replace(/\/+$/, '')}/api`)
+        : 'https://api.thecollabify.tech/api';
 
 const API_URL = API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`;
 
