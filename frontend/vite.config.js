@@ -1,4 +1,4 @@
-// Version: 2.0.1 - Password Reset Fixed
+// Version: 2.0.2 - Deployment Fixes
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 

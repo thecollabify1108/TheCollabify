@@ -93,7 +93,7 @@
 
   /* Tactile Button Depth System */
   .btn-executive {
-    @apply relative px-space-6 py-space-3 font-bold transition-all duration-300;
+    @apply relative px-s6 py-s3 font-bold transition-all duration-300;
     background: var(--text-prime);
     color: var(--bg-prime);
     border-radius: var(--radius-sharp);
@@ -112,7 +112,7 @@
 
   /* Secondary Executive Button */
   .btn-secondary-exec {
-    @apply px-space-6 py-space-3 font-bold transition-all duration-300;
+    @apply px-s6 py-s3 font-bold transition-all duration-300;
     background: transparent;
     color: var(--text-prime);
     border: 1px solid var(--surface-3);
@@ -126,7 +126,7 @@
 
   /* High-End Input Fields */
   .input-executive {
-    @apply w-full px-space-4 py-space-4 transition-all duration-300;
+    @apply w-full px-s4 py-s4 transition-all duration-300;
     background: var(--surface-1);
     border: 1px solid var(--surface-3);
     color: var(--text-prime);
