@@ -30,9 +30,7 @@ import PageTransition from './components/common/PageTransition';
 import AppLoader from './components/common/AppLoader';
 import NotificationPrompt from './components/common/NotificationPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
-
-// Lazy load 3D effects (heavy, should not block app if they fail)
-const DigitalIntelligenceAssistant = lazy(() => import('./components/effects/DigitalIntelligenceAssistant'));
+import CursorParticles from './components/effects/CursorParticles';
 
 // Lazy load heavy dashboard components (already optimized)
 const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
@@ -99,18 +97,28 @@ function App() {
 
     return (
         <ErrorBoundary>
-            {/* 3D CORE ARCHITECTURE & IA ASSISTANT */}
-            <Suspense fallback={null}>
-                <DigitalIntelligenceAssistant />
-            </Suspense>
+            {/* Cursor Particle Effect */}
+            <CursorParticles />
 
-            {/* Centered Institutional Watermark */}
-            <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-                <div className="w-[1200px] h-[1200px] bg-white/[0.02] blur-[150px] rounded-full absolute" />
+            {/* 3D Animated Background */}
+            <div className="floating-orbs">
+                <div className="floating-orb orb-1"></div>
+                <div className="floating-orb orb-2"></div>
+                <div className="floating-orb orb-3"></div>
+                <div className="floating-orb orb-4"></div>
+                <div className="floating-orb orb-5"></div>
+            </div>
+            <div className="grid-pattern"></div>
+
+            {/* Push Notification Permission Prompt */}
+            <NotificationPrompt />
+
+            {/* Centered Watermark */}
+            <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
                 <img
                     src="/favicon.png"
                     alt=""
-                    className="w-96 h-auto opacity-[0.03] grayscale brightness-0 invert"
+                    className="w-96 h-auto opacity-10"
                 />
             </div>
 
