@@ -87,10 +87,10 @@ app.use((req, res, next) => {
         if (!o) return true; // no origin = server-to-server, always allow
         // Localhost (any port) in all environments
         if (o.startsWith('http://localhost:') || o.startsWith('http://127.0.0.1:')) return true;
-        // Any *.thecollabify.tech subdomain + apex domain
-        if (/^https:\/\/([\w-]+\.)*thecollabify\.(tech|pages\.dev)$/.test(o)) return true;
+        // Any *.thecollabify.tech subdomain + apex domain + Cloudflare Pages
+        if (/^https:\/\/([\w-]+\.)*thecollabify[\w-]*\.(tech|pages\.dev)$/.test(o)) return true;
         // Raw Azure hostname (needed when Cloudflare proxy is bypassed)
-        if (o === 'https://thecollabify-api-hhc2nuheexeqapff.centralindia-01.azurewebsites.net') return true;
+        if (o === 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net') return true;
         return false;
     };
 

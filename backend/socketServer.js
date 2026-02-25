@@ -20,7 +20,17 @@ const userSockets = new Map();
 function initializeSocketServer(httpServer) {
     const io = new Server(httpServer, {
         cors: {
-            origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+            origin: function (origin, callback) {
+                // Allow no-origin requests (server-to-server, mobile apps)
+                if (!origin) return callback(null, true);
+                // Localhost
+                if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return callback(null, true);
+                // Production domains
+                if (/^https:\/\/([\w-]+\.)*thecollabify[\w-]*\.(tech|pages\.dev)$/.test(origin)) return callback(null, true);
+                // FRONTEND_URL env override
+                if (process.env.FRONTEND_URL && origin === process.env.FRONTEND_URL) return callback(null, true);
+                callback(new Error('Not allowed by CORS'));
+            },
             methods: ['GET', 'POST'],
             credentials: true
         },
