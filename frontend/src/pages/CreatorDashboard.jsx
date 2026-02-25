@@ -17,7 +17,7 @@ import { trackMatchFeedback } from '../services/feedback';
 import toast from 'react-hot-toast';
 
 // Components
-// Components
+import AppLoader from '../components/common/AppLoader';
 import DashboardLayout from '../components/layout/DashboardLayout';
 // Navbar removed explicitly, using DashboardLayout instead
 import ProfileForm from '../components/creator/ProfileForm';

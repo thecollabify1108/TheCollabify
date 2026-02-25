@@ -17,6 +17,7 @@ import { trackEvent } from '../utils/analytics';
 import toast from 'react-hot-toast';
 
 // New Components
+import AppLoader from '../components/common/AppLoader';
 import DashboardLayout from '../components/layout/DashboardLayout';
 // Navbar removed
 import CampaignStories from '../components/seller/CampaignStories';
