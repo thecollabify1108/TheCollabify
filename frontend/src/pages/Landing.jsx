@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import ThemeToggle from '../components/common/ThemeToggle';
 import AnimatedCounter from '../components/common/AnimatedCounter';
 // import TestimonialsCarousel from '../components/common/TestimonialsCarousel';
@@ -142,9 +143,8 @@ const Landing = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://api.thecollabify.tech' : '');
-                const response = await fetch(`${apiUrl}/api/public/stats`);
-                const result = await response.json();
+                const response = await api.get('public/stats');
+                const result = response.data;
                 if (result.success) {
                     setStats({
                         totalCreators: result.data.totalCreators > 0 ? `${result.data.totalCreators}+` : '100+',

@@ -4,6 +4,15 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
+// Normalize user object: ensure `role` exists as lowercase from `activeRole`
+const normalizeUser = (userData) => {
+    if (!userData) return null;
+    return {
+        ...userData,
+        role: userData.role || (userData.activeRole ? userData.activeRole.toLowerCase() : null)
+    };
+};
+
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (!context) {
@@ -37,7 +46,7 @@ export const AuthProvider = ({ children }) => {
             if (currentToken) {
                 try {
                     const response = await api.get('auth/me');
-                    setUser(response.data.data.user);
+                    setUser(normalizeUser(response.data.data.user));
                 } catch (error) {
                     console.error('Failed to fetch user:', error);
                     // Clear invalid token (don't call logout() to avoid circular dependency)
@@ -61,9 +70,9 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem('token', newToken);
         setToken(newToken);
-        setUser(userData);
+        setUser(normalizeUser(userData));
 
-        return userData;
+        return normalizeUser(userData);
     };
 
     const register = async (name, email, password, role) => {
@@ -72,9 +81,9 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem('token', newToken);
         setToken(newToken);
-        setUser(userData);
+        setUser(normalizeUser(userData));
 
-        return userData;
+        return normalizeUser(userData);
     };
 
     const verifyOTP = async (tempUserId, otpCode) => {
@@ -87,9 +96,9 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem('token', newToken);
         setToken(newToken);
-        setUser(userData);
+        setUser(normalizeUser(userData));
 
-        return userData;
+        return normalizeUser(userData);
     };
 
     const logout = async () => {
@@ -109,8 +118,8 @@ export const AuthProvider = ({ children }) => {
 
     const updateProfile = async (data) => {
         const response = await api.put('auth/update', data);
-        setUser(response.data.data.user);
-        return response.data.data.user;
+        setUser(normalizeUser(response.data.data.user));
+        return normalizeUser(response.data.data.user);
     };
 
     const forgotPassword = async (email) => {
@@ -159,9 +168,9 @@ export const AuthProvider = ({ children }) => {
 
         localStorage.setItem('token', newToken);
         setToken(newToken);
-        setUser(userData);
+        setUser(normalizeUser(userData));
 
-        return userData;
+        return normalizeUser(userData);
     };
 
     const value = {
