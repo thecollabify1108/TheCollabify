@@ -6,6 +6,8 @@ import {
     HiChartBar, HiUserGroup, HiShieldCheck
 } from 'react-icons/hi';
 import { FaInstagram, FaTiktok, FaYoutube } from 'react-icons/fa';
+import CollabifyCore from '../components/effects/CollabifyCore';
+import MarketingLayout from '../components/layout/MarketingLayout';
 
 // Mock Data for the Demo
 const MOCK_CREATORS = [
@@ -85,33 +87,30 @@ const DemoWalkthrough = () => {
     };
 
     return (
-        <div className="min-h-screen bg-dark-950 flex flex-col relative overflow-hidden font-sans text-dark-100">
-            {/* Background Grid */}
-            <div className="fixed inset-0 grid-pattern opacity-30 pointer-events-none"></div>
+        <MarketingLayout>
+            <CollabifyCore mode="demo" />
 
-            {/* Header */}
-            <header className="fixed top-0 w-full p-6 flex justify-between items-center z-50">
-                <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-                    <img src="/favicon.png" alt="Logo" className="w-8 h-8" />
-                    <span className="font-bold text-lg">Collabify <span className="text-primary-400 text-xs px-2 py-0.5 border border-primary-500/30 rounded-full bg-primary-500/10">DEMO MODE</span></span>
-                </div>
-                <button onClick={() => navigate('/register')} className="text-sm text-dark-400 hover:text-white transition">
+            {/* Demo mode banner */}
+            <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest" style={{ background: 'rgba(18,20,26,0.7)', border: '1px solid rgba(255,255,255,0.06)', backdropFilter: 'blur(12px)', color: 'var(--text-muted)' }}>
+                <span style={{ color: 'var(--text-prime)' }}>Demo Mode</span>
+                <button onClick={() => navigate('/register')} className="hover:opacity-100 opacity-60 transition-opacity" style={{ color: 'var(--text-sec)' }}>
                     Skip to Sign Up →
                 </button>
-            </header>
+            </div>
 
             {/* Progress Bar */}
-            <div className="fixed top-20 left-1/2 -translate-x-1/2 flex gap-2 z-40">
+            <div className="fixed top-24 left-1/2 -translate-x-1/2 flex gap-2 z-40">
                 {[0, 1, 2, 3, 4].map((s) => (
                     <div
                         key={s}
-                        className={`h-1.5 w-8 rounded-full transition-all duration-300 ${s <= step ? 'bg-primary-500' : 'bg-dark-800'}`}
+                        className="h-1.5 w-8 rounded-full transition-all duration-300"
+                        style={{ background: s <= step ? 'var(--text-prime)' : 'var(--surface-3)' }}
                     />
                 ))}
             </div>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex items-center justify-center p-4 relative z-10 pt-24">
+            <main className="flex-1 flex items-center justify-center p-4 relative z-10 pt-32 min-h-screen">
                 <AnimatePresence mode="wait">
 
                     {/* STEP 0: WELCOME */}
@@ -355,7 +354,7 @@ const DemoWalkthrough = () => {
                     )}
                 </AnimatePresence>
             </main>
-        </div>
+        </MarketingLayout>
     );
 };
 
