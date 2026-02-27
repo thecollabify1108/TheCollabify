@@ -14,6 +14,12 @@ const HowAIWorks = lazy(() => import('./pages/HowAIWorks')); // New Page
 const TermsConditions = lazy(() => import('./pages/TermsConditions'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
+// Redesign Preview Pages (Lazy Loaded)
+const CinematicLanding = lazy(() => import('./pages/redesign/CinematicLanding'));
+const SpatialDashboard = lazy(() => import('./pages/redesign/SpatialDashboard'));
+const ForBrandsRedesign = lazy(() => import('./pages/redesign/ForBrandsRedesign'));
+const ForCreatorsRedesign = lazy(() => import('./pages/redesign/ForCreatorsRedesign'));
+
 // Pages - Auth (lightweight, load immediately)
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -31,6 +37,7 @@ import AppLoader from './components/common/AppLoader';
 import NotificationPrompt from './components/common/NotificationPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import CursorParticles from './components/effects/CursorParticles';
+import RedesignLayout from './components/layout/RedesignLayout';
 
 // Lazy load heavy dashboard components (already optimized)
 const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
@@ -228,6 +235,15 @@ function App() {
 
                     {/* 404 - Not Found */}
                     <Route path="*" element={<NotFound />} />
+
+                    {/* Redesign Preview Routes */}
+                    <Route path="/preview" element={<RedesignLayout />}>
+                        <Route path="landing" element={<Suspense fallback={<AppLoader />}><CinematicLanding /></Suspense>} />
+                        <Route path="dashboard" element={<Suspense fallback={<AppLoader />}><SpatialDashboard /></Suspense>} />
+                        <Route path="brands" element={<Suspense fallback={<AppLoader />}><ForBrandsRedesign /></Suspense>} />
+                        <Route path="creators" element={<Suspense fallback={<AppLoader />}><ForCreatorsRedesign /></Suspense>} />
+                        <Route index element={<Navigate to="landing" replace />} />
+                    </Route>
                 </Routes>
             </AnimatePresence>
         </ErrorBoundary>

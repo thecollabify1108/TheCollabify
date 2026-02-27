@@ -1,2 +1,9 @@
 node_modules/
 dist/
+
+# Redesign preview files (auto-generated, not used in production)
+src/pages/redesign/
+src/components/layout/RedesignLayout.jsx
+src/components/layout/RedesignNavbar.jsx
+src/components/layout/SpatialBackground.jsx
+src/styles/design_tokens.css
