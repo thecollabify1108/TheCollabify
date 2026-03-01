@@ -25,7 +25,7 @@ const buildStore = (prefix) => {
 // Global rate limiter - applies to all requests
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100,
+    max: 500,
     message: {
         success: false,
         message: 'Too many requests from this IP, please try again later.'
@@ -40,7 +40,7 @@ const globalLimiter = rateLimit({
 // Auth-specific rate limiter - stricter for login/registration
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5,
+    max: 50,
     message: {
         success: false,
         message: 'Too many login attempts from this IP, please try again after 15 minutes.'
