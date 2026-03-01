@@ -320,7 +320,7 @@ const safeRoute = (path, ...handlers) => {
     }
 };
 
-try { safeRoute('/api/auth', authLimiter, require('./routes/auth')); } catch (e) { console.error('auth route failed:', e.message); }
+try { safeRoute('/api/auth', require('./routes/auth')); } catch (e) { console.error('auth route failed:', e.message); }
 try { safeRoute('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset')); } catch (e) { console.error('passwordReset route failed:', e.message); }
 try { safeRoute('/api/oauth', require('./routes/oauth')); } catch (e) { console.error('oauth route failed:', e.message); }
 try { safeRoute('/api/search', cacheMiddleware(300), require('./routes/search')); } catch (e) { console.error('search route failed:', e.message); }
