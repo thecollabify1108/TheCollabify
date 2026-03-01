@@ -6,7 +6,6 @@ import {
     FaTrophy,
     FaComments,
     FaCog,
-    FaCalendar,
     FaBriefcase,
     FaHandshake
 } from 'react-icons/fa';
@@ -45,7 +44,6 @@ import { getReliabilityLevel } from '../utils/reliability';
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
 import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
-import ContentCalendar from '../components/calendar/ContentCalendar';
 import { subscriptionPlans } from '../config/subscriptions';
 
 // Modern Dashboard Widgets
@@ -326,12 +324,6 @@ const CreatorDashboard = () => {
             description: 'Performance'
         },
         {
-            id: 'calendar',
-            label: 'Calendar',
-            iconName: 'calendar',
-            description: 'Schedule'
-        },
-        {
             id: 'messages',
             label: 'Chat',
             iconName: 'chat',
@@ -603,19 +595,6 @@ const CreatorDashboard = () => {
                             <p className="text-body text-dark-400">Track your performance and earnings</p>
                         </div>
                         <AnalyticsDashboard userType="creator" />
-                    </motion.div>
-                )}
-
-                {/* Calendar */}
-                {activeTab === 'calendar' && (
-                    <motion.div
-                        key="calendar"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="p-4"
-                    >
-                        <ContentCalendar userId={user._id} />
                     </motion.div>
                 )}
 

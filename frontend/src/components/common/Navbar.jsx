@@ -93,7 +93,7 @@ const Navbar = () => {
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                         transition={{ duration: 0.15 }}
-                                        className="absolute right-0 mt-2 w-56 glass-card py-2 shadow-xl"
+                                        className="absolute right-0 mt-2 w-56 bg-dark-900 border border-dark-700 rounded-premium-2xl py-2 shadow-xl"
                                     >
                                         <div className="px-4 py-3 border-b border-dark-700">
                                             <p className="text-sm text-dark-200 font-medium">{user?.name}</p>

@@ -19,6 +19,7 @@ const CATEGORIES = [
 ];
 
 const COLLAB_TYPES = [
+    { id: 'ONLINE', label: 'Online', icon: '📱', desc: 'Post content online' },
     { id: 'REMOTE', label: 'Remote', icon: '🌐', desc: 'Work from anywhere' },
     { id: 'ONSITE', label: 'On-Site', icon: '📍', desc: 'In-person shoots' },
     { id: 'HYBRID', label: 'Hybrid', icon: '🔄', desc: 'Mix of both' },
