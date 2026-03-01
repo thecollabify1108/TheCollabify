@@ -208,6 +208,10 @@ model CreatorProfile {
   matchedCampaigns     MatchedCreator[]
   acceptedCampaigns    PromotionRequest[]
   conversations        Conversation[]
+  
+  // AI Engine relations
+  qualityIndex         CreatorQualityIndex?
+  audienceProfile      AudienceProfile?
 
   createdAt             DateTime         @default(now())
   updatedAt             DateTime         @updatedAt
@@ -261,6 +265,10 @@ model PromotionRequest {
   conversations     Conversation[]
   calendarEvents    CalendarEvent[]
   contentCalendarEvents ContentCalendar[]
+  
+  // AI Engine relations
+  predictions       CampaignPrediction[]
+  feedbackRecords   CampaignFeedbackRecord[]
 
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
@@ -648,4 +656,274 @@ model FrictionEvent {
   @@index([type])
   @@index([createdAt])
   @@index([userId])
+}
+
+// ─── AI Engine: Embeddings & Vector Search ───────────────────────
+model Embedding {
+  id            String   @id @default(uuid())
+  entityType    String   // CREATOR_BIO, CREATOR_CONTENT, BRAND_CAMPAIGN, BRAND_REQUIREMENTS
+  entityId      String   // CreatorProfile.id or PromotionRequest.id
+  text          String   @db.Text  // Original text that was embedded
+  vector        Json     // Float[] stored as JSON (or use pgvector extension)
+  model         String   @default("text-embedding-004") // Embedding model used
+  dimensions    Int      @default(768)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@unique([entityType, entityId])
+  @@index([entityType])
+  @@index([entityId])
+}
+
+// ─── AI Engine: Creator Quality Index (CQI) ─────────────────────
+model CreatorQualityIndex {
+  id                      String   @id @default(uuid())
+  creatorId               String
+  creator                 CreatorProfile @relation(fields: [creatorId], references: [id])
+  
+  // Overall CQI score (0–100)
+  score                   Float    @default(50)
+  
+  // Sub-scores (0–100 each)
+  engagementConsistency   Float    @default(50)
+  followerGrowthStability Float    @default(50)
+  commentAuthenticity     Float    @default(50)
+  postingFrequency        Float    @default(50)
+  nicheAuthority          Float    @default(50)
+  audienceRetention       Float    @default(50)
+  fraudRiskScore          Float    @default(0)   // 0–1 scale
+  
+  // Metadata
+  dataPoints              Int      @default(0) // Number of data snapshots used
+  confidence              Float    @default(0.5) // How reliable the score is
+  version                 Int      @default(1) // CQI algorithm version
+  
+  computedAt              DateTime @default(now())
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  
+  // History snapshots
+  history                 CQISnapshot[]
+  
+  @@unique([creatorId])
+  @@index([score])
+  @@index([fraudRiskScore])
+}
+
+model CQISnapshot {
+  id            String              @id @default(uuid())
+  cqiId         String
+  cqi           CreatorQualityIndex @relation(fields: [cqiId], references: [id])
+  
+  score         Float
+  subscores     Json    // { engagementConsistency, followerGrowthStability, ... }
+  metrics       Json    // Raw metrics used for computation
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([cqiId, createdAt])
+}
+
+// ─── AI Engine: Campaign Performance Predictions ─────────────────
+model CampaignPrediction {
+  id                    String   @id @default(uuid())
+  campaignId            String
+  campaign              PromotionRequest @relation(fields: [campaignId], references: [id])
+  creatorId             String
+  
+  // Predictions
+  predictedEngagement   Float    // Expected engagement rate %
+  predictedReach        Int      // Expected reach
+  predictedROI          Float    // Expected ROI %
+  confidenceInterval    Json     // { lower: Float, upper: Float }
+  riskScore             Float    // 0–1 scale
+  
+  // Feature snapshot at prediction time
+  featureSnapshot       Json     // All input features frozen at prediction time
+  
+  // Model metadata
+  modelVersion          String   @default("v1.0")
+  modelType             String   @default("gradient_boost") // Algorithm family
+  
+  createdAt             DateTime @default(now())
+  
+  @@unique([campaignId, creatorId])
+  @@index([campaignId])
+  @@index([creatorId])
+  @@index([modelVersion])
+}
+
+// ─── AI Engine: Campaign Feedback Loop ───────────────────────────
+model CampaignFeedbackRecord {
+  id                    String   @id @default(uuid())
+  campaignId            String
+  campaign              PromotionRequest @relation(fields: [campaignId], references: [id])
+  creatorId             String
+  
+  // Predicted metrics (snapshot from CampaignPrediction)
+  predictedEngagement   Float?
+  predictedROI          Float?
+  predictedReach        Int?
+  
+  // Actual metrics (filled post-campaign)
+  actualEngagement      Float?
+  actualROI             Float?
+  actualReach           Int?
+  actualConversions     Int?
+  
+  // Context at time of campaign
+  creatorMetrics        Json     // Creator metrics snapshot
+  brandCategory         Category
+  contentFormat         PromotionType
+  campaignDuration      Int?     // days
+  agreedAmount          Float?
+  
+  // Accuracy tracking
+  engagementError       Float?   // |predicted - actual| / actual
+  roiError              Float?
+  
+  // Model version used for prediction
+  modelVersion          String   @default("v1.0")
+  
+  status                String   @default("PENDING") // PENDING, COMPLETED, INVALID
+  completedAt           DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  @@unique([campaignId, creatorId])
+  @@index([brandCategory])
+  @@index([status])
+  @@index([modelVersion])
+  @@index([createdAt])
+}
+
+// ─── AI Engine: Fraud / Anomaly Detection ────────────────────────
+model FraudSignal {
+  id            String   @id @default(uuid())
+  creatorId     String
+  
+  signalType    String   // FOLLOWER_SPIKE, ENGAGEMENT_MANIPULATION, BOT_ACTIVITY, FAKE_COMMENTS
+  severity      String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  confidence    Float    // 0–1 how confident we are this is fraud
+  
+  evidence      Json     // { metric, expected, actual, deviation, window }
+  
+  resolved      Boolean  @default(false)
+  resolvedAt    DateTime?
+  resolvedBy    String?  // admin userId
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([creatorId])
+  @@index([signalType])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+// ─── AI Engine: Audience Intelligence ────────────────────────────
+model AudienceProfile {
+  id            String   @id @default(uuid())
+  creatorId     String   @unique
+  creator       CreatorProfile @relation(fields: [creatorId], references: [id])
+  
+  // Demographics
+  demographics  Json     // { ageDistribution, genderSplit, topLocations }
+  
+  // Interest clusters
+  interests     Json     // [{ cluster: "fitness", weight: 0.8 }, ...]
+  
+  // Brand fit scores (precomputed for common categories)
+  brandFitScores Json    // { Fashion: 0.9, Tech: 0.3, ... }
+  
+  // Quality metrics
+  authenticity  Float    @default(0.5) // 0–1
+  activeRatio   Float    @default(0.5) // % of audience that engages
+  
+  dataSource    String   @default("inferred") // inferred, instagram_api, manual
+  confidence    Float    @default(0.5)
+  
+  computedAt    DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([authenticity])
+}
+
+// ─── AI Engine: Dynamic Score Weights ────────────────────────────
+model ScoringWeightConfig {
+  id              String   @id @default(uuid())
+  name            String   @unique // e.g., "default", "fashion_optimized", "tech_optimized"
+  
+  weights         Json     // { engagementRate: 0.11, nicheSimilarity: 0.11, ... }
+  
+  // Performance tracking
+  campaignsUsed   Int      @default(0)
+  avgSuccessRate  Float?
+  
+  // Optimization metadata
+  optimizedFrom   String?  // Parent config ID
+  optimizationLog Json?    // { iterations, improvements, ... }
+  
+  isActive        Boolean  @default(true)
+  isDefault       Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// ─── AI Engine: Model Registry ───────────────────────────────────
+model MLModelVersion {
+  id              String   @id @default(uuid())
+  modelName       String   // e.g., "campaign_predictor", "cqi_calculator", "fraud_detector"
+  version         String   // e.g., "v1.0", "v1.1"
+  
+  // Model configuration & parameters
+  parameters      Json     // Trained model parameters/weights
+  hyperparameters Json?    // Training hyperparameters
+  
+  // Performance metrics
+  metrics         Json     // { mae, rmse, r2, accuracy, f1, ... }
+  
+  // Training metadata
+  trainingDataSize Int     @default(0)
+  trainingDuration Float?  // seconds
+  trainedAt       DateTime @default(now())
+  
+  // Deployment
+  isProduction    Boolean  @default(false)
+  deployedAt      DateTime?
+  
+  // Rollback
+  previousVersion String?  // ID of previous production version
+  
+  createdAt       DateTime @default(now())
+  
+  @@unique([modelName, version])
+  @@index([modelName, isProduction])
+}
+
+// ─── AI Engine: Weight Optimization History ──────────────────────
+model WeightOptimizationRun {
+  id              String   @id @default(uuid())
+  
+  previousWeights Json
+  newWeights      Json
+  
+  // What triggered this optimization
+  trigger         String   // SCHEDULED, MANUAL, THRESHOLD_BREACH
+  
+  // Performance comparison
+  beforeMetrics   Json     // { avgMatchSuccess, avgROI, ... }
+  afterMetrics    Json?    // Filled after evaluation period
+  
+  campaignsSampled Int
+  improvement     Float?   // % improvement in target metric
+  
+  applied         Boolean  @default(false)
+  appliedAt       DateTime?
+  rolledBack      Boolean  @default(false)
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([createdAt])
 }

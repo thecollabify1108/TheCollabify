@@ -9,6 +9,7 @@ const { notifyProfileInsights, notifySellerCreatorApplied } = require('../servic
 const { sendCreatorAppliedEmail } = require('../utils/brevoEmailService');
 const { upload } = require('../services/storageService');
 const { updateReliabilityScore } = require('../services/reliabilityService');
+const { EmbeddingService } = require('../services/ai');
 
 /**
  * Validation middleware
@@ -181,6 +182,14 @@ router.post('/profile', auth, isCreator, [
         // Create profile
         const profile = await prisma.creatorProfile.create({ data: createData });
 
+        // AI Engine: Generate embeddings for new creator (fire-and-forget)
+        try {
+            EmbeddingService.embedCreatorProfile(profile)
+                .catch(err => console.warn('[AI Embedding] Non-critical error:', err.message));
+        } catch (err) {
+            console.warn('[AI Embedding] Setup error:', err.message);
+        }
+
         // Notify about insights
         try {
             await notifyProfileInsights(req.userId, insights);
@@ -287,6 +296,14 @@ router.put('/profile', auth, isCreator, [
             where: { userId: req.userId },
             data: updateData
         });
+
+        // AI Engine: Refresh embeddings on profile update (fire-and-forget)
+        try {
+            EmbeddingService.embedCreatorProfile(updatedProfile)
+                .catch(err => console.warn('[AI Embedding] Non-critical error:', err.message));
+        } catch (err) {
+            console.warn('[AI Embedding] Setup error:', err.message);
+        }
 
         res.json({
             success: true,

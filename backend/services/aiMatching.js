@@ -1,6 +1,7 @@
 const prisma = require('../config/prisma');
 const PredictiveService = require('./predictiveService');
 const { calculateResponseLikelihood } = require('./responseLogic');
+const { AIEngine, DynamicWeights, EmbeddingService } = require('./ai');
 
 /**
  * Scoring weights for different factors
@@ -600,11 +601,49 @@ const rankCreators = async (creators, request, userId = null) => {
  * Main matching function
  */
 const findMatchingCreators = async (promotionRequest) => {
+    // Try to load dynamic weights
+    let dynamicWeights = null;
+    try {
+        dynamicWeights = await DynamicWeights.getWeights(promotionRequest.targetCategory);
+    } catch (err) {
+        console.warn('[Matching] Dynamic weights unavailable, using defaults');
+    }
+
     const filteredCreators = await filterCreators(promotionRequest);
     if (filteredCreators.length === 0) return [];
 
     const rankedCreators = await rankCreators(filteredCreators, promotionRequest);
-    return rankedCreators.slice(0, 20);
+
+    // Enhance with AI Engine scores (non-blocking — falls back gracefully)
+    const enhancedCreators = await Promise.all(rankedCreators.map(async (creator) => {
+        try {
+            const aiScore = await AIEngine.computeEnhancedMatchScore(
+                creator.id,
+                promotionRequest.id,
+                promotionRequest
+            );
+
+            // Blend: 60% original rule-based + 40% AI engine composite
+            const blendedScore = Math.round(
+                creator.matchScore * 0.6 + aiScore.compositeScore * 0.4
+            );
+
+            return {
+                ...creator,
+                matchScore: blendedScore,
+                originalScore: creator.matchScore,
+                aiEngineScore: aiScore.compositeScore,
+                aiComponents: aiScore.components
+            };
+        } catch (err) {
+            // AI engine failure is non-blocking — return original score
+            return creator;
+        }
+    }));
+
+    // Re-sort by blended score
+    enhancedCreators.sort((a, b) => b.matchScore - a.matchScore);
+    return enhancedCreators.slice(0, 20);
 };
 
 /**

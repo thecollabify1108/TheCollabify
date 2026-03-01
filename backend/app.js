@@ -33,6 +33,9 @@ const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandl
 // Friction Detection Scheduler (M12 fix: runs automatically every 24h)
 const { startFrictionScheduler, stopFrictionScheduler } = require('./services/frictionScheduler');
 
+// AI Engine Scheduler (weekly CQI/fraud/audience, monthly retrain)
+const { startAIScheduler, stopAIScheduler } = require('./services/ai/scheduler');
+
 
 // Sentry Error Monitoring — wrapped defensively
 let sentryErrorHandler = (err, req, res, next) => next(err); // fallback noop
@@ -365,6 +368,9 @@ if (process.env.NODE_ENV !== 'test') {
         // Start friction detection scheduler (runs every 24h automatically)
         startFrictionScheduler();
 
+        // Start AI engine scheduler (weekly + monthly jobs)
+        startAIScheduler();
+
         if (initializeSocketServer) {
             try {
                 const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
@@ -379,8 +385,8 @@ if (process.env.NODE_ENV !== 'test') {
     });
 
     // Graceful shutdown handlers
-    process.on('SIGTERM', () => { stopFrictionScheduler(); gracefulShutdown(server, prisma); });
-    process.on('SIGINT', () => { stopFrictionScheduler(); gracefulShutdown(server, prisma); });
+    process.on('SIGTERM', () => { stopFrictionScheduler(); stopAIScheduler(); gracefulShutdown(server, prisma); });
+    process.on('SIGINT', () => { stopFrictionScheduler(); stopAIScheduler(); gracefulShutdown(server, prisma); });
 }
 
 // Export for testing

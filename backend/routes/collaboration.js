@@ -10,6 +10,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
+const { FeedbackLoop, EmbeddingService } = require('../services/ai');
 const {
     validateTransition,
     buildHistoryEntry,
@@ -244,6 +245,16 @@ router.post('/:id/transition', auth, [
                 updateReliabilityScore(creatorUserId, 'CREATOR', 'COLLABORATION_COMPLETED', id),
                 updateReliabilityScore(sellerId, 'SELLER', 'COLLABORATION_COMPLETED', id)
             ]);
+
+            // AI Engine: Record feedback for the learning loop (fire-and-forget)
+            try {
+                FeedbackLoop.recordCampaignFeedback({
+                    campaignId: collaboration.matchedCreator.promotionId,
+                    creatorId: collaboration.matchedCreator.creatorId
+                }).catch(err => console.warn('[AI FeedbackLoop] Non-critical error:', err.message));
+            } catch (err) {
+                console.warn('[AI FeedbackLoop] Setup error:', err.message);
+            }
         } else if (newStatus === 'CANCELLED') {
             // Unilateral cancellation? Or penalized both? 
             // The requirement says: "Decrease slightly for: cancelled collaborations" for both.
