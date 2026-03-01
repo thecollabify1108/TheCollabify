@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments } from 'react-icons/fa';
+import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments, FaShieldAlt } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
 import MatchExplanation from '../common/MatchExplanation';
 
@@ -63,7 +63,25 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                 <div className="text-center p-s3 bg-dark-900/40 rounded-premium-xl border border-dark-700/30">
                     <HiSparkles className="mx-auto text-secondary-400 mb-1" />
                     <span className="text-body font-bold text-dark-100">{profile.insights?.score || 0}</span>
-                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tighter">AI Score</p>
+                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tighter">CQI</p>
+                </div>
+            </div>
+
+            {/* Intelligence Indicators */}
+            <div className="flex items-center gap-s2 mb-s4">
+                {/* Match Confidence */}
+                <div className="flex items-center gap-1 px-s2 py-1 rounded-full bg-dark-900/60 border border-dark-700/30">
+                    <div className={`w-1.5 h-1.5 rounded-full ${matchScore >= 80 ? 'bg-emerald-400' : matchScore >= 60 ? 'bg-amber-400' : 'bg-red-400'}`}></div>
+                    <span className="text-[10px] font-bold text-dark-300 uppercase tracking-wider">
+                        {matchScore >= 80 ? 'High' : matchScore >= 60 ? 'Good' : 'Low'} Confidence
+                    </span>
+                </div>
+                {/* Risk Level */}
+                <div className="flex items-center gap-1 px-s2 py-1 rounded-full bg-dark-900/60 border border-dark-700/30">
+                    <FaShieldAlt className={`w-2.5 h-2.5 ${profile.insights?.engagementQuality === 'High' ? 'text-emerald-400' : profile.insights?.engagementQuality === 'Medium' ? 'text-amber-400' : 'text-dark-500'}`} />
+                    <span className="text-[10px] font-bold text-dark-300 uppercase tracking-wider">
+                        {profile.insights?.engagementQuality === 'High' ? 'Low Risk' : profile.insights?.engagementQuality === 'Medium' ? 'Med Risk' : 'Unscored'}
+                    </span>
                 </div>
             </div>
 

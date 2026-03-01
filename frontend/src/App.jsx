@@ -11,6 +11,9 @@ const ForCreators = lazy(() => import('./pages/ForCreators'));
 // Duplicate imports removed
 const DemoWalkthrough = lazy(() => import('./pages/DemoWalkthrough'));
 const HowAIWorks = lazy(() => import('./pages/HowAIWorks')); // New Page
+const Roadmap = lazy(() => import('./pages/Roadmap'));
+const WhyCollabify = lazy(() => import('./pages/WhyCollabify'));
+const Insights = lazy(() => import('./pages/Insights'));
 const TermsConditions = lazy(() => import('./pages/TermsConditions'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
 
@@ -164,6 +167,9 @@ function App() {
                     <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
                     <Route path="/demo" element={<PageTransition><DemoWalkthrough /></PageTransition>} />
                     <Route path="/ai-explained" element={<PageTransition><HowAIWorks /></PageTransition>} />
+                    <Route path="/roadmap" element={<PageTransition><Roadmap /></PageTransition>} />
+                    <Route path="/why-collabify" element={<PageTransition><WhyCollabify /></PageTransition>} />
+                    <Route path="/insights" element={<PageTransition><Insights /></PageTransition>} />
 
                     {/* Chat Route (New) */}
                     <Route

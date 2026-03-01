@@ -132,7 +132,7 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
                                     <div className="bg-dark-900/50 rounded-premium-xl p-s3 text-center border border-dark-700/30">
                                         <HiSparkles className="mx-auto text-secondary-400 mb-1 text-xl" />
                                         <p className="text-h3 font-black text-dark-100">{profile.insights?.score || 0}</p>
-                                        <p className="text-xs-pure font-black text-dark-500 uppercase tracking-widest mt-0.5">AI Score</p>
+                                        <p className="text-xs-pure font-black text-dark-500 uppercase tracking-widest mt-0.5">CQI</p>
                                     </div>
                                 </div>
 
@@ -215,6 +215,33 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
 // Overview Tab Component
 const OverviewTab = ({ profile, user }) => (
     <div className="space-y-s6">
+        {/* AI Intelligence Panel */}
+        <div className="bg-gradient-to-br from-primary-900/20 to-secondary-900/20 backdrop-blur-sm p-s6 rounded-premium-2xl border border-primary-500/20 shadow-inner">
+            <h4 className="text-xs-pure font-black text-primary-400 mb-s4 flex items-center gap-s2 uppercase tracking-widest">
+                <HiSparkles className="text-lg" />
+                AI Intelligence Report
+            </h4>
+            <div className="grid grid-cols-3 gap-s3">
+                <div className="text-center p-s3 bg-dark-900/50 rounded-premium-xl border border-dark-700/30">
+                    <p className="text-h3 font-black text-dark-100">{profile.insights?.score || '—'}</p>
+                    <p className="text-[10px] font-black text-dark-500 uppercase tracking-widest">CQI Score</p>
+                </div>
+                <div className="text-center p-s3 bg-dark-900/50 rounded-premium-xl border border-dark-700/30">
+                    <p className={`text-h3 font-black ${profile.insights?.engagementQuality === 'High' ? 'text-emerald-400' : profile.insights?.engagementQuality === 'Medium' ? 'text-amber-400' : 'text-dark-400'}`}>
+                        {profile.insights?.engagementQuality === 'High' ? 'Low' : profile.insights?.engagementQuality === 'Medium' ? 'Med' : '—'}
+                    </p>
+                    <p className="text-[10px] font-black text-dark-500 uppercase tracking-widest">Fraud Risk</p>
+                </div>
+                <div className="text-center p-s3 bg-dark-900/50 rounded-premium-xl border border-dark-700/30">
+                    <p className="text-h3 font-black text-dark-100">{profile.insights?.engagementQuality || '—'}</p>
+                    <p className="text-[10px] font-black text-dark-500 uppercase tracking-widest">Engage Quality</p>
+                </div>
+            </div>
+            <p className="text-[9px] text-dark-500 mt-s3 italic text-center uppercase tracking-wider">
+                Scores computed by AI Engine v2 — updates with each collaboration
+            </p>
+        </div>
+
         {/* Bio */}
         <div className="bg-dark-800/40 backdrop-blur-sm p-s6 rounded-premium-2xl border border-dark-700/30 shadow-inner">
             <h4 className="text-xs-pure font-black text-dark-100 mb-s3 flex items-center gap-s2 uppercase tracking-widest">

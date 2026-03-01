@@ -36,10 +36,10 @@ const ForBrands = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const benefits = [
-        'Find verified influencers across categories',
-        'Manage campaigns easily in one dashboard',
-        'Access performance insights and ROI metrics',
-        'Flexible budgets, real results'
+        'AI-scored creators with fraud detection built in',
+        'Predictive ROI before you commit budget',
+        'Creator Quality Index ranks reliability and authenticity',
+        'Every collaboration makes your next match smarter'
     ];
 
     const badges = [
@@ -167,11 +167,11 @@ const ForBrands = () => {
                             transition={{ duration: 0.6 }}
                         >
                             <h1 className="text-4xl md:text-5xl font-bold text-dark-100 mb-6 leading-tight">
-                                For Brands: Collaborate with the Right Voices
+                                For Brands: Intelligence-Driven Creator Partnerships
                             </h1>
                             <p className="text-dark-400 text-lg mb-8">
-                                Build authentic connections with influencers who share your values.
-                                Launch campaigns, track performance, and watch your brand grow.
+                                Stop guessing. Our AI scores creator quality, predicts campaign ROI,
+                                and detects fraud — so you invest in partnerships that actually convert.
                             </p>
 
                             {/* Benefits List */}
@@ -250,8 +250,8 @@ const ForBrands = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">AI-Powered Matching</h3>
-                            <p className="text-dark-400">Our algorithm matches you with creators that align perfectly with your brand values and target audience.</p>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Collaboration Intelligence</h3>
+                            <p className="text-dark-400">Semantic embeddings, quality scoring, and audience analysis — 7 AI models working together per match.</p>
                         </motion.div>
 
                         <motion.div
@@ -265,8 +265,8 @@ const ForBrands = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Performance Tracking</h3>
-                            <p className="text-dark-400">Monitor campaign performance in real-time with detailed analytics and ROI metrics.</p>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Predictive Performance</h3>
+                            <p className="text-dark-400">Know expected ROI, engagement rates, and success probability before you launch.</p>
                         </motion.div>
 
                         <motion.div
@@ -280,8 +280,8 @@ const ForBrands = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Flexible Budgets</h3>
-                            <p className="text-dark-400">Set your budget and find creators that fit. From micro-influencers to macro creators.</p>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Fraud Protection</h3>
+                            <p className="text-dark-400">Multi-signal fraud detection flags fake followers, engagement manipulation, and suspicious growth.</p>
                         </motion.div>
                     </div>
                 </div>
@@ -295,9 +295,9 @@ const ForBrands = () => {
                     </h2>
                     <div className="space-y-8">
                         {[
-                            { step: '01', title: 'Create Campaign', desc: 'Define your campaign goals, budget, and target audience in minutes' },
-                            { step: '02', title: 'Get Matched', desc: 'Our AI finds and suggests the best creators for your brand automatically' },
-                            { step: '03', title: 'Track & Measure', desc: 'Monitor performance, communicate directly, and see your ROI grow' }
+                            { step: '01', title: 'Define Campaign', desc: 'Set goals, budget, and audience. Our AI immediately begins scoring eligible creators.' },
+                            { step: '02', title: 'AI Scores & Ranks', desc: 'CQI scoring, fraud detection, and predictive ROI run on every potential match.' },
+                            { step: '03', title: 'Connect & Improve', desc: 'Accept matches, collaborate, and your feedback makes future predictions more accurate.' }
                         ].map((item, idx) => (
                             <motion.div
                                 key={idx}
@@ -321,10 +321,10 @@ const ForBrands = () => {
             <section className="py-16 px-4 bg-gradient-to-br from-primary-500/10 to-secondary-500/10">
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 text-dark-100">
-                        Ready to Amplify Your Brand?
+                        Ready for Smarter Partnerships?
                     </h2>
                     <p className="text-dark-400 text-lg mb-8">
-                        Join hundreds of brands already growing with TheCollabify
+                        Join brands using collaboration intelligence to maximize every campaign.
                     </p>
                     <motion.button
                         onClick={() => navigate('/register?role=seller')}

@@ -41,7 +41,7 @@ const Landing = () => {
     }, [mobileMenuOpen]);
 
     // Typing animation effect
-    const phrases = ['Perfect Creators', 'Ideal Influencers', 'Amazing Partners', 'Top Talent'];
+    const phrases = ['Smarter Partnerships', 'Predictive Matches', 'Verified Creators', 'Real ROI'];
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
     const [displayText, setDisplayText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
@@ -73,11 +73,11 @@ const Landing = () => {
 
     // AI Status Cycle
     const aiStatuses = [
-        "Analyzing Creator Relevance...",
-        "Matching Brand Intent...",
-        "Verifying Audience Quality...",
-        "Predicting Campaign ROI...",
-        "Optimizing Collaboration Fit..."
+        "Computing Creator Quality Index...",
+        "Running Fraud Detection Scan...",
+        "Analyzing Audience Authenticity...",
+        "Predicting Campaign Performance...",
+        "Optimizing Match Confidence Score..."
     ];
     const [aiStatusIndex, setAiStatusIndex] = useState(0);
 
@@ -105,23 +105,23 @@ const Landing = () => {
     const features = [
         {
             icon: <Icon name="sparkles" size={40} />,
-            title: 'AI-Powered Matching',
-            description: 'Smart algorithm connects you with the perfect creators based on engagement, niche, and campaign goals.',
-            badge: 'AI Powered',
+            title: 'Collaboration Intelligence',
+            description: 'Proprietary scoring engine with CQI, fraud detection, and predictive modeling — not just keyword matching.',
+            badge: 'AI Engine v2',
             badgeColor: 'bg-purple-500/20 text-purple-400 border-purple-500/30'
         },
         {
             icon: <Icon name="chart" size={40} />,
-            title: 'Real Analytics',
-            description: 'Get detailed insights on creator performance, audience authenticity, and engagement quality.',
-            badge: 'Real ROI',
+            title: 'Predictive Analytics',
+            description: 'Campaign ROI predictions, engagement forecasts, and performance benchmarks powered by real collaboration data.',
+            badge: 'Predictive',
             badgeColor: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
         },
         {
             icon: <Icon name="shield" size={40} />,
-            title: 'Verified Creators',
-            description: 'All creators are verified with authentic engagement metrics and transparent pricing.',
-            badge: 'Trusted',
+            title: 'Fraud Detection',
+            description: 'Multi-signal authenticity scoring catches fake followers, engagement manipulation, and suspicious growth patterns.',
+            badge: 'Protected',
             badgeColor: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
         },
         {
@@ -169,8 +169,8 @@ const Landing = () => {
         },
         {
             number: '02',
-            title: 'AI Matches Creators',
-            points: ['Algorithm analyzes profiles', 'Scores compatibility', 'Suggests best matches']
+            title: 'AI Scores & Predicts',
+            points: ['CQI + fraud detection runs', 'Predictive ROI calculated', 'Confidence-ranked matches']
         },
         {
             number: '03',
@@ -179,8 +179,8 @@ const Landing = () => {
         },
         {
             number: '04',
-            title: 'Connect & Collaborate',
-            points: ['Accept best fits', 'Chat directly', 'Start the campaign']
+            title: 'Connect & Learn',
+            points: ['Accept best fits', 'Chat directly', 'Feedback improves AI']
         }
     ];
 
@@ -212,7 +212,7 @@ const Landing = () => {
                                         <span className="text-small italic text-dark-100 mr-1">The</span>
                                         <span className="text-body font-bold text-dark-100">Collabify</span>
                                     </div>
-                                    <span className="text-xs-pure text-dark-400 -mt-1 tracking-wide hidden sm:block">Empowering Influencer Partnerships</span>
+                                    <span className="text-xs-pure text-dark-400 -mt-1 tracking-wide hidden sm:block">Collaboration Intelligence Platform</span>
                                 </div>
                             </Link>
 
@@ -334,7 +334,7 @@ const Landing = () => {
                         >
                             <span className="inline-flex items-center px-s2.5 py-s1 rounded-full text-xs-pure font-bold bg-primary-500/10 text-primary-400 border border-primary-500/20 mb-s4">
                                 <Icon name="sparkles" size={16} className="mr-2" />
-                                Smart Influencer Marketing Platform
+                                AI Collaboration Intelligence Platform
                             </span>
                         </motion.div>
 
@@ -379,8 +379,8 @@ const Landing = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            AI-powered influencer marketing made simple. Find the perfect creators for your brand,
-                            or discover exciting brand partnerships as a creator.
+                            The intelligence layer for creator commerce. Predictive matching, quality scoring,
+                            and fraud detection — built on real collaboration data.
                         </motion.p>
 
                         {/* Two CTA Buttons - VRInfluence Style */}
@@ -476,21 +476,21 @@ const Landing = () => {
                                         <div className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-primary-400 font-bold border border-dark-700">1</div>
                                         <div>
                                             <h4 className="text-body font-bold text-dark-100">Deep Relevance</h4>
-                                            <p className="text-dark-400 text-small">We don't just match keywords. We analyze content style, tone, and audience values to find brand-safe fits.</p>
+                                            <p className="text-dark-400 text-small">Semantic embeddings analyze content style, brand values, and audience overlap — not just keyword matching.</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-s4">
                                         <div className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-primary-400 font-bold border border-dark-700">2</div>
                                         <div>
-                                            <h4 className="text-body font-bold text-dark-100">Performance History</h4>
-                                            <p className="text-dark-400 text-small">Creators with a track record of on-time delivery and high engagement get priority visibility.</p>
+                                            <h4 className="text-body font-bold text-dark-100">Creator Quality Index</h4>
+                                            <p className="text-dark-400 text-small">Composite CQI score from content quality, engagement authenticity, delivery reliability, and collaboration history.</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-s4">
                                         <div className="w-10 h-10 rounded-full bg-dark-800 flex items-center justify-center text-primary-400 font-bold border border-dark-700">3</div>
                                         <div>
-                                            <h4 className="text-body font-bold text-dark-100">Audience Authenticity</h4>
-                                            <p className="text-dark-400 text-small">We flag suspicious follower spikes instantly. Quality always beats quantity.</p>
+                                            <h4 className="text-body font-bold text-dark-100">Fraud Detection</h4>
+                                            <p className="text-dark-400 text-small">Multi-signal fraud scoring detects fake followers, engagement manipulation, and suspicious growth patterns in real time.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -826,7 +826,7 @@ const Landing = () => {
                                     Ready to Start Collaborating?
                                 </h2>
                                 <p className="text-dark-400 text-body md:text-h3 mb-s12 max-w-xl mx-auto font-medium">
-                                    Join thousands of brands and creators already growing together on our platform.
+                                    Join the intelligence layer powering creator commerce. Every collaboration makes the system smarter.
                                 </p>
                                 <div className="flex flex-col sm:flex-row items-center justify-center gap-s4">
                                     <button
@@ -878,13 +878,13 @@ const Landing = () => {
                                     The Collabify
                                 </h2>
                                 <p className="text-dark-300 text-body leading-relaxed mb-s8">
-                                    The Collabify is an AI-powered influencer marketing platform designed to connect brands
-                                    with the right creators seamlessly. We simplify campaign management by automating
-                                    influencer discovery, performance tracking, and payouts—all in one dashboard.
+                                    The Collabify is an AI collaboration intelligence platform that goes beyond matching.
+                                    We provide predictive analytics, quality scoring, fraud detection, and adaptive
+                                    learning — infrastructure that gets smarter with every collaboration.
                                 </p>
                                 <p className="text-dark-400 text-body leading-relaxed mb-s8">
-                                    With data-driven insights and transparent processes, we empower brands to maximize
-                                    ROI and help influencers grow through genuine collaborations.
+                                    Our self-improving AI engine processes real collaboration outcomes to continuously
+                                    refine match quality, predict campaign performance, and surface authentic creators.
                                 </p>
                                 <div className="flex flex-wrap gap-s12">
                                     <div className="text-center">
@@ -921,13 +921,13 @@ const Landing = () => {
                                     </div>
                                 </Link>
                                 <p className="text-dark-400 text-small leading-relaxed mb-s4">
-                                    Empowering brands and creators to build authentic partnerships.
-                                    Our AI-powered platform streamlines influencer discovery, campaign
-                                    management, and performance tracking.
+                                    The intelligence layer for creator commerce.
+                                    Predictive matching, quality scoring, fraud detection, and adaptive
+                                    learning — built on real collaboration data.
                                 </p>
                                 <p className="text-dark-400 text-small leading-relaxed">
-                                    Join thousands of successful collaborations and grow your business
-                                    with data-driven influencer marketing.
+                                    Infrastructure that gets smarter with every partnership.
+                                    Built for brands and creators who demand transparency.
                                 </p>
                             </div>
 
@@ -946,13 +946,23 @@ const Landing = () => {
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to="/register" className="text-dark-400 hover:text-dark-200 transition text-small">
-                                            Get Started
+                                        <Link to="/why-collabify" className="text-dark-400 hover:text-dark-200 transition text-small">
+                                            Why Collabify
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link to="/login" className="text-dark-400 hover:text-dark-200 transition text-small">
-                                            Sign In
+                                        <Link to="/insights" className="text-dark-400 hover:text-dark-200 transition text-small">
+                                            Platform Insights
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link to="/roadmap" className="text-dark-400 hover:text-dark-200 transition text-small">
+                                            AI Roadmap
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link to="/register" className="text-dark-400 hover:text-dark-200 transition text-small">
+                                            Get Started
                                         </Link>
                                     </li>
                                 </ul>

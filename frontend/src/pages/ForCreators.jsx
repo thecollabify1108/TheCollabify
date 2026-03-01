@@ -36,10 +36,10 @@ const ForCreators = () => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const benefits = [
-        'Connect with brands you love',
-        'Earn through paid partnerships',
-        'Showcase your audience and engagement',
-        'Stay in control of your collaborations'
+        'Your Creator Quality Index builds your reputation automatically',
+        'AI surfaces you to brands that actually fit your niche',
+        'Fraud-free environment protects authentic creators',
+        'Every completed collab makes you more discoverable'
     ];
 
     const badges = [
@@ -167,11 +167,11 @@ const ForCreators = () => {
                             transition={{ duration: 0.6 }}
                         >
                             <h1 className="text-4xl md:text-5xl font-bold text-dark-100 mb-6 leading-tight">
-                                For Influencers: Turn Your Influence Into Income
+                                For Creators: Your Work Builds Your Score
                             </h1>
                             <p className="text-dark-400 text-lg mb-8">
-                                Get discovered by top brands, receive tailored collaboration offers,
-                                and grow your personal brand—all in one place.
+                                Our AI learns what makes you unique. Quality scoring, reliability tracking,
+                                and audience intelligence help the right brands find you.
                             </p>
 
                             {/* Benefits List */}
@@ -250,8 +250,8 @@ const ForCreators = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Fair Compensation</h3>
-                            <p className="text-dark-400">Set your own rates and get paid what you're worth. Direct collaboration with verified brands.</p>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Merit-Based Discovery</h3>
+                            <p className="text-dark-400">Your CQI score rewards quality and consistency. Better work = better visibility = better partnerships.</p>
                         </motion.div>
 
                         <motion.div
@@ -265,8 +265,8 @@ const ForCreators = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Verified Opportunities</h3>
-                            <p className="text-dark-400">All brands are verified. Work with legitimate businesses and grow your portfolio safely.</p>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Authenticity Protected</h3>
+                            <p className="text-dark-400">Fraud detection ensures fake accounts don't compete with real creators. Your genuine engagement matters.</p>
                         </motion.div>
 
                         <motion.div
@@ -280,8 +280,8 @@ const ForCreators = () => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Grow Your Influence</h3>
-                            <p className="text-dark-400">Track your performance, earn badges, and climb the leaderboard. Build your reputation.</p>
+                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Adaptive Scoring</h3>
+                            <p className="text-dark-400">The system learns from every collaboration. Deliver great results and your match priority increases automatically.</p>
                         </motion.div>
                     </div>
                 </div>
@@ -295,9 +295,9 @@ const ForCreators = () => {
                     </h2>
                     <div className="space-y-8">
                         {[
-                            { step: '01', title: 'Create Profile', desc: 'Set up your creator profile with your Instagram stats and preferred collaboration types' },
-                            { step: '02', title: 'Browse & Apply', desc: 'Discover campaigns that match your niche and apply to opportunities you love' },
-                            { step: '03', title: 'Collaborate & Earn', desc: 'Connect with brands, deliver quality content, and get paid directly' }
+                            { step: '01', title: 'Build Your Profile', desc: 'Connect your Instagram. Our AI generates your CQI score and audience intelligence automatically.' },
+                            { step: '02', title: 'Get Matched by AI', desc: 'Brands find you through intelligence-ranked results — scored on quality, not just follower count.' },
+                            { step: '03', title: 'Deliver & Grow', desc: 'Complete collaborations, earn feedback, and watch your quality score compound.' }
                         ].map((item, idx) => (
                             <motion.div
                                 key={idx}
@@ -321,10 +321,10 @@ const ForCreators = () => {
             <section className="py-16 px-4 bg-gradient-to-br from-secondary-500/10 to-primary-500/10">
                 <div className="max-w-4xl mx-auto text-center">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 text-dark-100">
-                        Ready to Monetize Your Influence?
+                        Ready to Build Your Creator Score?
                     </h2>
                     <p className="text-dark-400 text-lg mb-8">
-                        Join thousands of creators already earning on TheCollabify
+                        Join creators using AI-powered quality scoring to stand out.
                     </p>
                     <motion.button
                         onClick={() => navigate('/register?role=creator')}

@@ -204,7 +204,21 @@ export const aiAPI = {
     getOptimalTime: (creatorId) => api.get(`ai/optimal-time/${creatorId}`),
     getRecommendations: (campaignId) => api.get(`ai/recommendations/${campaignId}`),
     getMarketInsights: () => api.get('ai/market-insights'),
-    getProfileTips: (data) => api.post('ai/profile-tips', data)
+    getProfileTips: (data) => api.post('ai/profile-tips', data),
+    // AI Engine v2 endpoints
+    getCQI: (creatorId) => api.get(`ai/engine/cqi/${creatorId}`),
+    getCampaignPrediction: (matchId) => api.get(`ai/engine/predict/${matchId}`),
+    getFraudCheck: (creatorId) => api.get(`ai/engine/fraud/${creatorId}`),
+    getAudienceIntelligence: (creatorId) => api.get(`ai/engine/audience/${creatorId}`),
+    getModelVersions: () => api.get('ai/engine/models'),
+    getSystemHealth: () => api.get('ai/engine/health'),
+    getWeights: () => api.get('ai/engine/weights')
+};
+
+// Platform Intelligence API (public)
+export const platformAPI = {
+    getMetrics: () => api.get('public/platform-metrics'),
+    getIntelligenceSummary: () => api.get('public/intelligence-summary')
 };
 
 // Collaboration API

@@ -77,12 +77,12 @@ const Footer = () => {
                                     TheCollabify
                                 </span>
                                 <span className="text-[10px] text-dark-400 uppercase tracking-[0.2em] font-bold -mt-1 hidden md:block">
-                                    Marketing Ecosystem
+                                    Collaboration Intelligence
                                 </span>
                             </div>
                         </Link>
                         <p className={`text-sm leading-relaxed mb-6 ${isDark ? 'text-dark-400' : 'text-gray-600'}`}>
-                            TheCollabify is an AI-powered influencer marketing platform that bridges the gap between ambitious brands and talented creators, making authentic growth effortless.
+                            TheCollabify is an AI collaboration intelligence platform — predictive matching, quality scoring, and fraud detection built on real partnership data.
                         </p>
                         <div className="flex gap-3">
                             {socialLinks.map((social, index) => (
@@ -103,11 +103,18 @@ const Footer = () => {
                     <div className="md:col-span-2">
                         <h4 className="font-bold mb-6 text-sm uppercase tracking-widest text-primary-400">Platform</h4>
                         <ul className="space-y-4">
-                            {['For Brands', 'For Influencers', 'How AI Works'].map((link) => (
-                                <li key={link}>
-                                    <Link to={link === 'How AI Works' ? '/ai-explained' : `/${link.toLowerCase().replace(/ /g, '-')}`} className={`text-sm flex items-center group transition-colors ${isDark ? 'text-dark-400 hover:text-primary-400' : 'text-gray-600 hover:text-primary-600'}`}>
+                            {[
+                                { label: 'For Brands', to: '/for-brands' },
+                                { label: 'For Influencers', to: '/for-creators' },
+                                { label: 'How AI Works', to: '/ai-explained' },
+                                { label: 'Why Collabify', to: '/why-collabify' },
+                                { label: 'Insights', to: '/insights' },
+                                { label: 'Roadmap', to: '/roadmap' }
+                            ].map((link) => (
+                                <li key={link.label}>
+                                    <Link to={link.to} className={`text-sm flex items-center group transition-colors ${isDark ? 'text-dark-400 hover:text-primary-400' : 'text-gray-600 hover:text-primary-600'}`}>
                                         <FaArrowRight className="w-0 overflow-hidden group-hover:w-3 transition-all duration-300 mr-0 group-hover:mr-2 text-xs" />
-                                        {link}
+                                        {link.label}
                                     </Link>
                                 </li>
                             ))}
