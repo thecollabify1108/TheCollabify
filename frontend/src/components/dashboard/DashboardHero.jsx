@@ -1,8 +1,45 @@
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { HiSparkles } from 'react-icons/hi';
 import ReliabilityBadge from '../creator/ReliabilityBadge';
 
-const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onToggleAvailability, reliability }) => {
+const CREATOR_TIPS = [
+    "Creators who post 3+ times/week get 58% more brand inquiries 📈",
+    "Add your Instagram & YouTube links — profiles with portfolio links get 2x more collabs 🔗",
+    "Respond to brand offers within 24h to boost your reliability score ⚡",
+    "Diversify your content categories to attract brands from different niches 🎯",
+    "Engage with other creators on the platform — networking leads to referral collabs 🤝",
+    "High-quality portfolio photos increase your match rate by 40% 📸",
+    "Brands love consistency — maintain a regular posting schedule 🗓️",
+    "Niche down! Creators with focused expertise get 3x higher-paying deals 💎",
+    "Update your bio monthly to stay relevant in AI matching algorithms 🤖",
+    "Turn on availability status to let brands know you're open to new projects 🟢",
+    "Creators who complete all profile fields earn 70% more matches ✅",
+    "Share your collaboration success stories to build social proof 🏆",
+    "Set competitive rates — check the leaderboard to see your market position 💰",
+    "Micro-influencers (1K–50K) are in highest demand right now — own your niche! 🔥",
+    "Video content creators see 2.5x more engagement than photo-only creators 🎬",
+];
+
+const SELLER_TIPS = [
+    "Campaigns with clear deliverables get 45% faster creator responses 📋",
+    "Set realistic budgets — creators prefer transparent compensation 💵",
+    "Use AI matching to find creators who align with your brand values 🤖",
+    "Micro-influencers often deliver higher ROI than mega-influencers 📊",
+    "Launch campaigns 2-3 weeks before your target date for best results ⏰",
+    "Provide creative freedom — creators know their audience best 🎨",
+    "Multi-platform campaigns reach 3x more unique audiences 📱",
+    "Include product samples in your offers to boost acceptance rates 📦",
+    "Respond to creator applications quickly — top talent moves fast ⚡",
+    "Track campaign analytics to refine your strategy for next time 📈",
+    "Long-term partnerships outperform one-off collabs by 4x in engagement 🔁",
+    "Define your target audience clearly — AI matching improves with specifics 🎯",
+    "Brands with complete profiles attract 60% more creator applications ✅",
+    "Test campaigns with 2-3 creators before scaling to find best fit 🧪",
+    "User-generated content from collabs can be repurposed across your channels 🔄",
+];
+
+const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onToggleAvailability, reliability, profileCompletion }) => {
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return "Good morning";
@@ -10,10 +47,17 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
         return "Good evening";
     };
 
-    const getInsight = () => {
-        if (dailyInsight) return dailyInsight;
-        // ... (rest of the function)
-    };
+    // Pick a random tip on each render (changes every page refresh)
+    const smartInsight = useMemo(() => {
+        // If profile is incomplete and dailyInsight says so, still show a useful tip instead
+        if (dailyInsight && !dailyInsight.toLowerCase().includes('complete your profile')) {
+            return dailyInsight;
+        }
+        
+        const tips = role?.toLowerCase() === 'seller' ? SELLER_TIPS : CREATOR_TIPS;
+        const randomIndex = Math.floor(Math.random() * tips.length);
+        return tips[randomIndex];
+    }, []); // Empty deps = new random tip each mount/refresh
 
     const getAvailabilityInfo = (status) => {
         switch (status) {
@@ -96,7 +140,7 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                                 <span className="px-1.5 py-0.5 rounded bg-white/20 text-[10px] font-bold tracking-widest">DAILY</span>
                             </h4>
                             <p className="text-indigo-50 text-small mt-s1 leading-relaxed">
-                                "{dailyInsight || "Complete your profile to increase visibility! 🌟"}"
+                                "{smartInsight}"
                             </p>
                         </div>
                     </motion.div>

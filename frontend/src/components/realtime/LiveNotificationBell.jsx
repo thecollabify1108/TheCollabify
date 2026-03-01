@@ -58,9 +58,9 @@ const LiveNotificationBell = ({ userId }) => {
             <AnimatePresence>
                 {isOpen && (
                     <>
-                        {/* Backdrop */}
+                        {/* Backdrop - closes on any outside click */}
                         <div
-                            className="fixed inset-0 z-40"
+                            className="fixed inset-0 z-[55]"
                             onClick={() => setIsOpen(false)}
                         />
 
@@ -69,8 +69,8 @@ const LiveNotificationBell = ({ userId }) => {
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="absolute right-0 mt-2 w-96 glass-card border border-dark-700 z-50 
-                                     max-h-[500px] overflow-hidden flex flex-col"
+                            className="absolute right-0 mt-2 w-80 sm:w-96 glass-card dark:glass-card bg-white border border-dark-700 dark:border-dark-700 border-gray-200 z-[60] 
+                                     max-h-[500px] overflow-hidden flex flex-col rounded-premium-xl shadow-2xl"
                         >
                             {/* Header */}
                             <div className="p-4 border-b border-dark-700 flex items-center justify-between">
