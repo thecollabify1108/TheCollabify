@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import Navbar from '../common/Navbar';
 import Sidebar from './Sidebar';
 import QuickActionsFAB from '../common/QuickActionsFAB';
+import Icon from '../common/Icon';
 
 const DashboardLayout = ({
     children,

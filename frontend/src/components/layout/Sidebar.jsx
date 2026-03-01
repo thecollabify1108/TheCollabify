@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import Icon from '../common/Icon';
 
 const Sidebar = ({ tabs, activeTab, setActiveTab, user }) => {
     return (
