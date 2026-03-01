@@ -18,7 +18,7 @@ import toast from 'react-hot-toast';
 
 // New Components
 import DashboardLayout from '../components/layout/DashboardLayout';
-// Navbar removed
+import Navbar from '../components/common/Navbar';
 import CampaignStories from '../components/seller/CampaignStories';
 import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
 import QuickStatsBar from '../components/seller/QuickStatsBar';
