@@ -1,7 +1,20 @@
 const prisma = require('../config/prisma');
 const PredictiveService = require('./predictiveService');
 const { calculateResponseLikelihood } = require('./responseLogic');
-const { AIEngine, DynamicWeights, EmbeddingService } = require('./ai');
+
+// Defensive AI engine import — prevents seller routes from crashing if AI module fails
+let AIEngine, DynamicWeights, EmbeddingService;
+try {
+    const ai = require('./ai');
+    AIEngine = ai.AIEngine;
+    DynamicWeights = ai.DynamicWeights;
+    EmbeddingService = ai.EmbeddingService;
+} catch (e) {
+    console.warn('[aiMatching] Failed to load AI engine services:', e.message);
+    AIEngine = { computeEnhancedMatchScore: () => Promise.resolve({ compositeScore: 0, components: {} }) };
+    DynamicWeights = { getWeights: () => Promise.resolve(null) };
+    EmbeddingService = { embedCreatorProfile: () => Promise.resolve() };
+}
 
 /**
  * Scoring weights for different factors
