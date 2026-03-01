@@ -10,6 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import { creatorAPI } from '../../services/api';
 import { trackEvent } from '../../utils/analytics';
+import { useAuth } from '../../context/AuthContext';
 
 // ─── Constants ──────────────────────────────────────────────────
 const CATEGORIES = [
@@ -407,7 +408,7 @@ const Phase2 = ({ data, setData }) => {
 };
 
 // ─── Phase 3: Preview ───────────────────────────────────────────
-const Phase3 = ({ data, completionPct }) => {
+const Phase3 = ({ data, completionPct, userName }) => {
     const matchReasons = [];
     if (data.categories?.length > 0) matchReasons.push(`Specializes in ${data.categories.join(', ')} content`);
     if (data.collaborationTypes?.length > 0) matchReasons.push(`Open to ${data.collaborationTypes.map(t => t.toLowerCase()).join(', ')} work`);
@@ -432,10 +433,11 @@ const Phase3 = ({ data, completionPct }) => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="flex items-start gap-4 mb-4">
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white text-xl font-bold">
-                        {(data.categories?.[0] || 'C')[0]}
+                        {(userName || 'C')[0].toUpperCase()}
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-lg font-bold text-white">{data.categories?.join(' · ') || 'Creator'}</h3>
+                        <h3 className="text-lg font-bold text-white">{userName || 'Creator'}</h3>
+                        <p className="text-primary-400 text-xs font-medium">{data.categories?.join(' · ') || 'Creator'}</p>
                         <p className="text-dark-400 text-sm flex items-center gap-1">
                             <FaMapMarkerAlt size={10} /> {data.location?.district || data.location?.city || 'Location not set'}
                         </p>
@@ -498,6 +500,7 @@ const Phase3 = ({ data, completionPct }) => {
 
 // ─── Main Component ─────────────────────────────────────────────
 const CreatorOnboarding = ({ onComplete }) => {
+    const { user } = useAuth();
     const [phase, setPhase] = useState(0);
     const [saving, setSaving] = useState(false);
     const [data, setData] = useState({
@@ -642,7 +645,7 @@ const CreatorOnboarding = ({ onComplete }) => {
                     <AnimatePresence mode="wait">
                         {phase === 0 && <Phase1 key="p1" data={data} setData={setData} />}
                         {phase === 1 && <Phase2 key="p2" data={data} setData={setData} />}
-                        {phase === 2 && <Phase3 key="p3" data={data} completionPct={completionPct} />}
+                        {phase === 2 && <Phase3 key="p3" data={data} completionPct={completionPct} userName={user?.name} />}
                     </AnimatePresence>
 
                     {/* Navigation */}

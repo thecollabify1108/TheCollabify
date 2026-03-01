@@ -153,8 +153,8 @@ const CreatorDashboard = () => {
         setIsEditingProfile(false);
         fetchData(true); // Seamless update
         toast.success('Profile updated successfully!');
-        // Navigate to home tab after successful save
-        setActiveTab('home');
+        // Navigate to dashboard tab after successful save
+        setActiveTab('dashboard');
     };
 
     const handleUpgrade = () => {
