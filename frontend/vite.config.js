@@ -1,4 +1,4 @@
-// Version: 2.0.2 - Deployment Fixes
+// Version: 3.0.0 - Performance Optimized
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -15,6 +15,20 @@ export default defineConfig({
         }
     },
     build: {
-        chunkSizeWarningLimit: 1000
+        chunkSizeWarningLimit: 600,
+        target: 'es2020',
+        minify: 'esbuild',
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    // Split heavy vendor libraries into separate cached chunks
+                    'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+                    'vendor-motion': ['framer-motion'],
+                    'vendor-charts': ['recharts', 'chart.js', 'react-chartjs-2'],
+                    'vendor-utils': ['axios', 'axios-retry', 'date-fns'],
+                    'vendor-icons': ['react-icons'],
+                }
+            }
+        }
     }
 })

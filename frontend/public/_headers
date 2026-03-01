@@ -1,6 +1,24 @@
 /*
   # Allow Google OAuth popup to communicate with opener window
-  # Without this Cloudflare Pages sets COOP: same-origin by default,
-  # which blocks window.postMessage between the OAuth popup and this page.
   Cross-Origin-Opener-Policy: unsafe-none
   Cross-Origin-Embedder-Policy: unsafe-none
+  # Security headers
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Cache hashed assets aggressively (Vite adds content hash to filenames)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Don't cache HTML (ensures users get latest app version)
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Cache fonts
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache images
+/favicon.png
+  Cache-Control: public, max-age=604800

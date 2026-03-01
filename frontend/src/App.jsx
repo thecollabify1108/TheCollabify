@@ -30,7 +30,6 @@ import PageTransition from './components/common/PageTransition';
 import AppLoader from './components/common/AppLoader';
 import NotificationPrompt from './components/common/NotificationPrompt';
 import ErrorBoundary from './components/common/ErrorBoundary';
-import DigitalIntelligenceAssistant from './components/effects/DigitalIntelligenceAssistant';
 
 // Lazy load heavy dashboard components (already optimized)
 const CreatorDashboard = lazy(() => import('./pages/CreatorDashboard'));
@@ -97,19 +96,6 @@ function App() {
 
     return (
         <ErrorBoundary>
-            {/* 3D CORE ARCHITECTURE & IA ASSISTANT */}
-            <DigitalIntelligenceAssistant />
-
-            {/* Centered Institutional Watermark */}
-            <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0 overflow-hidden">
-                <div className="w-[1200px] h-[1200px] bg-white/[0.02] blur-[150px] rounded-full absolute" />
-                <img
-                    src="/favicon.png"
-                    alt=""
-                    className="w-96 h-auto opacity-[0.03] grayscale brightness-0 invert"
-                />
-            </div>
-
             <ScrollToTop />
             <AnimatePresence mode="wait">
                 <Routes location={location} key={location.pathname}>

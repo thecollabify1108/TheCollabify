@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/common/ThemeToggle';
 import Logo from '../components/common/Logo';
-import ThreeScene from '../components/effects/ThreeScene';
 import HeroSidePanels from '../components/effects/HeroSidePanels';
 
 const Landing = () => {
@@ -22,8 +21,6 @@ const Landing = () => {
 
     return (
         <div className="relative min-h-screen selection:bg-white selection:text-black bg-bg-prime text-text-prime font-sans overflow-x-hidden">
-            {/* 3D CORE ARCHITECTURE */}
-            <ThreeScene type="homepage" />
 
             {/* NAVIGATION - Minimal & Executive */}
             <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-700 px-6 md:px-12 ${scrolled ? 'py-4 luxury-blur border-b border-white/5 bg-bg-prime/20' : 'py-8'

@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import ThemeToggle from '../components/common/ThemeToggle';
 import Logo from '../components/common/Logo';
-import ThreeScene from '../components/effects/ThreeScene';
 
 const ForCreators = () => {
     const navigate = useNavigate();
@@ -21,7 +20,6 @@ const ForCreators = () => {
 
     return (
         <div className="relative min-h-screen bg-bg-prime text-text-prime font-sans overflow-x-hidden selection:bg-white selection:text-black">
-            <ThreeScene type="creators" />
 
             <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-700 px-6 md:px-12 ${scrolled ? 'py-4 luxury-blur border-b border-white/5 bg-bg-prime/20' : 'py-8'
                 }`}>

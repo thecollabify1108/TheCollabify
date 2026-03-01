@@ -14,20 +14,20 @@ const API_URL = API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`;
 
 const api = axios.create({
     baseURL: API_URL,
+    timeout: 15000, // 15s max — prevent hanging on slow/dead backends
     headers: {
         'Content-Type': 'application/json'
     },
     withCredentials: true // Enable sending cookies with requests
 });
 
-// ... existing axiosRetry configuration ...
+// Retry only server errors (not CORS/network failures which would just hang the UI)
 axiosRetry(api, {
-    retries: 3,
-    retryDelay: axiosRetry.exponentialDelay,
+    retries: 2,
+    retryDelay: (retryCount) => retryCount * 1000, // 1s, 2s (not exponential — faster recovery)
     retryCondition: (error) => {
-        return axiosRetry.isNetworkOrIdempotentRequestError(error) ||
-            error.response?.status >= 500 ||
-            error.response?.status === 429;
+        // Only retry on actual server errors, NOT network/CORS failures
+        return error.response?.status >= 500 || error.response?.status === 429;
     }
 });
 
