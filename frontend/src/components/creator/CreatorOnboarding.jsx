@@ -95,22 +95,37 @@ const Phase1 = ({ data, setData }) => (
             <p className="text-dark-400">Just the basics — takes about 30 seconds.</p>
         </div>
 
-        {/* Category / Niche */}
+        {/* Category / Niche — Multi-select up to 3 */}
         <div>
             <label className="block text-sm font-medium text-dark-200 mb-2">What's your content niche?</label>
+            <p className="text-xs text-dark-400 mb-3">Select up to 3 categories ({data.categories?.length || 0}/3)</p>
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                {CATEGORIES.map(cat => (
-                    <button
-                        key={cat} type="button"
-                        onClick={() => setData(d => ({ ...d, category: cat }))}
-                        className={`py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition-all ${data.category === cat
-                            ? 'border-primary-500 bg-primary-500/10 text-primary-400'
-                            : 'border-dark-600 text-dark-300 hover:border-dark-500'
-                            }`}
-                    >
-                        {cat}
-                    </button>
-                ))}
+                {CATEGORIES.map(cat => {
+                    const isSelected = data.categories?.includes(cat);
+                    const isMaxed = data.categories?.length >= 3 && !isSelected;
+                    return (
+                        <button
+                            key={cat} type="button"
+                            onClick={() => setData(d => {
+                                const current = d.categories || [];
+                                if (current.includes(cat)) {
+                                    return { ...d, categories: current.filter(c => c !== cat) };
+                                }
+                                if (current.length >= 3) return d;
+                                return { ...d, categories: [...current, cat] };
+                            })}
+                            disabled={isMaxed}
+                            className={`py-2.5 px-3 rounded-xl border-2 text-xs font-medium transition-all ${isSelected
+                                ? 'border-primary-500 bg-primary-500/10 text-primary-400'
+                                : isMaxed
+                                    ? 'border-dark-700 text-dark-600 cursor-not-allowed opacity-50'
+                                    : 'border-dark-600 text-dark-300 hover:border-dark-500'
+                                }`}
+                        >
+                            {cat}
+                        </button>
+                    );
+                })}
             </div>
         </div>
 
@@ -393,7 +408,7 @@ const Phase2 = ({ data, setData }) => {
 // ─── Phase 3: Preview ───────────────────────────────────────────
 const Phase3 = ({ data, completionPct }) => {
     const matchReasons = [];
-    if (data.category) matchReasons.push(`Specializes in ${data.category} content`);
+    if (data.categories?.length > 0) matchReasons.push(`Specializes in ${data.categories.join(', ')} content`);
     if (data.collaborationTypes?.length > 0) matchReasons.push(`Open to ${data.collaborationTypes.map(t => t.toLowerCase()).join(', ')} work`);
     if (data.priceRange?.min && data.priceRange?.max) matchReasons.push(`Budget range ₹${data.priceRange.min}–₹${data.priceRange.max}`);
     if (data.location?.district) matchReasons.push(`Based in ${data.location.district}`);
@@ -416,10 +431,10 @@ const Phase3 = ({ data, completionPct }) => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
                 <div className="flex items-start gap-4 mb-4">
                     <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white text-xl font-bold">
-                        {(data.category || 'C')[0]}
+                        {(data.categories?.[0] || 'C')[0]}
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-lg font-bold text-white">{data.category || 'Creator'} Creator</h3>
+                        <h3 className="text-lg font-bold text-white">{data.categories?.join(' · ') || 'Creator'}</h3>
                         <p className="text-dark-400 text-sm flex items-center gap-1">
                             <FaMapMarkerAlt size={10} /> {data.location?.district || data.location?.city || 'Location not set'}
                         </p>
@@ -485,7 +500,7 @@ const CreatorOnboarding = ({ onComplete }) => {
     const [phase, setPhase] = useState(0);
     const [saving, setSaving] = useState(false);
     const [data, setData] = useState({
-        category: '',
+        categories: [],
         promotionTypes: [],
         priceRange: { min: '', max: '' },
         availabilityStatus: 'AVAILABLE_NOW',
@@ -504,7 +519,7 @@ const CreatorOnboarding = ({ onComplete }) => {
     // Calculate live completion percentage
     const calculateLocalCompletion = () => {
         let score = 0;
-        if (data.category) score += 10;
+        if (data.categories?.length > 0) score += 10;
         if (data.promotionTypes?.length > 0) score += 10;
         if (data.priceRange?.min && data.priceRange?.max) score += 10;
         if (data.availabilityStatus) score += 10;
@@ -521,7 +536,7 @@ const CreatorOnboarding = ({ onComplete }) => {
     const completionPct = calculateLocalCompletion();
 
     const validatePhase1 = () => {
-        if (!data.category) { toast.error('Please select your content niche'); return false; }
+        if (!data.categories || data.categories.length === 0) { toast.error('Please select at least one content niche'); return false; }
         if (!data.promotionTypes || data.promotionTypes.length === 0) { toast.error('Select at least one content type'); return false; }
         if (!data.priceRange?.min || !data.priceRange?.max) { toast.error('Enter your charge range'); return false; }
         if (parseFloat(data.priceRange.min) > parseFloat(data.priceRange.max)) { toast.error('Max price must be ≥ min price'); return false; }
@@ -532,7 +547,7 @@ const CreatorOnboarding = ({ onComplete }) => {
         setSaving(true);
         try {
             const payload = {
-                category: data.category,
+                category: data.categories?.[0] || '',
                 promotionTypes: data.promotionTypes,
                 priceRange: {
                     min: parseFloat(data.priceRange.min),
@@ -559,7 +574,7 @@ const CreatorOnboarding = ({ onComplete }) => {
             // If profile already exists, update instead
             if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
                 const payload = {
-                    category: data.category,
+                    category: data.categories?.[0] || '',
                     promotionTypes: data.promotionTypes,
                     priceRange: { min: parseFloat(data.priceRange.min), max: parseFloat(data.priceRange.max) },
                     availabilityStatus: data.availabilityStatus,
