@@ -3,17 +3,24 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 const AIContentService = require('../services/aiContentService');
 const PredictiveService = require('../services/predictiveService');
-const {
-    AIEngine,
-    CQIService,
-    CampaignPrediction,
-    FeedbackLoop,
-    FraudDetection,
-    AudienceIntelligence,
-    DynamicWeights,
-    RetrainingPipeline,
-    EmbeddingService
-} = require('../services/ai');
+
+// AI Engine v2 services — defensive import so existing routes still work if AI module fails
+let AIEngine, CQIService, CampaignPrediction, FeedbackLoop, FraudDetection,
+    AudienceIntelligence, DynamicWeights, RetrainingPipeline, EmbeddingService;
+try {
+    const ai = require('../services/ai');
+    AIEngine = ai.AIEngine;
+    CQIService = ai.CQIService;
+    CampaignPrediction = ai.CampaignPrediction;
+    FeedbackLoop = ai.FeedbackLoop;
+    FraudDetection = ai.FraudDetection;
+    AudienceIntelligence = ai.AudienceIntelligence;
+    DynamicWeights = ai.DynamicWeights;
+    RetrainingPipeline = ai.RetrainingPipeline;
+    EmbeddingService = ai.EmbeddingService;
+} catch (e) {
+    console.warn('[AI] Failed to load AI engine services:', e.message);
+}
 
 /**
  * @route   POST /api/ai/generate-caption

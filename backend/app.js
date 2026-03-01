@@ -34,7 +34,15 @@ const { setupProcessHandlers, gracefulShutdown } = require('./utils/processHandl
 const { startFrictionScheduler, stopFrictionScheduler } = require('./services/frictionScheduler');
 
 // AI Engine Scheduler (weekly CQI/fraud/audience, monthly retrain)
-const { startAIScheduler, stopAIScheduler } = require('./services/ai/scheduler');
+let startAIScheduler = () => console.log('[AIScheduler] Skipped (module load failed)');
+let stopAIScheduler = () => {};
+try {
+    const sched = require('./services/ai/scheduler');
+    startAIScheduler = sched.startAIScheduler;
+    stopAIScheduler = sched.stopAIScheduler;
+} catch (e) {
+    console.warn('[AIScheduler] Failed to load:', e.message);
+}
 
 
 // Sentry Error Monitoring — wrapped defensively

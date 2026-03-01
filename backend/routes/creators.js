@@ -9,7 +9,13 @@ const { notifyProfileInsights, notifySellerCreatorApplied } = require('../servic
 const { sendCreatorAppliedEmail } = require('../utils/brevoEmailService');
 const { upload } = require('../services/storageService');
 const { updateReliabilityScore } = require('../services/reliabilityService');
-const { EmbeddingService } = require('../services/ai');
+let EmbeddingService;
+try {
+    EmbeddingService = require('../services/ai').EmbeddingService;
+} catch (e) {
+    console.warn('[AI] Failed to load EmbeddingService in creators routes:', e.message);
+    EmbeddingService = { embedCreatorProfile: () => Promise.resolve() };
+}
 
 /**
  * Validation middleware

@@ -10,7 +10,16 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
-const { FeedbackLoop, EmbeddingService } = require('../services/ai');
+let FeedbackLoop, EmbeddingService;
+try {
+    const ai = require('../services/ai');
+    FeedbackLoop = ai.FeedbackLoop;
+    EmbeddingService = ai.EmbeddingService;
+} catch (e) {
+    console.warn('[AI] Failed to load AI services in collaboration routes:', e.message);
+    FeedbackLoop = { recordCampaignFeedback: () => Promise.resolve() };
+    EmbeddingService = { embedCreatorProfile: () => Promise.resolve() };
+}
 const {
     validateTransition,
     buildHistoryEntry,
