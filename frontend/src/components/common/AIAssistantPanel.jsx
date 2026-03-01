@@ -22,6 +22,14 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
         tone: 'professional'
     });
 
+    const [captionParams, setCaptionParams] = useState({
+        productName: '',
+        brandName: '',
+        style: 'casual',
+        length: 'medium',
+        category: 'Fashion'
+    });
+
     const handleGenerateCaption = async () => {
         setIsGenerating(true);
         try {

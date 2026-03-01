@@ -157,7 +157,12 @@ router.post('/profile', auth, isCreator, [
             isAvailable: availabilityStatus === 'NOT_AVAILABLE' ? false : (isAvailable !== false),
             availabilityStatus: availabilityStatus || (isAvailable === false ? 'NOT_AVAILABLE' : 'AVAILABLE_NOW'),
             availabilityUpdatedAt: new Date(),
-            insights: insights
+            engagementQuality: insights.engagementQuality,
+            audienceAuthenticity: insights.audienceAuthenticity,
+            strengths: insights.strengths || [],
+            profileSummary: insights.profileSummary || '',
+            aiScore: insights.score || 50,
+            lastAnalyzed: insights.lastAnalyzed || new Date()
         };
 
         // Phase 1 optional fields
@@ -262,7 +267,12 @@ router.put('/profile', auth, isCreator, [
 
         // Generate AI insights
         const insights = generateInsights({ ...profile, ...updateData });
-        updateData.insights = insights;
+        updateData.engagementQuality = insights.engagementQuality;
+        updateData.audienceAuthenticity = insights.audienceAuthenticity;
+        updateData.strengths = insights.strengths || [];
+        updateData.profileSummary = insights.profileSummary || '';
+        updateData.aiScore = insights.score || 50;
+        updateData.lastAnalyzed = insights.lastAnalyzed || new Date();
 
         // Recalculate completion percentage
         const merged = { ...profile, ...updateData };
