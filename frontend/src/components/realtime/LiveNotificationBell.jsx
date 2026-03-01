@@ -69,7 +69,7 @@ const LiveNotificationBell = ({ userId }) => {
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="absolute right-0 mt-2 w-80 sm:w-96 glass-card dark:glass-card bg-white border border-dark-700 dark:border-dark-700 border-gray-200 z-[60] 
+                            className="absolute right-0 mt-2 w-80 sm:w-96 bg-dark-900 border border-dark-700 z-[60] 
                                      max-h-[500px] overflow-hidden flex flex-col rounded-premium-xl shadow-2xl"
                         >
                             {/* Header */}

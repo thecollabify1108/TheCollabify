@@ -52,8 +52,8 @@ const Navbar = () => {
 
     return (
         <nav className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled
-            ? 'bg-dark-950/95 dark:bg-dark-950/95 bg-white/95 backdrop-blur-2xl border-dark-700 dark:border-dark-700 border-gray-200 shadow-lg shadow-primary-500/5'
-            : 'bg-dark-950/70 dark:bg-dark-950/70 bg-white/80 backdrop-blur-xl border-dark-800 dark:border-dark-800 border-gray-100'
+            ? 'bg-dark-950/95 backdrop-blur-2xl border-dark-700 shadow-lg shadow-primary-500/5'
+            : 'bg-dark-950/70 backdrop-blur-xl border-dark-800'
             }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
@@ -94,7 +94,7 @@ const Navbar = () => {
                                         animate={{ opacity: 1, y: 0, scale: 1 }}
                                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                         transition={{ duration: 0.15 }}
-                                        className="absolute right-0 mt-2 w-56 bg-dark-900 dark:bg-dark-900 bg-white border border-dark-700 dark:border-dark-700 border-gray-200 rounded-premium-2xl py-2 shadow-xl z-[60]"
+                                        className="absolute right-0 mt-2 w-56 bg-dark-900 border border-dark-700 rounded-premium-2xl py-2 shadow-xl z-[60]"
                                     >
                                         <div className="px-4 py-3 border-b border-dark-700">
                                             <p className="text-sm text-dark-200 font-medium">{user?.name}</p>
