@@ -199,61 +199,49 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Product Name
+                                                Topic / Product
                                             </label>
                                             <input
                                                 type="text"
-                                                value={captionParams.productName}
-                                                onChange={(e) => setCaptionParams({ ...captionParams, productName: e.target.value })}
+                                                value={params.topic}
+                                                onChange={(e) => setParams({ ...params, topic: e.target.value })}
                                                 className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
-                                                placeholder="Amazing Product"
+                                                placeholder="e.g. Summer skincare collection"
                                             />
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Brand Name
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={captionParams.brandName}
-                                                onChange={(e) => setCaptionParams({ ...captionParams, brandName: e.target.value })}
-                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
-                                                placeholder="YourBrand"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Style
+                                                Platform
                                             </label>
                                             <select
-                                                value={captionParams.style}
-                                                onChange={(e) => setCaptionParams({ ...captionParams, style: e.target.value })}
+                                                value={params.platform}
+                                                onChange={(e) => setParams({ ...params, platform: e.target.value })}
                                                 className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
                                             >
-                                                <option value="casual">Casual</option>
-                                                <option value="professional">Professional</option>
-                                                <option value="storytelling">Storytelling</option>
-                                                <option value="promotional">Promotional</option>
+                                                <option value="Instagram">Instagram</option>
+                                                <option value="YouTube">YouTube</option>
+                                                <option value="TikTok">TikTok</option>
+                                                <option value="Twitter">Twitter</option>
+                                                <option value="LinkedIn">LinkedIn</option>
                                             </select>
                                         </div>
 
                                         <div>
                                             <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Length
+                                                Tone
                                             </label>
                                             <div className="flex gap-2">
-                                                {['short', 'medium', 'long'].map(len => (
+                                                {['casual', 'professional', 'storytelling', 'promotional'].map(t => (
                                                     <button
-                                                        key={len}
-                                                        onClick={() => setCaptionParams({ ...captionParams, length: len })}
-                                                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${captionParams.length === len
+                                                        key={t}
+                                                        onClick={() => setParams({ ...params, tone: t })}
+                                                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${params.tone === t
                                                             ? 'bg-purple-600 text-white'
                                                             : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
                                                             }`}
                                                     >
-                                                        {len.charAt(0).toUpperCase() + len.slice(1)}
+                                                        {t.charAt(0).toUpperCase() + t.slice(1)}
                                                     </button>
                                                 ))}
                                             </div>
@@ -261,7 +249,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
                                         <button
                                             onClick={handleGenerateCaption}
-                                            disabled={isGenerating}
+                                            disabled={isGenerating || !params.topic.trim()}
                                             className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity"
                                         >
                                             {isGenerating ? 'Generating...' : 'Generate Caption'}
@@ -274,11 +262,24 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                     <div className="space-y-4">
                                         <div>
                                             <label className="block text-sm font-medium text-dark-200 mb-2">
+                                                Topic
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={params.topic}
+                                                onChange={(e) => setParams({ ...params, topic: e.target.value })}
+                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
+                                                placeholder="e.g. Sustainable fashion"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-dark-200 mb-2">
                                                 Category
                                             </label>
                                             <select
-                                                value={captionParams.category}
-                                                onChange={(e) => setCaptionParams({ ...captionParams, category: e.target.value })}
+                                                value={params.niche}
+                                                onChange={(e) => setParams({ ...params, niche: e.target.value })}
                                                 className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
                                             >
                                                 {['Fashion', 'Beauty', 'Tech', 'Lifestyle', 'Food', 'Travel', 'Fitness'].map(cat => (

@@ -403,30 +403,25 @@
   color: #1e293b !important;
 }
 
-/* Dark background elements -> Light Green with transparency */
+/* Dark background elements -> Light Green solid backgrounds */
 .light-theme .bg-dark-950 {
-  background-color: rgba(240, 249, 244, 0.35) !important;
-  /* 35% opacity - highly transparent */
+  background-color: #f0f9f4 !important;
 }
 
 .light-theme .bg-dark-900 {
-  background-color: rgba(230, 244, 236, 0.35) !important;
-  /* 35% opacity - highly transparent */
+  background-color: #e6f4ec !important;
 }
 
 .light-theme .bg-dark-800 {
-  background-color: rgba(212, 235, 224, 0.35) !important;
-  /* 35% opacity - highly transparent */
+  background-color: #d4ebe0 !important;
 }
 
 .light-theme .bg-dark-700 {
-  background-color: rgba(194, 224, 210, 0.35) !important;
-  /* 35% opacity - highly transparent */
+  background-color: #c2e0d2 !important;
 }
 
 .light-theme .bg-dark-600 {
-  background-color: rgba(168, 212, 190, 0.35) !important;
-  /* 35% opacity - highly transparent */
+  background-color: #a8d4be !important;
 }
 
 /* Backdrop blur with light green background */
@@ -476,12 +471,11 @@
   border-color: #e2e8f0 !important;
 }
 
-/* Glass card in light mode - semi-transparent */
+/* Glass card in light mode - solid background */
 .light-theme .glass-card {
-  background-color: rgba(248, 252, 250, 0.35) !important;
-  /* 35% opacity - highly transparent like footer */
+  background-color: rgba(255, 255, 255, 0.92) !important;
   border-color: #d4ebe0 !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.06);
 }
 
 /* Input fields */

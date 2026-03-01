@@ -56,7 +56,7 @@ const authLimiter = rateLimit({
 // API rate limiter - moderate for general API usage
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 50,
+    max: 200,
     message: {
         success: false,
         message: 'API rate limit exceeded, please slow down your requests.'
