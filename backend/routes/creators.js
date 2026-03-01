@@ -146,24 +146,26 @@ router.post('/profile', auth, isCreator, [
         // Build create data
         const createData = {
             userId: req.userId,
-            instagramUsername,
             followerCount: parseInt(followerCount) || 0,
             engagementRate: parseFloat(engagementRate) || 0,
             category: category,
             promotionTypes: promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_')),
-            minPrice: priceRange.min,
-            maxPrice: priceRange.max,
+            minPrice: parseFloat(priceRange.min) || 0,
+            maxPrice: parseFloat(priceRange.max) || 0,
             bio: bio || '',
             isAvailable: availabilityStatus === 'NOT_AVAILABLE' ? false : (isAvailable !== false),
             availabilityStatus: availabilityStatus || (isAvailable === false ? 'NOT_AVAILABLE' : 'AVAILABLE_NOW'),
             availabilityUpdatedAt: new Date(),
-            engagementQuality: insights.engagementQuality,
-            audienceAuthenticity: insights.audienceAuthenticity,
+            engagementQuality: insights.engagementQuality || 'Medium',
+            audienceAuthenticity: insights.audienceAuthenticity || 'Medium',
             strengths: insights.strengths || [],
             profileSummary: insights.profileSummary || '',
             aiScore: insights.score || 50,
-            lastAnalyzed: insights.lastAnalyzed || new Date()
+            lastAnalyzed: new Date()
         };
+
+        // Only set instagramUsername if provided
+        if (instagramUsername) createData.instagramUsername = instagramUsername;
 
         // Phase 1 optional fields
         if (location) createData.location = location;
@@ -192,7 +194,8 @@ router.post('/profile', auth, isCreator, [
             data: { profile }
         });
     } catch (error) {
-        console.error('Create profile error:', error);
+        console.error('Create profile error:', error.message || error);
+        console.error('Create profile error details:', JSON.stringify(error.meta || {}, null, 2));
 
         if (error.code === 'P2002') {
             return res.status(400).json({
@@ -203,7 +206,8 @@ router.post('/profile', auth, isCreator, [
 
         res.status(500).json({
             success: false,
-            message: 'Failed to create profile'
+            message: 'Failed to create profile',
+            error: process.env.NODE_ENV !== 'production' ? error.message : undefined
         });
     }
 });
