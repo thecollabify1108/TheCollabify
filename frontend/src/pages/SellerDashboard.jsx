@@ -1,15 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    FaComments,
-    FaFire,
-    FaStream,
-    FaUsers,
-    FaTimes,
-    FaArrowLeft,
-    FaSearch
+    FaFire
 } from 'react-icons/fa';
-import { HiSparkles, HiHome, HiUserGroup, HiChat, HiViewGrid } from 'react-icons/hi';
+import { HiSparkles, HiUserGroup, HiViewGrid } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
 import { sellerAPI, chatAPI, collaborationAPI } from '../services/api';
 import { trackMatchFeedback, trackMatchOutcome } from '../services/feedback';
@@ -20,33 +14,22 @@ import toast from 'react-hot-toast';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Navbar from '../components/common/Navbar';
 import CampaignStories from '../components/seller/CampaignStories';
-import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
 import QuickStatsBar from '../components/seller/QuickStatsBar';
 import CampaignTracker from '../components/seller/CampaignTracker';
-import MessagingPanel from '../components/seller/MessagingPanel';
 import CollaborationHub from '../components/common/CollaborationHub';
 
-import CreatorSearch from '../components/seller/CreatorSearch';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
-import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
 import { haptic } from '../utils/haptic';
 import { getReliabilityLevel } from '../utils/reliability';
 
 // NEW: Enhanced Components
 import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
-import SmartRecommendationsPanel from '../components/seller/SmartRecommendationsPanel';
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
-import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
-import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
-import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import { BrandInsightCards } from '../components/analytics/InsightCards';
-import TeamManagement from '../components/team/TeamManagement';
-import { subscriptionPlans, getUpgradePlan } from '../config/subscriptions';
 
 // Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
-import PerformanceChart from '../components/dashboard/PerformanceChart';
 import DashboardHero from '../components/dashboard/DashboardHero';
 
 // Enhanced UI Components
@@ -59,6 +42,15 @@ import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../componen
 
 import GuidedAIMode from '../components/dashboard/GuidedAIMode';
 import FocusWrapper from '../components/dashboard/FocusWrapper';
+
+// Lazy-loaded tab content (only fetched when the user navigates to that tab)
+const PerformanceChart = lazy(() => import('../components/dashboard/PerformanceChart'));
+const EnhancedCreatorSearch = lazy(() => import('../components/seller/EnhancedCreatorSearch'));
+const SmartRecommendationsPanel = lazy(() => import('../components/seller/SmartRecommendationsPanel'));
+const AnalyticsDashboard = lazy(() => import('../components/analytics/AnalyticsDashboard'));
+const TeamManagement = lazy(() => import('../components/team/TeamManagement'));
+const MessagingPanel = lazy(() => import('../components/seller/MessagingPanel'));
+const SwipeableCreatorCard = lazy(() => import('../components/seller/SwipeableCreatorCard'));
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -137,14 +129,7 @@ const SellerDashboard = () => {
         }
     };
 
-    const fetchConversations = async () => {
-        try {
-            const res = await chatAPI.getConversations();
-            setConversations(res.data.data.conversations || []);
-        } catch (error) {
-            console.error('Failed to fetch conversations', error);
-        }
-    };
+    // fetchConversations removed — duplicate of fetchMatches above
 
     // Transform AI suggestion to form data
     const transformSuggestionToFormData = (suggestion) => {
@@ -408,7 +393,7 @@ const SellerDashboard = () => {
             await chatAPI.deleteConversation(conversationId);
             toast.success('Conversation deleted');
             // Background refresh to ensure sync
-            fetchConversations();
+            fetchMatches();
         } catch (error) {
             // Revert on failure
             setConversations(previousConversations);
@@ -559,9 +544,6 @@ const SellerDashboard = () => {
             showGuide={showGuide}
             setShowGuide={setShowGuide}
         >
-            {/* Onboarding Tour for new users */}
-            <OnboardingTour role="seller" />
-
             {/* Campaign Stories */}
             <CampaignStories
                 campaigns={requests}
@@ -593,6 +575,7 @@ const SellerDashboard = () => {
             {/* Collapsible Stats Bar */}
             <QuickStatsBar stats={stats} />
 
+            <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
             <AnimatePresence mode="wait">
                 {/* Guided AI Mode Overlay */}
                 {showGuide && (
@@ -867,6 +850,7 @@ const SellerDashboard = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            </Suspense>
 
             {/* Quick Actions and Modals */}
             <QuickActionsFAB

@@ -22,9 +22,26 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    // Instant restore: use cached user while fresh data loads
+    const cachedUser = (() => {
+        try {
+            const raw = sessionStorage.getItem('cachedUser');
+            return raw ? JSON.parse(raw) : null;
+        } catch { return null; }
+    })();
+
+    const [user, setUser] = useState(cachedUser ? normalizeUser(cachedUser) : null);
     const [token, setToken] = useState(localStorage.getItem('token'));
-    const [loading, setLoading] = useState(true);
+    // If we have a cached user, skip the blocking loading state
+    const [loading, setLoading] = useState(cachedUser ? false : true);
+
+    // Helper: persist user to sessionStorage for instant next load
+    const cacheUser = (userData) => {
+        try {
+            if (userData) sessionStorage.setItem('cachedUser', JSON.stringify(userData));
+            else sessionStorage.removeItem('cachedUser');
+        } catch { /* quota exceeded — ignore */ }
+    };
 
     // Fetch user on mount if token exists
     useEffect(() => {
@@ -46,16 +63,19 @@ export const AuthProvider = ({ children }) => {
             if (currentToken) {
                 try {
                     const response = await api.get('auth/me');
-                    setUser(normalizeUser(response.data.data.user));
+                    const freshUser = normalizeUser(response.data.data.user);
+                    setUser(freshUser);
+                    cacheUser(response.data.data.user);
                 } catch (error) {
                     console.error('Failed to fetch user:', error);
                     // Clear invalid token (don't call logout() to avoid circular dependency)
                     if (error.response?.status === 401 || error.response?.status === 403) {
                         localStorage.removeItem('token');
+                        sessionStorage.removeItem('cachedUser');
                         setToken(null);
                         setUser(null);
                     }
-                    // For network errors, keep the token and try again later
+                    // For network errors, keep the cached user and token
                 }
             }
             setLoading(false);
@@ -71,6 +91,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', newToken);
         setToken(newToken);
         setUser(normalizeUser(userData));
+        cacheUser(userData);
 
         return normalizeUser(userData);
     };
@@ -82,6 +103,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', newToken);
         setToken(newToken);
         setUser(normalizeUser(userData));
+        cacheUser(userData);
 
         return normalizeUser(userData);
     };
@@ -97,6 +119,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('token', newToken);
         setToken(newToken);
         setUser(normalizeUser(userData));
+        cacheUser(userData);
 
         return normalizeUser(userData);
     };
@@ -112,14 +135,17 @@ export const AuthProvider = ({ children }) => {
 
         // Clear localStorage (for backward compatibility)
         localStorage.removeItem('token');
+        sessionStorage.removeItem('cachedUser');
         setToken(null);
         setUser(null);
     };
 
     const updateProfile = async (data) => {
         const response = await api.put('auth/update', data);
-        setUser(normalizeUser(response.data.data.user));
-        return normalizeUser(response.data.data.user);
+        const updated = normalizeUser(response.data.data.user);
+        setUser(updated);
+        cacheUser(response.data.data.user);
+        return updated;
     };
 
     const forgotPassword = async (email) => {

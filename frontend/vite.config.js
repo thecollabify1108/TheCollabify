@@ -23,9 +23,11 @@ export default defineConfig({
                 manualChunks: {
                     'vendor-react': ['react', 'react-dom', 'react-router-dom'],
                     'vendor-motion': ['framer-motion'],
-                    'vendor-charts': ['recharts', 'chart.js', 'react-chartjs-2'],
                     'vendor-utils': ['axios', 'axios-retry', 'date-fns'],
                     'vendor-icons': ['react-icons'],
+                    // Charts split out — only loaded when PerformanceChart / AnalyticsDashboard renders
+                    'vendor-recharts': ['recharts'],
+                    'vendor-chartjs': ['chart.js', 'react-chartjs-2'],
                 }
             }
         }

@@ -1,15 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    FaCheck,
-    FaTrophy,
-    FaComments,
-    FaCog,
     FaBriefcase,
     FaHandshake
 } from 'react-icons/fa';
-import { HiHome, HiSparkles, HiUserGroup, HiLightningBolt, HiViewGrid, HiChat, HiBriefcase } from 'react-icons/hi';
+import { HiSparkles, HiUserGroup, HiLightningBolt, HiBriefcase } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
 import { creatorAPI } from '../services/api';
 import { trackMatchFeedback } from '../services/feedback';
@@ -18,38 +14,22 @@ import toast from 'react-hot-toast';
 // Components
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Navbar from '../components/common/Navbar';
-import ProfileForm from '../components/creator/ProfileForm';
 import CreatorOnboarding from '../components/creator/CreatorOnboarding';
-import PromotionList from '../components/creator/PromotionList';
 import ChatBox from '../components/common/ChatBox';
-import ConversationList from '../components/common/ConversationList';
 import CollaborationHub from '../components/common/CollaborationHub';
 import CollaborationStepper from '../components/common/CollaborationStepper';
 
-import CreatorAnalytics from '../components/creator/CreatorAnalytics';
 import { CreatorInsightCards } from '../components/analytics/InsightCards';
-import AIOpportunitySuggestions from '../components/creator/AIOpportunitySuggestions';
-import ProfileProgress from '../components/creator/ProfileProgress';
-import BadgeShowcase from '../components/creator/BadgeShowcase';
-import ContentCreatorTips from '../components/creator/ContentCreatorTips';
-import MessageRequests from '../components/creator/MessageRequests';
-import ProfileCard from '../components/creator/ProfileCard';
-import PullToRefresh from '../components/common/PullToRefresh';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
-import ProfileCompletionBar from '../components/common/ProfileCompletionBar';
-import { haptic } from '../utils/haptic';
 import { getReliabilityLevel } from '../utils/reliability';
 
 // NEW: Enhanced Components
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
-import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
-import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
-import { subscriptionPlans, getUpgradePlan } from '../config/subscriptions';
+import { getUpgradePlan } from '../config/subscriptions';
 
 // Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
-import PerformanceChart from '../components/dashboard/PerformanceChart';
 import DashboardHero from '../components/dashboard/DashboardHero';
 
 // Enhanced UI Components
@@ -57,10 +37,19 @@ import LoadingButton from '../components/common/LoadingButton';
 import EmptyState from '../components/common/EmptyState';
 
 // Skeleton Loading Components
-import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList, SkeletonMobileCard } from '../components/common/Skeleton';
+import { Skeleton, SkeletonStats, SkeletonList } from '../components/common/Skeleton';
 
 import GuidedAIMode from '../components/dashboard/GuidedAIMode';
 import FocusWrapper from '../components/dashboard/FocusWrapper';
+
+// Lazy-loaded tab content — only fetched when user navigates to these tabs
+const PerformanceChart = lazy(() => import('../components/dashboard/PerformanceChart'));
+const AnalyticsDashboard = lazy(() => import('../components/analytics/AnalyticsDashboard'));
+const ProfileForm = lazy(() => import('../components/creator/ProfileForm'));
+const ProfileCard = lazy(() => import('../components/creator/ProfileCard'));
+const PromotionList = lazy(() => import('../components/creator/PromotionList'));
+const ConversationList = lazy(() => import('../components/common/ConversationList'));
+const MessageRequests = lazy(() => import('../components/creator/MessageRequests'));
 
 const CreatorDashboard = () => {
     const { user } = useAuth();
@@ -344,6 +333,7 @@ const CreatorDashboard = () => {
             showGuide={showGuide}
             setShowGuide={setShowGuide}
         >
+            <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
             <AnimatePresence mode="wait">
                 {/* Guided AI Mode Overlay */}
                 {activeTab === 'dashboard' && showGuide && (
@@ -706,6 +696,7 @@ const CreatorDashboard = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+            </Suspense>
 
             {/* Quick Actions and Overlays */}
             <QuickActionsFAB

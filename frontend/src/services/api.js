@@ -17,7 +17,7 @@ const API_URL = API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`;
 
 const api = axios.create({
     baseURL: API_URL,
-    timeout: 30000, // 30s — Azure cold starts can take 15-25s
+    timeout: 15000, // 15s — reduced from 30s; Azure should respond within this
     headers: {
         'Content-Type': 'application/json'
     },
@@ -27,12 +27,14 @@ const api = axios.create({
 // Retry only server errors — limited to 1 retry to reduce console noise
 axiosRetry(api, {
     retries: 1,
-    retryDelay: (retryCount) => retryCount * 2000,
+    retryDelay: (retryCount) => retryCount * 1500, // 1.5s retry delay (was 2s)
     retryCondition: (error) => {
         // Don't retry if it's a background poll (notifications, insights)
         const url = error.config?.url || '';
         const isBackgroundPoll = url.includes('notifications') || url.includes('insights');
         if (isBackgroundPoll) return false;
+        // Don't retry auth/me — it's blocking the entire UI
+        if (url.includes('auth/me')) return false;
         return error.response?.status >= 500 || error.response?.status === 429;
     }
 });
