@@ -23,12 +23,46 @@ class AIContentService {
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `Generate a high-engagement ${platform} caption for a creator. 
-            Topic: ${topic}
-            Tone: ${tone}
-            Include relevant emojis and call to action. 
-            Maximum 3 paragraphs. 
-            Return ONLY the caption text.`;
+
+            const platformGuidelines = {
+                Instagram: 'Instagram captions can be up to 2,200 characters. Use line breaks for readability. Place hashtags at the end or in first comment. Use engaging hooks in the first line since only 125 chars show before "more".',
+                YouTube: 'YouTube descriptions should front-load keywords in the first 2 lines. Include a clear value proposition and timestamps if applicable.',
+                TikTok: 'TikTok captions should be punchy and under 150 characters. Use trending sounds references. Be conversational and relatable.',
+                Twitter: 'Tweets must be under 280 characters. Be concise, witty, and hook-driven. Use 1-2 hashtags max.',
+                LinkedIn: 'LinkedIn posts should be thought-leadership focused. Use professional but conversational tone. Start with a bold statement or surprising stat. Use line breaks every 1-2 sentences.'
+            };
+
+            const toneGuidelines = {
+                casual: 'Write like you\'re talking to a close friend — warm, relatable, using natural language. Add personality and humor where appropriate.',
+                professional: 'Write with authority and credibility while remaining approachable. Use data-driven language and industry expertise.',
+                storytelling: 'Structure as a micro-story with a hook, tension, and resolution. Make it personal and emotionally resonant. Use "I" and share real-feeling experiences.',
+                promotional: 'Lead with the benefit/transformation, not the product. Use social proof language, urgency, and a clear compelling CTA. Avoid sounding salesy — focus on value.'
+            };
+
+            const prompt = `You are an elite social media strategist and copywriter with 10+ years of experience managing accounts for top brands and creators. You specialize in writing ${platform} content that drives real engagement, saves, and shares.
+
+TASK: Write ONE high-converting ${platform} caption.
+
+TOPIC: ${topic}
+PLATFORM: ${platform}
+TONE: ${tone}
+
+PLATFORM BEST PRACTICES:
+${platformGuidelines[platform] || platformGuidelines.Instagram}
+
+TONE DIRECTION:
+${toneGuidelines[tone] || toneGuidelines.professional}
+
+REQUIREMENTS:
+- Open with a scroll-stopping hook (question, bold claim, or pattern interrupt)
+- Include a clear value proposition — why should someone care?
+- Use strategic emoji placement (not excessive — 3-5 max)
+- End with a strong call-to-action that drives engagement (save, share, comment, or click)
+- Write in a way that feels human and authentic, NOT robotic or generic
+- Vary sentence length for rhythm — mix short punchy lines with longer explanatory ones
+- If promotional tone: focus on transformation/benefit, not features
+
+FORMAT: Return ONLY the caption text, ready to copy-paste. No labels, no quotes, no explanation.`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
@@ -49,9 +83,27 @@ class AIContentService {
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `As a social media expert, provide 15 trending and relevant hashtags for:
-            Topic: ${topic}, Niche: ${niche}.
-            Return ONLY a space-separated string of hashtags.`;
+            const prompt = `You are a senior SEO analyst and social media strategist with 10+ years of experience optimizing content discoverability for top creators and brands.
+
+TASK: Generate a strategically curated set of 15 hashtags.
+
+TOPIC: ${topic}
+NICHE: ${niche}
+
+HASHTAG STRATEGY (use this exact distribution):
+- 3 HIGH-VOLUME hashtags (1M+ posts) — for discovery/reach
+- 5 MEDIUM-VOLUME hashtags (100K-1M posts) — sweet spot for ranking
+- 4 NICHE-SPECIFIC hashtags (10K-100K posts) — targeted community reach
+- 3 BRANDED/UNIQUE hashtags — for building owned audience
+
+REQUIREMENTS:
+- Every hashtag must be directly relevant to "${topic}" in the "${niche}" space
+- NO generic spam hashtags like #FYP, #ForYou, #Viral, #Trending unless platform-specific and relevant
+- Include industry-specific terminology that the target audience actually searches
+- Mix of broad discovery tags and specific community tags
+- All lowercase, no spaces within hashtags
+
+FORMAT: Return ONLY a space-separated string of 15 hashtags. Nothing else.`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
@@ -144,15 +196,20 @@ class AIContentService {
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `You are a top social media strategist. Generate exactly 4 specific, actionable content ideas for a ${category} creator on ${platform}. 
-            
-            Each idea should:
-            - Start with a relevant emoji
-            - Be specific (not generic like "post about your niche")
-            - Include WHY it works (e.g., "these get saved & shared")
-            - Be under 25 words
-            
-            Return ONLY the 4 ideas, one per line. No numbering.`;
+            const prompt = `You are a senior content strategist and social media manager with 10+ years of experience growing creator accounts from zero to millions of followers. You understand what content performs, why it performs, and how to replicate success.
+
+TASK: Generate exactly 4 specific, high-performing content ideas for a ${category} creator on ${platform}.
+
+REQUIREMENTS FOR EACH IDEA:
+- Start with a single relevant emoji
+- Be hyper-specific (NOT generic like "post about your niche" or "share tips")
+- Include the content FORMAT (reel, carousel, story, static post, live, etc.)
+- Explain briefly WHY this format works (e.g., "carousel posts get 3x more saves" or "this hook pattern has 89% watch-through")
+- Each idea should be immediately actionable — the creator should know exactly what to create
+- Keep each idea under 30 words
+- Ideas should cover different content pillars: educational, entertaining, community-building, and promotional
+
+FORMAT: Return ONLY the 4 ideas, one per line. No numbering, no bullet points, no extra text.`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;

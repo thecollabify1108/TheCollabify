@@ -36,8 +36,9 @@ export const NotificationProvider = ({ children }) => {
             setNotifications(response.data.data.notifications);
             setUnreadCount(response.data.data.unreadCount);
         } catch (error) {
-            // Silently handle timeouts/network errors (Azure cold starts)
-            if (error.code !== 'ECONNABORTED' && error.code !== 'ERR_NETWORK') {
+            // Silently handle timeouts, network errors, and transient server errors (Azure cold starts)
+            const isTransient = error.code === 'ECONNABORTED' || error.code === 'ERR_NETWORK' || error.response?.status >= 500;
+            if (!isTransient) {
                 console.error('Failed to fetch notifications:', error);
             }
         } finally {

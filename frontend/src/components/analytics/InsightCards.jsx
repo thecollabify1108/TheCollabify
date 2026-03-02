@@ -141,7 +141,7 @@ export const BrandInsightCards = () => {
 };
 
 // ─── Creator Insight Cards ──────────────────────────────────────
-export const CreatorInsightCards = () => {
+export const CreatorInsightCards = ({ profileCompletion: frontendProfileCompletion }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -151,7 +151,9 @@ export const CreatorInsightCards = () => {
                 const res = await analyticsAPI.getInsights();
                 setData(res.data.data.insights);
             } catch (err) {
-                if (err.code !== 'ECONNABORTED' && err.code !== 'ERR_NETWORK') {
+                // Silently handle timeouts, network errors, and transient server errors
+                const isTransient = err.code === 'ECONNABORTED' || err.code === 'ERR_NETWORK' || err.response?.status >= 500;
+                if (!isTransient) {
                     console.error('Failed to load creator insights:', err);
                 }
             } finally {
@@ -173,7 +175,7 @@ export const CreatorInsightCards = () => {
         { icon: FaPercentage, label: 'Acceptance Rate', value: data.acceptanceRate, suffix: '%', color: 'emerald' },
         { icon: FaCheckCircle, label: 'Completed Collabs', value: data.completedCollaborations, color: 'blue' },
         { icon: FaStar, label: 'Response Likelihood', value: data.responseLikelihood, color: likelihoodColor[data.responseLikelihood] || 'blue' },
-        { icon: FaChartLine, label: 'Profile Completion', value: data.profileCompletion, suffix: '%', color: 'purple' }
+        { icon: FaChartLine, label: 'Profile Completion', value: frontendProfileCompletion ?? data.profileCompletion, suffix: '%', color: 'purple' }
     ];
 
     return (

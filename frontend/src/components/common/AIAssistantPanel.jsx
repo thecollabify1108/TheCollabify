@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaClock, FaCopy } from 'react-icons/fa';
+import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaCopy } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
@@ -22,13 +22,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
         tone: 'professional'
     });
 
-    const [captionParams, setCaptionParams] = useState({
-        productName: '',
-        brandName: '',
-        style: 'casual',
-        length: 'medium',
-        category: 'Fashion'
-    });
+    // captionParams removed — unused dead code
 
     const handleGenerateCaption = async () => {
         setIsGenerating(true);
@@ -80,23 +74,6 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
             }
         } catch (err) {
             toast.error('Failed to generate ideas');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    const handleGenerateSchedule = async () => {
-        setIsGenerating(true);
-        try {
-            const res = await aiAPI.generateSchedule({
-                category: params.niche
-            });
-            if (res.data.success) {
-                setGeneratedContent({ type: 'schedule', content: res.data.data.schedule });
-                toast.success('Schedule generated!');
-            }
-        } catch (err) {
-            toast.error('Failed to generate schedule');
         } finally {
             setIsGenerating(false);
         }
@@ -172,8 +149,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                     {[
                                         { id: 'captions', label: 'Captions', icon: <FaMagic /> },
                                         { id: 'hashtags', label: 'Hashtags', icon: <FaHashtag /> },
-                                        { id: 'ideas', label: 'Ideas', icon: <FaLightbulb /> },
-                                        { id: 'schedule', label: 'Schedule', icon: <FaClock /> }
+                                        { id: 'ideas', label: 'Ideas', icon: <FaLightbulb /> }
                                     ].map(tab => (
                                         <button
                                             key={tab.id}
@@ -311,19 +287,6 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                     </div>
                                 )}
 
-                                {/* Posting Schedule */}
-                                {activeTab === 'schedule' && (
-                                    <div className="space-y-4">
-                                        <button
-                                            onClick={handleGenerateSchedule}
-                                            disabled={isGenerating}
-                                            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity"
-                                        >
-                                            {isGenerating ? 'Generating...' : 'Get Optimal Schedule'}
-                                        </button>
-                                    </div>
-                                )}
-
                                 {/* Generated Content Display */}
                                 {generatedContent && (
                                     <motion.div
@@ -365,17 +328,6 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                                         </li>
                                                     ))}
                                                 </ul>
-                                            )}
-
-                                            {generatedContent.type === 'schedule' && (
-                                                <div className="space-y-2">
-                                                    {generatedContent.content.map((slot, i) => (
-                                                        <div key={i} className="flex items-center justify-between p-2 bg-dark-700 rounded">
-                                                            <span>{slot.day}</span>
-                                                            <span className="text-purple-400">{slot.time}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
                                             )}
 
                                             {generatedContent.type === 'caption' && (

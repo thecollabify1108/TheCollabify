@@ -495,10 +495,11 @@ const CreatorDashboard = () => {
                                 </FocusWrapper>
 
                                 {/* Creator Insights */}
-                                <CreatorInsightCards />
+                                <CreatorInsightCards profileCompletion={calculateProfileCompletion()} />
 
                                 {/* 4. Action Items (Today's Focus - Modernized) */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
+                                    {calculateProfileCompletion() < 100 && (
                                     <FocusWrapper sectionId="profile" currentFocus={focusMode} className="h-full">
                                         <motion.div
                                             initial={{ opacity: 0, y: 20 }}
@@ -525,6 +526,7 @@ const CreatorDashboard = () => {
                                             </div>
                                         </motion.div>
                                     </FocusWrapper>
+                                    )}
 
                                     <FocusWrapper sectionId="promotions" currentFocus={focusMode} className="h-full">
                                         <motion.div
