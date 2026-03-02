@@ -24,11 +24,15 @@ const api = axios.create({
     withCredentials: true // Enable sending cookies with requests
 });
 
-// Retry only server errors (not CORS/network failures which would just hang the UI)
+// Retry only server errors — limited to 1 retry to reduce console noise
 axiosRetry(api, {
-    retries: 2,
-    retryDelay: (retryCount) => retryCount * 1000,
+    retries: 1,
+    retryDelay: (retryCount) => retryCount * 2000,
     retryCondition: (error) => {
+        // Don't retry if it's a background poll (notifications, insights)
+        const url = error.config?.url || '';
+        const isBackgroundPoll = url.includes('notifications') || url.includes('insights');
+        if (isBackgroundPoll) return false;
         return error.response?.status >= 500 || error.response?.status === 429;
     }
 });
@@ -60,7 +64,7 @@ api.interceptors.response.use(
             }
         }
 
-        if (error.response?.status !== 401) {
+        if (error.response?.status !== 401 && error.response?.status < 500) {
             Sentry.captureException(error, {
                 extra: {
                     url: error.config?.url,

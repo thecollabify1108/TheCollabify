@@ -93,21 +93,17 @@ const CreatorDashboard = () => {
         return num.toString();
     };
 
-    // Calculate profile completion percentage
+    // Calculate profile completion percentage based on actual form fields
     const calculateProfileCompletion = () => {
         if (!profile) return 0;
-        let completion = 0;
         const fields = [
-            profile.instagramHandle,
             profile.followerCount > 0,
             profile.engagementRate > 0,
             profile.category,
-            profile.bio,
-            profile.portfolio?.length > 0
+            profile.bio
         ];
         const filledFields = fields.filter(Boolean).length;
-        completion = Math.round((filledFields / fields.length) * 100);
-        return completion;
+        return Math.round((filledFields / fields.length) * 100);
     };
 
     useEffect(() => {

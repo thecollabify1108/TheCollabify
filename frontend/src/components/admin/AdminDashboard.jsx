@@ -120,7 +120,7 @@ const AdminDashboard = ({ stats, loading }) => {
                     <h3 className="text-lg font-bold text-dark-100 mb-6">Platform Growth</h3>
                     {growthData.length > 0 ? (
                         <div className="h-80">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                                 <AreaChart data={growthData}>
                                     <defs>
                                         <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
@@ -161,7 +161,7 @@ const AdminDashboard = ({ stats, loading }) => {
                     <h3 className="text-lg font-bold text-dark-100 mb-6">User Distribution</h3>
                     {distributionData.length > 0 ? (
                         <div className="h-80 flex flex-col items-center justify-center relative">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
                                 <PieChart>
                                     <Pie
                                         data={distributionData}

@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { FaEdit, FaInstagram, FaUserCircle, FaRupeeSign, FaStripe, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import { HiUserGroup, HiLightningBolt, HiSparkles, HiCreditCard } from 'react-icons/hi';
+import { FaEdit, FaInstagram, FaUserCircle, FaRupeeSign } from 'react-icons/fa';
+import { HiUserGroup, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 
 const ProfileCard = ({ profile, onEdit }) => {
@@ -128,46 +128,6 @@ const ProfileCard = ({ profile, onEdit }) => {
                         </a>
                     </div>
                 )}
-
-                {/* Stripe Onboarding Section */}
-                <div className="mb-6 p-4 rounded-2xl bg-dark-800/60 border border-dark-700/50">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
-                                <FaStripe size={24} />
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-semibold text-dark-100">Payment Verification</h4>
-                                <p className="text-xs text-dark-400">Stripe Express Onboarding</p>
-                            </div>
-                        </div>
-                        {profile.userId?.stripeOnboardingComplete ? (
-                            <span className="flex items-center gap-1 text-emerald-400 text-xs font-bold">
-                                <FaCheckCircle /> Verified
-                            </span>
-                        ) : (
-                            <span className="flex items-center gap-1 text-amber-400 text-xs font-bold">
-                                <FaExclamationTriangle /> Pending
-                            </span>
-                        )}
-                    </div>
-
-                    {!profile.userId?.stripeOnboardingComplete ? (
-                        <div className="space-y-3">
-                            <p className="text-xs text-dark-300">Set up your Stripe account to receive secure escrow payments from sellers.</p>
-                            <button
-                                onClick={() => {
-                                    toast.success('Payment system upgrade in progress! ⚡');
-                                }}
-                                className="w-full py-2 bg-indigo-600/50 hover:bg-indigo-600/60 text-white/50 cursor-not-allowed rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-2"
-                            >
-                                <HiCreditCard /> Coming Soon
-                            </button>
-                        </div>
-                    ) : (
-                        <p className="text-xs text-emerald-400/80">Your account is fully set up for secure payments.</p>
-                    )}
-                </div>
 
                 {/* Edit Button */}
                 <motion.button
