@@ -5,14 +5,65 @@ import { HiSparkles } from 'react-icons/hi';
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
-/**
- * Collabify Intelligence Copilot
- * Floating panel for campaign intelligence and creator toolkit utilities
- */
+const INTELLIGENCE_MODES = [
+    { id: 'match', label: 'Match Intelligence', short: 'Match', desc: 'Creator-campaign fit scoring' },
+    { id: 'audit', label: 'Creator Audit', short: 'Audit', desc: 'Quality and reliability assessment' },
+    { id: 'campaign', label: 'Campaign Strategy', short: 'Strategy', desc: 'Strategic planning framework' },
+    { id: 'roi', label: 'ROI Forecast', short: 'ROI', desc: 'Performance prediction modeling' },
+    { id: 'optimize', label: 'Optimization', short: 'Optimize', desc: 'Post-campaign improvement analysis' },
+];
+
+const OUTPUT_LABELS = {
+    matchFitScore: 'Match Fit Score',
+    audienceAlignmentSummary: 'Audience Alignment Summary',
+    engagementReliabilityAssessment: 'Engagement Reliability Assessment',
+    riskFactors: 'Risk Factors',
+    suggestedCampaignAngle: 'Suggested Campaign Angle',
+    confidenceLevel: 'Confidence Level',
+    engagementConsistencyAnalysis: 'Engagement Consistency Analysis',
+    growthStabilityOverview: 'Growth Stability Overview',
+    authenticityIndicators: 'Authenticity Indicators',
+    nicheAuthorityLevel: 'Niche Authority Level',
+    strengths: 'Strengths',
+    improvementAreas: 'Improvement Areas',
+    riskIndex: 'Risk Index',
+    campaignObjectiveClarification: 'Campaign Objective Clarification',
+    recommendedContentFormatMix: 'Recommended Content Format Mix',
+    postingFrequencyRecommendation: 'Posting Frequency Recommendation',
+    kpiBenchmarks: 'KPI Benchmarks',
+    budgetAllocationLogic: 'Budget Allocation Logic',
+    riskAwareness: 'Risk Awareness',
+    estimatedEngagementRange: 'Estimated Engagement Range',
+    projectedROIBand: 'Projected ROI Band',
+    riskProbability: 'Risk Probability',
+    suggestedCreatorTier: 'Suggested Creator Tier',
+    confidenceInterval: 'Confidence Interval',
+    performanceGapAnalysis: 'Performance Gap Analysis',
+    whatWorked: 'What Worked',
+    whatUnderperformed: 'What Underperformed',
+    recommendedAdjustments: 'Recommended Adjustments',
+    strategicNextStep: 'Strategic Next Step',
+};
+
+const OUTPUT_KEYS = {
+    match: ['matchFitScore', 'audienceAlignmentSummary', 'engagementReliabilityAssessment', 'riskFactors', 'suggestedCampaignAngle', 'confidenceLevel'],
+    audit: ['engagementConsistencyAnalysis', 'growthStabilityOverview', 'authenticityIndicators', 'nicheAuthorityLevel', 'strengths', 'improvementAreas', 'riskIndex'],
+    campaign: ['campaignObjectiveClarification', 'recommendedContentFormatMix', 'postingFrequencyRecommendation', 'kpiBenchmarks', 'budgetAllocationLogic', 'riskAwareness'],
+    roi: ['estimatedEngagementRange', 'projectedROIBand', 'riskProbability', 'suggestedCreatorTier', 'confidenceInterval'],
+    optimize: ['performanceGapAnalysis', 'whatWorked', 'whatUnderperformed', 'recommendedAdjustments', 'strategicNextStep'],
+};
+
+const NICHES = ['Fashion', 'Beauty', 'Tech', 'Lifestyle', 'Food', 'Travel', 'Fitness', 'Gaming', 'Education', 'Business'];
+const PLATFORMS = ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'LinkedIn'];
+const TIERS = ['Nano (1K-10K)', 'Micro (10K-100K)', 'Mid-tier (100K-500K)', 'Macro (500K-1M)', 'Mega (1M+)'];
+const GOALS = ['Brand awareness', 'Lead generation', 'Sales conversion', 'Community building', 'Content production'];
+
 const AIAssistantPanel = ({ campaign = {}, onUse }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState('strategy');
+    const [activeTab, setActiveTab] = useState('intelligence');
+    const [selectedMode, setSelectedMode] = useState(null);
     const [generatedContent, setGeneratedContent] = useState(null);
+    const [modeResult, setModeResult] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [toolkitExpanded, setToolkitExpanded] = useState(false);
 
@@ -23,108 +74,206 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
         tone: 'professional'
     });
 
+    const [modeParams, setModeParams] = useState({
+        creatorNiche: 'Lifestyle',
+        creatorFollowers: '',
+        creatorEngagement: '',
+        campaignCategory: 'Lifestyle',
+        campaignBudget: '',
+        campaignGoal: 'Brand awareness',
+        platform: 'Instagram',
+        contentFrequency: '',
+        duration: '',
+        creatorTier: 'Micro (10K-100K)',
+        engagementRate: '',
+        reach: '',
+        conversions: '',
+        contentTypes: '',
+    });
+
+    const updateMode = (key, value) => setModeParams(p => ({ ...p, [key]: value }));
+
+    const handleRunMode = async () => {
+        if (!selectedMode) return;
+        setIsGenerating(true);
+        setModeResult(null);
+        try {
+            const apiMap = {
+                match: aiAPI.runMatchIntelligence,
+                audit: aiAPI.runCreatorAudit,
+                campaign: aiAPI.runCampaignStrategy,
+                roi: aiAPI.runROIForecast,
+                optimize: aiAPI.runOptimization,
+            };
+            const res = await apiMap[selectedMode](modeParams);
+            if (res.data.success) {
+                setModeResult({ mode: selectedMode, data: res.data.data });
+                toast.success('Analysis complete');
+            }
+        } catch (err) {
+            toast.error('Analysis failed');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const handleGenerateCaption = async () => {
         setIsGenerating(true);
         try {
-            const res = await aiAPI.generateCaption({
-                topic: params.topic,
-                platform: params.platform,
-                tone: params.tone
-            });
+            const res = await aiAPI.generateCaption({ topic: params.topic, platform: params.platform, tone: params.tone });
             if (res.data.success) {
                 setGeneratedContent({ type: 'caption', content: res.data.data.caption });
                 toast.success('Content brief generated');
             }
-        } catch (err) {
-            toast.error('Failed to generate content brief');
-        } finally {
-            setIsGenerating(false);
-        }
+        } catch { toast.error('Failed to generate content brief'); }
+        finally { setIsGenerating(false); }
     };
 
     const handleGenerateHashtags = async () => {
         setIsGenerating(true);
         try {
-            const res = await aiAPI.generateHashtags({
-                topic: params.topic,
-                niche: params.niche
-            });
+            const res = await aiAPI.generateHashtags({ topic: params.topic, niche: params.niche });
             if (res.data.success) {
                 setGeneratedContent({ type: 'hashtags', content: res.data.data.hashtags });
                 toast.success('Discovery tags generated');
             }
-        } catch (err) {
-            toast.error('Failed to generate tags');
-        } finally {
-            setIsGenerating(false);
+        } catch { toast.error('Failed to generate tags'); }
+        finally { setIsGenerating(false); }
+    };
+
+    const copyToClipboard = (text) => { navigator.clipboard.writeText(text); toast.success('Copied to clipboard'); };
+
+    const copyFullReport = () => {
+        if (!modeResult) return;
+        const keys = OUTPUT_KEYS[modeResult.mode] || [];
+        const lines = keys.map(k => {
+            const val = modeResult.data[k];
+            const label = OUTPUT_LABELS[k] || k;
+            if (Array.isArray(val)) return label + ':\n' + val.map(v => '  - ' + v).join('\n');
+            return label + ': ' + val;
+        });
+        navigator.clipboard.writeText(lines.join('\n\n'));
+        toast.success('Report copied to clipboard');
+    };
+
+    const useContent = () => { if (generatedContent && onUse) { onUse(generatedContent); toast.success('Content applied'); } };
+
+    const selectCls = "w-full px-3 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm";
+    const inputCls = selectCls;
+    const labelCls = "block text-xs font-medium text-dark-300 mb-1";
+
+    const renderModeForm = () => {
+        if (!selectedMode) return null;
+        switch (selectedMode) {
+            case 'match': return (
+                <div className="space-y-3">
+                    <div><label className={labelCls}>Creator Niche</label><select value={modeParams.creatorNiche} onChange={e => updateMode('creatorNiche', e.target.value)} className={selectCls}>{NICHES.map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+                    <div><label className={labelCls}>Creator Followers</label><input type="text" placeholder="e.g. 50000" value={modeParams.creatorFollowers} onChange={e => updateMode('creatorFollowers', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Engagement Rate (%)</label><input type="text" placeholder="e.g. 3.5" value={modeParams.creatorEngagement} onChange={e => updateMode('creatorEngagement', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Campaign Category</label><select value={modeParams.campaignCategory} onChange={e => updateMode('campaignCategory', e.target.value)} className={selectCls}>{NICHES.map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+                    <div><label className={labelCls}>Campaign Budget</label><input type="text" placeholder="e.g. 5000" value={modeParams.campaignBudget} onChange={e => updateMode('campaignBudget', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Platform</label><select value={modeParams.platform} onChange={e => updateMode('platform', e.target.value)} className={selectCls}>{PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                </div>
+            );
+            case 'audit': return (
+                <div className="space-y-3">
+                    <div><label className={labelCls}>Creator Niche</label><select value={modeParams.creatorNiche} onChange={e => updateMode('creatorNiche', e.target.value)} className={selectCls}>{NICHES.map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+                    <div><label className={labelCls}>Creator Followers</label><input type="text" placeholder="e.g. 50000" value={modeParams.creatorFollowers} onChange={e => updateMode('creatorFollowers', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Engagement Rate (%)</label><input type="text" placeholder="e.g. 3.5" value={modeParams.creatorEngagement} onChange={e => updateMode('creatorEngagement', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Platform</label><select value={modeParams.platform} onChange={e => updateMode('platform', e.target.value)} className={selectCls}>{PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                    <div><label className={labelCls}>Content Frequency (posts/week)</label><input type="text" placeholder="e.g. 5" value={modeParams.contentFrequency} onChange={e => updateMode('contentFrequency', e.target.value)} className={inputCls} /></div>
+                </div>
+            );
+            case 'campaign': return (
+                <div className="space-y-3">
+                    <div><label className={labelCls}>Campaign Category</label><select value={modeParams.campaignCategory} onChange={e => updateMode('campaignCategory', e.target.value)} className={selectCls}>{NICHES.map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+                    <div><label className={labelCls}>Campaign Budget</label><input type="text" placeholder="e.g. 10000" value={modeParams.campaignBudget} onChange={e => updateMode('campaignBudget', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Campaign Goal</label><select value={modeParams.campaignGoal} onChange={e => updateMode('campaignGoal', e.target.value)} className={selectCls}>{GOALS.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
+                    <div><label className={labelCls}>Platform</label><select value={modeParams.platform} onChange={e => updateMode('platform', e.target.value)} className={selectCls}>{PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                    <div><label className={labelCls}>Duration</label><input type="text" placeholder="e.g. 4 weeks" value={modeParams.duration} onChange={e => updateMode('duration', e.target.value)} className={inputCls} /></div>
+                </div>
+            );
+            case 'roi': return (
+                <div className="space-y-3">
+                    <div><label className={labelCls}>Campaign Category</label><select value={modeParams.campaignCategory} onChange={e => updateMode('campaignCategory', e.target.value)} className={selectCls}>{NICHES.map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+                    <div><label className={labelCls}>Campaign Budget</label><input type="text" placeholder="e.g. 5000" value={modeParams.campaignBudget} onChange={e => updateMode('campaignBudget', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Creator Tier</label><select value={modeParams.creatorTier} onChange={e => updateMode('creatorTier', e.target.value)} className={selectCls}>{TIERS.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+                    <div><label className={labelCls}>Platform</label><select value={modeParams.platform} onChange={e => updateMode('platform', e.target.value)} className={selectCls}>{PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                    <div><label className={labelCls}>Campaign Goal</label><select value={modeParams.campaignGoal} onChange={e => updateMode('campaignGoal', e.target.value)} className={selectCls}>{GOALS.map(g => <option key={g} value={g}>{g}</option>)}</select></div>
+                </div>
+            );
+            case 'optimize': return (
+                <div className="space-y-3">
+                    <div><label className={labelCls}>Campaign Category</label><select value={modeParams.campaignCategory} onChange={e => updateMode('campaignCategory', e.target.value)} className={selectCls}>{NICHES.map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+                    <div><label className={labelCls}>Platform</label><select value={modeParams.platform} onChange={e => updateMode('platform', e.target.value)} className={selectCls}>{PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                    <div><label className={labelCls}>Engagement Rate (%)</label><input type="text" placeholder="e.g. 3.2" value={modeParams.engagementRate} onChange={e => updateMode('engagementRate', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Reach</label><input type="text" placeholder="e.g. 25000" value={modeParams.reach} onChange={e => updateMode('reach', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Conversions</label><input type="text" placeholder="e.g. 120" value={modeParams.conversions} onChange={e => updateMode('conversions', e.target.value)} className={inputCls} /></div>
+                    <div><label className={labelCls}>Content Types Used</label><input type="text" placeholder="e.g. Reels, Stories, Carousel" value={modeParams.contentTypes} onChange={e => updateMode('contentTypes', e.target.value)} className={inputCls} /></div>
+                </div>
+            );
+            default: return null;
         }
     };
 
-    const handleGenerateIdeas = async () => {
-        setIsGenerating(true);
-        try {
-            const res = await aiAPI.generateIdeas({
-                category: params.niche,
-                platform: params.platform
-            });
-            if (res.data.success) {
-                setGeneratedContent({ type: 'ideas', content: res.data.data.ideas });
-                toast.success('Strategy recommendations generated');
-            }
-        } catch (err) {
-            toast.error('Failed to generate strategy');
-        } finally {
-            setIsGenerating(false);
-        }
-    };
-
-    const copyToClipboard = (text) => {
-        navigator.clipboard.writeText(text);
-        toast.success('Copied to clipboard');
-    };
-
-    const useContent = () => {
-        if (generatedContent && onUse) {
-            onUse(generatedContent);
-            toast.success('Content applied');
-        }
+    const renderModeResult = () => {
+        if (!modeResult) return null;
+        const keys = OUTPUT_KEYS[modeResult.mode] || [];
+        return (
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                <div className="flex items-center justify-between">
+                    <h3 className="font-semibold text-dark-100 text-sm">{INTELLIGENCE_MODES.find(m => m.id === modeResult.mode)?.label} Report</h3>
+                    <button onClick={copyFullReport} className="p-2 hover:bg-dark-700 rounded-lg transition-colors" title="Copy full report"><FaCopy className="text-dark-400 text-xs" /></button>
+                </div>
+                {keys.map(key => {
+                    const val = modeResult.data[key];
+                    if (val === undefined || val === null) return null;
+                    const label = OUTPUT_LABELS[key] || key;
+                    return (
+                        <div key={key} className="bg-dark-800/70 border border-dark-700/50 rounded-lg p-3 space-y-1">
+                            <h4 className="text-xs font-semibold text-purple-400 uppercase tracking-wider">{label}</h4>
+                            {key === 'matchFitScore' ? (
+                                <div className="flex items-center gap-3">
+                                    <div className="relative w-14 h-14">
+                                        <svg viewBox="0 0 36 36" className="w-14 h-14 -rotate-90">
+                                            <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className="text-dark-700" strokeWidth="3" />
+                                            <circle cx="18" cy="18" r="15.5" fill="none" stroke="currentColor" className={val >= 70 ? 'text-green-500' : val >= 40 ? 'text-yellow-500' : 'text-red-500'} strokeWidth="3" strokeDasharray={`${val * 0.975} 100`} strokeLinecap="round" />
+                                        </svg>
+                                        <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-dark-100">{val}</span>
+                                    </div>
+                                    <span className={`text-sm font-medium ${val >= 70 ? 'text-green-400' : val >= 40 ? 'text-yellow-400' : 'text-red-400'}`}>{val >= 70 ? 'Strong Fit' : val >= 40 ? 'Moderate Fit' : 'Weak Fit'}</span>
+                                </div>
+                            ) : Array.isArray(val) ? (
+                                <ul className="space-y-1">
+                                    {val.map((item, i) => (
+                                        <li key={i} className="flex items-start gap-2 text-sm text-dark-200">
+                                            <span className="text-dark-500 mt-0.5 text-xs">-</span>
+                                            <span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-sm text-dark-200">{val}</p>
+                            )}
+                        </div>
+                    );
+                })}
+            </motion.div>
+        );
     };
 
     return (
         <>
-            {/* Floating Button */}
-            <motion.button
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsOpen(true)}
-                className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl flex items-center justify-center text-white md:bottom-[calc(8rem+env(safe-area-inset-bottom))]"
-            >
+            <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setIsOpen(true)} className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl flex items-center justify-center text-white md:bottom-[calc(8rem+env(safe-area-inset-bottom))]">
                 <FaMagic className="text-xl" />
             </motion.button>
 
-            {/* Panel */}
             <AnimatePresence>
                 {isOpen && (
                     <>
-                        {/* Backdrop */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsOpen(false)}
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90]"
-                        />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90]" />
 
-                        {/* Panel */}
-                        <motion.div
-                            initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '100%' }}
-                            transition={{ type: 'spring', damping: 25 }}
-                            className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-dark-900 border-l border-dark-800 shadow-2xl z-[100] overflow-y-auto"
-                        >
+                        <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-dark-900 border-l border-dark-800 shadow-2xl z-[100] overflow-y-auto">
                             {/* Header */}
                             <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 p-6 z-10">
                                 <div className="flex items-center justify-between">
@@ -135,87 +284,63 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                             <p className="text-white/80 text-sm">Collabify Campaign Intelligence</p>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => setIsOpen(false)}
-                                        className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                                    >
+                                    <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
                                         <FaTimes className="text-white" />
                                     </button>
                                 </div>
 
-                                {/* Tabs */}
                                 <div className="flex gap-2 mt-4">
                                     {[
-                                        { id: 'strategy', label: 'Strategy', icon: <FaLightbulb /> },
+                                        { id: 'intelligence', label: 'Intelligence', icon: <HiSparkles /> },
                                         { id: 'toolkit', label: 'Toolkit', icon: <FaMagic /> }
                                     ].map(tab => (
-                                        <button
-                                            key={tab.id}
-                                            onClick={() => setActiveTab(tab.id)}
-                                            className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
-                                                ? 'bg-white text-purple-600'
-                                                : 'bg-white/20 text-white hover:bg-white/30'
-                                            }`}
-                                        >
-                                            <span className="flex items-center justify-center gap-1">
-                                                {tab.icon}
-                                                <span className="hidden sm:inline">{tab.label}</span>
-                                            </span>
+                                        <button key={tab.id} onClick={() => { setActiveTab(tab.id); setModeResult(null); setGeneratedContent(null); }} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id ? 'bg-white text-purple-600' : 'bg-white/20 text-white hover:bg-white/30'}`}>
+                                            <span className="flex items-center justify-center gap-1">{tab.icon}<span className="hidden sm:inline">{tab.label}</span></span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
 
-                            {/* Content */}
                             <div className="p-6 space-y-6">
 
-                                {/* Strategy Tab */}
-                                {activeTab === 'strategy' && (
+                                {/* Intelligence Tab */}
+                                {activeTab === 'intelligence' && (
                                     <div className="space-y-5">
-                                        <div className="space-y-3">
-                                            <h3 className="text-sm font-semibold text-dark-200 uppercase tracking-wider">Performance Strategy Engine</h3>
-                                            <p className="text-xs text-dark-400">Generate data-driven content strategy recommendations based on your niche and platform.</p>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-dark-200 mb-2">Category / Niche</label>
-                                                <select
-                                                    value={params.niche}
-                                                    onChange={(e) => setParams({ ...params, niche: e.target.value })}
-                                                    className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
-                                                >
-                                                    {['Fashion', 'Beauty', 'Tech', 'Lifestyle', 'Food', 'Travel', 'Fitness', 'Gaming', 'Education', 'Business'].map(cat => (
-                                                        <option key={cat} value={cat}>{cat}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-dark-200 mb-2">Platform</label>
-                                                <select
-                                                    value={params.platform}
-                                                    onChange={(e) => setParams({ ...params, platform: e.target.value })}
-                                                    className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
-                                                >
-                                                    <option value="Instagram">Instagram</option>
-                                                    <option value="YouTube">YouTube</option>
-                                                    <option value="TikTok">TikTok</option>
-                                                    <option value="Twitter">Twitter</option>
-                                                    <option value="LinkedIn">LinkedIn</option>
-                                                </select>
-                                            </div>
-
-                                            <button
-                                                onClick={handleGenerateIdeas}
-                                                disabled={isGenerating}
-                                                className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity"
-                                            >
-                                                {isGenerating ? 'Analyzing...' : 'Generate Strategy'}
-                                            </button>
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-dark-200 uppercase tracking-wider">Intelligence Modes</h3>
+                                            <p className="text-xs text-dark-400 mt-1">Select an analysis mode to generate structured intelligence reports.</p>
                                         </div>
+
+                                        {/* Mode Selector */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {INTELLIGENCE_MODES.map(mode => (
+                                                <button key={mode.id} onClick={() => { setSelectedMode(mode.id); setModeResult(null); }} className={`p-3 rounded-xl border text-left transition-all ${selectedMode === mode.id ? 'bg-purple-600/20 border-purple-500 ring-1 ring-purple-500/50' : 'bg-dark-800/50 border-dark-700/50 hover:border-dark-600'}`}>
+                                                    <span className={`text-sm font-medium ${selectedMode === mode.id ? 'text-purple-300' : 'text-dark-200'}`}>{mode.short}</span>
+                                                    <p className="text-xs text-dark-400 mt-0.5 leading-tight">{mode.desc}</p>
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {/* Mode Form */}
+                                        {selectedMode && (
+                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                                                <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
+                                                    <h4 className="text-sm font-medium text-dark-200">{INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label} Parameters</h4>
+                                                    {renderModeForm()}
+                                                </div>
+
+                                                <button onClick={handleRunMode} disabled={isGenerating} className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity">
+                                                    {isGenerating ? 'Analyzing...' : 'Run Analysis'}
+                                                </button>
+                                            </motion.div>
+                                        )}
+
+                                        {/* Mode Result */}
+                                        {modeResult && renderModeResult()}
                                     </div>
                                 )}
 
-                                {/* Creator Toolkit */}
+                                {/* Toolkit Tab */}
                                 {activeTab === 'toolkit' && (
                                     <div className="space-y-5">
                                         <div>
@@ -225,73 +350,24 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
                                         {/* Content Brief */}
                                         <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
-                                            <button
-                                                onClick={() => setToolkitExpanded(toolkitExpanded === 'caption' ? false : 'caption')}
-                                                className="w-full flex items-center justify-between text-left"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <FaMagic className="text-purple-400 text-xs" />
-                                                    <span className="text-sm font-medium text-dark-200">Content Brief</span>
-                                                </div>
+                                            <button onClick={() => setToolkitExpanded(toolkitExpanded === 'caption' ? false : 'caption')} className="w-full flex items-center justify-between text-left">
+                                                <div className="flex items-center gap-2"><FaMagic className="text-purple-400 text-xs" /><span className="text-sm font-medium text-dark-200">Content Brief</span></div>
                                                 {toolkitExpanded === 'caption' ? <FaChevronUp className="text-dark-400 text-xs" /> : <FaChevronDown className="text-dark-400 text-xs" />}
                                             </button>
-
                                             <AnimatePresence>
                                                 {toolkitExpanded === 'caption' && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        className="space-y-3 overflow-hidden"
-                                                    >
+                                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-3 overflow-hidden">
+                                                        <div><label className={labelCls}>Topic / Product</label><input type="text" value={params.topic} onChange={e => setParams({ ...params, topic: e.target.value })} className={inputCls} placeholder="e.g. Summer skincare collection" /></div>
+                                                        <div><label className={labelCls}>Platform</label><select value={params.platform} onChange={e => setParams({ ...params, platform: e.target.value })} className={selectCls}>{PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
                                                         <div>
-                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Topic / Product</label>
-                                                            <input
-                                                                type="text"
-                                                                value={params.topic}
-                                                                onChange={(e) => setParams({ ...params, topic: e.target.value })}
-                                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm"
-                                                                placeholder="e.g. Summer skincare collection"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Platform</label>
-                                                            <select
-                                                                value={params.platform}
-                                                                onChange={(e) => setParams({ ...params, platform: e.target.value })}
-                                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm"
-                                                            >
-                                                                <option value="Instagram">Instagram</option>
-                                                                <option value="YouTube">YouTube</option>
-                                                                <option value="TikTok">TikTok</option>
-                                                                <option value="Twitter">Twitter</option>
-                                                                <option value="LinkedIn">LinkedIn</option>
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Tone</label>
+                                                            <label className={labelCls}>Tone</label>
                                                             <div className="flex gap-2">
                                                                 {['casual', 'professional', 'storytelling', 'promotional'].map(t => (
-                                                                    <button
-                                                                        key={t}
-                                                                        onClick={() => setParams({ ...params, tone: t })}
-                                                                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${params.tone === t
-                                                                            ? 'bg-purple-600 text-white'
-                                                                            : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
-                                                                        }`}
-                                                                    >
-                                                                        {t.charAt(0).toUpperCase() + t.slice(1)}
-                                                                    </button>
+                                                                    <button key={t} onClick={() => setParams({ ...params, tone: t })} className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${params.tone === t ? 'bg-purple-600 text-white' : 'bg-dark-800 text-dark-300 hover:bg-dark-700'}`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
                                                                 ))}
                                                             </div>
                                                         </div>
-                                                        <button
-                                                            onClick={handleGenerateCaption}
-                                                            disabled={isGenerating || !params.topic.trim()}
-                                                            className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-opacity"
-                                                        >
-                                                            {isGenerating ? 'Generating...' : 'Generate Brief'}
-                                                        </button>
+                                                        <button onClick={handleGenerateCaption} disabled={isGenerating || !params.topic.trim()} className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-opacity">{isGenerating ? 'Generating...' : 'Generate Brief'}</button>
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
@@ -299,118 +375,36 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
                                         {/* Discovery Tags */}
                                         <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
-                                            <button
-                                                onClick={() => setToolkitExpanded(toolkitExpanded === 'hashtags' ? false : 'hashtags')}
-                                                className="w-full flex items-center justify-between text-left"
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    <FaHashtag className="text-purple-400 text-xs" />
-                                                    <span className="text-sm font-medium text-dark-200">Discovery Tags</span>
-                                                </div>
+                                            <button onClick={() => setToolkitExpanded(toolkitExpanded === 'hashtags' ? false : 'hashtags')} className="w-full flex items-center justify-between text-left">
+                                                <div className="flex items-center gap-2"><FaHashtag className="text-purple-400 text-xs" /><span className="text-sm font-medium text-dark-200">Discovery Tags</span></div>
                                                 {toolkitExpanded === 'hashtags' ? <FaChevronUp className="text-dark-400 text-xs" /> : <FaChevronDown className="text-dark-400 text-xs" />}
                                             </button>
-
                                             <AnimatePresence>
                                                 {toolkitExpanded === 'hashtags' && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        className="space-y-3 overflow-hidden"
-                                                    >
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Topic</label>
-                                                            <input
-                                                                type="text"
-                                                                value={params.topic}
-                                                                onChange={(e) => setParams({ ...params, topic: e.target.value })}
-                                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm"
-                                                                placeholder="e.g. Sustainable fashion"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Category</label>
-                                                            <select
-                                                                value={params.niche}
-                                                                onChange={(e) => setParams({ ...params, niche: e.target.value })}
-                                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm"
-                                                            >
-                                                                {['Fashion', 'Beauty', 'Tech', 'Lifestyle', 'Food', 'Travel', 'Fitness'].map(cat => (
-                                                                    <option key={cat} value={cat}>{cat}</option>
-                                                                ))}
-                                                            </select>
-                                                        </div>
-                                                        <button
-                                                            onClick={handleGenerateHashtags}
-                                                            disabled={isGenerating}
-                                                            className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-opacity"
-                                                        >
-                                                            {isGenerating ? 'Generating...' : 'Generate Tags'}
-                                                        </button>
+                                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-3 overflow-hidden">
+                                                        <div><label className={labelCls}>Topic</label><input type="text" value={params.topic} onChange={e => setParams({ ...params, topic: e.target.value })} className={inputCls} placeholder="e.g. Sustainable fashion" /></div>
+                                                        <div><label className={labelCls}>Category</label><select value={params.niche} onChange={e => setParams({ ...params, niche: e.target.value })} className={selectCls}>{NICHES.slice(0, 7).map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+                                                        <button onClick={handleGenerateHashtags} disabled={isGenerating} className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-opacity">{isGenerating ? 'Generating...' : 'Generate Tags'}</button>
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
                                         </div>
-                                    </div>
-                                )}
 
-                                {/* Generated Content Display */}
-                                {generatedContent && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="bg-dark-800 border border-dark-700 rounded-xl p-4 space-y-3"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="font-semibold text-dark-100">Output</h3>
-                                            <button
-                                                onClick={() => copyToClipboard(
-                                                    Array.isArray(generatedContent.content)
-                                                        ? generatedContent.content.join(' ')
-                                                        : generatedContent.content
-                                                )}
-                                                className="p-2 hover:bg-dark-700 rounded-lg transition-colors"
-                                            >
-                                                <FaCopy className="text-dark-400" />
-                                            </button>
-                                        </div>
-
-                                        <div className="text-dark-200 text-sm whitespace-pre-wrap">
-                                            {generatedContent.type === 'hashtags' && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {generatedContent.content.map((tag, i) => (
-                                                        <span key={i} className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded">
-                                                            {tag}
-                                                        </span>
-                                                    ))}
+                                        {/* Toolkit Generated Content */}
+                                        {generatedContent && (
+                                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-dark-800 border border-dark-700 rounded-xl p-4 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="font-semibold text-dark-100">Output</h3>
+                                                    <button onClick={() => copyToClipboard(Array.isArray(generatedContent.content) ? generatedContent.content.join(' ') : generatedContent.content)} className="p-2 hover:bg-dark-700 rounded-lg transition-colors"><FaCopy className="text-dark-400" /></button>
                                                 </div>
-                                            )}
-
-                                            {generatedContent.type === 'ideas' && (
-                                                <ul className="space-y-2">
-                                                    {generatedContent.content.map((idea, i) => (
-                                                        <li key={i} className="flex items-start gap-2">
-                                                            <span className="text-purple-400">{i + 1}.</span>
-                                                            <span>{idea}</span>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            )}
-
-                                            {generatedContent.type === 'caption' && (
-                                                <p>{generatedContent.content}</p>
-                                            )}
-                                        </div>
-
-                                        {onUse && (
-                                            <button
-                                                onClick={useContent}
-                                                className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
-                                            >
-                                                Use This Content
-                                            </button>
+                                                <div className="text-dark-200 text-sm whitespace-pre-wrap">
+                                                    {generatedContent.type === 'hashtags' && (<div className="flex flex-wrap gap-2">{generatedContent.content.map((tag, i) => (<span key={i} className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded">{tag}</span>))}</div>)}
+                                                    {generatedContent.type === 'caption' && (<p>{generatedContent.content}</p>)}
+                                                </div>
+                                                {onUse && (<button onClick={useContent} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">Use This Content</button>)}
+                                            </motion.div>
                                         )}
-                                    </motion.div>
+                                    </div>
                                 )}
                             </div>
                         </motion.div>

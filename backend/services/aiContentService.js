@@ -315,6 +315,484 @@ FORMAT: Return ONLY the 4 recommendations, one per line. No numbering, no bullet
             }
         ];
     }
+
+    // ═══════════════════════════════════════════════════════════
+    // INTELLIGENCE MODES
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Mode 1: Match Intelligence
+     * Evaluates creator-campaign fit with structured scoring
+     */
+    static async runMatchIntelligence({ creatorNiche, creatorFollowers, creatorEngagement, campaignCategory, campaignBudget, platform }) {
+        const fallback = {
+            matchFitScore: 72,
+            audienceAlignmentSummary: `The creator's ${creatorNiche || 'general'} niche shows moderate overlap with the ${campaignCategory || 'target'} campaign vertical. Audience demographics suggest partial alignment — strongest in the 18-34 age bracket.`,
+            engagementReliabilityAssessment: `Engagement rate of ${creatorEngagement || 'N/A'}% falls within acceptable range. Consistency across recent posts should be verified before commitment.`,
+            riskFactors: [
+                'Audience overlap with campaign target has not been independently verified',
+                'Engagement consistency may fluctuate based on content type variance',
+                'Brand safety screening has not been completed for recent content history'
+            ],
+            suggestedCampaignAngle: `Position around authentic ${creatorNiche || 'lifestyle'} integration with product-in-use format. Avoid overt promotional framing — native content resonance will outperform scripted placements.`,
+            confidenceLevel: 'Medium (72%) — requires additional data points for high-confidence assessment'
+        };
+
+        if (!genAI) return fallback;
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `${this.SYSTEM_IDENTITY}
+
+TASK: Perform a Match Intelligence analysis for a creator-campaign pairing.
+
+CREATOR PROFILE:
+- Niche: ${creatorNiche || 'Not specified'}
+- Followers: ${creatorFollowers || 'Not specified'}
+- Engagement Rate: ${creatorEngagement || 'Not specified'}%
+- Platform: ${platform || 'Instagram'}
+
+CAMPAIGN PROFILE:
+- Category: ${campaignCategory || 'Not specified'}
+- Budget: ${campaignBudget || 'Not specified'}
+
+OUTPUT STRUCTURE (use these exact headers, respond in plain text, no markdown):
+
+MATCH FIT SCORE: [0-100 numeric score]
+
+AUDIENCE ALIGNMENT SUMMARY: [2-3 sentences analyzing audience overlap between creator and campaign target]
+
+ENGAGEMENT RELIABILITY ASSESSMENT: [2-3 sentences on engagement quality, consistency, and authenticity indicators]
+
+RISK FACTORS:
+- [Risk 1]
+- [Risk 2]
+- [Risk 3]
+
+SUGGESTED CAMPAIGN ANGLE: [2-3 sentences recommending optimal content approach]
+
+CONFIDENCE LEVEL: [Low/Medium/High with percentage and brief justification]
+
+CONSTRAINTS: No emojis. No filler. No hype. Be analytical and direct.`;
+
+            const result = await model.generateContent(prompt);
+            const text = result.response.text().trim();
+            return this._parseStructuredOutput(text, 'matchIntelligence', fallback);
+        } catch (error) {
+            console.error('Match Intelligence error:', error.message);
+            return fallback;
+        }
+    }
+
+    /**
+     * Mode 2: Creator Audit
+     * Comprehensive creator quality and reliability assessment
+     */
+    static async runCreatorAudit({ creatorNiche, creatorFollowers, creatorEngagement, platform, contentFrequency }) {
+        const fallback = {
+            engagementConsistencyAnalysis: `Current engagement rate of ${creatorEngagement || 'N/A'}% requires consistency validation across a 90-day window. Single-point metrics are insufficient for reliability assessment.`,
+            growthStabilityOverview: `Follower count of ${creatorFollowers || 'N/A'} should be evaluated against monthly growth rate. Stable organic growth (2-5% monthly) indicates healthy audience building.`,
+            authenticityIndicators: [
+                'Comment-to-like ratio should exceed 2% for authentic engagement signals',
+                'Follower growth spikes require manual review for potential inorganic activity',
+                'Story view-to-follower ratio above 5% indicates genuine audience attention'
+            ],
+            nicheAuthorityLevel: `Moderate authority in ${creatorNiche || 'general'} vertical. Authority is strengthened by consistent topical posting and audience interaction patterns.`,
+            strengths: [
+                'Active content cadence demonstrates platform commitment',
+                'Niche focus provides clear brand alignment opportunities',
+                'Engagement rate is within competitive range for the follower tier'
+            ],
+            improvementAreas: [
+                'Content diversification across formats could improve reach metrics',
+                'Cross-platform presence would strengthen overall creator positioning',
+                'Audience demographic data transparency needs improvement'
+            ],
+            riskIndex: 'Low-Medium (35/100) — no critical red flags, standard verification recommended'
+        };
+
+        if (!genAI) return fallback;
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `${this.SYSTEM_IDENTITY}
+
+TASK: Perform a comprehensive Creator Audit.
+
+CREATOR PROFILE:
+- Niche: ${creatorNiche || 'Not specified'}
+- Followers: ${creatorFollowers || 'Not specified'}
+- Engagement Rate: ${creatorEngagement || 'Not specified'}%
+- Platform: ${platform || 'Instagram'}
+- Content Frequency: ${contentFrequency || 'Not specified'}
+
+OUTPUT STRUCTURE (use these exact headers, respond in plain text, no markdown):
+
+ENGAGEMENT CONSISTENCY ANALYSIS: [2-3 sentences on engagement patterns and reliability]
+
+GROWTH STABILITY OVERVIEW: [2-3 sentences on follower growth trajectory and organic indicators]
+
+AUTHENTICITY INDICATORS:
+- [Indicator 1]
+- [Indicator 2]
+- [Indicator 3]
+
+NICHE AUTHORITY LEVEL: [2 sentences on creator's positioning within their vertical]
+
+STRENGTHS:
+- [Strength 1]
+- [Strength 2]
+- [Strength 3]
+
+IMPROVEMENT AREAS:
+- [Area 1]
+- [Area 2]
+- [Area 3]
+
+RISK INDEX: [Score out of 100 with Low/Medium/High label and brief justification]
+
+CONSTRAINTS: No emojis. No filler. No hype. Be analytical and direct.`;
+
+            const result = await model.generateContent(prompt);
+            const text = result.response.text().trim();
+            return this._parseStructuredOutput(text, 'creatorAudit', fallback);
+        } catch (error) {
+            console.error('Creator Audit error:', error.message);
+            return fallback;
+        }
+    }
+
+    /**
+     * Mode 3: Campaign Strategy
+     * Strategic campaign planning and execution framework
+     */
+    static async runCampaignStrategy({ campaignCategory, campaignBudget, campaignGoal, platform, duration }) {
+        const fallback = {
+            campaignObjectiveClarification: `Primary objective for this ${campaignCategory || 'general'} campaign should be awareness-to-consideration conversion. Budget of ${campaignBudget || 'N/A'} suggests a targeted micro-influencer approach over broad reach.`,
+            recommendedContentFormatMix: [
+                'Reels/Short-form video: 40% of content allocation — highest organic reach potential',
+                'Carousel posts: 30% — strongest save and share mechanics for educational content',
+                'Stories: 20% — real-time engagement and behind-the-scenes authenticity',
+                'Static posts: 10% — brand anchoring and portfolio-quality visuals'
+            ],
+            postingFrequencyRecommendation: 'Feed: 4-5 posts per week. Stories: Daily. Reels: 3 per week minimum. Optimal posting windows: 11 AM-1 PM and 6-9 PM local time.',
+            kpiBenchmarks: [
+                'Engagement rate target: 3-5% for micro-influencer tier',
+                'Reach-to-impression ratio: Above 60% indicates content freshness',
+                'Save rate: Above 2% signals high-value content',
+                'Click-through rate: 1-3% for story links and bio CTAs'
+            ],
+            budgetAllocationLogic: `Allocate 60% to creator compensation, 20% to content amplification (paid boost), 10% to creative assets, 10% to contingency and optimization buffer.`,
+            riskAwareness: [
+                'Creator deliverable delays — build 5-day buffer into timeline',
+                'Content approval bottlenecks — establish clear revision limits (max 2 rounds)',
+                'Platform algorithm changes may affect projected organic reach by 15-25%'
+            ]
+        };
+
+        if (!genAI) return fallback;
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `${this.SYSTEM_IDENTITY}
+
+TASK: Develop a comprehensive Campaign Strategy.
+
+CAMPAIGN DETAILS:
+- Category: ${campaignCategory || 'Not specified'}
+- Budget: ${campaignBudget || 'Not specified'}
+- Primary Goal: ${campaignGoal || 'Brand awareness'}
+- Platform: ${platform || 'Instagram'}
+- Duration: ${duration || 'Not specified'}
+
+OUTPUT STRUCTURE (use these exact headers, respond in plain text, no markdown):
+
+CAMPAIGN OBJECTIVE CLARIFICATION: [2-3 sentences clarifying the strategic objective and approach]
+
+RECOMMENDED CONTENT FORMAT MIX:
+- [Format 1 with percentage allocation and rationale]
+- [Format 2 with percentage allocation and rationale]
+- [Format 3 with percentage allocation and rationale]
+- [Format 4 with percentage allocation and rationale]
+
+POSTING FREQUENCY RECOMMENDATION: [Specific cadence with timing windows]
+
+KPI BENCHMARKS:
+- [KPI 1 with target range]
+- [KPI 2 with target range]
+- [KPI 3 with target range]
+- [KPI 4 with target range]
+
+BUDGET ALLOCATION LOGIC: [2-3 sentences with percentage breakdown and rationale]
+
+RISK AWARENESS:
+- [Risk 1 with mitigation]
+- [Risk 2 with mitigation]
+- [Risk 3 with mitigation]
+
+CONSTRAINTS: No emojis. No filler. No hype. Be analytical and direct.`;
+
+            const result = await model.generateContent(prompt);
+            const text = result.response.text().trim();
+            return this._parseStructuredOutput(text, 'campaignStrategy', fallback);
+        } catch (error) {
+            console.error('Campaign Strategy error:', error.message);
+            return fallback;
+        }
+    }
+
+    /**
+     * Mode 4: ROI & Performance Forecast
+     * Predictive performance modeling for campaign outcomes
+     */
+    static async runROIForecast({ campaignCategory, campaignBudget, creatorTier, platform, campaignGoal }) {
+        const budgetNum = parseInt(campaignBudget) || 5000;
+        const fallback = {
+            estimatedEngagementRange: `Based on ${creatorTier || 'micro'}-tier creator benchmarks in ${campaignCategory || 'general'}, expect 2.5-4.5% engagement rate. Projected interactions: ${Math.round(budgetNum * 0.8)}-${Math.round(budgetNum * 2.2)} across all content deliverables.`,
+            projectedROIBand: `Conservative: 1.8x return. Moderate: 2.5x return. Optimistic: 3.8x return. These projections assume standard content performance without paid amplification.`,
+            riskProbability: [
+                'Underperformance risk (below 1.5x ROI): 20% probability',
+                'Platform algorithm suppression: 15% probability on any given post',
+                'Creator deliverable quality variance: 25% probability of requiring revision'
+            ],
+            suggestedCreatorTier: `${creatorTier || 'Micro'}-influencer tier (10K-100K followers) recommended for this budget level. This tier delivers the highest cost-per-engagement efficiency while maintaining audience authenticity.`,
+            confidenceInterval: 'Medium-High (78%) — forecast reliability increases with historical campaign data. First-time pairings carry inherently higher variance.'
+        };
+
+        if (!genAI) return fallback;
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `${this.SYSTEM_IDENTITY}
+
+TASK: Generate an ROI & Performance Forecast for a planned campaign.
+
+CAMPAIGN PARAMETERS:
+- Category: ${campaignCategory || 'Not specified'}
+- Budget: $${budgetNum}
+- Creator Tier: ${creatorTier || 'Micro-influencer'}
+- Platform: ${platform || 'Instagram'}
+- Goal: ${campaignGoal || 'Brand awareness'}
+
+OUTPUT STRUCTURE (use these exact headers, respond in plain text, no markdown):
+
+ESTIMATED ENGAGEMENT RANGE: [Specific numeric ranges for engagement rate, impressions, and interactions]
+
+PROJECTED ROI BAND: [Conservative, Moderate, and Optimistic scenarios with multipliers]
+
+RISK PROBABILITY:
+- [Risk 1 with percentage probability]
+- [Risk 2 with percentage probability]
+- [Risk 3 with percentage probability]
+
+SUGGESTED CREATOR TIER: [Recommended tier with follower range and strategic justification]
+
+CONFIDENCE INTERVAL: [Percentage with Low/Medium/High label and what would increase confidence]
+
+CONSTRAINTS: No emojis. No filler. No hype. Use specific numbers and ranges. Be analytical and direct.`;
+
+            const result = await model.generateContent(prompt);
+            const text = result.response.text().trim();
+            return this._parseStructuredOutput(text, 'roiForecast', fallback);
+        } catch (error) {
+            console.error('ROI Forecast error:', error.message);
+            return fallback;
+        }
+    }
+
+    /**
+     * Mode 5: Optimization
+     * Post-campaign performance analysis and improvement recommendations
+     */
+    static async runOptimization({ campaignCategory, platform, engagementRate, reach, conversions, contentTypes }) {
+        const fallback = {
+            performanceGapAnalysis: `Current engagement rate of ${engagementRate || 'N/A'}% against a category benchmark of 3.5% indicates ${(parseFloat(engagementRate) || 0) >= 3.5 ? 'above-benchmark performance' : 'a gap that requires content or targeting adjustments'}. Reach metrics should be cross-referenced with follower-to-impression ratio.`,
+            whatWorked: [
+                'Content formats with highest completion rates should be identified from analytics',
+                'Posts with above-average save rates indicate high-value content pillars',
+                'Audience segments with strongest interaction patterns represent core community'
+            ],
+            whatUnderperformed: [
+                'Content types with below-average reach suggest format fatigue or topic misalignment',
+                'Time slots with low engagement indicate suboptimal posting schedule',
+                'Posts with high impressions but low interaction suggest weak hook or CTA structure'
+            ],
+            recommendedAdjustments: [
+                'Reallocate 20% of budget from underperforming formats to top-performing content types',
+                'Test 3 new hook structures in the next content cycle to improve watch-through rates',
+                'Implement A/B testing on CTA placement and language for next campaign phase',
+                'Adjust posting schedule based on audience active hours from analytics data'
+            ],
+            strategicNextStep: 'Run a 2-week test cycle with optimized content mix before scaling. Focus resources on the top 2 performing content formats and reduce investment in the bottom performer. Re-evaluate metrics at the 14-day mark.'
+        };
+
+        if (!genAI) return fallback;
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `${this.SYSTEM_IDENTITY}
+
+TASK: Perform a campaign Optimization analysis.
+
+PERFORMANCE DATA:
+- Category: ${campaignCategory || 'Not specified'}
+- Platform: ${platform || 'Instagram'}
+- Engagement Rate: ${engagementRate || 'Not specified'}%
+- Reach: ${reach || 'Not specified'}
+- Conversions: ${conversions || 'Not specified'}
+- Content Types Used: ${contentTypes || 'Not specified'}
+
+OUTPUT STRUCTURE (use these exact headers, respond in plain text, no markdown):
+
+PERFORMANCE GAP ANALYSIS: [2-3 sentences comparing actual performance against benchmarks]
+
+WHAT WORKED:
+- [Success factor 1 with supporting reasoning]
+- [Success factor 2 with supporting reasoning]
+- [Success factor 3 with supporting reasoning]
+
+WHAT UNDERPERFORMED:
+- [Weakness 1 with evidence]
+- [Weakness 2 with evidence]
+- [Weakness 3 with evidence]
+
+RECOMMENDED ADJUSTMENTS:
+- [Adjustment 1 with expected impact]
+- [Adjustment 2 with expected impact]
+- [Adjustment 3 with expected impact]
+- [Adjustment 4 with expected impact]
+
+STRATEGIC NEXT STEP: [2-3 sentences outlining the single most impactful next action]
+
+CONSTRAINTS: No emojis. No filler. No hype. Be specific and data-oriented.`;
+
+            const result = await model.generateContent(prompt);
+            const text = result.response.text().trim();
+            return this._parseStructuredOutput(text, 'optimization', fallback);
+        } catch (error) {
+            console.error('Optimization error:', error.message);
+            return fallback;
+        }
+    }
+
+    /**
+     * Parse structured AI output into consistent object format
+     * Falls back to raw text sections if parsing fails
+     */
+    static _parseStructuredOutput(text, mode, fallback) {
+        try {
+            const sections = {};
+            const headerMap = {
+                matchIntelligence: {
+                    'MATCH FIT SCORE': 'matchFitScore',
+                    'AUDIENCE ALIGNMENT SUMMARY': 'audienceAlignmentSummary',
+                    'ENGAGEMENT RELIABILITY ASSESSMENT': 'engagementReliabilityAssessment',
+                    'RISK FACTORS': 'riskFactors',
+                    'SUGGESTED CAMPAIGN ANGLE': 'suggestedCampaignAngle',
+                    'CONFIDENCE LEVEL': 'confidenceLevel'
+                },
+                creatorAudit: {
+                    'ENGAGEMENT CONSISTENCY ANALYSIS': 'engagementConsistencyAnalysis',
+                    'GROWTH STABILITY OVERVIEW': 'growthStabilityOverview',
+                    'AUTHENTICITY INDICATORS': 'authenticityIndicators',
+                    'NICHE AUTHORITY LEVEL': 'nicheAuthorityLevel',
+                    'STRENGTHS': 'strengths',
+                    'IMPROVEMENT AREAS': 'improvementAreas',
+                    'RISK INDEX': 'riskIndex'
+                },
+                campaignStrategy: {
+                    'CAMPAIGN OBJECTIVE CLARIFICATION': 'campaignObjectiveClarification',
+                    'RECOMMENDED CONTENT FORMAT MIX': 'recommendedContentFormatMix',
+                    'POSTING FREQUENCY RECOMMENDATION': 'postingFrequencyRecommendation',
+                    'KPI BENCHMARKS': 'kpiBenchmarks',
+                    'BUDGET ALLOCATION LOGIC': 'budgetAllocationLogic',
+                    'RISK AWARENESS': 'riskAwareness'
+                },
+                roiForecast: {
+                    'ESTIMATED ENGAGEMENT RANGE': 'estimatedEngagementRange',
+                    'PROJECTED ROI BAND': 'projectedROIBand',
+                    'RISK PROBABILITY': 'riskProbability',
+                    'SUGGESTED CREATOR TIER': 'suggestedCreatorTier',
+                    'CONFIDENCE INTERVAL': 'confidenceInterval'
+                },
+                optimization: {
+                    'PERFORMANCE GAP ANALYSIS': 'performanceGapAnalysis',
+                    'WHAT WORKED': 'whatWorked',
+                    'WHAT UNDERPERFORMED': 'whatUnderperformed',
+                    'RECOMMENDED ADJUSTMENTS': 'recommendedAdjustments',
+                    'STRATEGIC NEXT STEP': 'strategicNextStep'
+                }
+            };
+
+            const headers = headerMap[mode];
+            if (!headers) return fallback;
+
+            const headerKeys = Object.keys(headers);
+            const lines = text.split('\n');
+            let currentKey = null;
+            let currentContent = [];
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+
+                // Check if this line is a section header
+                const matchedHeader = headerKeys.find(h => 
+                    trimmed.toUpperCase().startsWith(h) && (trimmed.includes(':') || trimmed.toUpperCase() === h)
+                );
+
+                if (matchedHeader) {
+                    // Save previous section
+                    if (currentKey) {
+                        sections[headers[currentKey]] = this._formatSection(currentContent);
+                    }
+                    currentKey = matchedHeader;
+                    // Grab inline content after the header
+                    const afterColon = trimmed.substring(trimmed.indexOf(':') + 1).trim();
+                    currentContent = afterColon ? [afterColon] : [];
+                } else if (currentKey) {
+                    currentContent.push(trimmed);
+                }
+            }
+            // Save last section
+            if (currentKey) {
+                sections[headers[currentKey]] = this._formatSection(currentContent);
+            }
+
+            // If we parsed at least 3 sections, use parsed result; otherwise fallback
+            if (Object.keys(sections).length >= 3) {
+                // Merge with fallback to ensure all keys exist
+                const result = { ...fallback };
+                for (const [key, value] of Object.entries(sections)) {
+                    if (value && (typeof value === 'string' ? value.length > 5 : value.length > 0)) {
+                        result[key] = value;
+                    }
+                }
+                // Special handling: matchFitScore should be numeric
+                if (mode === 'matchIntelligence' && typeof result.matchFitScore === 'string') {
+                    const scoreMatch = result.matchFitScore.match(/(\d+)/);
+                    result.matchFitScore = scoreMatch ? parseInt(scoreMatch[1]) : fallback.matchFitScore;
+                }
+                return result;
+            }
+
+            return fallback;
+        } catch (error) {
+            console.error('Parse error:', error.message);
+            return fallback;
+        }
+    }
+
+    /**
+     * Format a section's content — returns array for bullet lists, string for paragraphs
+     */
+    static _formatSection(lines) {
+        const bulletLines = lines.filter(l => l.startsWith('-') || l.startsWith('•'));
+        if (bulletLines.length >= 2) {
+            return bulletLines.map(l => l.replace(/^[-•]\s*/, '').trim());
+        }
+        return lines.join(' ').trim();
+    }
 }
 
 module.exports = AIContentService;

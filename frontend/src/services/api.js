@@ -208,6 +208,12 @@ export const aiAPI = {
     getRecommendations: (campaignId) => api.get(`ai/recommendations/${campaignId}`),
     getMarketInsights: () => api.get('ai/market-insights'),
     getProfileTips: (data) => api.post('ai/profile-tips', data),
+    // Intelligence Modes
+    runMatchIntelligence: (data) => api.post('ai/mode/match-intelligence', data),
+    runCreatorAudit: (data) => api.post('ai/mode/creator-audit', data),
+    runCampaignStrategy: (data) => api.post('ai/mode/campaign-strategy', data),
+    runROIForecast: (data) => api.post('ai/mode/roi-forecast', data),
+    runOptimization: (data) => api.post('ai/mode/optimization', data),
     // AI Engine v2 endpoints
     getCQI: (creatorId) => api.get(`ai/engine/cqi/${creatorId}`),
     getCampaignPrediction: (matchId) => api.get(`ai/engine/predict/${matchId}`),

@@ -248,6 +248,85 @@ router.post('/profile-tips', auth, async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
+// INTELLIGENCE MODES
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * @route   POST /api/ai/mode/match-intelligence
+ * @desc    Run Match Intelligence analysis
+ * @access  Private
+ */
+router.post('/mode/match-intelligence', auth, async (req, res) => {
+    try {
+        const result = await AIContentService.runMatchIntelligence(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Match Intelligence error:', error);
+        res.status(500).json({ success: false, message: 'Failed to run match intelligence' });
+    }
+});
+
+/**
+ * @route   POST /api/ai/mode/creator-audit
+ * @desc    Run Creator Audit analysis
+ * @access  Private
+ */
+router.post('/mode/creator-audit', auth, async (req, res) => {
+    try {
+        const result = await AIContentService.runCreatorAudit(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Creator Audit error:', error);
+        res.status(500).json({ success: false, message: 'Failed to run creator audit' });
+    }
+});
+
+/**
+ * @route   POST /api/ai/mode/campaign-strategy
+ * @desc    Run Campaign Strategy analysis
+ * @access  Private
+ */
+router.post('/mode/campaign-strategy', auth, async (req, res) => {
+    try {
+        const result = await AIContentService.runCampaignStrategy(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Campaign Strategy error:', error);
+        res.status(500).json({ success: false, message: 'Failed to run campaign strategy' });
+    }
+});
+
+/**
+ * @route   POST /api/ai/mode/roi-forecast
+ * @desc    Run ROI & Performance Forecast
+ * @access  Private
+ */
+router.post('/mode/roi-forecast', auth, async (req, res) => {
+    try {
+        const result = await AIContentService.runROIForecast(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('ROI Forecast error:', error);
+        res.status(500).json({ success: false, message: 'Failed to run ROI forecast' });
+    }
+});
+
+/**
+ * @route   POST /api/ai/mode/optimization
+ * @desc    Run Optimization analysis
+ * @access  Private
+ */
+router.post('/mode/optimization', auth, async (req, res) => {
+    try {
+        const result = await AIContentService.runOptimization(req.body);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.error('Optimization error:', error);
+        res.status(500).json({ success: false, message: 'Failed to run optimization' });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
 // AI ENGINE v2 — Predictive Intelligence Routes
 // ═══════════════════════════════════════════════════════════════
 
