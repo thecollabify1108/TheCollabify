@@ -1,19 +1,20 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaCopy } from 'react-icons/fa';
+import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaCopy, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { aiAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 /**
- * AI Content Assistant Panel
- * Floating panel for AI-powered content generation
+ * Collabify Intelligence Copilot
+ * Floating panel for campaign intelligence and creator toolkit utilities
  */
 const AIAssistantPanel = ({ campaign = {}, onUse }) => {
     const [isOpen, setIsOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState('captions');
+    const [activeTab, setActiveTab] = useState('strategy');
     const [generatedContent, setGeneratedContent] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [toolkitExpanded, setToolkitExpanded] = useState(false);
 
     const [params, setParams] = useState({
         topic: campaign.title || '',
@@ -21,8 +22,6 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
         platform: 'Instagram',
         tone: 'professional'
     });
-
-    // captionParams removed — unused dead code
 
     const handleGenerateCaption = async () => {
         setIsGenerating(true);
@@ -34,10 +33,10 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
             });
             if (res.data.success) {
                 setGeneratedContent({ type: 'caption', content: res.data.data.caption });
-                toast.success('Caption generated!');
+                toast.success('Content brief generated');
             }
         } catch (err) {
-            toast.error('Failed to generate caption');
+            toast.error('Failed to generate content brief');
         } finally {
             setIsGenerating(false);
         }
@@ -52,10 +51,10 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
             });
             if (res.data.success) {
                 setGeneratedContent({ type: 'hashtags', content: res.data.data.hashtags });
-                toast.success('Hashtags generated!');
+                toast.success('Discovery tags generated');
             }
         } catch (err) {
-            toast.error('Failed to generate hashtags');
+            toast.error('Failed to generate tags');
         } finally {
             setIsGenerating(false);
         }
@@ -70,10 +69,10 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
             });
             if (res.data.success) {
                 setGeneratedContent({ type: 'ideas', content: res.data.data.ideas });
-                toast.success('Ideas generated!');
+                toast.success('Strategy recommendations generated');
             }
         } catch (err) {
-            toast.error('Failed to generate ideas');
+            toast.error('Failed to generate strategy');
         } finally {
             setIsGenerating(false);
         }
@@ -81,13 +80,13 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        toast.success('Copied to clipboard!');
+        toast.success('Copied to clipboard');
     };
 
     const useContent = () => {
         if (generatedContent && onUse) {
             onUse(generatedContent);
-            toast.success('Content applied!');
+            toast.success('Content applied');
         }
     };
 
@@ -132,8 +131,8 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                     <div className="flex items-center gap-3">
                                         <HiSparkles className="text-3xl text-white" />
                                         <div>
-                                            <h2 className="text-xl font-bold text-white">AI Assistant</h2>
-                                            <p className="text-white/80 text-sm">Powered by TheCollabify AI</p>
+                                            <h2 className="text-xl font-bold text-white">Intelligence Copilot</h2>
+                                            <p className="text-white/80 text-sm">Collabify Campaign Intelligence</p>
                                         </div>
                                     </div>
                                     <button
@@ -147,9 +146,8 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                 {/* Tabs */}
                                 <div className="flex gap-2 mt-4">
                                     {[
-                                        { id: 'captions', label: 'Captions', icon: <FaMagic /> },
-                                        { id: 'hashtags', label: 'Hashtags', icon: <FaHashtag /> },
-                                        { id: 'ideas', label: 'Ideas', icon: <FaLightbulb /> }
+                                        { id: 'strategy', label: 'Strategy', icon: <FaLightbulb /> },
+                                        { id: 'toolkit', label: 'Toolkit', icon: <FaMagic /> }
                                     ].map(tab => (
                                         <button
                                             key={tab.id}
@@ -157,7 +155,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                             className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id
                                                 ? 'bg-white text-purple-600'
                                                 : 'bg-white/20 text-white hover:bg-white/30'
-                                                }`}
+                                            }`}
                                         >
                                             <span className="flex items-center justify-center gap-1">
                                                 {tab.icon}
@@ -170,120 +168,189 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
                             {/* Content */}
                             <div className="p-6 space-y-6">
-                                {/* Caption Generator */}
-                                {activeTab === 'captions' && (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Topic / Product
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={params.topic}
-                                                onChange={(e) => setParams({ ...params, topic: e.target.value })}
-                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
-                                                placeholder="e.g. Summer skincare collection"
-                                            />
-                                        </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Platform
-                                            </label>
-                                            <select
-                                                value={params.platform}
-                                                onChange={(e) => setParams({ ...params, platform: e.target.value })}
-                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
-                                            >
-                                                <option value="Instagram">Instagram</option>
-                                                <option value="YouTube">YouTube</option>
-                                                <option value="TikTok">TikTok</option>
-                                                <option value="Twitter">Twitter</option>
-                                                <option value="LinkedIn">LinkedIn</option>
-                                            </select>
-                                        </div>
+                                {/* Strategy Tab */}
+                                {activeTab === 'strategy' && (
+                                    <div className="space-y-5">
+                                        <div className="space-y-3">
+                                            <h3 className="text-sm font-semibold text-dark-200 uppercase tracking-wider">Performance Strategy Engine</h3>
+                                            <p className="text-xs text-dark-400">Generate data-driven content strategy recommendations based on your niche and platform.</p>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Tone
-                                            </label>
-                                            <div className="flex gap-2">
-                                                {['casual', 'professional', 'storytelling', 'promotional'].map(t => (
-                                                    <button
-                                                        key={t}
-                                                        onClick={() => setParams({ ...params, tone: t })}
-                                                        className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${params.tone === t
-                                                            ? 'bg-purple-600 text-white'
-                                                            : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
-                                                            }`}
-                                                    >
-                                                        {t.charAt(0).toUpperCase() + t.slice(1)}
-                                                    </button>
-                                                ))}
+                                            <div>
+                                                <label className="block text-sm font-medium text-dark-200 mb-2">Category / Niche</label>
+                                                <select
+                                                    value={params.niche}
+                                                    onChange={(e) => setParams({ ...params, niche: e.target.value })}
+                                                    className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
+                                                >
+                                                    {['Fashion', 'Beauty', 'Tech', 'Lifestyle', 'Food', 'Travel', 'Fitness', 'Gaming', 'Education', 'Business'].map(cat => (
+                                                        <option key={cat} value={cat}>{cat}</option>
+                                                    ))}
+                                                </select>
                                             </div>
-                                        </div>
 
-                                        <button
-                                            onClick={handleGenerateCaption}
-                                            disabled={isGenerating || !params.topic.trim()}
-                                            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity"
-                                        >
-                                            {isGenerating ? 'Generating...' : 'Generate Caption'}
-                                        </button>
-                                    </div>
-                                )}
+                                            <div>
+                                                <label className="block text-sm font-medium text-dark-200 mb-2">Platform</label>
+                                                <select
+                                                    value={params.platform}
+                                                    onChange={(e) => setParams({ ...params, platform: e.target.value })}
+                                                    className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
+                                                >
+                                                    <option value="Instagram">Instagram</option>
+                                                    <option value="YouTube">YouTube</option>
+                                                    <option value="TikTok">TikTok</option>
+                                                    <option value="Twitter">Twitter</option>
+                                                    <option value="LinkedIn">LinkedIn</option>
+                                                </select>
+                                            </div>
 
-                                {/* Hashtags Generator */}
-                                {activeTab === 'hashtags' && (
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Topic
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={params.topic}
-                                                onChange={(e) => setParams({ ...params, topic: e.target.value })}
-                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
-                                                placeholder="e.g. Sustainable fashion"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-dark-200 mb-2">
-                                                Category
-                                            </label>
-                                            <select
-                                                value={params.niche}
-                                                onChange={(e) => setParams({ ...params, niche: e.target.value })}
-                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none"
+                                            <button
+                                                onClick={handleGenerateIdeas}
+                                                disabled={isGenerating}
+                                                className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity"
                                             >
-                                                {['Fashion', 'Beauty', 'Tech', 'Lifestyle', 'Food', 'Travel', 'Fitness'].map(cat => (
-                                                    <option key={cat} value={cat}>{cat}</option>
-                                                ))}
-                                            </select>
+                                                {isGenerating ? 'Analyzing...' : 'Generate Strategy'}
+                                            </button>
                                         </div>
-
-                                        <button
-                                            onClick={handleGenerateHashtags}
-                                            disabled={isGenerating}
-                                            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity"
-                                        >
-                                            {isGenerating ? 'Generating...' : 'Generate Hashtags'}
-                                        </button>
                                     </div>
                                 )}
 
-                                {/* Content Ideas */}
-                                {activeTab === 'ideas' && (
-                                    <div className="space-y-4">
-                                        <button
-                                            onClick={handleGenerateIdeas}
-                                            disabled={isGenerating}
-                                            className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity"
-                                        >
-                                            {isGenerating ? 'Generating...' : 'Generate Content Ideas'}
-                                        </button>
+                                {/* Creator Toolkit */}
+                                {activeTab === 'toolkit' && (
+                                    <div className="space-y-5">
+                                        <div>
+                                            <h3 className="text-sm font-semibold text-dark-200 uppercase tracking-wider">Creator Toolkit</h3>
+                                            <p className="text-xs text-dark-400 mt-1">Utility tools for content creation support.</p>
+                                        </div>
+
+                                        {/* Content Brief */}
+                                        <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
+                                            <button
+                                                onClick={() => setToolkitExpanded(toolkitExpanded === 'caption' ? false : 'caption')}
+                                                className="w-full flex items-center justify-between text-left"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <FaMagic className="text-purple-400 text-xs" />
+                                                    <span className="text-sm font-medium text-dark-200">Content Brief</span>
+                                                </div>
+                                                {toolkitExpanded === 'caption' ? <FaChevronUp className="text-dark-400 text-xs" /> : <FaChevronDown className="text-dark-400 text-xs" />}
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {toolkitExpanded === 'caption' && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="space-y-3 overflow-hidden"
+                                                    >
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Topic / Product</label>
+                                                            <input
+                                                                type="text"
+                                                                value={params.topic}
+                                                                onChange={(e) => setParams({ ...params, topic: e.target.value })}
+                                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm"
+                                                                placeholder="e.g. Summer skincare collection"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Platform</label>
+                                                            <select
+                                                                value={params.platform}
+                                                                onChange={(e) => setParams({ ...params, platform: e.target.value })}
+                                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm"
+                                                            >
+                                                                <option value="Instagram">Instagram</option>
+                                                                <option value="YouTube">YouTube</option>
+                                                                <option value="TikTok">TikTok</option>
+                                                                <option value="Twitter">Twitter</option>
+                                                                <option value="LinkedIn">LinkedIn</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Tone</label>
+                                                            <div className="flex gap-2">
+                                                                {['casual', 'professional', 'storytelling', 'promotional'].map(t => (
+                                                                    <button
+                                                                        key={t}
+                                                                        onClick={() => setParams({ ...params, tone: t })}
+                                                                        className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${params.tone === t
+                                                                            ? 'bg-purple-600 text-white'
+                                                                            : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                                                        }`}
+                                                                    >
+                                                                        {t.charAt(0).toUpperCase() + t.slice(1)}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={handleGenerateCaption}
+                                                            disabled={isGenerating || !params.topic.trim()}
+                                                            className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-opacity"
+                                                        >
+                                                            {isGenerating ? 'Generating...' : 'Generate Brief'}
+                                                        </button>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+
+                                        {/* Discovery Tags */}
+                                        <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
+                                            <button
+                                                onClick={() => setToolkitExpanded(toolkitExpanded === 'hashtags' ? false : 'hashtags')}
+                                                className="w-full flex items-center justify-between text-left"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <FaHashtag className="text-purple-400 text-xs" />
+                                                    <span className="text-sm font-medium text-dark-200">Discovery Tags</span>
+                                                </div>
+                                                {toolkitExpanded === 'hashtags' ? <FaChevronUp className="text-dark-400 text-xs" /> : <FaChevronDown className="text-dark-400 text-xs" />}
+                                            </button>
+
+                                            <AnimatePresence>
+                                                {toolkitExpanded === 'hashtags' && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="space-y-3 overflow-hidden"
+                                                    >
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Topic</label>
+                                                            <input
+                                                                type="text"
+                                                                value={params.topic}
+                                                                onChange={(e) => setParams({ ...params, topic: e.target.value })}
+                                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm"
+                                                                placeholder="e.g. Sustainable fashion"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-medium text-dark-300 mb-1">Category</label>
+                                                            <select
+                                                                value={params.niche}
+                                                                onChange={(e) => setParams({ ...params, niche: e.target.value })}
+                                                                className="w-full px-4 py-2 bg-dark-800 border border-dark-700 rounded-lg text-dark-100 focus:border-purple-500 focus:outline-none text-sm"
+                                                            >
+                                                                {['Fashion', 'Beauty', 'Tech', 'Lifestyle', 'Food', 'Travel', 'Fitness'].map(cat => (
+                                                                    <option key={cat} value={cat}>{cat}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                        <button
+                                                            onClick={handleGenerateHashtags}
+                                                            disabled={isGenerating}
+                                                            className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-opacity"
+                                                        >
+                                                            {isGenerating ? 'Generating...' : 'Generate Tags'}
+                                                        </button>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
                                     </div>
                                 )}
 
@@ -295,7 +362,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                         className="bg-dark-800 border border-dark-700 rounded-xl p-4 space-y-3"
                                     >
                                         <div className="flex items-center justify-between">
-                                            <h3 className="font-semibold text-dark-100">Generated Content</h3>
+                                            <h3 className="font-semibold text-dark-100">Output</h3>
                                             <button
                                                 onClick={() => copyToClipboard(
                                                     Array.isArray(generatedContent.content)
@@ -323,7 +390,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                                 <ul className="space-y-2">
                                                     {generatedContent.content.map((idea, i) => (
                                                         <li key={i} className="flex items-start gap-2">
-                                                            <span className="text-purple-400">•</span>
+                                                            <span className="text-purple-400">{i + 1}.</span>
                                                             <span>{idea}</span>
                                                         </li>
                                                     ))}

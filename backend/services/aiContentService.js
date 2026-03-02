@@ -6,70 +6,74 @@ const genAI = process.env.GEMINI_API_KEY
     : null;
 
 /**
- * AI Content Generation Service
+ * Collabify Intelligence Engine
  * 
- * High-fidelity content engine for generating professional captions, 
- * hashtags, ideas, and posting schedules using Google Gemini.
+ * Structured content intelligence for generating strategic briefs,
+ * discovery tags, and performance-driven recommendations.
  */
 class AIContentService {
+
+    // System-level identity guardrail applied to all prompts
+    static SYSTEM_IDENTITY = `You are a senior collaboration strategist and performance analyst with 10+ years of experience in creator marketing and campaign optimization. Your responses must be analytical, structured, and professional. Avoid hype, emojis, and filler. Every recommendation should be backed by strategic reasoning.`;
+
     /**
-     * Generate content based on topic, platform, and tone
+     * Generate a structured content brief
      */
     static async generateCaption(topic, platform, tone) {
         if (!genAI) {
-            console.warn('⚠️ GEMINI_API_KEY missing - falling back to mock caption');
-            return `Looking for ${topic} inspo? ✨ We've got you covered on ${platform}! #${topic.replace(/\s+/g, '')} #Professional`;
+            console.warn('GEMINI_API_KEY missing - falling back to mock brief');
+            return `Content brief for ${topic} on ${platform}: Lead with a clear value proposition. Address the target audience directly. Include a specific call-to-action aligned with campaign objectives.`;
         }
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
             const platformGuidelines = {
-                Instagram: 'Instagram captions can be up to 2,200 characters. Use line breaks for readability. Place hashtags at the end or in first comment. Use engaging hooks in the first line since only 125 chars show before "more".',
-                YouTube: 'YouTube descriptions should front-load keywords in the first 2 lines. Include a clear value proposition and timestamps if applicable.',
-                TikTok: 'TikTok captions should be punchy and under 150 characters. Use trending sounds references. Be conversational and relatable.',
-                Twitter: 'Tweets must be under 280 characters. Be concise, witty, and hook-driven. Use 1-2 hashtags max.',
-                LinkedIn: 'LinkedIn posts should be thought-leadership focused. Use professional but conversational tone. Start with a bold statement or surprising stat. Use line breaks every 1-2 sentences.'
+                Instagram: 'Instagram: Up to 2,200 characters. Front-load the hook in the first 125 characters (visible before truncation). Use line breaks for scannability. Hashtags in first comment or end of caption.',
+                YouTube: 'YouTube: Front-load keywords in first 2 lines for SEO. Include a clear value proposition. Add timestamps for longer content. Optimize for search intent.',
+                TikTok: 'TikTok: Under 150 characters. Concise and direct. Reference trending formats where relevant. Prioritize relatability and immediate hook.',
+                Twitter: 'Twitter/X: Under 280 characters. Lead with insight or contrarian take. Maximum 2 hashtags. Prioritize shareability and reply-worthiness.',
+                LinkedIn: 'LinkedIn: Thought-leadership positioning. Open with data, insight, or bold claim. Line breaks every 1-2 sentences. Professional but conversational.'
             };
 
             const toneGuidelines = {
-                casual: 'Write like you\'re talking to a close friend — warm, relatable, using natural language. Add personality and humor where appropriate.',
-                professional: 'Write with authority and credibility while remaining approachable. Use data-driven language and industry expertise.',
-                storytelling: 'Structure as a micro-story with a hook, tension, and resolution. Make it personal and emotionally resonant. Use "I" and share real-feeling experiences.',
-                promotional: 'Lead with the benefit/transformation, not the product. Use social proof language, urgency, and a clear compelling CTA. Avoid sounding salesy — focus on value.'
+                casual: 'Conversational and approachable. Use natural language patterns. Maintain warmth without sacrificing substance.',
+                professional: 'Authoritative and credible. Use precise language, data references where appropriate, and industry-specific terminology.',
+                storytelling: 'Narrative structure: hook, context, insight, resolution. First-person perspective. Focus on authentic experience and transformation.',
+                promotional: 'Benefit-led positioning. Lead with transformation, not features. Include social proof framing and a specific call-to-action. Avoid sounding salesy.'
             };
 
-            const prompt = `You are an elite social media strategist and copywriter with 10+ years of experience managing accounts for top brands and creators. You specialize in writing ${platform} content that drives real engagement, saves, and shares.
+            const prompt = `${this.SYSTEM_IDENTITY}
 
-TASK: Write ONE high-converting ${platform} caption.
+TASK: Write ONE strategic ${platform} content brief.
 
 TOPIC: ${topic}
 PLATFORM: ${platform}
 TONE: ${tone}
 
-PLATFORM BEST PRACTICES:
+PLATFORM GUIDELINES:
 ${platformGuidelines[platform] || platformGuidelines.Instagram}
 
 TONE DIRECTION:
 ${toneGuidelines[tone] || toneGuidelines.professional}
 
-REQUIREMENTS:
-- Open with a scroll-stopping hook (question, bold claim, or pattern interrupt)
-- Include a clear value proposition — why should someone care?
-- Use strategic emoji placement (not excessive — 3-5 max)
-- End with a strong call-to-action that drives engagement (save, share, comment, or click)
-- Write in a way that feels human and authentic, NOT robotic or generic
-- Vary sentence length for rhythm — mix short punchy lines with longer explanatory ones
-- If promotional tone: focus on transformation/benefit, not features
+STRUCTURAL REQUIREMENTS:
+- Open with a compelling hook that creates immediate interest
+- Deliver a clear value proposition within the first two sentences
+- Use no more than 2 emojis (only if contextually appropriate for the platform)
+- End with a specific, measurable call-to-action
+- Vary sentence length for readability
+- Avoid generic phrases, filler words, and hype language
+- Every sentence should serve a strategic purpose
 
-FORMAT: Return ONLY the caption text, ready to copy-paste. No labels, no quotes, no explanation.`;
+FORMAT: Return ONLY the content text, ready to use. No labels, quotes, or meta-commentary.`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
             return response.text().trim();
         } catch (error) {
             console.error('Gemini caption error:', error.message);
-            return `Elevating ${topic} today. 🚀 Check the link in bio for more! #${topic.replace(/\s+/g, '')}`;
+            return `Strategic brief for ${topic}: Position your content around a specific audience need. Lead with value, not product. Close with a clear next step for the viewer.`;
         }
     }
 
@@ -78,32 +82,31 @@ FORMAT: Return ONLY the caption text, ready to copy-paste. No labels, no quotes,
      */
     static async generateHashtags(topic, niche) {
         if (!genAI) {
-            return [`#${topic.replace(/\s+/g, '')}`, '#FYP', '#Trending', '#Viral', '#TheCollabify'];
+            return [`#${topic.replace(/\s+/g, '')}`, `#${niche}`, '#CreatorEconomy', '#BrandCollab', '#ContentStrategy'];
         }
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `You are a senior SEO analyst and social media strategist with 10+ years of experience optimizing content discoverability for top creators and brands.
+            const prompt = `${this.SYSTEM_IDENTITY}
 
-TASK: Generate a strategically curated set of 15 hashtags.
+TASK: Generate a strategically curated set of 15 discovery tags (hashtags).
 
 TOPIC: ${topic}
 NICHE: ${niche}
 
-HASHTAG STRATEGY (use this exact distribution):
-- 3 HIGH-VOLUME hashtags (1M+ posts) — for discovery/reach
-- 5 MEDIUM-VOLUME hashtags (100K-1M posts) — sweet spot for ranking
-- 4 NICHE-SPECIFIC hashtags (10K-100K posts) — targeted community reach
-- 3 BRANDED/UNIQUE hashtags — for building owned audience
+DISTRIBUTION STRATEGY:
+- 3 high-volume tags (1M+ posts) for broad discovery
+- 5 medium-volume tags (100K-1M posts) for competitive ranking
+- 4 niche-specific tags (10K-100K posts) for targeted community reach
+- 3 branded or unique tags for audience ownership
 
-REQUIREMENTS:
-- Every hashtag must be directly relevant to "${topic}" in the "${niche}" space
-- NO generic spam hashtags like #FYP, #ForYou, #Viral, #Trending unless platform-specific and relevant
-- Include industry-specific terminology that the target audience actually searches
-- Mix of broad discovery tags and specific community tags
-- All lowercase, no spaces within hashtags
+CONSTRAINTS:
+- Every tag must be directly relevant to "${topic}" within the "${niche}" vertical
+- No generic spam tags (e.g., #FYP, #ForYou, #Viral, #Trending)
+- Prioritize tags that the target audience actively searches
+- All lowercase, no spaces within tags
 
-FORMAT: Return ONLY a space-separated string of 15 hashtags. Nothing else.`;
+FORMAT: Return ONLY a space-separated string of 15 hashtags. No commentary.`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
@@ -112,82 +115,82 @@ FORMAT: Return ONLY a space-separated string of 15 hashtags. Nothing else.`;
             return tags.filter(t => t.startsWith('#')).slice(0, 15);
         } catch (error) {
             console.error('Gemini hashtag error:', error.message);
-            return [`#${topic.replace(/\s+/g, '')}`, '#Trending'];
+            return [`#${topic.replace(/\s+/g, '')}`, `#${niche}`];
         }
     }
 
     /**
-     * Generate content ideas for specific campaign types
+     * Generate strategic content recommendations
      */
     static async generateContentIdeas(category, platform) {
         const categoryIdeas = {
             Fashion: [
-                `👗 "Get Ready With Me" featuring your latest look — show styling from casual to glam`,
-                `📸 Outfit of the Week carousel — 7 looks, 7 days, ask followers to vote their favorite`,
-                `🎥 Behind-the-scenes of a photoshoot or outfit planning session`,
-                `💬 "This or That" style poll — engage followers with two outfit choices`
+                `GRWM reel featuring a styled look progression from casual to event-ready — this format drives 2.3x higher completion rates`,
+                `Outfit of the Week carousel with 7 distinct looks — carousel format generates 3x more saves than single images`,
+                `Behind-the-scenes of a styling session or photoshoot — process content builds creator credibility and audience trust`,
+                `"This or That" style comparison poll — interactive formats increase story engagement by 40%`
             ],
             Tech: [
-                `🔧 Unboxing + First Impressions review — raw, honest reactions sell`,
-                `📊 "5 Settings You're Not Using" tutorial — practical tips get saved & shared`,
-                `⚡ Day-in-my-life using only this product — show real-world usage`,
-                `🤔 Myth vs Reality: Common misconceptions about the product`
+                `Unboxing and first impressions review with structured pros/cons — honest reaction format builds purchase trust`,
+                `"5 Settings You Are Not Using" tutorial reel — utility content gets saved and shared at 4x the rate of promotional posts`,
+                `Day-in-my-life using a single product — real-world usage context outperforms spec-based reviews`,
+                `Myth vs Reality comparison on common product misconceptions — contrarian takes drive comment engagement`
             ],
             Fitness: [
-                `💪 30-day challenge transformation — document your journey with daily clips`,
-                `🏋️ "Form Check" educational reel — correct common exercise mistakes`,
-                `🥗 Full day of eating + workout split — followers love complete routines`,
-                `📈 Progress comparison: Week 1 vs Week 4 with honest commentary`
+                `30-day challenge documentation with daily progress clips — challenge formats drive consistent follower return visits`,
+                `"Form Check" educational reel correcting common exercise mistakes — educational fitness content has 67% higher save rate`,
+                `Full day of eating paired with workout split breakdown — complete routine content has highest bookmark rate in fitness`,
+                `Progress comparison: Week 1 vs Week 4 with measurable metrics — transformation content drives organic discovery`
             ],
             Food: [
-                `🍳 Quick recipe reel under 60 seconds — hook with the final dish first`,
-                `🎬 "Restaurant vs Homemade" comparison — recreate a popular dish`,
-                `👨‍🍳 Kitchen hack that actually works — these go viral consistently`,
-                `📍 Hidden gem food spot review — genuine reactions get engagement`
+                `60-second recipe reel opening with the finished dish — leading with outcome increases watch-through by 45%`,
+                `"Restaurant vs Homemade" side-by-side comparison — comparison format drives comment debate and shares`,
+                `Kitchen technique hack with before/after results — utility content consistently outperforms aesthetic food posts`,
+                `Local restaurant review with genuine first-bite reactions — authentic reaction content builds audience trust`
             ],
             Beauty: [
-                `✨ Before & After transformation — show the product in real-time action`,
-                `🎨 "Dupe or Worth It?" comparison with honest opinion`,
-                `💄 5-minute everyday look tutorial — relatable content performs best`,
-                `🧴 Skincare routine with product order explanation — educational sells`
+                `Before and after transformation showing product application in real time — process content outperforms static results`,
+                `"Dupe or Worth It" price-performance comparison with structured verdict — comparison content drives saves`,
+                `5-minute everyday look tutorial — achievable tutorials have 3x higher completion rate than aspirational content`,
+                `Skincare routine with application order rationale — educational beauty content has the highest save-to-impression ratio`
             ],
             Travel: [
-                `🗺️ "Things I Wish I Knew Before Visiting" — save-worthy travel tips`,
-                `📸 Hidden spots locals love — unique angles beat tourist shots`,
-                `💰 Budget breakdown: How much a day actually costs in [destination]`,
-                `🎒 Pack with me + travel essentials that actually matter`
+                `"What I Wish I Knew Before Visiting" carousel — practical travel tips have the highest save rate in the vertical`,
+                `Hidden local spots with specific directions — unique location content outperforms standard tourist photography`,
+                `Daily budget breakdown with exact costs per category — financial transparency content drives high engagement`,
+                `Pack with me showing essentials with reasoning — practical preparation content generates consistent saves`
             ],
             Lifestyle: [
-                `🌅 Morning routine that's actually realistic — authenticity wins`,
-                `🏠 Room/desk makeover transformation — satisfying before & after`,
-                `📱 Apps & tools that improved my daily life — practical recommendations`,
-                `💡 "One thing I changed that made a big difference" story-style content`
+                `Realistic morning routine without idealization — authentic routine content builds stronger audience connection`,
+                `Room or desk transformation with before/after — makeover content has high shareability and save metrics`,
+                `Tool and app recommendations with specific use cases — actionable recommendation content generates sustained engagement`,
+                `"One change that made a measurable difference" narrative post — personal insight content drives meaningful comments`
             ],
             Gaming: [
-                `🎮 Top 5 tips for beginners that pros actually use`,
-                `🔥 Epic moments compilation — montage with trending audio`,
-                `🤝 Challenge a follower/friend — collaborative content builds community`,
-                `📊 Settings & setup tour — gamers love optimization content`
+                `Top 5 advanced tips that beginners overlook — structured tip content gets bookmarked and referenced repeatedly`,
+                `Highlight compilation with strategic audio selection — montage content performs well for discovery and new followers`,
+                `Community challenge or follower collaboration — participatory content builds retention and repeat engagement`,
+                `Settings and setup walkthrough with performance benchmarks — optimization content attracts dedicated community members`
             ],
             Education: [
-                `📚 Explain a complex topic in 60 seconds — "Did you know?" hooks`,
-                `🧠 Common mistakes students/learners make (and how to fix them)`,
-                `✅ Study technique that actually works — backed by science`,
-                `💬 Q&A: Answer the most asked question in your field`
+                `Complex topic explained in under 60 seconds with visual aids — concise explainers have the highest share rate`,
+                `Common mistakes analysis with structured corrections — error-correction content gets saved for future reference`,
+                `Evidence-based technique breakdown with cited research — credibility-driven content builds authority positioning`,
+                `Community Q&A addressing the most frequently asked question in your field — responsive content strengthens audience loyalty`
             ],
             Business: [
-                `📈 "How I got my first client/sale" story — founders love sharing this`,
-                `💡 One business lesson I learned the hard way — relatable advice`,
-                `🔍 Behind-the-scenes of running my business — humanize your brand`,
-                `📊 Tool/strategy that 10x'd my productivity — actionable content`
+                `First client/sale acquisition story with specific tactics used — founder stories with actionable detail perform best`,
+                `Single business lesson learned through experience with measurable outcome — specific advice outperforms general tips`,
+                `Behind-the-scenes of daily operations — operational transparency humanizes the brand and builds trust`,
+                `Productivity tool or strategy review with quantified results — ROI-focused content drives saves and forwards`
             ]
         };
 
         const defaultIdeas = [
-            `📸 Behind-the-scenes content — show the process, not just the result`,
-            `💬 Q&A session addressing your audience's top questions`,
-            `🔄 Before & After transformation content — visual impact drives shares`,
-            `🎯 "Top 5 Tips" educational carousel — high save rate content`
+            `Behind-the-scenes process content — showing the work, not just the result, builds audience trust and engagement`,
+            `Q&A session addressing top audience questions — responsive content strengthens community loyalty`,
+            `Before and after transformation with measurable context — visual impact drives organic shares and discovery`,
+            `"Top 5" educational carousel — structured educational content has the highest save-to-impression ratio`
         ];
 
         if (!genAI) {
@@ -196,20 +199,20 @@ FORMAT: Return ONLY a space-separated string of 15 hashtags. Nothing else.`;
 
         try {
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `You are a senior content strategist and social media manager with 10+ years of experience growing creator accounts from zero to millions of followers. You understand what content performs, why it performs, and how to replicate success.
+            const prompt = `${this.SYSTEM_IDENTITY}
 
-TASK: Generate exactly 4 specific, high-performing content ideas for a ${category} creator on ${platform}.
+TASK: Generate exactly 4 strategic content recommendations for a ${category} creator on ${platform}.
 
-REQUIREMENTS FOR EACH IDEA:
-- Start with a single relevant emoji
-- Be hyper-specific (NOT generic like "post about your niche" or "share tips")
-- Include the content FORMAT (reel, carousel, story, static post, live, etc.)
-- Explain briefly WHY this format works (e.g., "carousel posts get 3x more saves" or "this hook pattern has 89% watch-through")
-- Each idea should be immediately actionable — the creator should know exactly what to create
-- Keep each idea under 30 words
-- Ideas should cover different content pillars: educational, entertaining, community-building, and promotional
+REQUIREMENTS FOR EACH RECOMMENDATION:
+- Be specific and immediately actionable (not generic like "post about your niche")
+- Specify the content FORMAT (reel, carousel, story, static post, live, etc.)
+- Include a brief strategic rationale (e.g., "carousel format generates 3x more saves" or "this structure has high completion rates")
+- Each idea should cover a different content pillar: educational, engagement-driven, community-building, or conversion-focused
+- Keep each recommendation under 35 words
+- Do not use emojis
+- Do not use hype language or filler
 
-FORMAT: Return ONLY the 4 ideas, one per line. No numbering, no bullet points, no extra text.`;
+FORMAT: Return ONLY the 4 recommendations, one per line. No numbering, no bullet points, no additional commentary.`;
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
@@ -286,7 +289,7 @@ FORMAT: Return ONLY the 4 ideas, one per line. No numbering, no bullet points, n
             {
                 id: 'timing',
                 type: 'timing',
-                title: '🕐 Best Time to Launch',
+                title: 'Optimal Launch Timing',
                 description: 'Current platform data suggests launching between 6-9 PM gets 40% more engagement.',
                 action: 'Optimize launch time',
                 impact: 'high',
@@ -295,7 +298,7 @@ FORMAT: Return ONLY the 4 ideas, one per line. No numbering, no bullet points, n
             {
                 id: 'category',
                 type: 'category',
-                title: '🎯 Trending Niche: Micro-Influencers',
+                title: 'Niche Performance Signal: Micro-Influencers',
                 description: 'Micro-influencers in the Tech/Lifestyle space are currently seeing 2x ROI compared to macro creators.',
                 action: 'Shift target niche',
                 impact: 'high',
@@ -304,7 +307,7 @@ FORMAT: Return ONLY the 4 ideas, one per line. No numbering, no bullet points, n
             {
                 id: 'promotion',
                 type: 'promotion',
-                title: '📱 Reels Content Surge',
+                title: 'Format Performance Analysis: Reels',
                 description: 'Reels campaigns are currently seeing 3x higher retention than static posts.',
                 action: 'Switch to Reels',
                 impact: 'high',

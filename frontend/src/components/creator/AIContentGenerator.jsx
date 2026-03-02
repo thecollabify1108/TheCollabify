@@ -75,7 +75,7 @@ const AIContentGenerator = ({ onSelect, platform = 'instagram' }) => {
             <div className="p-4 bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-b border-dark-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <FaRobot className="text-purple-400" />
-                    <h3 className="font-bold text-white">AI Assistant</h3>
+                    <h3 className="font-bold text-white">Creator Toolkit</h3>
                 </div>
                 <div className="flex bg-dark-900/50 rounded-lg p-1">
                     <button

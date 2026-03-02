@@ -718,7 +718,7 @@ const CreatorDashboard = () => {
 
             <AIAssistantPanel
                 onUse={(content) => {
-                    toast.success('AI content copied to clipboard!');
+                    toast.success('Content copied to clipboard');
                     navigator.clipboard.writeText(content);
                 }}
             />

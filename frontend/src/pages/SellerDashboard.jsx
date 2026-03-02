@@ -907,12 +907,12 @@ const SellerDashboard = () => {
                 )}
             </BottomSheet>
 
-            {/* NEW: AI Assistant Panel (Always available) */}
+            {/* Intelligence Copilot Panel */}
             <AIAssistantPanel
                 campaign={selectedRequest}
                 onUse={(content) => {
-                    console.log('AI Content:', content);
-                    toast.success('AI content ready to use!');
+                    console.log('Copilot Content:', content);
+                    toast.success('Content ready to use');
                 }}
             />
 

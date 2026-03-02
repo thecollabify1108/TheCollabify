@@ -644,7 +644,7 @@ const EventModal = ({ event, onClose, onSave }) => {
                                         className="text-xs flex items-center gap-1 text-purple-400 hover:text-purple-300 transition-colors"
                                     >
                                         <HiSparkles />
-                                        {showAI ? 'Hide AI Assistant' : 'Use AI Assistant'}
+                                        {showAI ? 'Hide Creator Toolkit' : 'Use Creator Toolkit'}
                                     </button>
                                 </div>
                                 <textarea
@@ -685,7 +685,7 @@ const EventModal = ({ event, onClose, onSave }) => {
                             </div>
                         </form>
 
-                        {/* Right Column - AI Assistant */}
+                        {/* Right Column - Creator Toolkit */}
                         <AnimatePresence>
                             {showAI && (
                                 <motion.div

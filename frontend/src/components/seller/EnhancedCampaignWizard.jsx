@@ -580,7 +580,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                 )
             }
 
-            {/* AI Assistant */}
+            {/* Intelligence Copilot */}
             <AIAssistantPanel
                 campaign={formData}
                 onUse={(content) => {
