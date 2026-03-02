@@ -170,7 +170,10 @@ export const adminAPI = {
     bulkDeleteUsers: (userIds) => api.post('admin/bulk-delete', { userIds }),
     getRequests: (params) => api.get('admin/requests', { params }),
     deleteRequest: (id) => api.delete(`admin/requests/${id}`),
-    getInsights: () => api.get('admin/insights')
+    getInsights: () => api.get('admin/insights'),
+    // Verification system
+    getPendingVerification: (params) => api.get('admin/creators/pending-verification', { params }),
+    verifyCreator: (id, data) => api.post(`admin/creators/${id}/verify`, data)
 };
 
 // Public API

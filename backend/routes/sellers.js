@@ -69,6 +69,9 @@ router.get('/requests', auth, isSeller, async (req, res) => {
                                     id: true,
                                     followerCount: true,
                                     category: true,
+                                    verificationStatus: true,
+                                    followerRiskScore: true,
+                                    followerMismatchPercentage: true,
                                     user: {
                                         select: { id: true, name: true, avatar: true }
                                     }

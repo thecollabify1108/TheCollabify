@@ -550,4 +550,127 @@ router.get('/insights', auth, isAdmin, async (req, res) => {
     }
 });
 
+// ─── VERIFICATION SYSTEM ─────────────────────────────────────────
+
+/**
+ * @route   GET /api/admin/creators/pending-verification
+ * @desc    Get creators pending verification (or all with verification data)
+ * @access  Private (Admin)
+ */
+router.get('/creators/pending-verification', auth, isAdmin, async (req, res) => {
+    try {
+        const { status } = req.query; // optional filter: pending | verified | mismatch_flagged
+        const where = {};
+        if (status) where.verificationStatus = status;
+
+        const creators = await prisma.creatorProfile.findMany({
+            where,
+            include: {
+                user: { select: { id: true, name: true, email: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json({
+            success: true,
+            data: creators.map(c => ({
+                id: c.id,
+                userId: c.userId,
+                name: c.user?.name || 'Unknown',
+                email: c.user?.email || '',
+                category: c.category,
+                followerCount: c.followerCount,
+                selfReportedFollowers: c.selfReportedFollowers,
+                engagementRate: c.engagementRate,
+                verificationStatus: c.verificationStatus,
+                verifiedFollowerRangeMin: c.verifiedFollowerRangeMin,
+                verifiedFollowerRangeMax: c.verifiedFollowerRangeMax,
+                followerMismatchPercentage: c.followerMismatchPercentage,
+                followerRiskScore: c.followerRiskScore,
+                verificationLastUpdated: c.verificationLastUpdated,
+                verifiedBy: c.verifiedBy,
+                createdAt: c.createdAt
+            }))
+        });
+    } catch (error) {
+        console.error('Get pending verification error:', error);
+        res.status(500).json({ success: false, message: 'Failed to get verification list' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/creators/:id/verify
+ * @desc    Admin submits verified follower range for a creator
+ * @access  Private (Admin)
+ */
+router.post('/creators/:id/verify', auth, isAdmin, [
+    body('verifiedFollowerRangeMin').isInt({ min: 0 }).withMessage('Min followers must be a non-negative integer'),
+    body('verifiedFollowerRangeMax').isInt({ min: 0 }).withMessage('Max followers must be a non-negative integer'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { verifiedFollowerRangeMin, verifiedFollowerRangeMax } = req.body;
+
+        if (verifiedFollowerRangeMax < verifiedFollowerRangeMin) {
+            return res.status(400).json({
+                success: false,
+                message: 'Max followers must be greater than or equal to min followers'
+            });
+        }
+
+        const profile = await prisma.creatorProfile.findUnique({ where: { id } });
+        if (!profile) {
+            return res.status(404).json({ success: false, message: 'Creator profile not found' });
+        }
+
+        // Calculate mismatch
+        const selfReported = profile.followerCount || profile.selfReportedFollowers || 0;
+        const verifiedMid = (verifiedFollowerRangeMin + verifiedFollowerRangeMax) / 2;
+        const mismatch = verifiedMid > 0
+            ? (Math.abs(selfReported - verifiedMid) / verifiedMid * 100)
+            : 0;
+        const mismatchRounded = Math.round(mismatch * 100) / 100;
+
+        let riskScore = 'none';
+        let verificationStatus = 'verified';
+        if (mismatch > 15) {
+            riskScore = 'high';
+            verificationStatus = 'mismatch_flagged';
+        } else if (mismatch > 5) {
+            riskScore = 'medium';
+        }
+
+        const updated = await prisma.creatorProfile.update({
+            where: { id },
+            data: {
+                verifiedFollowerRangeMin: parseInt(verifiedFollowerRangeMin),
+                verifiedFollowerRangeMax: parseInt(verifiedFollowerRangeMax),
+                selfReportedFollowers: selfReported,
+                followerMismatchPercentage: mismatchRounded,
+                followerRiskScore: riskScore,
+                verificationStatus,
+                verificationLastUpdated: new Date(),
+                verifiedBy: req.userId
+            }
+        });
+
+        res.json({
+            success: true,
+            data: {
+                id: updated.id,
+                verificationStatus: updated.verificationStatus,
+                followerMismatchPercentage: updated.followerMismatchPercentage,
+                followerRiskScore: updated.followerRiskScore,
+                verifiedFollowerRangeMin: updated.verifiedFollowerRangeMin,
+                verifiedFollowerRangeMax: updated.verifiedFollowerRangeMax,
+                verificationLastUpdated: updated.verificationLastUpdated
+            }
+        });
+    } catch (error) {
+        console.error('Verify creator error:', error);
+        res.status(500).json({ success: false, message: 'Failed to verify creator' });
+    }
+});
+
 module.exports = router;

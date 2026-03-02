@@ -4,6 +4,7 @@ import { FaInstagram, FaHeart, FaTimes, FaComments, FaStar, FaUndo, FaCheck, FaU
 import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
 import { trackEvent } from '../../utils/analytics';
 import MatchExplanation from '../common/MatchExplanation';
+import VerificationBadge from '../common/VerificationBadge';
 
 const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -268,6 +269,16 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                     {creator.location?.city && (
                         <div className="inline-flex items-center gap-1 px-s2 py-1 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20">
                             <span className="text-xs-pure font-bold uppercase tracking-wider">{creator.location.city}</span>
+                        </div>
+                    )}
+                    {creator.verificationStatus && (
+                        <div className="mt-2">
+                            <VerificationBadge
+                                verificationStatus={creator.verificationStatus}
+                                followerRiskScore={creator.followerRiskScore}
+                                followerMismatchPercentage={creator.followerMismatchPercentage}
+                                size="sm"
+                            />
                         </div>
                     )}
                 </div>

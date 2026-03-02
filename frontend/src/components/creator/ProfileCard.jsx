@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { FaEdit, FaInstagram, FaUserCircle, FaRupeeSign } from 'react-icons/fa';
 import { HiUserGroup, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import toast from 'react-hot-toast';
+import VerificationBadge from '../common/VerificationBadge';
 
 const ProfileCard = ({ profile, onEdit }) => {
     if (!profile) return null;
@@ -49,6 +50,14 @@ const ProfileCard = ({ profile, onEdit }) => {
                                     }`}>
                                     {profile.isAvailable ? '● Available' : 'Unavailable'}
                                 </span>
+                            )}
+                            {profile.verificationStatus && (
+                                <VerificationBadge
+                                    verificationStatus={profile.verificationStatus}
+                                    followerRiskScore={profile.followerRiskScore}
+                                    followerMismatchPercentage={profile.followerMismatchPercentage}
+                                    size="md"
+                                />
                             )}
                         </div>
                     </div>

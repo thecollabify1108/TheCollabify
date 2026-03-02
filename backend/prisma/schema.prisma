@@ -202,6 +202,16 @@ model CreatorProfile {
   averageRating        Float            @default(0)
   leaderboardScore     Float            @default(0)
   lastScoreUpdate       DateTime?        @default(now())
+
+  // Manual Verification System
+  verificationStatus          String    @default("pending") // pending | verified | mismatch_flagged
+  selfReportedFollowers       Int       @default(0)
+  verifiedFollowerRangeMin    Int?
+  verifiedFollowerRangeMax    Int?
+  verificationLastUpdated     DateTime?
+  followerMismatchPercentage  Float?
+  followerRiskScore           String?   // none | medium | high
+  verifiedBy                  String?   // admin userId who verified
   
   // Relations
   achievements         Achievement[]

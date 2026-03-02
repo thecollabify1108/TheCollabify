@@ -18,6 +18,39 @@ try {
 }
 
 /**
+ * Recalculate follower verification mismatch
+ * Called when creator updates followerCount or admin verifies
+ */
+function recalculateVerification(profile) {
+    const result = {};
+    const selfReported = profile.followerCount || profile.selfReportedFollowers || 0;
+    const verifiedMin = profile.verifiedFollowerRangeMin;
+    const verifiedMax = profile.verifiedFollowerRangeMax;
+
+    if (verifiedMin == null || verifiedMax == null || selfReported === 0) {
+        return result; // No verified range to compare against
+    }
+
+    const verifiedMid = (verifiedMin + verifiedMax) / 2;
+    const mismatch = Math.abs(selfReported - verifiedMid) / verifiedMid * 100;
+    result.followerMismatchPercentage = Math.round(mismatch * 100) / 100;
+    result.selfReportedFollowers = selfReported;
+
+    if (mismatch < 5) {
+        result.followerRiskScore = 'none';
+        result.verificationStatus = 'verified';
+    } else if (mismatch <= 15) {
+        result.followerRiskScore = 'medium';
+        result.verificationStatus = 'verified';
+    } else {
+        result.followerRiskScore = 'high';
+        result.verificationStatus = 'mismatch_flagged';
+    }
+
+    return result;
+}
+
+/**
  * Validation middleware
  */
 const handleValidation = (req, res, next) => {
@@ -154,6 +187,8 @@ router.post('/profile', auth, isCreator, [
         const createData = {
             userId: req.userId,
             followerCount: parseInt(followerCount) || 0,
+            selfReportedFollowers: parseInt(followerCount) || 0,
+            verificationStatus: 'pending',
             engagementRate: parseFloat(engagementRate) || 0,
             category: category,
             promotionTypes: promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_')),
@@ -283,6 +318,19 @@ router.put('/profile', auth, isCreator, [
         }
 
         if (req.body.location !== undefined) updateData.location = req.body.location;
+
+        // Auto-recalculate verification mismatch if followerCount changed
+        if (req.body.followerCount !== undefined) {
+            updateData.selfReportedFollowers = parseInt(req.body.followerCount) || 0;
+            if (profile.verifiedFollowerRangeMin != null) {
+                const verifUpdate = recalculateVerification({
+                    ...profile,
+                    followerCount: updateData.selfReportedFollowers,
+                    selfReportedFollowers: updateData.selfReportedFollowers
+                });
+                Object.assign(updateData, verifUpdate);
+            }
+        }
 
         // Generate AI insights
         const insights = generateInsights({ ...profile, ...updateData });

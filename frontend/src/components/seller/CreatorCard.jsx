@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments, FaShieldAlt } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
 import MatchExplanation from '../common/MatchExplanation';
+import VerificationBadge from '../common/VerificationBadge';
 
 const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage, viewMode, onViewProfile, children }) => {
     const profile = creator.creatorId || creator;
@@ -83,6 +84,15 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                         {profile.insights?.engagementQuality === 'High' ? 'Low Risk' : profile.insights?.engagementQuality === 'Medium' ? 'Med Risk' : 'Unscored'}
                     </span>
                 </div>
+                {/* Verification Badge */}
+                {profile.verificationStatus && (
+                    <VerificationBadge
+                        verificationStatus={profile.verificationStatus}
+                        followerRiskScore={profile.followerRiskScore}
+                        followerMismatchPercentage={profile.followerMismatchPercentage}
+                        size="sm"
+                    />
+                )}
             </div>
 
             {/* Insights Badges */}

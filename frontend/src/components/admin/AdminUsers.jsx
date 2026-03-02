@@ -1,19 +1,33 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FaSearch, FaFilter, FaEllipsisV, FaTrash, FaToggleOn, FaToggleOff, FaCheckCircle } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaSearch, FaFilter, FaEllipsisV, FaTrash, FaToggleOn, FaToggleOff, FaCheckCircle, FaClock, FaExclamationTriangle, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { HiShieldCheck } from 'react-icons/hi';
 import { adminAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
 const AdminUsers = () => {
+    const [activeTab, setActiveTab] = useState('users'); // 'users' | 'verification'
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
     const [selectedUsers, setSelectedUsers] = useState([]);
 
+    // Verification state
+    const [creators, setCreators] = useState([]);
+    const [verificationLoading, setVerificationLoading] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('');
+    const [expandedCreator, setExpandedCreator] = useState(null);
+    const [verifyForm, setVerifyForm] = useState({ min: '', max: '' });
+    const [verifying, setVerifying] = useState(false);
+
     useEffect(() => {
         fetchUsers();
     }, [roleFilter]);
+
+    useEffect(() => {
+        if (activeTab === 'verification') fetchCreators();
+    }, [activeTab, statusFilter]);
 
     const fetchUsers = async () => {
         try {
@@ -24,6 +38,51 @@ const AdminUsers = () => {
             toast.error('Failed to fetch users');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchCreators = async () => {
+        try {
+            setVerificationLoading(true);
+            const res = await adminAPI.getPendingVerification(statusFilter ? { status: statusFilter } : {});
+            setCreators(res.data.data || []);
+        } catch (error) {
+            toast.error('Failed to fetch creators');
+        } finally {
+            setVerificationLoading(false);
+        }
+    };
+
+    const handleVerify = async (creatorId) => {
+        const min = parseInt(verifyForm.min);
+        const max = parseInt(verifyForm.max);
+        if (isNaN(min) || isNaN(max) || min < 0 || max < 0) {
+            toast.error('Enter valid follower numbers');
+            return;
+        }
+        if (max < min) {
+            toast.error('Max must be >= Min');
+            return;
+        }
+        try {
+            setVerifying(true);
+            const res = await adminAPI.verifyCreator(creatorId, {
+                verifiedFollowerRangeMin: min,
+                verifiedFollowerRangeMax: max
+            });
+            const result = res.data.data;
+            toast.success(
+                result.verificationStatus === 'verified'
+                    ? 'Creator verified successfully'
+                    : `Mismatch flagged (${result.followerMismatchPercentage}% deviation)`
+            );
+            setExpandedCreator(null);
+            setVerifyForm({ min: '', max: '' });
+            fetchCreators();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Verification failed');
+        } finally {
+            setVerifying(false);
         }
     };
 
@@ -53,126 +112,323 @@ const AdminUsers = () => {
         user.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
+    const formatFollowers = (count) => {
+        if (!count) return '0';
+        if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
+        if (count >= 1000) return (count / 1000).toFixed(1) + 'K';
+        return count.toString();
+    };
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'verified':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <HiShieldCheck className="w-3 h-3" /> Verified
+                    </span>
+                );
+            case 'mismatch_flagged':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+                        <FaExclamationTriangle className="w-2.5 h-2.5" /> Mismatch
+                    </span>
+                );
+            default:
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <FaClock className="w-2.5 h-2.5" /> Pending
+                    </span>
+                );
+        }
+    };
+
     return (
         <div className="space-y-6">
-            {/* Header / Actions */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <h2 className="text-2xl font-bold text-dark-100">User Management</h2>
-                <div className="flex gap-3 w-full md:w-auto">
-                    <button className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white hover:bg-primary-500 transition-colors">
-                        <span className="text-xl">+</span> Add User
-                    </button>
-                    <button className="px-4 py-2 rounded-xl bg-dark-800 border border-dark-700 text-dark-300 hover:text-white transition-colors">
-                        Export CSV
-                    </button>
-                </div>
+            {/* Tab Switcher */}
+            <div className="flex items-center gap-1 p-1 bg-dark-900/50 rounded-xl border border-dark-700/50 w-fit">
+                <button
+                    onClick={() => setActiveTab('users')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'users' ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-dark-200'}`}
+                >
+                    Users
+                </button>
+                <button
+                    onClick={() => setActiveTab('verification')}
+                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeTab === 'verification' ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-dark-200'}`}
+                >
+                    <HiShieldCheck /> Verification
+                </button>
             </div>
 
-            {/* Filters Bar */}
-            <div className="glass-card p-4 flex flex-col md:flex-row gap-4 items-center">
-                <div className="relative flex-1 w-full">
-                    <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
-                    <input
-                        type="text"
-                        placeholder="Search by name or email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-2.5 bg-dark-900/50 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
-                    />
-                </div>
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                    <FaFilter className="text-dark-400" />
-                    <select
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                        className="bg-dark-900/50 border border-dark-700 rounded-xl px-4 py-2.5 text-dark-200 focus:border-primary-500 outline-none cursor-pointer"
-                    >
-                        <option value="all">All Roles</option>
-                        <option value="creator">Creators</option>
-                        <option value="seller">Brands</option>
-                        <option value="admin">Admins</option>
-                    </select>
-                </div>
-            </div>
+            {activeTab === 'users' ? (
+                <>
+                    {/* Header / Actions */}
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h2 className="text-2xl font-bold text-dark-100">User Management</h2>
+                        <div className="flex gap-3 w-full md:w-auto">
+                            <button className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white hover:bg-primary-500 transition-colors">
+                                <span className="text-xl">+</span> Add User
+                            </button>
+                            <button className="px-4 py-2 rounded-xl bg-dark-800 border border-dark-700 text-dark-300 hover:text-white transition-colors">
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
 
-            {/* Users Table */}
-            <div className="glass-card overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-dark-900/50 border-b border-dark-800">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">User</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">Role</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">Joined</th>
-                                <th className="px-6 py-4 text-right text-xs font-semibold text-dark-400 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-dark-800">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center text-dark-400">Loading users...</td>
-                                </tr>
-                            ) : filteredUsers.length === 0 ? (
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-8 text-center text-dark-400">No users found.</td>
-                                </tr>
-                            ) : filteredUsers.map((user) => (
-                                <tr key={user._id} className="hover:bg-dark-800/30 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center text-primary-400 font-bold border border-primary-500/30">
-                                                {user.name.charAt(0)}
+                    {/* Filters Bar */}
+                    <div className="glass-card p-4 flex flex-col md:flex-row gap-4 items-center">
+                        <div className="relative flex-1 w-full">
+                            <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
+                            <input
+                                type="text"
+                                placeholder="Search by name or email..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-11 pr-4 py-2.5 bg-dark-900/50 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all outline-none"
+                            />
+                        </div>
+                        <div className="flex items-center gap-2 w-full md:w-auto">
+                            <FaFilter className="text-dark-400" />
+                            <select
+                                value={roleFilter}
+                                onChange={(e) => setRoleFilter(e.target.value)}
+                                className="bg-dark-900/50 border border-dark-700 rounded-xl px-4 py-2.5 text-dark-200 focus:border-primary-500 outline-none cursor-pointer"
+                            >
+                                <option value="all">All Roles</option>
+                                <option value="creator">Creators</option>
+                                <option value="seller">Brands</option>
+                                <option value="admin">Admins</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Users Table */}
+                    <div className="glass-card overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full">
+                                <thead className="bg-dark-900/50 border-b border-dark-800">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">User</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">Role</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">Status</th>
+                                        <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">Joined</th>
+                                        <th className="px-6 py-4 text-right text-xs font-semibold text-dark-400 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-dark-800">
+                                    {loading ? (
+                                        <tr>
+                                            <td colSpan="5" className="px-6 py-8 text-center text-dark-400">Loading users...</td>
+                                        </tr>
+                                    ) : filteredUsers.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="5" className="px-6 py-8 text-center text-dark-400">No users found.</td>
+                                        </tr>
+                                    ) : filteredUsers.map((user) => (
+                                        <tr key={user._id} className="hover:bg-dark-800/30 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center text-primary-400 font-bold border border-primary-500/30">
+                                                        {user.name.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-medium text-dark-100">{user.name}</div>
+                                                        <div className="text-sm text-dark-400">{user.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'admin' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                        user.role === 'creator' ? 'bg-secondary-500/10 text-secondary-400 border-secondary-500/20' :
+                                                            'bg-primary-500/10 text-primary-400 border-primary-500/20'
+                                                    }`}>
+                                                    {user.role}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
+                                                    <span className={`text-sm ${user.isActive ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                        {user.isActive ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 text-sm text-dark-400">
+                                                {new Date(user.createdAt).toLocaleDateString()}
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleToggleStatus(user._id, user.isActive)}
+                                                        className="p-2 text-dark-400 hover:text-emerald-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"
+                                                        title={user.isActive ? "Deactivate" : "Activate"}
+                                                    >
+                                                        {user.isActive ? <FaToggleOn className="text-lg" /> : <FaToggleOff className="text-lg" />}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(user._id)}
+                                                        className="p-2 text-dark-400 hover:text-red-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"
+                                                        title="Delete User"
+                                                    >
+                                                        <FaTrash />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
+            ) : (
+                /* ─── VERIFICATION PANEL ──────────────────────────── */
+                <>
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <h2 className="text-2xl font-bold text-dark-100">Creator Verification</h2>
+                        <div className="flex items-center gap-2">
+                            <FaFilter className="text-dark-400" />
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="bg-dark-900/50 border border-dark-700 rounded-xl px-4 py-2.5 text-dark-200 focus:border-primary-500 outline-none cursor-pointer text-sm"
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="verified">Verified</option>
+                                <option value="mismatch_flagged">Mismatch Flagged</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="glass-card overflow-hidden">
+                        {verificationLoading ? (
+                            <div className="px-6 py-12 text-center text-dark-400">Loading creators...</div>
+                        ) : creators.length === 0 ? (
+                            <div className="px-6 py-12 text-center text-dark-400">No creators found.</div>
+                        ) : (
+                            <div className="divide-y divide-dark-800">
+                                {creators.map((creator) => (
+                                    <div key={creator.id}>
+                                        {/* Creator Row */}
+                                        <div
+                                            className="flex items-center justify-between px-6 py-4 cursor-pointer hover:bg-dark-800/30 transition-colors"
+                                            onClick={() => {
+                                                setExpandedCreator(expandedCreator === creator.id ? null : creator.id);
+                                                setVerifyForm({ min: '', max: '' });
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary-500/20 to-primary-500/20 flex items-center justify-center text-secondary-400 font-bold border border-secondary-500/30">
+                                                    {creator.name?.charAt(0) || 'C'}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="font-medium text-dark-100 truncate">{creator.name}</div>
+                                                    <div className="text-xs text-dark-400 truncate">{creator.email} &bull; {creator.category}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="font-medium text-dark-100">{user.name}</div>
-                                                <div className="text-sm text-dark-400">{user.email}</div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="text-right hidden sm:block">
+                                                    <div className="text-sm font-bold text-dark-200">{formatFollowers(creator.followerCount)}</div>
+                                                    <div className="text-[10px] text-dark-500 uppercase tracking-wider">Reported</div>
+                                                </div>
+                                                {getStatusBadge(creator.verificationStatus)}
+                                                {expandedCreator === creator.id ? (
+                                                    <FaChevronUp className="text-dark-500 w-3 h-3" />
+                                                ) : (
+                                                    <FaChevronDown className="text-dark-500 w-3 h-3" />
+                                                )}
                                             </div>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'admin' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                user.role === 'creator' ? 'bg-secondary-500/10 text-secondary-400 border-secondary-500/20' :
-                                                    'bg-primary-500/10 text-primary-400 border-primary-500/20'
-                                            }`}>
-                                            {user.role}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
-                                            <span className={`text-sm ${user.isActive ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                {user.isActive ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-dark-400">
-                                        {new Date(user.createdAt).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => handleToggleStatus(user._id, user.isActive)}
-                                                className="p-2 text-dark-400 hover:text-emerald-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"
-                                                title={user.isActive ? "Deactivate" : "Activate"}
-                                            >
-                                                {user.isActive ? <FaToggleOn className="text-lg" /> : <FaToggleOff className="text-lg" />}
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(user._id)}
-                                                className="p-2 text-dark-400 hover:text-red-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"
-                                                title="Delete User"
-                                            >
-                                                <FaTrash />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
+                                        {/* Expanded Verification Panel */}
+                                        <AnimatePresence>
+                                            {expandedCreator === creator.id && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    transition={{ duration: 0.2 }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <div className="px-6 py-4 bg-dark-900/40 border-t border-dark-700/50">
+                                                        {/* Current Stats */}
+                                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                                            <div className="p-3 rounded-xl bg-dark-800/60 border border-dark-700/30">
+                                                                <div className="text-[10px] text-dark-500 uppercase tracking-wider mb-1">Reported Followers</div>
+                                                                <div className="text-lg font-bold text-dark-100">{formatFollowers(creator.followerCount)}</div>
+                                                            </div>
+                                                            <div className="p-3 rounded-xl bg-dark-800/60 border border-dark-700/30">
+                                                                <div className="text-[10px] text-dark-500 uppercase tracking-wider mb-1">Engagement Rate</div>
+                                                                <div className="text-lg font-bold text-dark-100">{creator.engagementRate || 0}%</div>
+                                                            </div>
+                                                            <div className="p-3 rounded-xl bg-dark-800/60 border border-dark-700/30">
+                                                                <div className="text-[10px] text-dark-500 uppercase tracking-wider mb-1">Risk Score</div>
+                                                                <div className={`text-lg font-bold ${creator.followerRiskScore === 'high' ? 'text-red-400' : creator.followerRiskScore === 'medium' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                                    {creator.followerRiskScore || 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                            <div className="p-3 rounded-xl bg-dark-800/60 border border-dark-700/30">
+                                                                <div className="text-[10px] text-dark-500 uppercase tracking-wider mb-1">Mismatch</div>
+                                                                <div className={`text-lg font-bold ${(creator.followerMismatchPercentage || 0) > 15 ? 'text-red-400' : (creator.followerMismatchPercentage || 0) > 5 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                                    {creator.followerMismatchPercentage != null ? creator.followerMismatchPercentage.toFixed(1) + '%' : 'N/A'}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Previous verification data */}
+                                                        {creator.verifiedFollowerRangeMin != null && (
+                                                            <div className="mb-4 px-3 py-2 rounded-lg bg-dark-800/40 border border-dark-700/30 text-xs text-dark-400">
+                                                                Previous verified range: <span className="text-dark-200 font-bold">{formatFollowers(creator.verifiedFollowerRangeMin)} — {formatFollowers(creator.verifiedFollowerRangeMax)}</span>
+                                                                {creator.verificationLastUpdated && (
+                                                                    <span className="ml-2">({new Date(creator.verificationLastUpdated).toLocaleDateString()})</span>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Verify Form */}
+                                                        <div className="flex flex-col sm:flex-row items-end gap-3">
+                                                            <div className="flex-1 w-full">
+                                                                <label className="block text-[10px] font-bold text-dark-400 uppercase tracking-wider mb-1">Verified Min Followers</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    placeholder="e.g. 9500"
+                                                                    value={verifyForm.min}
+                                                                    onChange={(e) => setVerifyForm(f => ({ ...f, min: e.target.value }))}
+                                                                    className="w-full px-3 py-2 bg-dark-900/60 border border-dark-700 rounded-lg text-dark-100 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all"
+                                                                />
+                                                            </div>
+                                                            <div className="flex-1 w-full">
+                                                                <label className="block text-[10px] font-bold text-dark-400 uppercase tracking-wider mb-1">Verified Max Followers</label>
+                                                                <input
+                                                                    type="number"
+                                                                    min="0"
+                                                                    placeholder="e.g. 10500"
+                                                                    value={verifyForm.max}
+                                                                    onChange={(e) => setVerifyForm(f => ({ ...f, max: e.target.value }))}
+                                                                    className="w-full px-3 py-2 bg-dark-900/60 border border-dark-700 rounded-lg text-dark-100 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleVerify(creator.id)}
+                                                                disabled={verifying || !verifyForm.min || !verifyForm.max}
+                                                                className="px-6 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold uppercase tracking-wider shadow-glow hover:shadow-glow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                                                            >
+                                                                {verifying ? 'Verifying...' : 'Verify'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 };
