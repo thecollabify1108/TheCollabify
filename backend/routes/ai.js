@@ -3,6 +3,10 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 const AIContentService = require('../services/aiContentService');
 const PredictiveService = require('../services/predictiveService');
+const prisma = require('../config/prisma');
+
+// Gemini Service — centralised AI reasoning engine
+const GeminiService = require('../services/geminiService');
 
 // AI Engine v2 services — defensive import so existing routes still work if AI module fails
 let AIEngine, CQIService, CampaignPrediction, FeedbackLoop, FraudDetection,
@@ -248,81 +252,306 @@ router.post('/profile-tips', auth, async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// INTELLIGENCE MODES
+// INTELLIGENCE MODES — Gemini-backed, DB-driven
 // ═══════════════════════════════════════════════════════════════
 
 /**
  * @route   POST /api/ai/mode/match-intelligence
- * @desc    Run Match Intelligence analysis
+ * @desc    Run Match Intelligence — fetches real creator + campaign data from DB
  * @access  Private
+ * @body    { creatorId, campaignId } — OR legacy body fields for backward compat
  */
 router.post('/mode/match-intelligence', auth, async (req, res) => {
     try {
+        const { creatorId, campaignId } = req.body;
+
+        if (creatorId && campaignId) {
+            const [creator, campaign] = await Promise.all([
+                GeminiService.fetchCreatorData(creatorId),
+                GeminiService.fetchCampaignData(campaignId),
+            ]);
+            if (!creator) return res.status(404).json({ success: false, message: 'Creator not found' });
+            if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+
+            const prompt = GeminiService.buildMatchIntelligencePrompt(creator, campaign);
+            const fallback = await AIContentService.runMatchIntelligence(req.body);
+
+            const result = await GeminiService.callGemini({
+                userId: req.userId,
+                mode: 'match-intelligence',
+                prompt,
+                fallback,
+                parser: GeminiService.parseJSON,
+            });
+            return res.json({ success: true, data: result });
+        }
+
         const result = await AIContentService.runMatchIntelligence(req.body);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('Match Intelligence error:', error);
-        res.status(500).json({ success: false, message: 'Failed to run match intelligence' });
+        const status = error.status || 500;
+        res.status(status).json({ success: false, message: error.message || 'Failed to run match intelligence' });
     }
 });
 
 /**
  * @route   POST /api/ai/mode/creator-audit
- * @desc    Run Creator Audit analysis
+ * @desc    Run Creator Audit — fetches real creator data from DB
  * @access  Private
+ * @body    { creatorId } — OR legacy body fields for backward compat
  */
 router.post('/mode/creator-audit', auth, async (req, res) => {
     try {
+        const { creatorId } = req.body;
+
+        if (creatorId) {
+            const creator = await GeminiService.fetchCreatorData(creatorId);
+            if (!creator) return res.status(404).json({ success: false, message: 'Creator not found' });
+
+            const prompt = GeminiService.buildCreatorAuditPrompt(creator);
+            const fallback = await AIContentService.runCreatorAudit(req.body);
+
+            const result = await GeminiService.callGemini({
+                userId: req.userId,
+                mode: 'creator-audit',
+                prompt,
+                fallback,
+                parser: GeminiService.parseJSON,
+            });
+            return res.json({ success: true, data: result });
+        }
+
         const result = await AIContentService.runCreatorAudit(req.body);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('Creator Audit error:', error);
-        res.status(500).json({ success: false, message: 'Failed to run creator audit' });
+        const status = error.status || 500;
+        res.status(status).json({ success: false, message: error.message || 'Failed to run creator audit' });
     }
 });
 
 /**
  * @route   POST /api/ai/mode/campaign-strategy
- * @desc    Run Campaign Strategy analysis
+ * @desc    Run Campaign Strategy — fetches real campaign data from DB
  * @access  Private
+ * @body    { campaignId } — OR legacy body fields for backward compat
  */
 router.post('/mode/campaign-strategy', auth, async (req, res) => {
     try {
+        const { campaignId } = req.body;
+
+        if (campaignId) {
+            const campaign = await GeminiService.fetchCampaignData(campaignId);
+            if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+
+            const prompt = GeminiService.buildCampaignStrategyPrompt(campaign);
+            const fallback = await AIContentService.runCampaignStrategy(req.body);
+
+            const result = await GeminiService.callGemini({
+                userId: req.userId,
+                mode: 'campaign-strategy',
+                prompt,
+                fallback,
+                parser: GeminiService.parseJSON,
+            });
+            return res.json({ success: true, data: result });
+        }
+
         const result = await AIContentService.runCampaignStrategy(req.body);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('Campaign Strategy error:', error);
-        res.status(500).json({ success: false, message: 'Failed to run campaign strategy' });
+        const status = error.status || 500;
+        res.status(status).json({ success: false, message: error.message || 'Failed to run campaign strategy' });
     }
 });
 
 /**
  * @route   POST /api/ai/mode/roi-forecast
- * @desc    Run ROI & Performance Forecast
+ * @desc    Run ROI & Performance Forecast — fetches real data from DB
  * @access  Private
+ * @body    { creatorId, campaignId } — OR legacy body fields for backward compat
  */
 router.post('/mode/roi-forecast', auth, async (req, res) => {
     try {
+        const { creatorId, campaignId } = req.body;
+
+        if (creatorId && campaignId) {
+            const [creator, campaign] = await Promise.all([
+                GeminiService.fetchCreatorData(creatorId),
+                GeminiService.fetchCampaignData(campaignId),
+            ]);
+            if (!creator) return res.status(404).json({ success: false, message: 'Creator not found' });
+            if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+
+            const prompt = GeminiService.buildROIForecastPrompt(creator, campaign);
+            const fallback = await AIContentService.runROIForecast(req.body);
+
+            const result = await GeminiService.callGemini({
+                userId: req.userId,
+                mode: 'roi-forecast',
+                prompt,
+                fallback,
+                parser: GeminiService.parseJSON,
+            });
+            return res.json({ success: true, data: result });
+        }
+
         const result = await AIContentService.runROIForecast(req.body);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('ROI Forecast error:', error);
-        res.status(500).json({ success: false, message: 'Failed to run ROI forecast' });
+        const status = error.status || 500;
+        res.status(status).json({ success: false, message: error.message || 'Failed to run ROI forecast' });
     }
 });
 
 /**
  * @route   POST /api/ai/mode/optimization
- * @desc    Run Optimization analysis
+ * @desc    Run Optimization analysis — fetches real campaign data from DB
  * @access  Private
+ * @body    { campaignId, engagementRate, reach, conversions, contentTypes } — OR legacy body fields
  */
 router.post('/mode/optimization', auth, async (req, res) => {
     try {
+        const { campaignId, engagementRate, reach, conversions, contentTypes } = req.body;
+
+        if (campaignId) {
+            const campaign = await GeminiService.fetchCampaignData(campaignId);
+            if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
+
+            const prompt = GeminiService.buildOptimizationPrompt(campaign, {
+                engagementRate, reach, conversions, contentTypes
+            });
+            const fallback = await AIContentService.runOptimization(req.body);
+
+            const result = await GeminiService.callGemini({
+                userId: req.userId,
+                mode: 'optimization',
+                prompt,
+                fallback,
+                parser: GeminiService.parseJSON,
+            });
+            return res.json({ success: true, data: result });
+        }
+
         const result = await AIContentService.runOptimization(req.body);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('Optimization error:', error);
-        res.status(500).json({ success: false, message: 'Failed to run optimization' });
+        const status = error.status || 500;
+        res.status(status).json({ success: false, message: error.message || 'Failed to run optimization' });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// AI USAGE STATS
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * @route   GET /api/ai/usage/me
+ * @desc    Get current user's AI usage stats
+ * @access  Private
+ */
+router.get('/usage/me', auth, async (req, res) => {
+    try {
+        const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+        const [totalCalls, totalTokens, byMode, recentLogs] = await Promise.all([
+            prisma.aIUsageLog.count({ where: { userId: req.userId, createdAt: { gte: since } } }),
+            prisma.aIUsageLog.aggregate({
+                where: { userId: req.userId, createdAt: { gte: since } },
+                _sum: { totalTokens: true, promptTokens: true, completionTokens: true },
+                _avg: { latencyMs: true },
+            }),
+            prisma.aIUsageLog.groupBy({
+                by: ['mode'],
+                where: { userId: req.userId, createdAt: { gte: since } },
+                _count: { id: true },
+                _sum: { totalTokens: true },
+            }),
+            prisma.aIUsageLog.findMany({
+                where: { userId: req.userId },
+                orderBy: { createdAt: 'desc' },
+                take: 10,
+                select: { id: true, mode: true, model: true, totalTokens: true, latencyMs: true, success: true, createdAt: true },
+            }),
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                period: '30d',
+                totalCalls,
+                totalTokens: totalTokens._sum.totalTokens || 0,
+                promptTokens: totalTokens._sum.promptTokens || 0,
+                completionTokens: totalTokens._sum.completionTokens || 0,
+                avgLatencyMs: Math.round(totalTokens._avg.latencyMs || 0),
+                byMode: byMode.map(m => ({ mode: m.mode, calls: m._count.id, tokens: m._sum.totalTokens || 0 })),
+                recentLogs,
+            },
+        });
+    } catch (error) {
+        console.error('AI usage stats error:', error);
+        res.status(500).json({ success: false, message: 'Failed to get AI usage stats' });
+    }
+});
+
+/**
+ * @route   GET /api/ai/usage/admin
+ * @desc    Get platform-wide AI usage stats (admin)
+ * @access  Private (admin)
+ */
+router.get('/usage/admin', auth, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: req.userId }, select: { activeRole: true } });
+        if (user?.activeRole !== 'ADMIN') {
+            return res.status(403).json({ success: false, message: 'Admin access required' });
+        }
+
+        const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+        const [totalCalls, tokenStats, byMode, topUsers, errorRate] = await Promise.all([
+            prisma.aIUsageLog.count({ where: { createdAt: { gte: since } } }),
+            prisma.aIUsageLog.aggregate({
+                where: { createdAt: { gte: since } },
+                _sum: { totalTokens: true },
+                _avg: { latencyMs: true },
+            }),
+            prisma.aIUsageLog.groupBy({
+                by: ['mode'],
+                where: { createdAt: { gte: since } },
+                _count: { id: true },
+                _sum: { totalTokens: true },
+                orderBy: { _count: { id: 'desc' } },
+            }),
+            prisma.aIUsageLog.groupBy({
+                by: ['userId'],
+                where: { createdAt: { gte: since } },
+                _count: { id: true },
+                _sum: { totalTokens: true },
+                orderBy: { _count: { id: 'desc' } },
+                take: 10,
+            }),
+            prisma.aIUsageLog.count({ where: { createdAt: { gte: since }, success: false } }),
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                period: '30d',
+                totalCalls,
+                totalTokens: tokenStats._sum.totalTokens || 0,
+                avgLatencyMs: Math.round(tokenStats._avg.latencyMs || 0),
+                errorRate: totalCalls ? ((errorRate / totalCalls) * 100).toFixed(1) + '%' : '0%',
+                byMode: byMode.map(m => ({ mode: m.mode, calls: m._count.id, tokens: m._sum.totalTokens || 0 })),
+                topUsers: topUsers.map(u => ({ userId: u.userId, calls: u._count.id, tokens: u._sum.totalTokens || 0 })),
+            },
+        });
+    } catch (error) {
+        console.error('Admin AI usage stats error:', error);
+        res.status(500).json({ success: false, message: 'Failed to get admin AI usage stats' });
     }
 });
 

@@ -79,9 +79,23 @@ const strictLimiter = rateLimit({
     store: buildStore('strict'),
 });
 
+// AI-specific rate limiter — protects Gemini API from abuse
+const aiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 30,                  // 30 AI calls per 15 min per IP
+    message: {
+        success: false,
+        message: 'AI request limit exceeded. Please wait before making more AI requests.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    store: buildStore('ai'),
+});
+
 module.exports = {
     globalLimiter,
     authLimiter,
     apiLimiter,
-    strictLimiter
+    strictLimiter,
+    aiLimiter
 };

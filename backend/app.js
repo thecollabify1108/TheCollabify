@@ -18,7 +18,7 @@ const helmet = require('helmet');
 
 // Advanced Security Middleware
 const requestTracker = require('./middleware/requestTracker');
-const { globalLimiter, authLimiter, apiLimiter, strictLimiter } = require('./middleware/rateLimiter');
+const { globalLimiter, authLimiter, apiLimiter, strictLimiter, aiLimiter } = require('./middleware/rateLimiter');
 const ipAllowlist = require('./middleware/ipAllowlist');
 const apiKeyAuth = require('./middleware/apiKeyAuth');
 
@@ -343,7 +343,7 @@ try { safeRoute('/api/admin', ipAllowlist, require('./routes/admin')); } catch (
 try { safeRoute('/api/analytics', require('./routes/analytics')); } catch (e) { console.error('analytics route failed:', e.message); }
 try { safeRoute('/api/calendar', require('./routes/contentCalendar')); } catch (e) { console.error('calendar route failed:', e.message); }
 try { safeRoute('/api/team', require('./routes/teamManagement')); } catch (e) { console.error('team route failed:', e.message); }
-try { safeRoute('/api/ai', require('./routes/ai')); } catch (e) { console.error('ai route failed:', e.message); }
+try { safeRoute('/api/ai', aiLimiter, require('./routes/ai')); } catch (e) { console.error('ai route failed:', e.message); }
 try { safeRoute('/api/collaboration', require('./routes/collaboration')); } catch (e) { console.error('collaboration route failed:', e.message); }
 
 // Root endpoint
