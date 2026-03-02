@@ -12,8 +12,8 @@ const PerformanceChart = ({ data, title, color = "#8b5cf6" }) => {
                 <h3 className="text-h3 font-bold text-white uppercase tracking-wider">{title}</h3>
             </div>
 
-            <div className="flex-1 min-h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
+            <div className="flex-1" style={{ minHeight: 200, minWidth: 0 }}>
+                <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                     <AreaChart data={data}>
                         <defs>
                             <linearGradient id={`gradient-${title}`} x1="0" y1="0" x2="0" y2="1">

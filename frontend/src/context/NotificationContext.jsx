@@ -36,8 +36,10 @@ export const NotificationProvider = ({ children }) => {
             setNotifications(response.data.data.notifications);
             setUnreadCount(response.data.data.unreadCount);
         } catch (error) {
-            console.error('Failed to fetch notifications:', error);
-            // Don't crash the app if notifications fail to load
+            // Silently handle timeouts/network errors (Azure cold starts)
+            if (error.code !== 'ECONNABORTED' && error.code !== 'ERR_NETWORK') {
+                console.error('Failed to fetch notifications:', error);
+            }
         } finally {
             setLoading(false);
         }

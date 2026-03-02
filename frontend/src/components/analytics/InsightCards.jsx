@@ -151,7 +151,9 @@ export const CreatorInsightCards = () => {
                 const res = await analyticsAPI.getInsights();
                 setData(res.data.data.insights);
             } catch (err) {
-                console.error('Failed to load creator insights:', err);
+                if (err.code !== 'ECONNABORTED' && err.code !== 'ERR_NETWORK') {
+                    console.error('Failed to load creator insights:', err);
+                }
             } finally {
                 setLoading(false);
             }
