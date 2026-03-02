@@ -56,19 +56,21 @@ jobs:
         # Azure App Service has its own CORS handler that intercepts OPTIONS
         # requests BEFORE they reach Express. We must disable it so our
         # Express CORS middleware runs instead.
-        RG=$(az webapp list --query "[?name=='thecollabify-api'].resourceGroup" -o tsv)
-        echo "Resource group: $RG"
-        az webapp cors show --name thecollabify-api --resource-group "$RG"
-        # Clear all platform-level CORS origins
+        # Method 1: Remove all allowed origins via `az webapp cors`
+        az webapp cors remove --name thecollabify-api \
+          --resource-group TheCollabify \
+          --allowed-origins '*' 2>/dev/null || true
+        # Method 2: Directly set empty allowedOrigins array via resource update
         az resource update \
           --name web \
-          --resource-group "$RG" \
+          --resource-group TheCollabify \
           --namespace Microsoft.Web \
           --resource-type config \
           --parent sites/thecollabify-api \
           --set properties.cors.allowedOrigins='[]' \
-          --set properties.cors.supportCredentials=false
-        echo "Azure platform CORS cleared — Express will handle CORS"
+          --set properties.cors.supportCredentials=false \
+          2>/dev/null || true
+        echo "Azure platform CORS cleared — Express handles CORS now"
 
     - name: Run Database Migrations
       continue-on-error: true

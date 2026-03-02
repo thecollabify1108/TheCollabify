@@ -217,16 +217,16 @@ const Landing = () => {
                             </Link>
 
                             {/* Desktop Navigation */}
-                            <div className="hidden md:flex items-center space-x-s3">
-                                <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition text-small font-medium">For Brands</Link>
-                                <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition text-small font-medium">For Influencers</Link>
-                                <a href="#how-it-works" className="text-dark-400 hover:text-dark-200 transition text-small font-medium">How It Works</a>
-                                <a href="#features" className="text-dark-400 hover:text-dark-200 transition text-small font-medium">Features</a>
-                                <a href="#about" className="text-dark-400 hover:text-dark-200 transition text-small font-medium">About Us</a>
+                            <div className="hidden lg:flex items-center space-x-2 xl:space-x-s3">
+                                <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition text-xs xl:text-small font-medium whitespace-nowrap">For Brands</Link>
+                                <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition text-xs xl:text-small font-medium whitespace-nowrap">For Influencers</Link>
+                                <a href="#how-it-works" className="text-dark-400 hover:text-dark-200 transition text-xs xl:text-small font-medium whitespace-nowrap">How It Works</a>
+                                <a href="#features" className="text-dark-400 hover:text-dark-200 transition text-xs xl:text-small font-medium whitespace-nowrap">Features</a>
+                                <a href="#about" className="text-dark-400 hover:text-dark-200 transition text-xs xl:text-small font-medium whitespace-nowrap">About Us</a>
                             </div>
 
                             {/* Desktop Right Side */}
-                            <div className="hidden md:flex items-center space-x-s2">
+                            <div className="hidden lg:flex items-center space-x-s2">
                                 <ThemeToggle />
                                 <button
                                     onClick={() => navigate('/login')}
@@ -243,7 +243,7 @@ const Landing = () => {
                             </div>
 
                             {/* Mobile Right Side */}
-                            <div className="flex md:hidden items-center space-x-s1">
+                            <div className="flex lg:hidden items-center space-x-s1">
                                 <div className="scale-90 origin-right">
                                     <ThemeToggle />
                                 </div>
@@ -266,7 +266,7 @@ const Landing = () => {
 
                     {/* Mobile Menu Dropdown */}
                     {mobileMenuOpen && (
-                        <div className="md:hidden bg-dark-900/95 backdrop-blur-xl border-t border-dark-800">
+                        <div className="lg:hidden bg-dark-900/95 backdrop-blur-xl border-t border-dark-800">
                             <div className="px-4 py-4 space-y-3">
                                 {/* Top Actions - Better centered for mobile */}
                                 <div className="flex flex-col sm:flex-row gap-3 px-4 pb-4 border-b border-dark-700">
