@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiSparkles, HiTrendingUp, HiUserGroup } from 'react-icons/hi';
 import { FaFire } from 'react-icons/fa';
+import api from '../../services/api';
 
 /**
  * Social Proof Widget
@@ -23,9 +24,8 @@ const SocialProofWidget = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://api.thecollabify.tech' : '');
-                const response = await fetch(`${apiUrl}/api/public/stats`);
-                const result = await response.json();
+                const response = await api.get('public/stats');
+                const result = response.data;
                 if (result.success) {
                     setStats(prev => ({ ...prev, ...result.data }));
                     if (result.data.activities) {
