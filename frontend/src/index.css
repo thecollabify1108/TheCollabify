@@ -27,9 +27,9 @@
   }
 
   body {
-    min-height: 100vh;
-    /* Fallback for older iOS Safari (pre dvh support) */
+    /* iOS Safari fallback first, then standard unit */
     min-height: -webkit-fill-available;
+    min-height: 100vh;
   }
 
   /* Accessibility: Better focus indicators for keyboard navigation */
@@ -240,17 +240,28 @@
 /* Utility classes */
 @layer utilities {
   .text-balance {
-    text-wrap: balance;
+    overflow-wrap: break-word; /* universal fallback */
+  }
+
+  @supports (text-wrap: balance) {
+    .text-balance {
+      text-wrap: balance;
+    }
   }
 
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+    -ms-overflow-style: none;  /* IE/Edge */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;
+    display: none;  /* Chrome/Safari/Opera */
+  }
+
+  @supports (scrollbar-width: none) {
+    .scrollbar-hide {
+      scrollbar-width: none;  /* Firefox 64+ */
+    }
   }
 
   /* Gradient borders */

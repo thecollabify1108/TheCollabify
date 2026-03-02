@@ -588,7 +588,8 @@ router.post('/login', [
 router.get('/me', auth, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
-            where: { id: req.userId }
+            where: { id: req.userId },
+            include: { roles: true }
         });
 
         res.json({
@@ -1111,22 +1112,20 @@ router.post('/newsletter', [
 ], async (req, res) => {
     try {
         const { email } = req.body;
-        const Subscriber = require('../models/Subscriber');
 
-        // Check if already subscribed
-        let subscriber = await Subscriber.findOne({ email });
+        // Check if already subscribed (Prisma)
+        const existing = await prisma.subscriber.findUnique({ where: { email } });
 
-        if (subscriber) {
-            if (!subscriber.isActive) {
-                subscriber.isActive = true;
-                await subscriber.save();
+        if (existing) {
+            if (!existing.isActive) {
+                await prisma.subscriber.update({ where: { email }, data: { isActive: true } });
                 return res.json({ success: true, message: 'Welcome back! You have been resubscribed.' });
             }
             return res.json({ success: true, message: 'You are already subscribed to our newsletter.' });
         }
 
         // Create new subscriber
-        await Subscriber.create({ email });
+        await prisma.subscriber.create({ data: { email } });
 
         res.status(201).json({
             success: true,

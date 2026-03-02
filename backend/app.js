@@ -47,10 +47,12 @@ try {
 
 // Sentry Error Monitoring — wrapped defensively
 let sentryErrorHandler = (err, req, res, next) => next(err); // fallback noop
+let initSentry = () => console.warn('⚠️  Sentry initSentry unavailable');
 try {
     const Sentry = require('@sentry/node');
     const sentry = require('./config/sentry');
     sentryErrorHandler = sentry.sentryErrorHandler;
+    initSentry = sentry.initSentry;
     console.log('✅ Sentry module loaded');
 } catch (e) {
     console.warn('⚠️  Sentry failed to load (non-fatal):', e.message);
@@ -168,7 +170,11 @@ const { initRedis, isRedisEnabled } = require('./config/redis');
 initRedis();
 
 // Swagger UI Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+if (swaggerUi && swaggerSpec) {
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+} else {
+    app.get('/api-docs', (req, res) => res.status(503).json({ message: 'API docs unavailable' }));
+}
 
 // CRITICAL: Early health check for Azure - runs before complex modules
 app.get('/health', (req, res) => {
