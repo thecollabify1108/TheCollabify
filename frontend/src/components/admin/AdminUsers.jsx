@@ -20,6 +20,7 @@ const AdminUsers = () => {
     const [expandedCreator, setExpandedCreator] = useState(null);
     const [verifyForm, setVerifyForm] = useState({ min: '', max: '' });
     const [verifying, setVerifying] = useState(false);
+    const [recalculating, setRecalculating] = useState(null);
 
     useEffect(() => {
         fetchUsers();
@@ -83,6 +84,20 @@ const AdminUsers = () => {
             toast.error(error.response?.data?.message || 'Verification failed');
         } finally {
             setVerifying(false);
+        }
+    };
+
+    const handleRecalculateRisk = async (creatorId) => {
+        try {
+            setRecalculating(creatorId);
+            const res = await adminAPI.recalculateRisk(creatorId);
+            const r = res.data.data;
+            toast.success(`Risk recalculated: ${r.compositeRiskScore} (${r.riskLevel})`);
+            fetchCreators();
+        } catch (error) {
+            toast.error('Recalculation failed');
+        } finally {
+            setRecalculating(null);
         }
     };
 
@@ -363,9 +378,9 @@ const AdminUsers = () => {
                                                                 <div className="text-lg font-bold text-dark-100">{creator.engagementRate || 0}%</div>
                                                             </div>
                                                             <div className="p-3 rounded-xl bg-dark-800/60 border border-dark-700/30">
-                                                                <div className="text-[10px] text-dark-500 uppercase tracking-wider mb-1">Risk Score</div>
-                                                                <div className={`text-lg font-bold ${creator.followerRiskScore === 'high' ? 'text-red-400' : creator.followerRiskScore === 'medium' ? 'text-amber-400' : 'text-emerald-400'}`}>
-                                                                    {creator.followerRiskScore || 'N/A'}
+                                                                <div className="text-[10px] text-dark-500 uppercase tracking-wider mb-1">Composite Risk</div>
+                                                                <div className={`text-lg font-bold ${creator.riskLevel === 'high' ? 'text-red-400' : creator.riskLevel === 'medium' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                                                    {creator.compositeRiskScore ?? 0}<span className="text-xs opacity-60">/100</span>
                                                                 </div>
                                                             </div>
                                                             <div className="p-3 rounded-xl bg-dark-800/60 border border-dark-700/30">
@@ -375,6 +390,34 @@ const AdminUsers = () => {
                                                                 </div>
                                                             </div>
                                                         </div>
+
+                                                        {/* Risk Component Breakdown */}
+                                                        {creator.compositeRiskScore != null && creator.compositeRiskScore > 0 && (
+                                                            <div className="mb-4 p-3 rounded-xl bg-dark-800/40 border border-dark-700/30">
+                                                                <div className="text-[10px] font-bold text-dark-500 uppercase tracking-widest mb-2">Risk Breakdown</div>
+                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                                                    {[
+                                                                        { label: 'Follower Consistency', value: creator.riskFollowerMismatch, weight: '40%' },
+                                                                        { label: 'Engagement Patterns', value: creator.riskEngagementAnomaly, weight: '25%' },
+                                                                        { label: 'Growth Stability', value: creator.riskGrowthInstability, weight: '20%' },
+                                                                        { label: 'Content Activity', value: creator.riskContentInactivity, weight: '15%' }
+                                                                    ].map(comp => (
+                                                                        <div key={comp.label}>
+                                                                            <div className="flex justify-between mb-0.5">
+                                                                                <span className="text-[10px] text-dark-300">{comp.label}</span>
+                                                                                <span className="text-[9px] text-dark-500">{Math.round(comp.value ?? 0)} ({comp.weight})</span>
+                                                                            </div>
+                                                                            <div className="h-1.5 w-full bg-dark-900 rounded-full overflow-hidden">
+                                                                                <div
+                                                                                    className={`h-full rounded-full transition-all ${(comp.value ?? 0) <= 30 ? 'bg-emerald-500' : (comp.value ?? 0) <= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
+                                                                                    style={{ width: `${Math.min(100, comp.value ?? 0)}%` }}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
 
                                                         {/* Previous verification data */}
                                                         {creator.verifiedFollowerRangeMin != null && (
@@ -416,6 +459,14 @@ const AdminUsers = () => {
                                                                 className="px-6 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold uppercase tracking-wider shadow-glow hover:shadow-glow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
                                                             >
                                                                 {verifying ? 'Verifying...' : 'Verify'}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleRecalculateRisk(creator.id)}
+                                                                disabled={recalculating === creator.id}
+                                                                className="px-4 py-2 rounded-lg bg-dark-700/60 border border-dark-600 text-dark-200 text-sm font-bold uppercase tracking-wider hover:bg-dark-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
+                                                                title="Recalculate composite risk score"
+                                                            >
+                                                                {recalculating === creator.id ? 'Calculating...' : 'Recalc Risk'}
                                                             </button>
                                                         </div>
                                                     </div>

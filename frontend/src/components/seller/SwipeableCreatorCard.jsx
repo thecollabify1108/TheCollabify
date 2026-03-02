@@ -5,6 +5,7 @@ import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
 import { trackEvent } from '../../utils/analytics';
 import MatchExplanation from '../common/MatchExplanation';
 import VerificationBadge from '../common/VerificationBadge';
+import RiskScoreBadge from '../common/RiskScoreBadge';
 
 const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -271,16 +272,27 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                             <span className="text-xs-pure font-bold uppercase tracking-wider">{creator.location.city}</span>
                         </div>
                     )}
-                    {creator.verificationStatus && (
-                        <div className="mt-2">
+                    <div className="flex flex-wrap items-center gap-2 mt-2">
+                        {creator.riskLevel && (
+                            <RiskScoreBadge
+                                compositeRiskScore={creator.compositeRiskScore || 0}
+                                riskLevel={creator.riskLevel}
+                                riskFollowerMismatch={creator.riskFollowerMismatch}
+                                riskEngagementAnomaly={creator.riskEngagementAnomaly}
+                                riskGrowthInstability={creator.riskGrowthInstability}
+                                riskContentInactivity={creator.riskContentInactivity}
+                                size="sm"
+                            />
+                        )}
+                        {creator.verificationStatus && (
                             <VerificationBadge
                                 verificationStatus={creator.verificationStatus}
                                 followerRiskScore={creator.followerRiskScore}
                                 followerMismatchPercentage={creator.followerMismatchPercentage}
                                 size="sm"
                             />
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
 
                 {/* Campaign Info */}

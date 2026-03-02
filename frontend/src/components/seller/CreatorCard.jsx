@@ -3,6 +3,7 @@ import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments, FaShieldAlt } 
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
 import MatchExplanation from '../common/MatchExplanation';
 import VerificationBadge from '../common/VerificationBadge';
+import RiskScoreBadge from '../common/RiskScoreBadge';
 
 const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage, viewMode, onViewProfile, children }) => {
     const profile = creator.creatorId || creator;
@@ -77,13 +78,16 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                         {matchScore >= 80 ? 'High' : matchScore >= 60 ? 'Good' : 'Low'} Confidence
                     </span>
                 </div>
-                {/* Risk Level */}
-                <div className="flex items-center gap-1 px-s2 py-1 rounded-full bg-dark-900/60 border border-dark-700/30">
-                    <FaShieldAlt className={`w-2.5 h-2.5 ${profile.insights?.engagementQuality === 'High' ? 'text-emerald-400' : profile.insights?.engagementQuality === 'Medium' ? 'text-amber-400' : 'text-dark-500'}`} />
-                    <span className="text-[10px] font-bold text-dark-300 uppercase tracking-wider">
-                        {profile.insights?.engagementQuality === 'High' ? 'Low Risk' : profile.insights?.engagementQuality === 'Medium' ? 'Med Risk' : 'Unscored'}
-                    </span>
-                </div>
+                {/* Composite Risk Score */}
+                <RiskScoreBadge
+                    compositeRiskScore={profile.compositeRiskScore || 0}
+                    riskLevel={profile.riskLevel || 'low'}
+                    riskFollowerMismatch={profile.riskFollowerMismatch}
+                    riskEngagementAnomaly={profile.riskEngagementAnomaly}
+                    riskGrowthInstability={profile.riskGrowthInstability}
+                    riskContentInactivity={profile.riskContentInactivity}
+                    size="sm"
+                />
                 {/* Verification Badge */}
                 {profile.verificationStatus && (
                     <VerificationBadge

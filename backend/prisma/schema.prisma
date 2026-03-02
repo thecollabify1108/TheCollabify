@@ -212,6 +212,15 @@ model CreatorProfile {
   followerMismatchPercentage  Float?
   followerRiskScore           String?   // none | medium | high
   verifiedBy                  String?   // admin userId who verified
+
+  // Composite Risk Score System
+  compositeRiskScore          Float     @default(0)   // 0–100
+  riskLevel                   String    @default("low") // low | medium | high
+  riskFollowerMismatch        Float     @default(0)   // 0–100 component
+  riskEngagementAnomaly       Float     @default(0)   // 0–100 component
+  riskGrowthInstability       Float     @default(0)   // 0–100 component
+  riskContentInactivity       Float     @default(0)   // 0–100 component
+  riskLastCalculated          DateTime?
   
   // Relations
   achievements         Achievement[]

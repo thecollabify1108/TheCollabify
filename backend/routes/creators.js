@@ -9,6 +9,7 @@ const { notifyProfileInsights, notifySellerCreatorApplied } = require('../servic
 const { sendCreatorAppliedEmail } = require('../utils/brevoEmailService');
 const { upload } = require('../services/storageService');
 const { updateReliabilityScore } = require('../services/reliabilityService');
+const { updateRiskScoreByUserId } = require('../services/riskScoreService');
 let EmbeddingService;
 try {
     EmbeddingService = require('../services/ai').EmbeddingService;
@@ -238,6 +239,9 @@ router.post('/profile', auth, isCreator, [
             console.error('Failed to send insights notification:', err);
         }
 
+        // Calculate initial risk score in background
+        updateRiskScoreByUserId(req.userId).catch(err => console.error('[RiskScore] Initial calc error:', err));
+
         res.status(201).json({
             success: true,
             message: 'Profile created successfully',
@@ -358,6 +362,9 @@ router.put('/profile', auth, isCreator, [
         } catch (err) {
             console.warn('[AI Embedding] Setup error:', err.message);
         }
+
+        // Recalculate risk score in background after profile update
+        updateRiskScoreByUserId(req.userId).catch(err => console.error('[RiskScore] Update recalc error:', err));
 
         res.json({
             success: true,

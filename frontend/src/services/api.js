@@ -173,7 +173,10 @@ export const adminAPI = {
     getInsights: () => api.get('admin/insights'),
     // Verification system
     getPendingVerification: (params) => api.get('admin/creators/pending-verification', { params }),
-    verifyCreator: (id, data) => api.post(`admin/creators/${id}/verify`, data)
+    verifyCreator: (id, data) => api.post(`admin/creators/${id}/verify`, data),
+    // Risk score
+    getCreatorRisk: (id) => api.get(`admin/creators/${id}/risk`),
+    recalculateRisk: (id) => api.post(`admin/creators/${id}/recalculate-risk`)
 };
 
 // Public API

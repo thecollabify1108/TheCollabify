@@ -4,6 +4,7 @@ const { body, query, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/roleCheck');
+const { updateRiskScore } = require('../services/riskScoreService');
 
 /**
  * Validation middleware
@@ -589,6 +590,12 @@ router.get('/creators/pending-verification', auth, isAdmin, async (req, res) => 
                 followerRiskScore: c.followerRiskScore,
                 verificationLastUpdated: c.verificationLastUpdated,
                 verifiedBy: c.verifiedBy,
+                compositeRiskScore: c.compositeRiskScore,
+                riskLevel: c.riskLevel,
+                riskFollowerMismatch: c.riskFollowerMismatch,
+                riskEngagementAnomaly: c.riskEngagementAnomaly,
+                riskGrowthInstability: c.riskGrowthInstability,
+                riskContentInactivity: c.riskContentInactivity,
                 createdAt: c.createdAt
             }))
         });
@@ -667,9 +674,67 @@ router.post('/creators/:id/verify', auth, isAdmin, [
                 verificationLastUpdated: updated.verificationLastUpdated
             }
         });
+
+        // Recalculate composite risk score in background after verification
+        updateRiskScore(id).catch(err => console.error('[RiskScore] Post-verification recalc error:', err));
     } catch (error) {
         console.error('Verify creator error:', error);
         res.status(500).json({ success: false, message: 'Failed to verify creator' });
+    }
+});
+
+// ─── RISK SCORE MANAGEMENT ──────────────────────────────────────
+
+/**
+ * @route   POST /api/admin/creators/:id/recalculate-risk
+ * @desc    Recalculate composite risk score for a creator
+ * @access  Private (Admin)
+ */
+router.post('/creators/:id/recalculate-risk', auth, isAdmin, async (req, res) => {
+    try {
+        const riskData = await updateRiskScore(req.params.id);
+        if (!riskData) {
+            return res.status(404).json({ success: false, message: 'Creator profile not found' });
+        }
+        res.json({ success: true, data: riskData });
+    } catch (error) {
+        console.error('Recalculate risk error:', error);
+        res.status(500).json({ success: false, message: 'Failed to recalculate risk score' });
+    }
+});
+
+/**
+ * @route   GET /api/admin/creators/:id/risk
+ * @desc    Get risk score breakdown for a creator
+ * @access  Private (Admin)
+ */
+router.get('/creators/:id/risk', auth, isAdmin, async (req, res) => {
+    try {
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { id: req.params.id },
+            select: {
+                id: true,
+                compositeRiskScore: true,
+                riskLevel: true,
+                riskFollowerMismatch: true,
+                riskEngagementAnomaly: true,
+                riskGrowthInstability: true,
+                riskContentInactivity: true,
+                riskLastCalculated: true,
+                followerCount: true,
+                engagementRate: true,
+                verificationStatus: true,
+                followerMismatchPercentage: true,
+                user: { select: { name: true, email: true } }
+            }
+        });
+        if (!profile) {
+            return res.status(404).json({ success: false, message: 'Creator profile not found' });
+        }
+        res.json({ success: true, data: profile });
+    } catch (error) {
+        console.error('Get risk data error:', error);
+        res.status(500).json({ success: false, message: 'Failed to get risk data' });
     }
 });
 

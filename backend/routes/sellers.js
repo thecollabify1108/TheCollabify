@@ -72,6 +72,8 @@ router.get('/requests', auth, isSeller, async (req, res) => {
                                     verificationStatus: true,
                                     followerRiskScore: true,
                                     followerMismatchPercentage: true,
+                                    compositeRiskScore: true,
+                                    riskLevel: true,
                                     user: {
                                         select: { id: true, name: true, avatar: true }
                                     }

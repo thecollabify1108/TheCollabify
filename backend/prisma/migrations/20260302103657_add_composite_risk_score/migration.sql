@@ -1,0 +1,8 @@
+-- AlterTable
+ALTER TABLE "CreatorProfile" ADD COLUMN     "compositeRiskScore" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "riskContentInactivity" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "riskEngagementAnomaly" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "riskFollowerMismatch" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "riskGrowthInstability" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN     "riskLastCalculated" TIMESTAMP(3),
+ADD COLUMN     "riskLevel" TEXT NOT NULL DEFAULT 'low';

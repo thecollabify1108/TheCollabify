@@ -3,6 +3,7 @@ import { FaEdit, FaInstagram, FaUserCircle, FaRupeeSign } from 'react-icons/fa';
 import { HiUserGroup, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import toast from 'react-hot-toast';
 import VerificationBadge from '../common/VerificationBadge';
+import RiskScoreBadge from '../common/RiskScoreBadge';
 
 const ProfileCard = ({ profile, onEdit }) => {
     if (!profile) return null;
@@ -59,6 +60,16 @@ const ProfileCard = ({ profile, onEdit }) => {
                                     size="md"
                                 />
                             )}
+                            <RiskScoreBadge
+                                compositeRiskScore={profile.compositeRiskScore || 0}
+                                riskLevel={profile.riskLevel || 'low'}
+                                riskFollowerMismatch={profile.riskFollowerMismatch}
+                                riskEngagementAnomaly={profile.riskEngagementAnomaly}
+                                riskGrowthInstability={profile.riskGrowthInstability}
+                                riskContentInactivity={profile.riskContentInactivity}
+                                size="md"
+                                showScore
+                            />
                         </div>
                     </div>
                 </div>
