@@ -2,10 +2,12 @@ import { motion } from 'framer-motion';
 import { FaEdit, FaInstagram, FaUserCircle, FaRupeeSign } from 'react-icons/fa';
 import { HiUserGroup, HiLightningBolt, HiSparkles } from 'react-icons/hi';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
 import VerificationBadge from '../common/VerificationBadge';
 import RiskScoreBadge from '../common/RiskScoreBadge';
 
 const ProfileCard = ({ profile, onEdit }) => {
+    const { user: authUser } = useAuth();
     if (!profile) return null;
 
     const formatNumber = (num) => {
@@ -69,6 +71,7 @@ const ProfileCard = ({ profile, onEdit }) => {
                                 riskContentInactivity={profile.riskContentInactivity}
                                 size="md"
                                 showScore
+                                userTier={authUser?.subscriptionTier || 'FREE'}
                             />
                         </div>
                     </div>

@@ -97,6 +97,12 @@ enum TeamStatus {
   REMOVED
 }
 
+enum SubscriptionTier {
+  FREE
+  CREATOR_PRO
+  BRAND_PRO
+}
+
 model User {
   id                    String         @id @default(uuid())
   email                 String         @unique
@@ -111,6 +117,11 @@ model User {
   resetPasswordExpires  DateTime?
   lastLogin             DateTime?
   activeRole            Role?
+  
+  // Subscription & Feature Gating
+  subscriptionTier      SubscriptionTier @default(FREE)
+  dailyAIQueryCount     Int              @default(0)
+  lastAIQueryDate       DateTime?
   
   // Relations
   roles                 UserRole[]

@@ -1,214 +1,131 @@
 /**
  * Subscription Tiers & Pricing Configuration
- * Free, Pro, and Enterprise plans
+ * FREE, Creator Pro, and Brand Pro plans
+ *
+ * Tier mapping:
+ *   FREE        – default for all new users
+ *   CREATOR_PRO – for creators (paid upgrade)
+ *   BRAND_PRO   – for brands/sellers (paid upgrade)
  */
+
+export const TIERS = {
+    FREE: 'FREE',
+    CREATOR_PRO: 'CREATOR_PRO',
+    BRAND_PRO: 'BRAND_PRO',
+};
 
 export const subscriptionPlans = {
     free: {
         id: 'free',
+        tier: TIERS.FREE,
         name: 'Free',
         price: 0,
         billingPeriod: 'forever',
-        description: 'Perfect for getting started',
+        description: 'Get started with basic intelligence',
         badge: '🆓',
         color: '#6B7280',
+        targetRole: null,
         features: {
-            campaigns: {
-                limit: 2,
-                description: '2 active campaigns'
-            },
-            creators: {
-                limit: 50,
-                description: 'Browse up to 50 creators'
-            },
-            applications: {
-                limit: 10,
-                description: '10 applications per campaign'
-            },
-            analytics: {
-                enabled: true,
-                advanced: false,
-                description: 'Basic analytics'
-            },
+            campaigns: { limit: 2, description: '2 active campaigns' },
+            creators: { limit: 50, description: 'Browse up to 50 creators' },
             aiFeatures: {
-                contentGenerator: false,
-                predictiveAnalytics: false,
-                autoMatching: false,
-                sentimentAnalysis: false,
-                description: 'No AI features'
+                matchIntelligence: 'summary',
+                creatorAudit: 'summary',
+                campaignStrategy: false,
+                roiForecast: false,
+                optimization: false,
+                dailyAILimit: 3,
+                toolkit: true,
+                description: 'Limited AI (3 queries/day, summary only)',
             },
-            support: {
-                email: true,
-                priority: false,
-                dedicated: false,
-                description: 'Email support (48h response)'
-            },
-            platforms: {
-                limit: ['instagram'],
-                description: 'Instagram only'
-            },
-            teamMembers: {
-                limit: 1,
-                description: 'Solo account'
-            },
-            exports: {
-                enabled: false,
-                description: 'No data exports'
-            },
-            branding: {
-                removable: false,
-                description: 'TheCollabify branding'
-            }
+            analytics: { enabled: true, advanced: false, description: 'Basic analytics' },
+            riskBreakdown: false,
+            verificationPriority: false,
+            support: { email: true, priority: false, description: 'Email support (48h)' },
         },
         cta: 'Start Free',
-        popular: false
+        popular: false,
     },
 
-    pro: {
-        id: 'pro',
-        name: 'Pro',
-        price: 999,
+    creator_pro: {
+        id: 'creator_pro',
+        tier: TIERS.CREATOR_PRO,
+        name: 'Creator Pro',
+        price: 499,
         billingPeriod: 'month',
-        yearlyPrice: 9990, // 2 months free
-        description: 'For serious brands and agencies',
+        yearlyPrice: 4990,
+        description: 'Full intelligence for creators',
         badge: '⭐',
         color: '#8B5CF6',
+        targetRole: 'creator',
         features: {
-            campaigns: {
-                limit: 25,
-                description: '25 active campaigns'
-            },
-            creators: {
-                limit: 'unlimited',
-                description: 'Unlimited creator browsing'
-            },
-            applications: {
-                limit: 'unlimited',
-                description: 'Unlimited applications'
-            },
-            analytics: {
-                enabled: true,
-                advanced: true,
-                description: 'Advanced analytics & insights'
-            },
+            campaigns: { limit: 'unlimited', description: 'Unlimited applications' },
+            creators: { limit: 'unlimited', description: 'Full discovery access' },
             aiFeatures: {
-                contentGenerator: true,
-                predictiveAnalytics: true,
-                autoMatching: true,
-                sentimentAnalysis: true,
-                description: 'Full AI suite included'
+                matchIntelligence: 'summary',
+                creatorAudit: 'full',
+                campaignStrategy: false,
+                roiForecast: false,
+                optimization: 'full',
+                dailyAILimit: -1,
+                toolkit: true,
+                description: 'Full Audit + Optimization, unlimited queries',
             },
-            support: {
-                email: true,
-                priority: true,
-                dedicated: false,
-                description: 'Priority support (4h response)'
-            },
-            platforms: {
-                limit: ['instagram', 'youtube', 'tiktok', 'twitter', 'linkedin'],
-                description: 'All 5 platforms'
-            },
-            teamMembers: {
-                limit: 5,
-                description: 'Up to 5 team members'
-            },
-            exports: {
-                enabled: true,
-                description: 'Unlimited CSV/PDF exports'
-            },
-            branding: {
-                removable: true,
-                description: 'Remove TheCollabify branding'
-            },
-            extras: [
-                'Campaign templates library',
-                'Saved search filters',
-                'Bulk creator invites',
-                'Custom reports',
-                'API access (basic)',
-                'White-label reports'
-            ]
+            analytics: { enabled: true, advanced: true, description: 'Advanced analytics' },
+            riskBreakdown: false,
+            verificationPriority: true,
+            support: { email: true, priority: true, description: 'Priority support (4h)' },
         },
-        cta: 'Start Pro Trial',
-        trialDays: 14,
-        popular: true
+        highlights: [
+            'Full Creator Audit breakdown',
+            'Optimization Mode',
+            'Unlimited AI queries',
+            'Verification priority queue',
+            'Advanced audience insights',
+        ],
+        cta: 'Upgrade to Creator Pro',
+        popular: true,
     },
 
-    enterprise: {
-        id: 'enterprise',
-        name: 'Enterprise',
-        price: 'custom',
-        billingPeriod: 'custom',
-        description: 'For large teams and enterprises',
+    brand_pro: {
+        id: 'brand_pro',
+        tier: TIERS.BRAND_PRO,
+        name: 'Brand Pro',
+        price: 999,
+        billingPeriod: 'month',
+        yearlyPrice: 9990,
+        description: 'Complete intelligence for brands',
         badge: '💎',
         color: '#EC4899',
+        targetRole: 'seller',
         features: {
-            campaigns: {
-                limit: 'unlimited',
-                description: 'Unlimited campaigns'
-            },
-            creators: {
-                limit: 'unlimited',
-                description: 'Unlimited creator access'
-            },
-            applications: {
-                limit: 'unlimited',
-                description: 'Unlimited applications'
-            },
-            analytics: {
-                enabled: true,
-                advanced: true,
-                custom: true,
-                description: 'Custom analytics & BI tools'
-            },
+            campaigns: { limit: 'unlimited', description: 'Unlimited campaigns' },
+            creators: { limit: 'unlimited', description: 'Unlimited creator access' },
             aiFeatures: {
-                contentGenerator: true,
-                predictiveAnalytics: true,
-                autoMatching: true,
-                sentimentAnalysis: true,
-                customModels: true,
-                description: 'AI suite + custom models'
+                matchIntelligence: 'full',
+                creatorAudit: 'full',
+                campaignStrategy: 'full',
+                roiForecast: 'full',
+                optimization: 'full',
+                dailyAILimit: -1,
+                toolkit: true,
+                description: 'Full AI suite — all 5 intelligence modes',
             },
-            support: {
-                email: true,
-                priority: true,
-                dedicated: true,
-                description: 'Dedicated account manager'
-            },
-            platforms: {
-                limit: ['instagram', 'youtube', 'tiktok', 'twitter', 'linkedin'],
-                description: 'All platforms + custom integrations'
-            },
-            teamMembers: {
-                limit: 'unlimited',
-                description: 'Unlimited team members'
-            },
-            exports: {
-                enabled: true,
-                api: true,
-                description: 'Unlimited exports + API access'
-            },
-            branding: {
-                removable: true,
-                whiteLabel: true,
-                description: 'Full white-label solution'
-            },
-            extras: [
-                'Everything in Pro',
-                'Custom integrations',
-                'Advanced API access',
-                'SSO authentication',
-                'Custom workflows',
-                'Dedicated infrastructure',
-                'SLA guarantee',
-                'Training & onboarding',
-                'Custom contract terms',
-                'Volume discounts'
-            ]
+            analytics: { enabled: true, advanced: true, description: 'Advanced analytics & insights' },
+            riskBreakdown: true,
+            verificationPriority: false,
+            support: { email: true, priority: true, description: 'Priority support (4h)' },
         },
-        cta: 'Contact Sales',
-        popular: false
-    }
+        highlights: [
+            'Full Match Intelligence breakdown',
+            'ROI & Performance Forecast',
+            'Campaign Strategy (full)',
+            'Risk score breakdown transparency',
+            'Advanced analytics insights',
+        ],
+        cta: 'Upgrade to Brand Pro',
+        popular: false,
+    },
 };
 
 /**
@@ -216,128 +133,67 @@ export const subscriptionPlans = {
  */
 export const featureComparison = [
     {
-        category: 'Campaigns',
+        category: 'Intelligence Modes',
         features: [
-            { name: 'Active Campaigns', free: '2', pro: '25', enterprise: 'Unlimited' },
-            { name: 'Campaign Templates', free: false, pro: true, enterprise: true },
-            { name: 'Cross-platform Campaigns', free: false, pro: true, enterprise: true },
-            { name: 'Automated Scheduling', free: false, pro: true, enterprise: true }
-        ]
+            { name: 'Match Intelligence', free: 'Summary', creator_pro: 'Summary', brand_pro: 'Full' },
+            { name: 'Creator Audit', free: 'Summary', creator_pro: 'Full', brand_pro: 'Full' },
+            { name: 'Campaign Strategy', free: false, creator_pro: false, brand_pro: 'Full' },
+            { name: 'ROI Forecast', free: false, creator_pro: false, brand_pro: 'Full' },
+            { name: 'Optimization', free: false, creator_pro: 'Full', brand_pro: 'Full' },
+        ],
     },
     {
-        category: 'Creator Discovery',
+        category: 'AI Queries',
         features: [
-            { name: 'Creator Browse Limit', free: '50', pro: 'Unlimited', enterprise: 'Unlimited' },
-            { name: 'Advanced Filters', free: 'Basic', pro: 'Advanced', enterprise: 'Custom' },
-            { name: 'AI Match Scoring', free: false, pro: true, enterprise: true },
-            { name: 'Bulk Invites', free: false, pro: true, enterprise: true }
-        ]
+            { name: 'Daily AI Limit', free: '3/day', creator_pro: 'Unlimited', brand_pro: 'Unlimited' },
+            { name: 'Toolkit (Captions & Tags)', free: true, creator_pro: true, brand_pro: true },
+        ],
     },
     {
-        category: 'AI Features',
+        category: 'Risk & Verification',
         features: [
-            { name: 'Content Generator', free: false, pro: true, enterprise: true },
-            { name: 'ROI Predictions', free: false, pro: true, enterprise: true },
-            { name: 'Sentiment Analysis', free: false, pro: true, enterprise: true },
-            { name: 'Custom AI Models', free: false, pro: false, enterprise: true }
-        ]
+            { name: 'Risk Level Display', free: 'Basic', creator_pro: 'Basic', brand_pro: 'Full Breakdown' },
+            { name: 'Verification Priority', free: false, creator_pro: true, brand_pro: false },
+        ],
     },
     {
         category: 'Analytics',
         features: [
-            { name: 'Basic Analytics', free: true, pro: true, enterprise: true },
-            { name: 'Advanced Insights', free: false, pro: true, enterprise: true },
-            { name: 'Custom Reports', free: false, pro: true, enterprise: true },
-            { name: 'BI Integration', free: false, pro: false, enterprise: true }
-        ]
+            { name: 'Basic Analytics', free: true, creator_pro: true, brand_pro: true },
+            { name: 'Advanced Insights', free: false, creator_pro: true, brand_pro: true },
+        ],
     },
-    {
-        category: 'Collaboration',
-        features: [
-            { name: 'Team Members', free: '1', pro: '5', enterprise: 'Unlimited' },
-            { name: 'Role Permissions', free: false, pro: true, enterprise: true },
-            { name: 'Approval Workflows', free: false, pro: false, enterprise: true },
-            { name: 'SSO Integration', free: false, pro: false, enterprise: true }
-        ]
-    }
 ];
 
 /**
- * Add-ons available for Pro plan
+ * Get the right upgrade plan for a user's role.
  */
-export const addOns = {
-    extraTeamMembers: {
-        id: 'extra-team',
-        name: 'Additional Team Members',
-        price: 199,
-        unit: 'per member/month',
-        description: 'Add more team members beyond plan limit'
-    },
-    prioritySupport: {
-        id: 'priority-support',
-        name: 'Priority Support Upgrade',
-        price: 499,
-        unit: 'per month',
-        description: '1-hour response time, phone support'
-    },
-    customBranding: {
-        id: 'custom-branding',
-        name: 'Custom Branding',
-        price: 299,
-        unit: 'per month',
-        description: 'White-label reports with your branding'
-    },
-    apiAccess: {
-        id: 'api-access',
-        name: 'Advanced API Access',
-        price: 799,
-        unit: 'per month',
-        description: 'Higher rate limits and webhook support'
-    }
+export const getUpgradePlan = (role) => {
+    if (role === 'creator') return subscriptionPlans.creator_pro;
+    if (role === 'seller') return subscriptionPlans.brand_pro;
+    return subscriptionPlans.creator_pro;
 };
 
 /**
- * Calculate plan price with add-ons
+ * Check if a tier has access to a specific intelligence mode.
+ * Returns 'full', 'summary', or false.
  */
-export const calculateTotalPrice = (planId, addOnIds = [], isYearly = false) => {
-    const plan = subscriptionPlans[planId];
-    if (!plan) return 0;
+export const canAccessMode = (tier, modeId) => {
+    const MODE_MAP = {
+        match: 'matchIntelligence',
+        audit: 'creatorAudit',
+        campaign: 'campaignStrategy',
+        roi: 'roiForecast',
+        optimize: 'optimization',
+    };
 
-    let basePrice = isYearly && plan.yearlyPrice ? plan.yearlyPrice : plan.price;
+    const featureKey = MODE_MAP[modeId];
+    if (!featureKey) return false;
 
-    if (typeof basePrice === 'string') return 'custom';
+    const plan = Object.values(subscriptionPlans).find(p => p.tier === tier);
+    if (!plan) return false;
 
-    const addOnsTotal = addOnIds.reduce((sum, addonId) => {
-        const addon = addOns[addonId];
-        return sum + (addon ? addon.price : 0);
-    }, 0);
-
-    const monthlyTotal = basePrice + addOnsTotal;
-
-    return isYearly ? monthlyTotal * 12 : monthlyTotal;
-};
-
-/**
- * Get recommended plan based on usage
- */
-export const recommendPlan = (usage) => {
-    const {
-        monthlyBudget = 0,
-        activeCampaigns = 0,
-        teamSize = 1,
-        needsAI = false,
-        needsMultiPlatform = false
-    } = usage;
-
-    if (monthlyBudget > 100000 || teamSize > 5 || needsMultiPlatform) {
-        return 'enterprise';
-    }
-
-    if (monthlyBudget > 20000 || activeCampaigns > 2 || teamSize > 1 || needsAI) {
-        return 'pro';
-    }
-
-    return 'free';
+    return plan.features.aiFeatures[featureKey] || false;
 };
 
 /**
@@ -345,19 +201,19 @@ export const recommendPlan = (usage) => {
  */
 export const platformFees = {
     transactionFee: {
-        free: 15, // 15% on free plan
-        pro: 8, // 8% on pro plan
-        enterprise: 5 // 5% on enterprise plan
+        free: 15,
+        creator_pro: 8,
+        brand_pro: 5,
     },
     minTransaction: 100,
-    paymentProcessing: 2.9 // 2.9% + platform fee
+    paymentProcessing: 2.9,
 };
 
 export default {
+    TIERS,
     subscriptionPlans,
     featureComparison,
-    addOns,
-    calculateTotalPrice,
-    recommendPlan,
-    platformFees
+    getUpgradePlan,
+    canAccessMode,
+    platformFees,
 };

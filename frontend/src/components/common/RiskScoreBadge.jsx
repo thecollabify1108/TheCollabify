@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HiShieldCheck, HiShieldExclamation } from 'react-icons/hi';
-import { FaShieldAlt } from 'react-icons/fa';
+import { FaShieldAlt, FaLock } from 'react-icons/fa';
 
 /**
  * RiskScoreBadge Component
@@ -60,7 +60,8 @@ const RiskScoreBadge = ({
     riskGrowthInstability,
     riskContentInactivity,
     size = 'md',
-    showScore = false
+    showScore = false,
+    userTier = 'FREE'
 }) => {
     const [showTooltip, setShowTooltip] = useState(false);
     const badgeRef = useRef(null);
@@ -70,6 +71,8 @@ const RiskScoreBadge = ({
     const sz = sizeMap[size] || sizeMap.md;
     const Icon = config.icon;
 
+    // Feature gate: only BRAND_PRO and ADMIN can see breakdown
+    const canSeeBreakdown = userTier === 'BRAND_PRO' || userTier === 'ADMIN';
     const hasBreakdown = riskFollowerMismatch != null || riskEngagementAnomaly != null;
 
     useEffect(() => {
@@ -126,8 +129,8 @@ const RiskScoreBadge = ({
                         {/* Description */}
                         <p className="text-[10px] text-dark-400 leading-relaxed mb-3">{config.description}</p>
 
-                        {/* Breakdown Bars */}
-                        {hasBreakdown && (
+                        {/* Breakdown Bars — gated by tier */}
+                        {hasBreakdown && canSeeBreakdown && (
                             <div className="space-y-2">
                                 <div className="text-[9px] font-bold text-dark-500 uppercase tracking-widest mb-1">Score Breakdown</div>
                                 {Object.entries(COMPONENT_LABELS).map(([key, meta]) => {
@@ -148,6 +151,14 @@ const RiskScoreBadge = ({
                                         </div>
                                     );
                                 })}
+                            </div>
+                        )}
+
+                        {/* Locked breakdown for non-BRAND_PRO */}
+                        {hasBreakdown && !canSeeBreakdown && (
+                            <div className="flex items-center gap-2 px-2 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg mt-1">
+                                <FaLock className="text-purple-400 text-[10px] shrink-0" />
+                                <span className="text-[10px] text-purple-300 leading-tight">Upgrade to Brand Pro for detailed risk breakdown</span>
                             </div>
                         )}
 

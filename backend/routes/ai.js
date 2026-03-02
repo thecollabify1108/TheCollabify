@@ -8,6 +8,9 @@ const prisma = require('../config/prisma');
 // Gemini Service — centralised AI reasoning engine
 const GeminiService = require('../services/geminiService');
 
+// Feature Gate Service — subscription tier enforcement
+const FeatureGate = require('../services/featureGateService');
+
 // AI Engine v2 services — defensive import so existing routes still work if AI module fails
 let AIEngine, CQIService, CampaignPrediction, FeedbackLoop, FraudDetection,
     AudienceIntelligence, DynamicWeights, RetrainingPipeline, EmbeddingService;
@@ -252,8 +255,101 @@ router.post('/profile-tips', auth, async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// INTELLIGENCE MODES — Gemini-backed, DB-driven
+// FEATURE MANIFEST — tells frontend what the current user can access
 // ═══════════════════════════════════════════════════════════════
+
+/**
+ * @route   GET /api/ai/features
+ * @desc    Get feature manifest for current user based on subscription tier
+ * @access  Private
+ */
+router.get('/features', auth, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.userId },
+            select: { subscriptionTier: true, activeRole: true, dailyAIQueryCount: true, lastAIQueryDate: true }
+        });
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const manifest = FeatureGate.buildFeatureManifest(user.subscriptionTier, user.activeRole);
+
+        // Attach remaining daily queries for FREE tier
+        const today = new Date().toISOString().slice(0, 10);
+        const lastDate = user.lastAIQueryDate ? user.lastAIQueryDate.toISOString().slice(0, 10) : null;
+        const usedToday = (lastDate === today) ? (user.dailyAIQueryCount || 0) : 0;
+        const limit = manifest.dailyAILimit === -1 ? Infinity : manifest.dailyAILimit;
+        manifest.dailyAIRemaining = limit === Infinity ? -1 : Math.max(0, limit - usedToday);
+
+        res.json({ success: true, data: manifest });
+    } catch (error) {
+        console.error('Feature manifest error:', error);
+        res.status(500).json({ success: false, message: 'Failed to load features' });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// INTELLIGENCE MODES — Gemini-backed, DB-driven, tier-gated
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Helper: gate an intelligence mode based on subscription tier.
+ * Returns { accessLevel, error? } where accessLevel is 'full', 'summary', or false.
+ */
+async function gateIntelligenceMode(req, res, modeName) {
+    // Check daily limit for FREE tier
+    const dailyCheck = await FeatureGate.checkDailyAILimit(req.userId);
+    if (!dailyCheck.allowed) {
+        return res.status(403).json({
+            success: false,
+            message: 'Daily AI query limit reached',
+            upgrade: true,
+            limit: dailyCheck.limit,
+            remaining: 0,
+        });
+    }
+
+    const tier = req.subscriptionTier || 'FREE';
+    const role = req.userRole || null;
+    const access = FeatureGate.getModeAccess(tier, modeName, role);
+
+    if (!access) {
+        return res.status(403).json({
+            success: false,
+            message: `Upgrade required to access ${modeName}`,
+            upgrade: true,
+            requiredTier: modeName.includes('campaign') || modeName.includes('roi') || modeName === 'match-intelligence' ? 'BRAND_PRO' : 'CREATOR_PRO',
+        });
+    }
+
+    return access; // 'full' or 'summary'
+}
+
+/**
+ * Helper: trim a Gemini result down to summary-only fields for FREE tier.
+ */
+function summariseResult(modeName, data) {
+    if (!data || typeof data !== 'object') return data;
+
+    switch (modeName) {
+        case 'match-intelligence':
+            return {
+                matchFitScore: data.matchFitScore,
+                audienceAlignmentSummary: data.audienceAlignmentSummary,
+                confidenceLevel: data.confidenceLevel,
+                _gated: true,
+                _upgradeMessage: 'Upgrade to Brand Pro for full breakdown including risk factors, engagement reliability, and campaign angle suggestions.',
+            };
+        case 'creator-audit':
+            return {
+                nicheAuthorityLevel: data.nicheAuthorityLevel,
+                riskIndex: data.riskIndex,
+                _gated: true,
+                _upgradeMessage: 'Upgrade to Creator Pro for full audit with engagement consistency, growth stability, and authenticity indicators.',
+            };
+        default:
+            return data;
+    }
+}
 
 /**
  * @route   POST /api/ai/mode/match-intelligence
@@ -263,8 +359,12 @@ router.post('/profile-tips', auth, async (req, res) => {
  */
 router.post('/mode/match-intelligence', auth, async (req, res) => {
     try {
+        const accessLevel = await gateIntelligenceMode(req, res, 'match-intelligence');
+        if (res.headersSent) return; // 403 already sent
+
         const { creatorId, campaignId } = req.body;
 
+        let result;
         if (creatorId && campaignId) {
             const [creator, campaign] = await Promise.all([
                 GeminiService.fetchCreatorData(creatorId),
@@ -276,18 +376,20 @@ router.post('/mode/match-intelligence', auth, async (req, res) => {
             const prompt = GeminiService.buildMatchIntelligencePrompt(creator, campaign);
             const fallback = await AIContentService.runMatchIntelligence(req.body);
 
-            const result = await GeminiService.callGemini({
+            result = await GeminiService.callGemini({
                 userId: req.userId,
                 mode: 'match-intelligence',
                 prompt,
                 fallback,
                 parser: GeminiService.parseJSON,
             });
-            return res.json({ success: true, data: result });
+        } else {
+            result = await AIContentService.runMatchIntelligence(req.body);
         }
 
-        const result = await AIContentService.runMatchIntelligence(req.body);
-        res.json({ success: true, data: result });
+        await FeatureGate.incrementAIQuery(req.userId);
+        const data = accessLevel === 'summary' ? summariseResult('match-intelligence', result) : result;
+        res.json({ success: true, data });
     } catch (error) {
         console.error('Match Intelligence error:', error);
         const status = error.status || 500;
@@ -303,8 +405,12 @@ router.post('/mode/match-intelligence', auth, async (req, res) => {
  */
 router.post('/mode/creator-audit', auth, async (req, res) => {
     try {
+        const accessLevel = await gateIntelligenceMode(req, res, 'creator-audit');
+        if (res.headersSent) return;
+
         const { creatorId } = req.body;
 
+        let result;
         if (creatorId) {
             const creator = await GeminiService.fetchCreatorData(creatorId);
             if (!creator) return res.status(404).json({ success: false, message: 'Creator not found' });
@@ -312,18 +418,20 @@ router.post('/mode/creator-audit', auth, async (req, res) => {
             const prompt = GeminiService.buildCreatorAuditPrompt(creator);
             const fallback = await AIContentService.runCreatorAudit(req.body);
 
-            const result = await GeminiService.callGemini({
+            result = await GeminiService.callGemini({
                 userId: req.userId,
                 mode: 'creator-audit',
                 prompt,
                 fallback,
                 parser: GeminiService.parseJSON,
             });
-            return res.json({ success: true, data: result });
+        } else {
+            result = await AIContentService.runCreatorAudit(req.body);
         }
 
-        const result = await AIContentService.runCreatorAudit(req.body);
-        res.json({ success: true, data: result });
+        await FeatureGate.incrementAIQuery(req.userId);
+        const data = accessLevel === 'summary' ? summariseResult('creator-audit', result) : result;
+        res.json({ success: true, data });
     } catch (error) {
         console.error('Creator Audit error:', error);
         const status = error.status || 500;
@@ -339,8 +447,12 @@ router.post('/mode/creator-audit', auth, async (req, res) => {
  */
 router.post('/mode/campaign-strategy', auth, async (req, res) => {
     try {
+        const accessLevel = await gateIntelligenceMode(req, res, 'campaign-strategy');
+        if (res.headersSent) return;
+
         const { campaignId } = req.body;
 
+        let result;
         if (campaignId) {
             const campaign = await GeminiService.fetchCampaignData(campaignId);
             if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
@@ -348,17 +460,18 @@ router.post('/mode/campaign-strategy', auth, async (req, res) => {
             const prompt = GeminiService.buildCampaignStrategyPrompt(campaign);
             const fallback = await AIContentService.runCampaignStrategy(req.body);
 
-            const result = await GeminiService.callGemini({
+            result = await GeminiService.callGemini({
                 userId: req.userId,
                 mode: 'campaign-strategy',
                 prompt,
                 fallback,
                 parser: GeminiService.parseJSON,
             });
-            return res.json({ success: true, data: result });
+        } else {
+            result = await AIContentService.runCampaignStrategy(req.body);
         }
 
-        const result = await AIContentService.runCampaignStrategy(req.body);
+        await FeatureGate.incrementAIQuery(req.userId);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('Campaign Strategy error:', error);
@@ -375,8 +488,12 @@ router.post('/mode/campaign-strategy', auth, async (req, res) => {
  */
 router.post('/mode/roi-forecast', auth, async (req, res) => {
     try {
+        const accessLevel = await gateIntelligenceMode(req, res, 'roi-forecast');
+        if (res.headersSent) return;
+
         const { creatorId, campaignId } = req.body;
 
+        let result;
         if (creatorId && campaignId) {
             const [creator, campaign] = await Promise.all([
                 GeminiService.fetchCreatorData(creatorId),
@@ -388,17 +505,18 @@ router.post('/mode/roi-forecast', auth, async (req, res) => {
             const prompt = GeminiService.buildROIForecastPrompt(creator, campaign);
             const fallback = await AIContentService.runROIForecast(req.body);
 
-            const result = await GeminiService.callGemini({
+            result = await GeminiService.callGemini({
                 userId: req.userId,
                 mode: 'roi-forecast',
                 prompt,
                 fallback,
                 parser: GeminiService.parseJSON,
             });
-            return res.json({ success: true, data: result });
+        } else {
+            result = await AIContentService.runROIForecast(req.body);
         }
 
-        const result = await AIContentService.runROIForecast(req.body);
+        await FeatureGate.incrementAIQuery(req.userId);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('ROI Forecast error:', error);
@@ -415,8 +533,12 @@ router.post('/mode/roi-forecast', auth, async (req, res) => {
  */
 router.post('/mode/optimization', auth, async (req, res) => {
     try {
+        const accessLevel = await gateIntelligenceMode(req, res, 'optimization');
+        if (res.headersSent) return;
+
         const { campaignId, engagementRate, reach, conversions, contentTypes } = req.body;
 
+        let result;
         if (campaignId) {
             const campaign = await GeminiService.fetchCampaignData(campaignId);
             if (!campaign) return res.status(404).json({ success: false, message: 'Campaign not found' });
@@ -426,17 +548,18 @@ router.post('/mode/optimization', auth, async (req, res) => {
             });
             const fallback = await AIContentService.runOptimization(req.body);
 
-            const result = await GeminiService.callGemini({
+            result = await GeminiService.callGemini({
                 userId: req.userId,
                 mode: 'optimization',
                 prompt,
                 fallback,
                 parser: GeminiService.parseJSON,
             });
-            return res.json({ success: true, data: result });
+        } else {
+            result = await AIContentService.runOptimization(req.body);
         }
 
-        const result = await AIContentService.runOptimization(req.body);
+        await FeatureGate.incrementAIQuery(req.userId);
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('Optimization error:', error);

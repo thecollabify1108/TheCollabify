@@ -343,7 +343,10 @@ try { safeRoute('/api/admin', ipAllowlist, require('./routes/admin')); } catch (
 try { safeRoute('/api/analytics', require('./routes/analytics')); } catch (e) { console.error('analytics route failed:', e.message); }
 try { safeRoute('/api/calendar', require('./routes/contentCalendar')); } catch (e) { console.error('calendar route failed:', e.message); }
 try { safeRoute('/api/team', require('./routes/teamManagement')); } catch (e) { console.error('team route failed:', e.message); }
-try { safeRoute('/api/ai', aiLimiter, require('./routes/ai')); } catch (e) { console.error('ai route failed:', e.message); }
+try {
+    const { attachFeatures } = require('./middleware/featureGate');
+    safeRoute('/api/ai', aiLimiter, attachFeatures, require('./routes/ai'));
+} catch (e) { console.error('ai route failed:', e.message); }
 try { safeRoute('/api/collaboration', require('./routes/collaboration')); } catch (e) { console.error('collaboration route failed:', e.message); }
 
 // Root endpoint

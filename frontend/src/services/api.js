@@ -214,6 +214,8 @@ export const aiAPI = {
     getRecommendations: (campaignId) => api.get(`ai/recommendations/${campaignId}`),
     getMarketInsights: () => api.get('ai/market-insights'),
     getProfileTips: (data) => api.post('ai/profile-tips', data),
+    // Feature manifest
+    getFeatures: () => api.get('ai/features'),
     // Intelligence Modes
     runMatchIntelligence: (data) => api.post('ai/mode/match-intelligence', data),
     runCreatorAudit: (data) => api.post('ai/mode/creator-audit', data),

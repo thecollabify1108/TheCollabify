@@ -39,6 +39,7 @@ const sanitizeUser = (user) => {
         activeRole: user.activeRole,
         emailVerified: user.emailVerified,
         reliabilityScore: user.reliabilityScore || 1.0,
+        subscriptionTier: user.subscriptionTier || 'FREE',
         createdAt: user.createdAt
     };
 

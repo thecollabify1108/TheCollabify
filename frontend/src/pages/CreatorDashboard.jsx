@@ -44,7 +44,7 @@ import { getReliabilityLevel } from '../utils/reliability';
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
 import PredictiveAnalyticsWidget from '../components/analytics/PredictiveAnalyticsWidget';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
-import { subscriptionPlans } from '../config/subscriptions';
+import { subscriptionPlans, getUpgradePlan } from '../config/subscriptions';
 
 // Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';
@@ -154,8 +154,9 @@ const CreatorDashboard = () => {
     };
 
     const handleUpgrade = () => {
-        setSelectedPlan(subscriptionPlans.pro);
-        toast.success('Pro features coming soon!');
+        const plan = getUpgradePlan(user?.role || 'creator');
+        setSelectedPlan(plan);
+        toast.success(`${plan.name} features coming soon!`);
     };
 
     const handleApplyToPromotion = async (promotionId) => {

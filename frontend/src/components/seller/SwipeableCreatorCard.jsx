@@ -3,11 +3,13 @@ import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-mo
 import { FaInstagram, FaHeart, FaTimes, FaComments, FaStar, FaUndo, FaCheck, FaUserPlus } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
 import { trackEvent } from '../../utils/analytics';
+import { useAuth } from '../../context/AuthContext';
 import MatchExplanation from '../common/MatchExplanation';
 import VerificationBadge from '../common/VerificationBadge';
 import RiskScoreBadge from '../common/RiskScoreBadge';
 
 const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave }) => {
+    const { user: authUser } = useAuth();
     const [currentIndex, setCurrentIndex] = useState(0);
     const [lastAction, setLastAction] = useState(null);
     const [exitDirection, setExitDirection] = useState(null);
@@ -97,6 +99,7 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
                         exitDirection={exitDirection}
                         showWhy={showWhy}
                         setShowWhy={setShowWhy}
+                        userTier={authUser?.subscriptionTier || 'FREE'}
                     />
                 </AnimatePresence>
             </div>
@@ -171,7 +174,7 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
 };
 
 // Individual Swipe Card Component
-const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => {
+const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy, userTier = 'FREE' }) => {
     const x = useMotionValue(0);
     const rotate = useTransform(x, [-200, 200], [-15, 15]);
     const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0.5, 1, 1, 1, 0.5]);
@@ -282,6 +285,7 @@ const SwipeCard = ({ creator, onSwipe, exitDirection, showWhy, setShowWhy }) => 
                                 riskGrowthInstability={creator.riskGrowthInstability}
                                 riskContentInactivity={creator.riskContentInactivity}
                                 size="sm"
+                                userTier={userTier}
                             />
                         )}
                         {creator.verificationStatus && (

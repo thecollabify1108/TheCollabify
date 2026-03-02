@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
 import { FaInstagram, FaCheck, FaTimes, FaInfoCircle, FaComments, FaShieldAlt } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt, HiUserGroup } from 'react-icons/hi';
+import { useAuth } from '../../context/AuthContext';
 import MatchExplanation from '../common/MatchExplanation';
 import VerificationBadge from '../common/VerificationBadge';
 import RiskScoreBadge from '../common/RiskScoreBadge';
 
 const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onReject, onMessage, viewMode, onViewProfile, children }) => {
+    const { user: authUser } = useAuth();
     const profile = creator.creatorId || creator;
     const user = profile.userId || {};
 
@@ -87,6 +89,7 @@ const CreatorCard = ({ creator, matchScore, matchReason, status, onAccept, onRej
                     riskGrowthInstability={profile.riskGrowthInstability}
                     riskContentInactivity={profile.riskContentInactivity}
                     size="sm"
+                    userTier={authUser?.subscriptionTier || 'FREE'}
                 />
                 {/* Verification Badge */}
                 {profile.verificationStatus && (

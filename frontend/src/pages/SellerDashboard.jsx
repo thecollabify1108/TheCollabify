@@ -41,7 +41,7 @@ import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
 import { BrandInsightCards } from '../components/analytics/InsightCards';
 import TeamManagement from '../components/team/TeamManagement';
-import { subscriptionPlans } from '../config/subscriptions';
+import { subscriptionPlans, getUpgradePlan } from '../config/subscriptions';
 
 // Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';

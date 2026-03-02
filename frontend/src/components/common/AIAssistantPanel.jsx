@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaCopy, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaCopy, FaChevronDown, FaChevronUp, FaLock } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { aiAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { canAccessMode, getUpgradePlan } from '../../config/subscriptions';
+import UpgradePrompt from './UpgradePrompt';
 import toast from 'react-hot-toast';
 
 const INTELLIGENCE_MODES = [
@@ -59,6 +62,7 @@ const TIERS = ['Nano (1K-10K)', 'Micro (10K-100K)', 'Mid-tier (100K-500K)', 'Mac
 const GOALS = ['Brand awareness', 'Lead generation', 'Sales conversion', 'Community building', 'Content production'];
 
 const AIAssistantPanel = ({ campaign = {}, onUse }) => {
+    const { user } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('intelligence');
     const [selectedMode, setSelectedMode] = useState(null);
@@ -66,6 +70,51 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
     const [modeResult, setModeResult] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [toolkitExpanded, setToolkitExpanded] = useState(false);
+    const [featureManifest, setFeatureManifest] = useState(null);
+
+    const userTier = user?.subscriptionTier || 'FREE';
+    const userRole = user?.role || user?.activeRole?.toLowerCase() || 'creator';
+    const upgradePlan = getUpgradePlan(userRole);
+
+    // Load feature manifest from backend when panel opens
+    useEffect(() => {
+        if (isOpen && !featureManifest) {
+            aiAPI.getFeatures()
+                .then(res => { if (res.data.success) setFeatureManifest(res.data.data); })
+                .catch(() => {}); // fail silently, use client-side canAccessMode as fallback
+        }
+    }, [isOpen]);
+
+    /**
+     * Check if a mode is accessible. Uses server manifest when available,
+     * falls back to client-side canAccessMode.
+     * Returns 'full', 'summary', or false.
+     */
+    const getModeAccess = (modeId) => {
+        // Admin override
+        if (userRole === 'admin') return 'full';
+
+        // Server-side manifest (authoritative)
+        if (featureManifest?.modes) {
+            const backendModeId = {
+                match: 'match-intelligence',
+                audit: 'creator-audit',
+                campaign: 'campaign-strategy',
+                roi: 'roi-forecast',
+                optimize: 'optimization',
+            }[modeId];
+            const access = featureManifest.modes[backendModeId];
+            if (access !== undefined) return access;
+        }
+
+        // Client-side fallback
+        return canAccessMode(userTier, modeId);
+    };
+
+    const isModeLocked = (modeId) => !getModeAccess(modeId);
+    const isModeSummary = (modeId) => getModeAccess(modeId) === 'summary';
+
+    const dailyRemaining = featureManifest?.dailyAIRemaining ?? null;
 
     const [params, setParams] = useState({
         topic: campaign.title || '',
@@ -95,6 +144,14 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
     const handleRunMode = async () => {
         if (!selectedMode) return;
+
+        // Client-side gate check
+        const access = getModeAccess(selectedMode);
+        if (!access) {
+            toast.error(`Upgrade to unlock ${INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label}`);
+            return;
+        }
+
         setIsGenerating(true);
         setModeResult(null);
         try {
@@ -107,11 +164,19 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
             };
             const res = await apiMap[selectedMode](modeParams);
             if (res.data.success) {
-                setModeResult({ mode: selectedMode, data: res.data.data });
+                setModeResult({ mode: selectedMode, data: res.data.data, gated: res.data.data?._gated || false });
                 toast.success('Analysis complete');
+                // Refresh feature manifest to update remaining queries
+                if (featureManifest?.dailyAIRemaining !== undefined && featureManifest.dailyAIRemaining > 0) {
+                    setFeatureManifest(prev => prev ? { ...prev, dailyAIRemaining: Math.max(0, prev.dailyAIRemaining - 1) } : prev);
+                }
             }
         } catch (err) {
-            toast.error('Analysis failed');
+            if (err.response?.status === 403 && err.response?.data?.upgrade) {
+                toast.error(err.response.data.message || 'Upgrade required');
+            } else {
+                toast.error('Analysis failed');
+            }
         } finally {
             setIsGenerating(false);
         }
@@ -313,30 +378,77 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
                                         {/* Mode Selector */}
                                         <div className="grid grid-cols-2 gap-2">
-                                            {INTELLIGENCE_MODES.map(mode => (
-                                                <button key={mode.id} onClick={() => { setSelectedMode(mode.id); setModeResult(null); }} className={`p-3 rounded-xl border text-left transition-all ${selectedMode === mode.id ? 'bg-purple-600/20 border-purple-500 ring-1 ring-purple-500/50' : 'bg-dark-800/50 border-dark-700/50 hover:border-dark-600'}`}>
-                                                    <span className={`text-sm font-medium ${selectedMode === mode.id ? 'text-purple-300' : 'text-dark-200'}`}>{mode.short}</span>
-                                                    <p className="text-xs text-dark-400 mt-0.5 leading-tight">{mode.desc}</p>
-                                                </button>
-                                            ))}
+                                            {INTELLIGENCE_MODES.map(mode => {
+                                                const locked = isModeLocked(mode.id);
+                                                const summary = isModeSummary(mode.id);
+                                                return (
+                                                    <button key={mode.id} onClick={() => { setSelectedMode(mode.id); setModeResult(null); }} className={`p-3 rounded-xl border text-left transition-all relative ${locked ? 'bg-dark-800/30 border-dark-700/30 opacity-60' : selectedMode === mode.id ? 'bg-purple-600/20 border-purple-500 ring-1 ring-purple-500/50' : 'bg-dark-800/50 border-dark-700/50 hover:border-dark-600'}`}>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className={`text-sm font-medium ${locked ? 'text-dark-400' : selectedMode === mode.id ? 'text-purple-300' : 'text-dark-200'}`}>{mode.short}</span>
+                                                            {locked && <FaLock className="text-dark-500 text-[10px]" />}
+                                                            {summary && <span className="text-[9px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded font-medium">SUMMARY</span>}
+                                                        </div>
+                                                        <p className="text-xs text-dark-400 mt-0.5 leading-tight">{mode.desc}</p>
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
+
+                                        {/* Daily limit indicator for FREE tier */}
+                                        {dailyRemaining !== null && dailyRemaining >= 0 && (
+                                            <div className="flex items-center gap-2 px-3 py-2 bg-dark-800/50 border border-dark-700/50 rounded-lg">
+                                                <span className="text-xs text-dark-400">Daily queries remaining:</span>
+                                                <span className={`text-xs font-semibold ${dailyRemaining === 0 ? 'text-red-400' : dailyRemaining <= 1 ? 'text-yellow-400' : 'text-green-400'}`}>{dailyRemaining}/{featureManifest?.dailyAILimit || 3}</span>
+                                            </div>
+                                        )}
 
                                         {/* Mode Form */}
                                         {selectedMode && (
                                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                                                <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
-                                                    <h4 className="text-sm font-medium text-dark-200">{INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label} Parameters</h4>
-                                                    {renderModeForm()}
-                                                </div>
+                                                {isModeLocked(selectedMode) ? (
+                                                    <UpgradePrompt
+                                                        feature={INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label}
+                                                        tier={upgradePlan?.name || 'Pro'}
+                                                        onUpgrade={() => toast.success(`${upgradePlan?.name || 'Pro'} upgrade coming soon!`)}
+                                                    />
+                                                ) : (
+                                                    <>
+                                                        <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
+                                                            <h4 className="text-sm font-medium text-dark-200">{INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label} Parameters</h4>
+                                                            {renderModeForm()}
+                                                        </div>
 
-                                                <button onClick={handleRunMode} disabled={isGenerating} className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity">
-                                                    {isGenerating ? 'Analyzing...' : 'Run Analysis'}
-                                                </button>
+                                                        {isModeSummary(selectedMode) && (
+                                                            <UpgradePrompt
+                                                                compact
+                                                                feature={INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label}
+                                                                tier={upgradePlan?.name || 'Pro'}
+                                                                message={`Summary mode — upgrade to ${upgradePlan?.name || 'Pro'} for full breakdown`}
+                                                                onUpgrade={() => toast.success(`${upgradePlan?.name || 'Pro'} upgrade coming soon!`)}
+                                                            />
+                                                        )}
+
+                                                        <button onClick={handleRunMode} disabled={isGenerating || (dailyRemaining !== null && dailyRemaining <= 0)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity">
+                                                            {isGenerating ? 'Analyzing...' : dailyRemaining !== null && dailyRemaining <= 0 ? 'Daily Limit Reached' : 'Run Analysis'}
+                                                        </button>
+                                                    </>
+                                                )}
                                             </motion.div>
                                         )}
 
                                         {/* Mode Result */}
                                         {modeResult && renderModeResult()}
+
+                                        {/* Show upgrade message for gated (summary) results */}
+                                        {modeResult?.data?._gated && (
+                                            <UpgradePrompt
+                                                compact
+                                                feature="Full Intelligence Report"
+                                                tier={upgradePlan?.name || 'Pro'}
+                                                message={modeResult.data._upgradeMessage || `Upgrade to see the full breakdown`}
+                                                onUpgrade={() => toast.success(`${upgradePlan?.name || 'Pro'} upgrade coming soon!`)}
+                                            />
+                                        )}
                                     </div>
                                 )}
 
