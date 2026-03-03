@@ -280,14 +280,14 @@ const initializeModules = async () => {
             console.error('❌ Database connection failed:', e.message);
         }
 
-        // 2b. Keep-alive: ping DB every 4 minutes to prevent Azure cold-start
+        // 2b. Keep-alive: ping DB every 2 minutes to prevent Azure cold-start
         setInterval(async () => {
             try {
                 await prisma.$queryRaw`SELECT 1`;
             } catch (e) {
                 console.warn('⚠️  DB keep-alive ping failed:', e.message);
             }
-        }, 4 * 60 * 1000); // every 4 minutes
+        }, 2 * 60 * 1000); // every 2 minutes
 
         // 3. Load Passport
         try {

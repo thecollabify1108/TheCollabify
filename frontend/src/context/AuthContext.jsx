@@ -45,6 +45,13 @@ export const AuthProvider = ({ children }) => {
 
     // Fetch user on mount if token exists
     useEffect(() => {
+        // Proactive warm-up: fire a no-cors ping to wake up the Azure backend
+        // before the auth/me call. This reduces perceived cold-start delay.
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            const pingUrl = (import.meta.env.VITE_API_URL || 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net/api').replace(/\/+$/, '') + '/ping';
+            fetch(pingUrl, { method: 'GET', mode: 'no-cors', cache: 'no-store' }).catch(() => { });
+        }
+
         const initAuth = async () => {
             // Check for token in URL (OAuth redirect flow)
             const urlParams = new URLSearchParams(window.location.search);
@@ -62,7 +69,9 @@ export const AuthProvider = ({ children }) => {
 
             if (currentToken) {
                 try {
-                    const response = await api.get('auth/me');
+                    // Use a short 10s timeout for auth/me — if backend is cold-starting
+                    // we already have a cached user so we don't need to block the UI.
+                    const response = await api.get('auth/me', { timeout: 10000 });
                     const freshUser = normalizeUser(response.data.data.user);
                     setUser(freshUser);
                     cacheUser(response.data.data.user);
@@ -78,7 +87,7 @@ export const AuthProvider = ({ children }) => {
                         setToken(null);
                         setUser(null);
                     }
-                    // For network errors, keep the cached user and token
+                    // For network errors (e.g. cold start timeout), keep the cached user and token
                 }
             }
             setLoading(false);
