@@ -100,8 +100,8 @@ export const authAPI = {
 // Creator API
 export const creatorAPI = {
     getProfile: () => api.get('creators/profile'),
-    createProfile: (data) => api.post('creators/profile', data, { timeout: 60000 }),
-    updateProfile: (data) => api.put('creators/profile', data, { timeout: 60000 }),
+    createProfile: (data) => api.post('creators/profile', data, { timeout: 120000 }),
+    updateProfile: (data) => api.put('creators/profile', data, { timeout: 120000 }),
     getPromotions: () => api.get('creators/promotions'),
     applyToPromotion: (promotionId) => api.post(`creators/promotions/${promotionId}/apply`),
     getApplications: () => api.get('creators/applications'),

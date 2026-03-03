@@ -573,31 +573,49 @@ const CreatorOnboarding = ({ onComplete }) => {
         return payload;
     };
 
+    const attemptSave = async (payload) => {
+        try {
+            const res = await creatorAPI.createProfile(payload);
+            return res.data.data.profile;
+        } catch (error) {
+            // If profile already exists, update instead
+            if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
+                const res = await creatorAPI.updateProfile(payload);
+                return res.data.data.profile;
+            }
+            throw error;
+        }
+    };
+
     const saveToServer = async () => {
         setSaving(true);
         try {
             const payload = buildPayload();
 
             try {
-                const res = await creatorAPI.createProfile(payload);
-                return res.data.data.profile;
+                return await attemptSave(payload);
             } catch (error) {
-                // If profile already exists, update instead
-                if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
-                    const res = await creatorAPI.updateProfile(payload);
-                    return res.data.data.profile;
+                const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+                const isNetworkError = !error.response && !isTimeout;
+
+                // Auto-retry once on timeout (server cold-start)
+                if (isTimeout) {
+                    toast.loading('Server is warming up, retrying...', { id: 'save-retry', duration: 15000 });
+                    try {
+                        const result = await attemptSave(payload);
+                        toast.dismiss('save-retry');
+                        return result;
+                    } catch (retryError) {
+                        toast.dismiss('save-retry');
+                        throw new Error('Server took too long. Please wait a moment and try again.');
+                    }
+                }
+
+                if (isNetworkError) {
+                    throw new Error('Network error. Check your connection and try again.');
                 }
                 throw error;
             }
-        } catch (error) {
-            // Provide actionable error messages
-            if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-                throw new Error('Server is warming up. Please try again in a few seconds.');
-            }
-            if (!error.response) {
-                throw new Error('Network error. Check your connection and try again.');
-            }
-            throw error;
         } finally {
             setSaving(false);
         }
