@@ -105,17 +105,17 @@ const identifyStrengths = (profile) => {
     }
 
     // Niche expertise
-    if (profile.category) {
+    if (profile?.category) {
         strengths.push(`${profile.category} niche expert`);
     }
 
     // Affordable pricing
-    if (profile.priceRange && profile.priceRange.min < 1000) {
+    if (profile?.priceRange?.min < 1000 || profile?.minPrice < 1000) {
         strengths.push('Budget-friendly rates');
     }
 
     // Premium tier
-    if (profile.priceRange && profile.priceRange.min >= 5000) {
+    if (profile?.priceRange?.min >= 5000 || profile?.minPrice >= 5000) {
         strengths.push('Premium influencer tier');
     }
 
@@ -151,7 +151,8 @@ const generateProfileSummary = (profile, engagementQuality, audienceAuthenticity
             ? `${(profile.followerCount / 1000).toFixed(1)}K`
             : profile.followerCount;
 
-    let summary = `${followerTier.charAt(0).toUpperCase() + followerTier.slice(1)}-influencer in ${profile.category} with ${formattedFollowers} followers. `;
+    const category = profile?.category || 'General';
+    let summary = `${followerTier.charAt(0).toUpperCase() + followerTier.slice(1)}-influencer in ${category} with ${formattedFollowers} followers. `;
 
     if (engagementQuality === 'High') {
         summary += 'Exceptional engagement rates indicate a highly active audience. ';

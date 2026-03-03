@@ -181,16 +181,31 @@ class EmbeddingService {
 
         if (!campaignEmb) return [];
 
-        // Get all creator embeddings
-        const creatorEmbs = await prisma.embedding.findMany({
-            where: { entityType: ENTITY_TYPES.CREATOR_BIO }
-        });
+        // Get all creator embeddings in batches to avoid event-loop blocking
+        const batchSize = 100;
+        let skip = 0;
+        const similarities = [];
 
-        // Compute similarities
-        const similarities = creatorEmbs.map(emb => ({
-            creatorId: emb.entityId,
-            similarity: this.cosineSimilarity(campaignEmb.vector, emb.vector)
-        }));
+        while (true) {
+            const creatorEmbs = await prisma.embedding.findMany({
+                where: { entityType: ENTITY_TYPES.CREATOR_BIO },
+                skip,
+                take: batchSize
+            });
+
+            if (creatorEmbs.length === 0) break;
+
+            for (const emb of creatorEmbs) {
+                similarities.push({
+                    creatorId: emb.entityId,
+                    similarity: this.cosineSimilarity(campaignEmb.vector, emb.vector)
+                });
+            }
+
+            skip += batchSize;
+            // Short delay to yield event loop
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
 
         // Sort by similarity descending
         similarities.sort((a, b) => b.similarity - a.similarity);

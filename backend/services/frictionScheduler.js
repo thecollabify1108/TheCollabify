@@ -36,15 +36,38 @@ async function runFrictionDetection() {
 
 /**
  * Start the friction detection scheduler
- * Runs once immediately on startup, then every 24 hours
+ * Runs once immediately on startup (staggered), then every 24 hours
  */
 function startFrictionScheduler() {
     if (schedulerInterval) return; // Prevent duplicate schedulers
 
-    // Run once at startup (delayed 30s to let DB connections settle)
-    setTimeout(runFrictionDetection, 30 * 1000);
+    // Run staggered once at startup (let DB connections settle)
+    setTimeout(async () => {
+        const startedAt = new Date().toISOString();
+        try {
+            console.log(`[FrictionScheduler] Initializing staggered boot run...`);
 
-    // Then run every 24 hours
+            // 1. Onboarding (30s delay)
+            const onboardingDropOffs = await FrictionService.detectOnboardingDropOffs();
+
+            // 2. Collabs (60s delay)
+            await new Promise(r => setTimeout(r, 30000));
+            const collaborationStalls = await FrictionService.detectCollaborationStalls();
+
+            // 3. Non-responses (90s delay)
+            await new Promise(r => setTimeout(r, 30000));
+            const creatorNonResponses = await FrictionService.detectCreatorNonResponse();
+
+            const total = onboardingDropOffs + collaborationStalls + creatorNonResponses;
+            if (total > 0) {
+                console.error(`[FrictionScheduler] Boot run: Recorded ${total} friction event(s)`);
+            }
+        } catch (err) {
+            console.error('[FrictionScheduler] Boot run failed:', err.message);
+        }
+    }, 30 * 1000);
+
+    // Then run every 24 hours (normal full run)
     schedulerInterval = setInterval(runFrictionDetection, 24 * 60 * 60 * 1000);
 
     // Prevent the interval from keeping the process alive during tests

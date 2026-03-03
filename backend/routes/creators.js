@@ -220,16 +220,16 @@ router.post('/profile', auth, isCreator, [
             verificationStatus: 'pending',
             engagementRate: parseFloat(engagementRate) || 0,
             category: category,
-            promotionTypes: promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_')),
-            minPrice: parseFloat(priceRange.min) || 0,
-            maxPrice: parseFloat(priceRange.max) || 0,
+            promotionTypes: Array.isArray(promotionTypes) ? promotionTypes.map(t => String(t).toUpperCase().replace(/\s+/g, '_')) : [],
+            minPrice: parseFloat(priceRange?.min) || 0,
+            maxPrice: parseFloat(priceRange?.max) || 0,
             bio: bio || '',
             isAvailable: availabilityStatus === 'NOT_AVAILABLE' ? false : (isAvailable !== false),
             availabilityStatus: availabilityStatus || (isAvailable === false ? 'NOT_AVAILABLE' : 'AVAILABLE_NOW'),
             availabilityUpdatedAt: new Date(),
             engagementQuality: insights.engagementQuality || 'Medium',
             audienceAuthenticity: insights.audienceAuthenticity || 'Medium',
-            strengths: insights.strengths || [],
+            strengths: Array.isArray(insights.strengths) ? insights.strengths : [],
             profileSummary: insights.profileSummary || '',
             aiScore: insights.score || 50,
             lastAnalyzed: new Date()
@@ -358,12 +358,14 @@ router.put('/profile', auth, isCreator, [
         }
 
         if (req.body.promotionTypes) {
-            updateData.promotionTypes = req.body.promotionTypes.map(t => t.toUpperCase().replace(/\s+/g, '_'));
+            updateData.promotionTypes = Array.isArray(req.body.promotionTypes)
+                ? req.body.promotionTypes.map(t => String(t).toUpperCase().replace(/\s+/g, '_'))
+                : [];
         }
 
         if (req.body.priceRange) {
-            if (req.body.priceRange.min !== undefined) updateData.minPrice = req.body.priceRange.min;
-            if (req.body.priceRange.max !== undefined) updateData.maxPrice = req.body.priceRange.max;
+            if (req.body.priceRange.min !== undefined) updateData.minPrice = parseFloat(req.body.priceRange.min) || 0;
+            if (req.body.priceRange.max !== undefined) updateData.maxPrice = parseFloat(req.body.priceRange.max) || 0;
         }
 
         if (req.body.location !== undefined) updateData.location = req.body.location;

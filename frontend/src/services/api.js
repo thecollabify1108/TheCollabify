@@ -67,14 +67,18 @@ api.interceptors.response.use(
         }
 
         if (status && status !== 401 && status < 500) {
+            console.warn(`[API Error] ${status} ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.response?.data);
             Sentry.captureException(error, {
                 extra: {
                     url: error.config?.url,
                     method: error.config?.method,
                     status,
-                    data: error.response?.data
+                    data: error.response?.data,
+                    requestData: error.config?.data
                 }
             });
+        } else if (status >= 500) {
+            console.error(`[Server Error] ${status} ${error.config?.method?.toUpperCase()} ${error.config?.url}`, error.response?.data);
         }
 
         // Preserve the original AxiosError so callers can inspect
