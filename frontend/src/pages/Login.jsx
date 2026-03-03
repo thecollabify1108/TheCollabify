@@ -84,7 +84,9 @@ const Login = () => {
                 }
             }, 1000);
         } catch (error) {
-            const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+            const message = !error.response && error.message?.includes('Network')
+                ? 'Unable to reach the server. Please try again later.'
+                : error.response?.data?.message || 'Login failed. Please check your credentials.';
             toast.error(message);
         } finally {
             setLoading(false);
@@ -108,14 +110,16 @@ const Login = () => {
                     navigate('/admin');
                 }
             } catch (error) {
-                const message = error.response?.data?.message || 'Google login failed';
+                const message = !error.response && error.message?.includes('Network')
+                    ? 'Unable to reach the server. Please try again later.'
+                    : error.response?.data?.message || 'Google login failed';
                 toast.error(message);
             } finally {
                 setGoogleLoading(false);
             }
         },
         onError: () => {
-            toast.error('Google authentication failed');
+            toast.error('Google authentication was cancelled or blocked by the browser.');
             setGoogleLoading(false);
         }
     });
