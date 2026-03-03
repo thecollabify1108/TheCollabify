@@ -252,6 +252,20 @@ const Phase1 = ({ data, setData }) => (
                 })}
             </div>
         </div>
+
+        {/* Instagram URL — mandatory for follower verification */}
+        <div>
+            <label className="block text-sm font-medium text-dark-200 mb-2">
+                <FaInstagram className="inline mr-1 text-pink-400" /> Instagram Profile URL <span className="text-rose-400">*</span>
+            </label>
+            <p className="text-xs text-dark-400 mb-2">Required for follower verification</p>
+            <input
+                type="url" placeholder="https://instagram.com/your_username"
+                value={data.instagramProfileUrl || ''}
+                onChange={(e) => setData(d => ({ ...d, instagramProfileUrl: e.target.value }))}
+                className="input-field"
+            />
+        </div>
     </motion.div>
 );
 
@@ -305,30 +319,55 @@ const Phase2 = ({ data, setData }) => {
                 <p className="text-[10px] text-dark-500 mt-1">{(data.bio || '').length}/500</p>
             </div>
 
-            {/* Audience stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-dark-200 mb-2">
-                        <FaUsers className="inline mr-1 text-blue-400" /> Follower Count
-                    </label>
-                    <input
-                        type="number" placeholder="e.g. 15000" min="0"
-                        value={data.followerCount || ''}
-                        onChange={(e) => setData(d => ({ ...d, followerCount: e.target.value }))}
-                        className="input-field"
-                    />
+            {/* Follower Range — for manual verification */}
+            <div>
+                <label className="block text-sm font-medium text-dark-200 mb-2">
+                    <FaUsers className="inline mr-1 text-blue-400" /> Follower Range
+                </label>
+                <p className="text-xs text-dark-400 mb-2">Enter your approximate follower count range (max 500 difference)</p>
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <span className="text-[10px] text-dark-500 block mb-1">Minimum</span>
+                        <input
+                            type="number" placeholder="e.g. 6000" min="0"
+                            value={data.followerRange?.min || ''}
+                            onChange={(e) => setData(d => ({ ...d, followerRange: { ...d.followerRange, min: e.target.value } }))}
+                            className="input-field"
+                        />
+                    </div>
+                    <div>
+                        <span className="text-[10px] text-dark-500 block mb-1">Maximum</span>
+                        <input
+                            type="number" placeholder="e.g. 6500" min="0"
+                            value={data.followerRange?.max || ''}
+                            onChange={(e) => setData(d => ({ ...d, followerRange: { ...d.followerRange, max: e.target.value } }))}
+                            className="input-field"
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-medium text-dark-200 mb-2">
-                        <FaChartLine className="inline mr-1 text-emerald-400" /> Engagement Rate (%)
-                    </label>
-                    <input
-                        type="number" placeholder="e.g. 4.5" min="0" max="100" step="0.1"
-                        value={data.engagementRate || ''}
-                        onChange={(e) => setData(d => ({ ...d, engagementRate: e.target.value }))}
-                        className="input-field"
-                    />
-                </div>
+                {(() => {
+                    const fMin = parseInt(data.followerRange?.min);
+                    const fMax = parseInt(data.followerRange?.max);
+                    if (fMin > 0 && fMax > 0) {
+                        if (fMax < fMin) return <p className="text-xs text-rose-400 mt-1">Max must be ≥ Min</p>;
+                        if (fMax - fMin > 500) return <p className="text-xs text-rose-400 mt-1">Range must be within 500 (currently {fMax - fMin})</p>;
+                        return <p className="text-xs text-emerald-400 mt-1">✓ Valid range ({fMin.toLocaleString()} – {fMax.toLocaleString()})</p>;
+                    }
+                    return null;
+                })()}
+            </div>
+
+            {/* Engagement Rate */}
+            <div>
+                <label className="block text-sm font-medium text-dark-200 mb-2">
+                    <FaChartLine className="inline mr-1 text-emerald-400" /> Engagement Rate (%)
+                </label>
+                <input
+                    type="number" placeholder="e.g. 4.5" min="0" max="100" step="0.1"
+                    value={data.engagementRate || ''}
+                    onChange={(e) => setData(d => ({ ...d, engagementRate: e.target.value }))}
+                    className="input-field"
+                />
             </div>
 
             {/* Portfolio Links */}
@@ -390,19 +429,6 @@ const Phase2 = ({ data, setData }) => {
                     maxLength={500}
                 />
             </div>
-
-            {/* Instagram */}
-            <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                    <FaInstagram className="inline mr-1 text-pink-400" /> Instagram Profile URL
-                </label>
-                <input
-                    type="url" placeholder="https://instagram.com/your_username"
-                    value={data.instagramProfileUrl || ''}
-                    onChange={(e) => setData(d => ({ ...d, instagramProfileUrl: e.target.value }))}
-                    className="input-field"
-                />
-            </div>
         </motion.div>
     );
 };
@@ -415,7 +441,10 @@ const Phase3 = ({ data, completionPct, userName }) => {
     if (data.priceRange?.min && data.priceRange?.max) matchReasons.push(`Budget range ₹${data.priceRange.min}–₹${data.priceRange.max}`);
     if (data.location?.district) matchReasons.push(`Based in ${data.location.district}`);
     if (data.willingToTravel === 'YES') matchReasons.push('Willing to travel anywhere');
-    if (data.followerCount > 0) matchReasons.push(`${Number(data.followerCount).toLocaleString()} followers`);
+    const fMin = parseInt(data.followerRange?.min);
+    const fMax = parseInt(data.followerRange?.max);
+    if (fMin > 0 && fMax > 0) matchReasons.push(`${fMin.toLocaleString()}–${fMax.toLocaleString()} followers`);
+    if (data.instagramProfileUrl) matchReasons.push('Instagram verified link provided');
     if (data.bio) matchReasons.push('Has a detailed bio');
 
     return (
@@ -510,14 +539,14 @@ const CreatorOnboarding = ({ onComplete }) => {
         availabilityStatus: 'AVAILABLE_NOW',
         collaborationTypes: ['REMOTE'],
         location: { district: '', city: '', state: '' },
+        instagramProfileUrl: '',
         // Phase 2
         bio: '',
-        followerCount: '',
+        followerRange: { min: '', max: '' },
         engagementRate: '',
         portfolioLinks: [],
         willingToTravel: 'NO',
-        pastExperience: '',
-        instagramProfileUrl: ''
+        pastExperience: ''
     });
 
     // Calculate live completion percentage
@@ -530,7 +559,9 @@ const CreatorOnboarding = ({ onComplete }) => {
         if (data.collaborationTypes?.length > 0) score += 10;
         if (data.location?.district || data.location?.city) score += 10;
         if (data.bio?.trim().length > 10) score += 8;
-        if (parseInt(data.followerCount) > 0) score += 8;
+        const fMin = parseInt(data.followerRange?.min);
+        const fMax = parseInt(data.followerRange?.max);
+        if (fMin > 0 && fMax > 0) score += 8;
         if (parseFloat(data.engagementRate) > 0) score += 8;
         if (data.portfolioLinks?.filter(l => l.trim()).length > 0) score += 8;
         if (data.willingToTravel && data.willingToTravel !== 'NO') score += 8;
@@ -544,6 +575,8 @@ const CreatorOnboarding = ({ onComplete }) => {
         if (!data.promotionTypes || data.promotionTypes.length === 0) { toast.error('Select at least one content type'); return false; }
         if (!data.priceRange?.min || !data.priceRange?.max) { toast.error('Enter your charge range'); return false; }
         if (parseFloat(data.priceRange.min) > parseFloat(data.priceRange.max)) { toast.error('Max price must be ≥ min price'); return false; }
+        if (!data.instagramProfileUrl?.trim()) { toast.error('Instagram profile URL is required for verification'); return false; }
+        if (!/instagram\.com/i.test(data.instagramProfileUrl)) { toast.error('Please enter a valid Instagram URL'); return false; }
         return true;
     };
 
@@ -558,64 +591,76 @@ const CreatorOnboarding = ({ onComplete }) => {
             availabilityStatus: data.availabilityStatus,
             collaborationTypes: data.collaborationTypes,
             location: data.location,
-            isAvailable: data.availabilityStatus !== 'NOT_AVAILABLE'
+            isAvailable: data.availabilityStatus !== 'NOT_AVAILABLE',
+            instagramProfileUrl: data.instagramProfileUrl?.trim() || ''
         };
+
+        // Follower range → send as followerRange for backend verification
+        const fMin = parseInt(data.followerRange?.min);
+        const fMax = parseInt(data.followerRange?.max);
+        if (fMin > 0 && fMax > 0) {
+            payload.followerRange = { min: fMin, max: fMax };
+            payload.followerCount = fMin; // selfReportedFollowers = lower bound
+        }
 
         // Phase 2 fields (only if filled)
         if (data.bio?.trim()) payload.bio = data.bio.trim();
-        if (parseInt(data.followerCount) > 0) payload.followerCount = parseInt(data.followerCount);
         if (parseFloat(data.engagementRate) > 0) payload.engagementRate = parseFloat(data.engagementRate);
         if (data.portfolioLinks?.filter(l => l.trim()).length > 0) payload.portfolioLinks = data.portfolioLinks.filter(l => l.trim());
         if (data.willingToTravel) payload.willingToTravel = data.willingToTravel;
         if (data.pastExperience?.trim()) payload.pastExperience = data.pastExperience.trim();
-        if (data.instagramProfileUrl?.trim()) payload.instagramProfileUrl = data.instagramProfileUrl.trim();
 
         return payload;
     };
 
-    const attemptSave = async (payload) => {
-        try {
-            const res = await creatorAPI.createProfile(payload);
-            return res.data.data.profile;
-        } catch (error) {
-            // If profile already exists, update instead
-            if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
-                const res = await creatorAPI.updateProfile(payload);
-                return res.data.data.profile;
-            }
-            throw error;
-        }
-    };
+    // Track whether profile has been created (to skip POST on subsequent saves)
+    const [profileExists, setProfileExists] = useState(false);
 
     const saveToServer = async () => {
         setSaving(true);
         try {
             const payload = buildPayload();
 
-            try {
-                return await attemptSave(payload);
-            } catch (error) {
-                const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
-                const isNetworkError = !error.response && !isTimeout;
+            // Validate follower range difference on client
+            if (payload.followerRange) {
+                const diff = payload.followerRange.max - payload.followerRange.min;
+                if (diff > 500) {
+                    throw new Error(`Follower range must be within 500 (currently ${diff})`);
+                }
+                if (payload.followerRange.max < payload.followerRange.min) {
+                    throw new Error('Max followers must be ≥ min followers');
+                }
+            }
 
-                // Auto-retry once on timeout (server cold-start)
-                if (isTimeout) {
-                    toast.loading('Server is warming up, retrying...', { id: 'save-retry', duration: 15000 });
-                    try {
-                        const result = await attemptSave(payload);
-                        toast.dismiss('save-retry');
-                        return result;
-                    } catch (retryError) {
-                        toast.dismiss('save-retry');
-                        throw new Error('Server took too long. Please wait a moment and try again.');
+            let res;
+            if (profileExists) {
+                // Profile already saved — always PUT
+                res = await creatorAPI.updateProfile(payload);
+            } else {
+                // First save — try POST, fall back to PUT if profile exists
+                try {
+                    res = await creatorAPI.createProfile(payload);
+                } catch (error) {
+                    if (error.response?.status === 400 &&
+                        error.response?.data?.message?.includes('already exists')) {
+                        res = await creatorAPI.updateProfile(payload);
+                    } else {
+                        throw error;
                     }
                 }
-
-                if (isNetworkError) {
-                    throw new Error('Network error. Check your connection and try again.');
-                }
-                throw error;
             }
+
+            setProfileExists(true);
+            return res.data.data.profile;
+        } catch (error) {
+            // Provide clear error messages
+            if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+                throw new Error('Server took too long to respond. Please try again.');
+            }
+            if (!error.response && !error.message) {
+                throw new Error('Network error. Check your connection and try again.');
+            }
+            throw error;
         } finally {
             setSaving(false);
         }

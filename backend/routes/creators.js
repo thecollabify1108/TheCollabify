@@ -141,8 +141,11 @@ router.post('/profile', auth, isCreator, [
     body('promotionTypes').isArray({ min: 1 }).withMessage('At least one promotion type is required'),
     body('priceRange.min').isFloat({ min: 0 }).withMessage('Minimum price must be positive'),
     body('priceRange.max').isFloat({ min: 0 }).withMessage('Maximum price must be positive'),
+    body('instagramProfileUrl').notEmpty().withMessage('Instagram profile URL is required for verification'),
     // Phase 2: Optional quality signals
     body('followerCount').optional().isInt({ min: 0 }).withMessage('Follower count must be a positive number'),
+    body('followerRange.min').optional().isInt({ min: 0 }).withMessage('Follower range min must be positive'),
+    body('followerRange.max').optional().isInt({ min: 0 }).withMessage('Follower range max must be positive'),
     body('engagementRate').optional().isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
     handleValidation
 ], async (req, res) => {
@@ -163,6 +166,7 @@ router.post('/profile', auth, isCreator, [
             instagramUsername,
             instagramProfileUrl,
             followerCount = 0,
+            followerRange,
             engagementRate = 0,
             category,
             promotionTypes,
@@ -177,9 +181,31 @@ router.post('/profile', auth, isCreator, [
             pastExperience
         } = req.body;
 
+        // Validate follower range difference (max 500)
+        if (followerRange && followerRange.min != null && followerRange.max != null) {
+            const diff = followerRange.max - followerRange.min;
+            if (diff > 500) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Follower range must be within 500 (currently ${diff})`
+                });
+            }
+            if (followerRange.max < followerRange.min) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Max followers must be >= min followers'
+                });
+            }
+        }
+
+        // Determine follower count from range or direct input
+        const effectiveFollowerCount = followerRange
+            ? parseInt(followerRange.min) || 0
+            : parseInt(followerCount) || 0;
+
         // Generate AI insights
         const insights = generateInsights({
-            followerCount,
+            followerCount: effectiveFollowerCount,
             engagementRate,
             category,
             promotionTypes,
@@ -189,8 +215,8 @@ router.post('/profile', auth, isCreator, [
         // Build create data
         const createData = {
             userId: req.userId,
-            followerCount: parseInt(followerCount) || 0,
-            selfReportedFollowers: parseInt(followerCount) || 0,
+            followerCount: effectiveFollowerCount,
+            selfReportedFollowers: effectiveFollowerCount,
             verificationStatus: 'pending',
             engagementRate: parseFloat(engagementRate) || 0,
             category: category,
@@ -208,6 +234,12 @@ router.post('/profile', auth, isCreator, [
             aiScore: insights.score || 50,
             lastAnalyzed: new Date()
         };
+
+        // Set follower verified range from self-reported range
+        if (followerRange && followerRange.min != null && followerRange.max != null) {
+            createData.verifiedFollowerRangeMin = parseInt(followerRange.min) || 0;
+            createData.verifiedFollowerRangeMax = parseInt(followerRange.max) || 0;
+        }
 
         // Only set instagram fields if provided
         if (instagramUsername) createData.instagramUsername = instagramUsername;
@@ -273,6 +305,8 @@ router.post('/profile', auth, isCreator, [
  */
 router.put('/profile', auth, isCreator, [
     body('followerCount').optional().isInt({ min: 0 }).withMessage('Follower count must be a positive number'),
+    body('followerRange.min').optional().isInt({ min: 0 }).withMessage('Follower range min must be positive'),
+    body('followerRange.max').optional().isInt({ min: 0 }).withMessage('Follower range max must be positive'),
     body('engagementRate').optional().isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
     body('priceRange.min').optional().isFloat({ min: 0 }).withMessage('Minimum price must be positive'),
     body('priceRange.max').optional().isFloat({ min: 0 }).withMessage('Maximum price must be positive'),
@@ -288,6 +322,17 @@ router.put('/profile', auth, isCreator, [
                 success: false,
                 message: 'Profile not found. Please create your profile first.'
             });
+        }
+
+        // Validate follower range if provided
+        if (req.body.followerRange && req.body.followerRange.min != null && req.body.followerRange.max != null) {
+            const diff = req.body.followerRange.max - req.body.followerRange.min;
+            if (diff > 500) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Follower range must be within 500 (currently ${diff})`
+                });
+            }
         }
 
         // Update fields
@@ -334,6 +379,15 @@ router.put('/profile', auth, isCreator, [
                 });
                 Object.assign(updateData, verifUpdate);
             }
+        }
+
+        // Handle self-reported follower range for manual verification
+        if (req.body.followerRange && req.body.followerRange.min != null && req.body.followerRange.max != null) {
+            updateData.verifiedFollowerRangeMin = parseInt(req.body.followerRange.min) || 0;
+            updateData.verifiedFollowerRangeMax = parseInt(req.body.followerRange.max) || 0;
+            updateData.followerCount = parseInt(req.body.followerRange.min) || 0;
+            updateData.selfReportedFollowers = parseInt(req.body.followerRange.min) || 0;
+            updateData.verificationStatus = 'pending';
         }
 
         // Generate AI insights

@@ -16,7 +16,10 @@ const PROMOTION_TYPES = ['Reels', 'Stories', 'Posts', 'Website Visit'];
 const ProfileForm = ({ profile, onSave }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
-        followerCount: profile?.followerCount || '',
+        followerRange: {
+            min: profile?.verifiedFollowerRangeMin || profile?.followerCount || '',
+            max: profile?.verifiedFollowerRangeMax || (profile?.followerCount ? profile.followerCount + 500 : '') || ''
+        },
         engagementRate: profile?.engagementRate || '',
         category: profile?.category || '',
         promotionTypes: profile?.promotionTypes || [],
@@ -46,6 +49,12 @@ const ProfileForm = ({ profile, onSave }) => {
                 ...prev,
                 priceRange: { ...prev.priceRange, [key]: value }
             }));
+        } else if (name.startsWith('followerRange.')) {
+            const key = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                followerRange: { ...prev.followerRange, [key]: value }
+            }));
         } else if (name.startsWith('location.')) {
             const key = name.split('.')[1];
             setFormData(prev => ({
@@ -70,8 +79,23 @@ const ProfileForm = ({ profile, onSave }) => {
         e.preventDefault();
 
         // Validate all required fields
-        if (!formData.followerCount || parseInt(formData.followerCount) <= 0) {
-            toast.error('Please enter your follower count');
+        const fMin = parseInt(formData.followerRange?.min);
+        const fMax = parseInt(formData.followerRange?.max);
+        if (!fMin || fMin <= 0 || !fMax || fMax <= 0) {
+            toast.error('Please enter your follower range');
+            return;
+        }
+        if (fMax < fMin) {
+            toast.error('Max followers must be \u2265 min followers');
+            return;
+        }
+        if (fMax - fMin > 500) {
+            toast.error(`Follower range must be within 500 (currently ${fMax - fMin})`);
+            return;
+        }
+
+        if (!formData.instagramProfileUrl?.trim()) {
+            toast.error('Instagram profile URL is required for verification');
             return;
         }
 
@@ -115,7 +139,8 @@ const ProfileForm = ({ profile, onSave }) => {
         try {
             const data = {
                 ...formData,
-                followerCount: parseInt(formData.followerCount),
+                followerCount: fMin,
+                followerRange: { min: fMin, max: fMax },
                 engagementRate: parseFloat(formData.engagementRate),
                 priceRange: {
                     min: parseFloat(formData.priceRange.min),
@@ -152,20 +177,43 @@ const ProfileForm = ({ profile, onSave }) => {
 
 
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Follower Count & Engagement Rate */}
+                {/* Follower Range & Engagement Rate */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label className="input-label">Follower Count</label>
-                        <input
-                            type="number"
-                            name="followerCount"
-                            value={formData.followerCount}
-                            onChange={handleChange}
-                            placeholder="e.g., 50000"
-                            className="input-field"
-                            min="0"
-                            required
-                        />
+                        <label className="input-label">Follower Range</label>
+                        <p className="text-xs text-dark-400 mb-2">Max 500 difference for verification</p>
+                        <div className="grid grid-cols-2 gap-2">
+                            <input
+                                type="number"
+                                name="followerRange.min"
+                                value={formData.followerRange?.min || ''}
+                                onChange={handleChange}
+                                placeholder="Min e.g. 6000"
+                                className="input-field"
+                                min="0"
+                                required
+                            />
+                            <input
+                                type="number"
+                                name="followerRange.max"
+                                value={formData.followerRange?.max || ''}
+                                onChange={handleChange}
+                                placeholder="Max e.g. 6500"
+                                className="input-field"
+                                min="0"
+                                required
+                            />
+                        </div>
+                        {(() => {
+                            const min = parseInt(formData.followerRange?.min);
+                            const max = parseInt(formData.followerRange?.max);
+                            if (min > 0 && max > 0) {
+                                if (max < min) return <p className="text-xs text-rose-400 mt-1">Max must be \u2265 Min</p>;
+                                if (max - min > 500) return <p className="text-xs text-rose-400 mt-1">Range must be within 500 (currently {max - min})</p>;
+                                return <p className="text-xs text-emerald-400 mt-1">\u2713 Valid range</p>;
+                            }
+                            return null;
+                        })()}
                     </div>
                     <div>
                         <label className="input-label">Engagement Rate (%)</label>
@@ -356,9 +404,9 @@ const ProfileForm = ({ profile, onSave }) => {
                     <p className="text-xs text-dark-400 mt-1">{formData.bio.length}/500 characters</p>
                 </div>
 
-                {/* Instagram Profile URL */}
+                {/* Instagram Profile URL — Required */}
                 <div>
-                    <label className="input-label">Instagram Profile URL (Optional)</label>
+                    <label className="input-label">Instagram Profile URL <span className="text-rose-400">*</span></label>
                     <input
                         type="text"
                         name="instagramProfileUrl"
@@ -366,9 +414,10 @@ const ProfileForm = ({ profile, onSave }) => {
                         onChange={handleChange}
                         placeholder="https://instagram.com/your_username"
                         className="input-field"
+                        required
                     />
                     <p className="text-xs text-dark-400 mt-1">
-                        Paste your Instagram profile URL (query parameters like ?utm_source are okay)
+                        Required for follower verification
                     </p>
                 </div>
 

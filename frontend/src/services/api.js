@@ -57,27 +57,29 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        const message = error.response?.data?.message || 'An error occurred';
+        const status = error.response?.status;
 
-        if (error.response?.status === 401) {
+        if (status === 401) {
             localStorage.removeItem('token');
             if (!window.location.pathname.startsWith('/auth') && window.location.pathname !== '/login') {
                 window.location.href = '/login';
             }
         }
 
-        if (error.response?.status !== 401 && error.response?.status < 500) {
+        if (status && status !== 401 && status < 500) {
             Sentry.captureException(error, {
                 extra: {
                     url: error.config?.url,
                     method: error.config?.method,
-                    status: error.response?.status,
+                    status,
                     data: error.response?.data
                 }
             });
         }
 
-        return Promise.reject({ ...error, message });
+        // Preserve the original AxiosError so callers can inspect
+        // error.response, error.code, etc. reliably
+        return Promise.reject(error);
     }
 );
 
