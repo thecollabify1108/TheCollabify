@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
+const { userCacheMiddleware } = require('../middleware/cache');
 const { isSeller } = require('../middleware/roleCheck');
 const { findMatchingCreators, explainMatch } = require('../services/aiMatching');
 const {
@@ -34,7 +35,7 @@ const handleValidation = (req, res, next) => {
  * @desc    Get all promotion requests for current seller
  * @access  Private (Seller)
  */
-router.get('/requests', auth, isSeller, async (req, res) => {
+router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res) => {
     try {
         const { status, page = 1, limit = 10 } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -139,9 +140,10 @@ router.post('/requests', auth, isSeller, [
             deadline
         } = req.body;
 
-        // Log Campaign Flow Start
+        // Fire-and-forget: Log Campaign Flow Start (don't block response)
         const FrictionService = require('../services/frictionService');
-        await FrictionService.trackCampaignStart(req.userId, { title, targetCategory });
+        FrictionService.trackCampaignStart(req.userId, { title, targetCategory })
+            .catch(err => console.error('Friction tracking failed:', err));
 
         // Create promotion request
         const request = await prisma.promotionRequest.create({
@@ -164,39 +166,40 @@ router.post('/requests', auth, isSeller, [
         // Find matching creators using AI matching service
         const matchedCreatorsResults = await findMatchingCreators(request);
 
-        // Store matched creators in request
-        const matchedCreators = await Promise.all(matchedCreatorsResults.map(match =>
-            prisma.matchedCreator.create({
-                data: {
+        // Store matched creators in batch (single query instead of N individual creates)
+        let matchedCreators = [];
+        if (matchedCreatorsResults.length > 0) {
+            await prisma.matchedCreator.createMany({
+                data: matchedCreatorsResults.map(match => ({
                     promotionId: request.id,
                     creatorId: match.creatorId,
                     matchScore: match.matchScore,
                     matchReason: match.matchReason,
                     status: 'MATCHED'
-                }
-            })
-        ));
+                }))
+            });
+            // Fetch the created records for the response
+            matchedCreators = await prisma.matchedCreator.findMany({
+                where: { promotionId: request.id }
+            });
+        }
 
-        // Notify matched creators
-        for (const match of matchedCreatorsResults.slice(0, 10)) {
-            try {
-                const creator = await prisma.creatorProfile.findUnique({
-                    where: { id: match.creatorId },
-                    include: { user: { select: { id: true, name: true, email: true } } }
-                });
-                if (creator && creator.user) {
-                    await notifyCreatorNewMatch(creator.user.id, request, match.matchScore);
-                    await sendNewMatchEmail(
-                        creator.user.email,
-                        creator.user.name,
-                        request.title,
-                        match.matchScore,
-                        request.targetCategory
-                    );
-                }
-            } catch (err) {
-                console.error('Failed to notify creator:', err);
-            }
+        // Fire-and-forget: batch-notify matched creators (don't block response)
+        const creatorsToNotify = matchedCreatorsResults.slice(0, 10);
+        if (creatorsToNotify.length > 0) {
+            // Batch-fetch all creator profiles in one query
+            prisma.creatorProfile.findMany({
+                where: { id: { in: creatorsToNotify.map(m => m.creatorId) } },
+                include: { user: { select: { id: true, name: true, email: true } } }
+            }).then(creators => {
+                return Promise.allSettled(creators.filter(c => c?.user).map(creator => {
+                    const match = creatorsToNotify.find(m => m.creatorId === creator.id);
+                    return Promise.allSettled([
+                        notifyCreatorNewMatch(creator.user.id, request, match?.matchScore || 0),
+                        sendNewMatchEmail(creator.user.email, creator.user.name, request.title, match?.matchScore || 0, request.targetCategory)
+                    ]);
+                }));
+            }).catch(err => console.error('Notification batch failed:', err));
         }
 
         res.status(201).json({

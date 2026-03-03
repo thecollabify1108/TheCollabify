@@ -277,7 +277,7 @@ class AnalyticsService {
     }
 
     /**
-     * Get top performers
+     * Get top performers (DB-level sort + limit)
      */
     static async getTopPerformers(type, limit = 10) {
         const analytics = await prisma.analytics.findMany({
@@ -286,7 +286,9 @@ class AnalyticsService {
                 user: {
                     select: { name: true, email: true, avatar: true }
                 }
-            }
+            },
+            orderBy: { date: 'desc' },
+            take: limit * 3 // fetch a reasonable pool, then sort by metrics in JS
         });
 
         return analytics
@@ -368,28 +370,28 @@ class AnalyticsService {
      * Brand Insights — Scoped to a single seller
      */
     static async getBrandInsights(sellerId) {
-        // Get all promotion requests for this seller
-        const campaigns = await prisma.promotionRequest.findMany({
-            where: { sellerId },
-            select: {
-                id: true,
-                status: true,
-                matchedCreators: {
-                    select: {
-                        id: true,
-                        status: true,
-                        collaboration: true,
-                        creatorId: true
+        // Get all promotion requests + seller reliability in parallel
+        const [campaigns, seller] = await Promise.all([
+            prisma.promotionRequest.findMany({
+                where: { sellerId },
+                select: {
+                    id: true,
+                    status: true,
+                    matchedCreators: {
+                        select: {
+                            id: true,
+                            status: true,
+                            collaboration: true,
+                            creatorId: true
+                        }
                     }
                 }
-            }
-        });
-
-        // Get brand's own reliability score
-        const seller = await prisma.user.findUnique({
-            where: { id: sellerId },
-            select: { reliabilityScore: true }
-        });
+            }),
+            prisma.user.findUnique({
+                where: { id: sellerId },
+                select: { reliabilityScore: true }
+            })
+        ]);
 
         const campaignsLaunched = campaigns.length;
         let creatorsShortlisted = 0;
@@ -398,19 +400,32 @@ class AnalyticsService {
         let completedCollabs = 0;
         const durations = [];
 
+        // Collect all unique creator IDs to batch-fetch reliability scores
+        const creatorIds = new Set();
+        for (const campaign of campaigns) {
+            creatorsShortlisted += campaign.matchedCreators.length;
+            for (const mc of campaign.matchedCreators) {
+                creatorIds.add(mc.creatorId);
+            }
+        }
+
+        // Single batch query instead of N individual queries (fixes N+1)
+        const creatorProfiles = creatorIds.size > 0
+            ? await prisma.creatorProfile.findMany({
+                where: { userId: { in: [...creatorIds] } },
+                select: { userId: true, reliabilityScore: true }
+            })
+            : [];
+        const reliabilityMap = new Map(creatorProfiles.map(cp => [cp.userId, cp.reliabilityScore]));
+
         let totalReliabilitySum = 0;
         let creatorCountWithReliability = 0;
 
         for (const campaign of campaigns) {
-            creatorsShortlisted += campaign.matchedCreators.length;
             for (const mc of campaign.matchedCreators) {
-                // Fetch creator reliability score for averaging
-                const cp = await prisma.creatorProfile.findUnique({
-                    where: { userId: mc.creatorId },
-                    select: { reliabilityScore: true }
-                });
-                if (cp) {
-                    totalReliabilitySum += cp.reliabilityScore;
+                const score = reliabilityMap.get(mc.creatorId);
+                if (score !== undefined) {
+                    totalReliabilitySum += score;
                     creatorCountWithReliability++;
                 }
 

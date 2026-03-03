@@ -8,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 import { sellerAPI, chatAPI, collaborationAPI } from '../services/api';
 import { trackMatchFeedback, trackMatchOutcome } from '../services/feedback';
 import { trackEvent } from '../utils/analytics';
+import { getCached, setCache } from '../utils/dashboardCache';
 import toast from 'react-hot-toast';
 
 // New Components
@@ -25,7 +26,9 @@ import { getReliabilityLevel } from '../utils/reliability';
 // NEW: Enhanced Components
 import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
-import { BrandInsightCards } from '../components/analytics/InsightCards';
+
+// Lazy-loaded: defers InsightCards API call until dashboard scrolls into view
+const BrandInsightCards = lazy(() => import('../components/analytics/InsightCards').then(m => ({ default: m.BrandInsightCards })));
 
 // Modern Dashboard Widgets
 import StatCard from '../components/dashboard/StatCard';
@@ -54,6 +57,7 @@ const SwipeableCreatorCard = lazy(() => import('../components/seller/SwipeableCr
 
 const SellerDashboard = () => {
     const { user } = useAuth();
+    const _mountTime = performance.now();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -101,8 +105,47 @@ const SellerDashboard = () => {
     };
 
     useEffect(() => {
-        fetchRequests();
-        fetchMatches();
+        // Cache-first: show cached data instantly, then revalidate
+        const loadDashboard = async () => {
+            const cachedRequests = getCached('seller_requests');
+            const cachedConversations = getCached('seller_conversations');
+
+            // If we have cached data, render immediately (no loading spinner)
+            if (cachedRequests) {
+                setRequests(cachedRequests);
+                setConversations(cachedConversations || []);
+                setLoading(false);
+                console.log(`[Perf] SellerDashboard cache-hit TTI: ${(performance.now() - _mountTime).toFixed(0)}ms`);
+            } else {
+                setLoading(true);
+            }
+
+            // Fetch fresh data in parallel (stale-while-revalidate)
+            try {
+                const [requestsRes, conversationsRes] = await Promise.allSettled([
+                    sellerAPI.getRequests(),
+                    chatAPI.getConversations()
+                ]);
+
+                if (requestsRes.status === 'fulfilled') {
+                    const freshRequests = requestsRes.value.data.data.requests;
+                    setRequests(freshRequests);
+                    setCache('seller_requests', freshRequests);
+                }
+                if (conversationsRes.status === 'fulfilled') {
+                    const freshConversations = conversationsRes.value.data.data.conversations || [];
+                    setConversations(freshConversations);
+                    setCache('seller_conversations', freshConversations);
+                }
+            } catch (error) {
+                if (!cachedRequests) toast.error('Failed to fetch data');
+            } finally {
+                setLoading(false);
+                console.log(`[Perf] SellerDashboard network TTI: ${(performance.now() - _mountTime).toFixed(0)}ms`);
+            }
+        };
+
+        loadDashboard();
 
         // Listen for message request events from CreatorSearch
         const handleSwitchToMessages = (event) => {
@@ -696,7 +739,7 @@ const SellerDashboard = () => {
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                             <StatCard
                                 label="Total Budget"
-                                value="₹0" // Placeholder until real budget logic
+                                value={`₹${requests.reduce((sum, r) => sum + (r.budget || r.maxBudget || 0), 0).toLocaleString()}`}
                                 icon={<FaFire />}
                                 color="orange"
                                 trend={0}

@@ -3,6 +3,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
+const { userCacheMiddleware } = require('../middleware/cache');
 const { isCreator } = require('../middleware/roleCheck');
 const { generateInsights } = require('../services/aiInsights');
 const { notifyProfileInsights, notifySellerCreatorApplied } = require('../services/notificationService');
@@ -98,7 +99,7 @@ function calculateCompletion(profile) {
  * @desc    Get creator's own profile
  * @access  Private (Creator)
  */
-router.get('/profile', auth, isCreator, async (req, res) => {
+router.get('/profile', auth, isCreator, userCacheMiddleware(30), async (req, res) => {
     try {
         const profile = await prisma.creatorProfile.findUnique({
             where: { userId: req.userId },
@@ -393,7 +394,7 @@ router.put('/profile', auth, isCreator, [
  * @desc    Get promotion requests matching creator's profile
  * @access  Private (Creator)
  */
-router.get('/promotions', auth, isCreator, async (req, res) => {
+router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
@@ -603,7 +604,7 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
  * @desc    Get creator's application history
  * @access  Private (Creator)
  */
-router.get('/applications', auth, isCreator, async (req, res) => {
+router.get('/applications', auth, isCreator, userCacheMiddleware(30), async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;

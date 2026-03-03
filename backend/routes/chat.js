@@ -10,6 +10,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
+const { userCacheMiddleware } = require('../middleware/cache');
 const { sanitizeContent } = require('../utils/sanitizer');
 
 /**
@@ -113,7 +114,7 @@ router.get('/pgp-key/:userId', auth, async (req, res) => {
  * @access  Private
  */
 // Get all conversations for a user
-router.get('/conversations', auth, async (req, res) => {
+router.get('/conversations', auth, userCacheMiddleware(15), async (req, res) => {
     try {
         const userId = req.userId;
         const userRole = req.user.activeRole;

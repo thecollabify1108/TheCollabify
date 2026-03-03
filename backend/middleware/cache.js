@@ -5,7 +5,7 @@ const { getRedisClient, isRedisEnabled } = require('../config/redis');
 const localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
 
 /**
- * Enterprise Caching Middleware
+ * Enterprise Caching Middleware (public routes only)
  * @param {number} duration - Cache duration in seconds (default: 300)
  */
 const cacheMiddleware = (duration = 300) => async (req, res, next) => {
@@ -35,8 +35,6 @@ const cacheMiddleware = (duration = 300) => async (req, res, next) => {
         if (cachedBody) {
             res.set('X-Cache', 'HIT');
             res.set('Content-Type', 'application/json');
-            // Redis stores strings, so we might need to parse if it was objects, 
-            // but for API response caching, sending the string directly is efficient.
             return res.send(cachedBody);
         }
 
@@ -48,7 +46,6 @@ const cacheMiddleware = (duration = 300) => async (req, res, next) => {
             // Only cache successful JSON responses
             if (res.statusCode >= 200 && res.statusCode < 300) {
                 if (isRedisEnabled()) {
-                    // Store in Redis with expiration
                     getRedisClient().set(key, body, 'EX', duration).catch(err => console.error('Redis Set Error:', err));
                 } else {
                     localCache.set(key, body, duration);
@@ -60,22 +57,89 @@ const cacheMiddleware = (duration = 300) => async (req, res, next) => {
         next();
     } catch (error) {
         console.error('Cache Middleware Error:', error);
-        next(); // Fail open: if cache fails, just process request normally
+        next();
     }
 };
 
-// Helper to manually clear cache
+/**
+ * Per-user cache middleware for authenticated routes.
+ * Caches responses keyed by userId + URL for short durations (default: 30s).
+ * @param {number} duration - Cache duration in seconds (default: 30)
+ */
+const userCacheMiddleware = (duration = 30) => async (req, res, next) => {
+    if (req.method !== 'GET') return next();
+
+    // Requires auth middleware to have run first (req.userId must exist)
+    const userId = req.userId || req.user?.id;
+    if (!userId) return next();
+
+    const key = `__usercache__${userId}:${req.originalUrl || req.url}`;
+
+    try {
+        let cachedBody;
+        if (isRedisEnabled()) {
+            cachedBody = await getRedisClient().get(key);
+        } else {
+            cachedBody = localCache.get(key);
+        }
+
+        if (cachedBody) {
+            res.set('X-Cache', 'HIT');
+            res.set('X-Cache-Type', 'user');
+            res.set('Content-Type', 'application/json');
+            return res.send(cachedBody);
+        }
+
+        res.set('X-Cache', 'MISS');
+        const originalSend = res.send;
+
+        res.send = function (body) {
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+                if (isRedisEnabled()) {
+                    getRedisClient().set(key, body, 'EX', duration).catch(err => console.error('User Cache Set Error:', err));
+                } else {
+                    localCache.set(key, body, duration);
+                }
+            }
+            originalSend.call(this, body);
+        };
+
+        next();
+    } catch (error) {
+        console.error('User Cache Middleware Error:', error);
+        next();
+    }
+};
+
+/**
+ * Clear cache entries. For user-specific caches, pass the userId prefix.
+ */
 const clearCache = async (key) => {
     try {
         if (isRedisEnabled()) {
             if (key) {
-                await getRedisClient().del(key);
+                // Support wildcard patterns for user cache clearing
+                if (key.includes('*')) {
+                    const keys = await getRedisClient().keys(key);
+                    if (keys.length > 0) await getRedisClient().del(...keys);
+                } else {
+                    await getRedisClient().del(key);
+                }
             } else {
                 await getRedisClient().flushdb();
             }
         } else {
             if (key) {
-                localCache.del(key);
+                // For local cache, if wildcard, iterate and match
+                if (key.includes('*')) {
+                    const pattern = new RegExp('^' + key.replace(/\*/g, '.*') + '$');
+                    const allKeys = localCache.keys();
+                    for (const k of allKeys) {
+                        if (pattern.test(k)) localCache.del(k);
+                    }
+                } else {
+                    localCache.del(key);
+                }
             } else {
                 localCache.flushAll();
             }
@@ -85,4 +149,11 @@ const clearCache = async (key) => {
     }
 };
 
-module.exports = { cacheMiddleware, clearCache };
+/**
+ * Clear all cached data for a specific user.
+ */
+const clearUserCache = async (userId) => {
+    return clearCache(`__usercache__${userId}:*`);
+};
+
+module.exports = { cacheMiddleware, userCacheMiddleware, clearCache, clearUserCache };

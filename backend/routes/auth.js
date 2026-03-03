@@ -282,27 +282,20 @@ router.post('/register/verify-otp', [
             token = generateToken(user.id);
         }
 
-        // Log Onboarding Start Friction Event
-        await AnalyticsService.recordFrictionEvent({
+        // Fire-and-forget: non-critical post-registration tasks (don't block response)
+        AnalyticsService.recordFrictionEvent({
             userId: user.id,
             type: 'ONBOARDING_START',
             severity: 'LOW',
             meta: { role: role.toUpperCase(), method: 'OTP' }
-        });
+        }).catch(err => console.error('Friction event failed:', err));
 
-        // Send welcome notification
-        try {
-            await notifyWelcome(user.id, role);
-
-            // Send welcome email based on role
-            if (role === 'creator') {
-                await sendEmail(user.email, 'welcomeCreator', user.name);
-            } else if (role === 'seller') {
-                await sendEmail(user.email, 'welcomeSeller', user.name);
-            }
-        } catch (err) {
-            console.error('Failed to send welcome notification/email:', err);
-        }
+        // Fire-and-forget: welcome notification + email
+        Promise.allSettled([
+            notifyWelcome(user.id, role),
+            role === 'creator' ? sendEmail(user.email, 'welcomeCreator', user.name) : null,
+            role === 'seller' ? sendEmail(user.email, 'welcomeSeller', user.name) : null
+        ].filter(Boolean)).catch(err => console.error('Welcome notifications failed:', err));
 
         // Set cross-origin cookie + return token in body (both required)
         setCookieToken(res, token);
@@ -587,15 +580,16 @@ router.post('/login', [
  */
 router.get('/me', auth, async (req, res) => {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: req.userId },
-            include: { roles: true }
+        // Auth middleware already loaded the user — only fetch roles to supplement
+        const roles = await prisma.userRole.findMany({
+            where: { userId: req.userId },
+            select: { type: true }
         });
 
         res.json({
             success: true,
             data: {
-                user: sanitizeUser(user)
+                user: sanitizeUser({ ...req.user, roles })
             }
         });
     } catch (error) {

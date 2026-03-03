@@ -9,6 +9,7 @@ import { HiSparkles, HiUserGroup, HiLightningBolt, HiBriefcase } from 'react-ico
 import { useAuth } from '../context/AuthContext';
 import { creatorAPI } from '../services/api';
 import { trackMatchFeedback } from '../services/feedback';
+import { getCached, setCache } from '../utils/dashboardCache';
 import toast from 'react-hot-toast';
 
 // Components
@@ -19,7 +20,8 @@ import ChatBox from '../components/common/ChatBox';
 import CollaborationHub from '../components/common/CollaborationHub';
 import CollaborationStepper from '../components/common/CollaborationStepper';
 
-import { CreatorInsightCards } from '../components/analytics/InsightCards';
+// Lazy-loaded: defers InsightCards API call until dashboard scrolls into view
+const CreatorInsightCards = lazy(() => import('../components/analytics/InsightCards').then(m => ({ default: m.CreatorInsightCards })));
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import { getReliabilityLevel } from '../utils/reliability';
 
@@ -53,6 +55,7 @@ const MessageRequests = lazy(() => import('../components/creator/MessageRequests
 
 const CreatorDashboard = () => {
     const { user } = useAuth();
+    const _mountTime = performance.now();
     const [activeTab, setActiveTab] = useState(() => {
         const params = new URLSearchParams(window.location.search);
         const tab = params.get('tab');
@@ -107,8 +110,24 @@ const CreatorDashboard = () => {
     }, [searchParams]);
 
     const fetchData = async (isBackground = false) => {
+        // Cache-first: show cached data instantly, then revalidate
+        if (!isBackground) {
+            const cachedProfile = getCached('creator_profile');
+            const cachedPromotions = getCached('creator_promotions');
+            const cachedApplications = getCached('creator_applications');
+
+            if (cachedProfile) {
+                setProfile(cachedProfile);
+                setPromotions(cachedPromotions || []);
+                setApplications(cachedApplications || []);
+                setLoading(false);
+                console.log(`[Perf] CreatorDashboard cache-hit TTI: ${(performance.now() - _mountTime).toFixed(0)}ms`);
+            } else {
+                setLoading(true);
+            }
+        }
+
         try {
-            if (!isBackground) setLoading(true);
             const [profileRes, promotionsRes, applicationsRes] = await Promise.allSettled([
                 creatorAPI.getProfile(),
                 creatorAPI.getPromotions(),
@@ -116,20 +135,29 @@ const CreatorDashboard = () => {
             ]);
 
             if (profileRes.status === 'fulfilled') {
-                setProfile(profileRes.value.data.data.profile);
+                const freshProfile = profileRes.value.data.data.profile;
+                setProfile(freshProfile);
+                setCache('creator_profile', freshProfile);
             } else if (profileRes.reason?.response?.status === 404) {
                 setShowProfileForm(true);
             }
 
             if (promotionsRes.status === 'fulfilled') {
-                setPromotions(promotionsRes.value.data.data.promotions);
+                const freshPromotions = promotionsRes.value.data.data.promotions;
+                setPromotions(freshPromotions);
+                setCache('creator_promotions', freshPromotions);
             }
 
             if (applicationsRes.status === 'fulfilled') {
-                setApplications(applicationsRes.value.data.data.applications);
+                const freshApplications = applicationsRes.value.data.data.applications;
+                setApplications(freshApplications);
+                setCache('creator_applications', freshApplications);
             }
         } finally {
-            if (!isBackground) setLoading(false);
+            if (!isBackground) {
+                setLoading(false);
+                console.log(`[Perf] CreatorDashboard network TTI: ${(performance.now() - _mountTime).toFixed(0)}ms`);
+            }
         }
     };
 

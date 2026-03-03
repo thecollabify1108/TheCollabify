@@ -11,6 +11,7 @@ const FrictionService = require('../services/frictionService');
 const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
+const { userCacheMiddleware } = require('../middleware/cache');
 const AnalyticsService = require('../services/analyticsService');
 const prisma = require('../config/prisma');
 
@@ -19,7 +20,7 @@ const prisma = require('../config/prisma');
  * @desc    Get dashboard analytics for user
  * @access  Private
  */
-router.get('/dashboard', auth, async (req, res) => {
+router.get('/dashboard', auth, userCacheMiddleware(30), async (req, res) => {
     try {
         const { period = 'monthly', limit = 12 } = req.query;
         const userType = req.user.activeRole; // 'CREATOR' or 'SELLER'
@@ -306,7 +307,7 @@ router.post('/outcome', auth, async (req, res) => {
  * @desc    Get role-scoped insights (brand or creator)
  * @access  Private
  */
-router.get('/insights', auth, async (req, res) => {
+router.get('/insights', auth, userCacheMiddleware(30), async (req, res) => {
     try {
         const role = req.user.activeRole;
         let insights;
