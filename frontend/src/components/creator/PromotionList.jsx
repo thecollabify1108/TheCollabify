@@ -7,10 +7,22 @@ import EmptyState from '../common/EmptyState';
 import UrgencyBadge from '../common/UrgencyBadge';
 import { trackMatchFeedback } from '../../services/feedback';
 
-const PromotionList = ({ promotions, onApply, creatorProfile = null }) => {
+const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComplete = false }) => {
     const [expandedId, setExpandedId] = useState(null);
 
     if (!promotions || promotions.length === 0) {
+        if (profileComplete) {
+            // Profile is complete but no matches yet — reassure the user
+            return (
+                <EmptyState
+                    icon="sparkle"
+                    title="Our AI is Finding Your Best Matches"
+                    description="Your profile looks great! Our matching engine is actively scanning campaigns across all categories and budget ranges to find perfect opportunities for you. Check back soon — brands discover new creators every day."
+                    actionLabel="Refresh Opportunities"
+                    onAction={() => window.location.reload()}
+                />
+            );
+        }
         return (
             <EmptyState
                 icon="search-off"

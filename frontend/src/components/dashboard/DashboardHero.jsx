@@ -94,10 +94,10 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                             )}
                         </div>
                         <div className="flex items-center gap-3 mb-1.5">
-                            <h1 className="text-base sm:text-lg md:text-xl font-bold text-white leading-tight truncate">
-                                <span className="hidden sm:inline">{getGreeting()}, </span>
-                                <span className="sm:hidden">Hi, </span>
-                                {userName}
+                            {/* Small screens: show only first name to avoid truncation */}
+                            <h1 className="text-base sm:text-lg md:text-xl font-bold text-white leading-tight">
+                                <span className="sm:hidden">{userName?.split(' ')[0]}</span>
+                                <span className="hidden sm:inline">{getGreeting()}, {userName}</span>
                             </h1>
                             {reliability && (
                                 <ReliabilityBadge
@@ -107,13 +107,13 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                                 />
                             )}
                         </div>
-                        <p className="text-indigo-300/70 text-xs">
+                        <p className="text-indigo-300/70 text-xs hidden sm:block">
                             Performance snapshot and collaboration activity.
                         </p>
                     </div>
 
-                    {/* Insight Card */}
-                    <div className="p-2.5 sm:p-3 rounded-lg bg-white/5 border border-white/10 flex items-start gap-2 sm:gap-3 w-full md:max-w-sm">
+                    {/* Insight Card — hidden on small screens to save space */}
+                    <div className="hidden sm:flex p-2.5 sm:p-3 rounded-lg bg-white/5 border border-white/10 items-start gap-2 sm:gap-3 w-full md:max-w-sm">
                         <div className="bg-indigo-800/60 p-1.5 rounded text-indigo-300 shrink-0">
                             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 002 0V3zm4.657 2.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zm3 6v-1h4v1a2 2 0 11-4 0zm4-2c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" /></svg>
                         </div>

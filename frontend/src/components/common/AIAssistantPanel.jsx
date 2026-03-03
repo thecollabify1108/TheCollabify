@@ -61,9 +61,17 @@ const PLATFORMS = ['Instagram', 'YouTube', 'TikTok', 'Twitter', 'LinkedIn'];
 const TIERS = ['Nano (1K-10K)', 'Micro (10K-100K)', 'Mid-tier (100K-500K)', 'Macro (500K-1M)', 'Mega (1M+)'];
 const GOALS = ['Brand awareness', 'Lead generation', 'Sales conversion', 'Community building', 'Content production'];
 
-const AIAssistantPanel = ({ campaign = {}, onUse }) => {
+const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
     const { user } = useAuth();
-    const [isOpen, setIsOpen] = useState(false);
+    // Controlled mode: when onClose is provided, the parent manages visibility.
+    // Stand-alone mode: the component manages its own open/close via a FAB.
+    const [isOpen, setIsOpen] = useState(!!onClose);
+
+    const handleClose = () => {
+        setIsOpen(false);
+        if (onClose) onClose();
+    };
+
     const [activeTab, setActiveTab] = useState('intelligence');
     const [selectedMode, setSelectedMode] = useState(null);
     const [generatedContent, setGeneratedContent] = useState(null);
@@ -81,7 +89,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
         if (isOpen && !featureManifest) {
             aiAPI.getFeatures()
                 .then(res => { if (res.data.success) setFeatureManifest(res.data.data); })
-                .catch(() => {}); // fail silently, use client-side canAccessMode as fallback
+                .catch(() => { }); // fail silently, use client-side canAccessMode as fallback
         }
     }, [isOpen]);
 
@@ -329,14 +337,17 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
     return (
         <>
-            <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setIsOpen(true)} className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 bg-indigo-700 hover:bg-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white md:bottom-[calc(8rem+env(safe-area-inset-bottom))]">
-                <FaMagic className="text-xl" />
-            </motion.button>
+            {/* Floating FAB — only shown in stand-alone mode (no onClose prop) */}
+            {!onClose && (
+                <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setIsOpen(true)} className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 bg-indigo-700 hover:bg-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white md:bottom-[calc(8rem+env(safe-area-inset-bottom))]">
+                    <FaMagic className="text-xl" />
+                </motion.button>
+            )}
 
             <AnimatePresence>
                 {isOpen && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsOpen(false)} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90]" />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleClose} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90]" />
 
                         <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-dark-900 border-l border-dark-800 shadow-2xl z-[100] overflow-y-auto">
                             {/* Header */}
@@ -349,7 +360,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                             <p className="text-white/80 text-sm">Collabify Campaign Intelligence</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
+                                    <button onClick={handleClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
                                         <FaTimes className="text-white" />
                                     </button>
                                 </div>

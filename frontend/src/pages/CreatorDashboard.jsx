@@ -390,367 +390,368 @@ const CreatorDashboard = () => {
             setShowGuide={setShowGuide}
         >
             <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
-            <AnimatePresence mode="wait">
-                {/* Guided AI Mode Overlay */}
-                {activeTab === 'dashboard' && showGuide && (
-                    <GuidedAIMode
-                        role="creator"
-                        onAction={handleGuideAction}
-                        onClose={() => setShowGuide(false)}
-                    />
-                )}
+                <AnimatePresence mode="wait">
+                    {/* Guided AI Mode Overlay */}
+                    {activeTab === 'dashboard' && showGuide && (
+                        <GuidedAIMode
+                            role="creator"
+                            onAction={handleGuideAction}
+                            onClose={() => setShowGuide(false)}
+                        />
+                    )}
 
-                {/* Dashboard Tab - Modernized */}
-                {activeTab === 'dashboard' && (
-                    <motion.div
-                        key="dashboard"
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="space-y-4 pb-4"
-                    >
-                        {profile ? (
-                            <>
-                                {/* 1. Hero Section */}
-                                <DashboardHero
-                                    userName={user?.name}
-                                    role="Creator"
-                                    dailyInsight={profile?.aiInsights?.daily}
-                                    availabilityStatus={profile?.availabilityStatus}
-                                    onToggleAvailability={handleToggleAvailability}
-                                    reliability={{
-                                        level: getReliabilityLevel(profile?.reliabilityScore || 1.0),
-                                        score: profile?.reliabilityScore || 1.0
-                                    }}
-                                />
+                    {/* Dashboard Tab - Modernized */}
+                    {activeTab === 'dashboard' && (
+                        <motion.div
+                            key="dashboard"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="space-y-4 pb-4"
+                        >
+                            {profile ? (
+                                <>
+                                    {/* 1. Hero Section */}
+                                    <DashboardHero
+                                        userName={user?.name}
+                                        role="Creator"
+                                        dailyInsight={profile?.aiInsights?.daily}
+                                        availabilityStatus={profile?.availabilityStatus}
+                                        onToggleAvailability={handleToggleAvailability}
+                                        reliability={{
+                                            level: getReliabilityLevel(profile?.reliabilityScore || 1.0),
+                                            score: profile?.reliabilityScore || 1.0
+                                        }}
+                                    />
 
-                                {/* 2. Stats Grid */}
-                                <FocusWrapper sectionId="stats" currentFocus={focusMode}>
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-                                        <StatCard
-                                            label="Active Jobs"
-                                            value={pendingApplications}
-                                            icon={<HiBriefcase />}
-                                            color="blue"
-                                            trend={0}
-                                            delay={0.1}
-                                        />
-                                        <StatCard
-                                            label="Total Earnings"
-                                            value={`₹${(profile?.totalEarnings || 0).toLocaleString()}`}
-                                            icon={<HiLightningBolt />}
-                                            color="emerald"
-                                            trend={0}
-                                            delay={0.2}
-                                        />
-                                        <StatCard
-                                            label="AI Match Score"
-                                            value={profile.aiMatchScore || 0}
-                                            icon={<HiSparkles />}
-                                            color="purple"
-                                            trend={0}
-                                            delay={0.3}
-                                        />
-                                        <StatCard
-                                            label="Profile Views"
-                                            value={profile?.profileViews || 0}
-                                            icon={<HiUserGroup />}
-                                            color="amber"
-                                            trend={0}
-                                            delay={0.4}
-                                        />
-                                    </div>
-                                </FocusWrapper>
+                                    {/* 2. Stats Grid */}
+                                    <FocusWrapper sectionId="stats" currentFocus={focusMode}>
+                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                                            <StatCard
+                                                label="Active Jobs"
+                                                value={pendingApplications}
+                                                icon={<HiBriefcase />}
+                                                color="blue"
+                                                trend={0}
+                                                delay={0.1}
+                                            />
+                                            <StatCard
+                                                label="Total Earnings"
+                                                value={`₹${(profile?.totalEarnings || 0).toLocaleString()}`}
+                                                icon={<HiLightningBolt />}
+                                                color="emerald"
+                                                trend={0}
+                                                delay={0.2}
+                                            />
+                                            <StatCard
+                                                label="AI Match Score"
+                                                value={profile.aiMatchScore || 0}
+                                                icon={<HiSparkles />}
+                                                color="purple"
+                                                trend={0}
+                                                delay={0.3}
+                                            />
+                                            <StatCard
+                                                label="Profile Views"
+                                                value={profile?.profileViews || 0}
+                                                icon={<HiUserGroup />}
+                                                color="amber"
+                                                trend={0}
+                                                delay={0.4}
+                                            />
+                                        </div>
+                                    </FocusWrapper>
 
-                                {/* 3. Charts & Activity Split */}
-                                <FocusWrapper sectionId="stats" currentFocus={focusMode}>
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 min-h-[280px] sm:min-h-[350px]">
-                                        {/* Active Collaborations Section */}
-                                        <div className="lg:col-span-2 space-y-s4">
-                                            <div className="flex items-center justify-between">
-                                                <h3 className="text-body font-black text-dark-100 uppercase tracking-wider">Active Collaborations</h3>
-                                                <span className="px-s3 py-1 rounded-full bg-primary-500/10 text-primary-400 border border-primary-500/20 text-xs-pure font-black">
-                                                    {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length} ACTIVE
-                                                </span>
+                                    {/* 3. Charts & Activity Split */}
+                                    <FocusWrapper sectionId="stats" currentFocus={focusMode}>
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 min-h-[280px] sm:min-h-[350px]">
+                                            {/* Active Collaborations Section */}
+                                            <div className="lg:col-span-2 space-y-s4">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-body font-black text-dark-100 uppercase tracking-wider">Active Collaborations</h3>
+                                                    <span className="px-s3 py-1 rounded-full bg-primary-500/10 text-primary-400 border border-primary-500/20 text-xs-pure font-black">
+                                                        {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length} ACTIVE
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-s4">
+                                                    {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length === 0 ? (
+                                                        <div className="md:col-span-2 p-s8 rounded-premium-2xl bg-dark-800/20 border border-dark-700/50 flex flex-col items-center justify-center text-center">
+                                                            <FaHandshake className="text-4xl text-dark-700 mb-s3" />
+                                                            <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">No active collaborations yet</p>
+                                                        </div>
+                                                    ) : (
+                                                        applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').map(app => (
+                                                            <motion.div
+                                                                key={app._id}
+                                                                whileHover={{ y: -4 }}
+                                                                onClick={() => setActiveCollab({ id: app._id, promotion: app.promotion, seller: app.sellerId || app.seller })}
+                                                                className="p-s4 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm cursor-pointer hover:border-primary-500/30 transition-all group"
+                                                            >
+                                                                <div className="flex items-center gap-s3 mb-s4">
+                                                                    <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-white font-black">
+                                                                        {(app.sellerId?.name || app.seller?.name || 'B').charAt(0)}
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-small font-bold text-dark-100 truncate">{app.promotion?.title}</p>
+                                                                        <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">{app.sellerId?.name || app.seller?.name || 'Brand'}</p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <CollaborationStepper
+                                                                    currentStatus={app.collaborationStatus || 'ACCEPTED'}
+                                                                    className="scale-90 origin-left mb-s2"
+                                                                />
+
+                                                                <div className="mt-s2 flex items-center justify-between">
+                                                                    <span className="text-[10px] font-black text-primary-400 uppercase tracking-widest group-hover:underline">Manage Collab →</span>
+                                                                    <span className="text-[10px] font-black text-dark-500 uppercase">{new Date(app.updatedAt).toLocaleDateString()}</span>
+                                                                </div>
+                                                            </motion.div>
+                                                        ))
+                                                    )}
+                                                </div>
+
+                                                {/* Earnings overview (moved lower) */}
+                                                <div className="h-[200px] sm:h-[250px] pt-s2">
+                                                    <PerformanceChart
+                                                        title="Earnings Overview"
+                                                        data={[]}
+                                                        color="#10b981"
+                                                    />
+                                                </div>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-s4">
-                                                {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length === 0 ? (
-                                                    <div className="md:col-span-2 p-s8 rounded-premium-2xl bg-dark-800/20 border border-dark-700/50 flex flex-col items-center justify-center text-center">
-                                                        <FaHandshake className="text-4xl text-dark-700 mb-s3" />
-                                                        <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">No active collaborations yet</p>
-                                                    </div>
-                                                ) : (
-                                                    applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').map(app => (
-                                                        <motion.div
-                                                            key={app._id}
-                                                            whileHover={{ y: -4 }}
-                                                            onClick={() => setActiveCollab({ id: app._id, promotion: app.promotion, seller: app.sellerId || app.seller })}
-                                                            className="p-s4 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm cursor-pointer hover:border-primary-500/30 transition-all group"
-                                                        >
-                                                            <div className="flex items-center gap-s3 mb-s4">
-                                                                <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-white font-black">
-                                                                    {(app.sellerId?.name || app.seller?.name || 'B').charAt(0)}
-                                                                </div>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="text-small font-bold text-dark-100 truncate">{app.promotion?.title}</p>
-                                                                    <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">{app.sellerId?.name || app.seller?.name || 'Brand'}</p>
-                                                                </div>
-                                                            </div>
-
-                                                            <CollaborationStepper
-                                                                currentStatus={app.collaborationStatus || 'ACCEPTED'}
-                                                                className="scale-90 origin-left mb-s2"
-                                                            />
-
-                                                            <div className="mt-s2 flex items-center justify-between">
-                                                                <span className="text-[10px] font-black text-primary-400 uppercase tracking-widest group-hover:underline">Manage Collab →</span>
-                                                                <span className="text-[10px] font-black text-dark-500 uppercase">{new Date(app.updatedAt).toLocaleDateString()}</span>
-                                                            </div>
-                                                        </motion.div>
-                                                    ))
-                                                )}
-                                            </div>
-
-                                            {/* Earnings overview (moved lower) */}
-                                            <div className="h-[200px] sm:h-[250px] pt-s2">
-                                                <PerformanceChart
-                                                    title="Earnings Overview"
-                                                    data={[]}
-                                                    color="#10b981"
+                                            <div className="lg:col-span-1 h-full">
+                                                <ActivityFeed
+                                                    activities={applications.slice(0, 5).map(app => ({
+                                                        id: app._id,
+                                                        title: `Applied to ${app.promotion?.title || 'Campaign'}`,
+                                                        description: app.status === 'Accepted' ? 'Application accepted!' : 'Application pending review',
+                                                        icon: <FaBriefcase />,
+                                                        iconColor: app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
+                                                    }))}
+                                                    emptyMessage="No recent applications"
                                                 />
                                             </div>
                                         </div>
+                                    </FocusWrapper>
 
-                                        <div className="lg:col-span-1 h-full">
-                                            <ActivityFeed
-                                                activities={applications.slice(0, 5).map(app => ({
-                                                    id: app._id,
-                                                    title: `Applied to ${app.promotion?.title || 'Campaign'}`,
-                                                    description: app.status === 'Accepted' ? 'Application accepted!' : 'Application pending review',
-                                                    icon: <FaBriefcase />,
-                                                    iconColor: app.status === 'Accepted' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-blue-500/20 text-blue-400'
-                                                }))}
-                                                emptyMessage="No recent applications"
-                                            />
-                                        </div>
-                                    </div>
-                                </FocusWrapper>
+                                    {/* Creator Insights */}
+                                    <CreatorInsightCards profileCompletion={calculateProfileCompletion()} />
 
-                                {/* Creator Insights */}
-                                <CreatorInsightCards profileCompletion={calculateProfileCompletion()} />
+                                    {/* 4. Action Items (Today's Focus - Modernized) */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-s4">
+                                        {calculateProfileCompletion() < 100 && (
+                                            <FocusWrapper sectionId="profile" currentFocus={focusMode} className="h-full">
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: 0.5 }}
+                                                    className="p-[1px] rounded-premium-2xl bg-gradient-to-r from-indigo-600 to-indigo-400 h-full"
+                                                >
+                                                    <div className="bg-dark-900 rounded-premium-xl p-s5 h-full">
+                                                        <div className="flex justify-between items-center mb-s2">
+                                                            <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure">Profile Strength</h3>
+                                                            <span className="text-h3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
+                                                                {calculateProfileCompletion()}%
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full bg-dark-800 rounded-full h-2 mb-s4">
+                                                            <div className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-2 rounded-full" style={{ width: `${calculateProfileCompletion()}%` }} />
+                                                        </div>
+                                                        <LoadingButton
+                                                            onClick={() => setActiveTab('profile')}
+                                                            className="w-full py-s2 rounded-premium-lg bg-dark-800 hover:bg-dark-700 text-small font-bold text-white transition-all border-none"
+                                                        >
+                                                            Complete Profile
+                                                        </LoadingButton>
+                                                    </div>
+                                                </motion.div>
+                                            </FocusWrapper>
+                                        )}
 
-                                {/* 4. Action Items (Today's Focus - Modernized) */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-s4">
-                                    {calculateProfileCompletion() < 100 && (
-                                    <FocusWrapper sectionId="profile" currentFocus={focusMode} className="h-full">
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.5 }}
-                                            className="p-[1px] rounded-premium-2xl bg-gradient-to-r from-indigo-600 to-indigo-400 h-full"
-                                        >
-                                            <div className="bg-dark-900 rounded-premium-xl p-s5 h-full">
-                                                <div className="flex justify-between items-center mb-s2">
-                                                    <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure">Profile Strength</h3>
-                                                    <span className="text-h3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
-                                                        {calculateProfileCompletion()}%
-                                                    </span>
-                                                </div>
-                                                <div className="w-full bg-dark-800 rounded-full h-2 mb-s4">
-                                                    <div className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-2 rounded-full" style={{ width: `${calculateProfileCompletion()}%` }} />
+                                        <FocusWrapper sectionId="promotions" currentFocus={focusMode} className="h-full">
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: 0.6 }}
+                                                className="p-s5 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm h-full shadow-md hover:shadow-glow transition-all"
+                                            >
+                                                <div className="flex items-center gap-s4 mb-s3">
+                                                    <div className="p-s3 rounded-full bg-purple-500/20 text-purple-400 shadow-sm">
+                                                        <HiSparkles className="text-h3" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure">Opportunity Match</h3>
+                                                        <p className="text-small text-dark-400">{promotions.length} new campaigns fit your niche</p>
+                                                    </div>
                                                 </div>
                                                 <LoadingButton
-                                                    onClick={() => setActiveTab('profile')}
-                                                    className="w-full py-s2 rounded-premium-lg bg-dark-800 hover:bg-dark-700 text-small font-bold text-white transition-all border-none"
+                                                    onClick={() => setActiveTab('opportunities')}
+                                                    className="w-full py-s2 rounded-premium-lg bg-indigo-600 hover:bg-indigo-500 text-small font-bold text-white transition-all border-none"
                                                 >
-                                                    Complete Profile
+                                                    Explore Matches
+                                                </LoadingButton>
+                                            </motion.div>
+                                        </FocusWrapper>
+                                    </div>
+                                </>
+                            ) : (
+                                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                                    <CreatorOnboarding onComplete={handleProfileSaved} />
+                                </motion.div>
+                            )}
+                        </motion.div>
+                    )}
+
+                    {/* Opportunities (Jobs) */}
+                    {activeTab === 'opportunities' && (
+                        <motion.div
+                            key="opportunities"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="p-s4"
+                        >
+                            <div className="mb-s4">
+                                <h2 className="text-h2 font-bold text-dark-100 mb-s1">Available Opportunities</h2>
+                                <p className="text-body text-dark-400">{promotions.length} brand collaborations</p>
+                            </div>
+                            <PromotionList
+                                promotions={promotions}
+                                onApply={handleApplyToPromotion}
+                                creatorProfile={profile}
+                                profileComplete={(profile?.profileCompletionPercentage ?? 0) >= 100}
+                            />
+                        </motion.div>
+                    )}
+
+                    {/* Analytics */}
+                    {activeTab === 'analytics' && (
+                        <motion.div
+                            key="analytics"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="p-s4"
+                        >
+                            <div className="mb-s4">
+                                <h2 className="text-h2 font-bold text-dark-100 mb-s1">Your Analytics</h2>
+                                <p className="text-body text-dark-400">Track your performance and earnings</p>
+                            </div>
+                            <AnalyticsDashboard userType="creator" />
+                        </motion.div>
+                    )}
+
+                    {/* Messages */}
+                    {activeTab === 'messages' && (
+                        <motion.div
+                            key="messages"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="p-s4"
+                        >
+                            <div className="mb-s4">
+                                <h2 className="text-h2 font-bold text-dark-100 mb-s3">Messages</h2>
+                                <div className="flex gap-s2 p-1 bg-dark-800/40 rounded-premium-lg border border-dark-700/50">
+                                    <button
+                                        onClick={() => setMessageSubTab('conversations')}
+                                        className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'conversations'
+                                            ? 'bg-primary-500 text-white'
+                                            : 'text-dark-400 hover:text-dark-200'
+                                            }`}
+                                    >
+                                        Conversations
+                                    </button>
+                                    <button
+                                        onClick={() => setMessageSubTab('requests')}
+                                        className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'requests'
+                                            ? 'bg-primary-500 text-white'
+                                            : 'text-dark-400 hover:text-dark-200'
+                                            }`}
+                                    >
+                                        Requests
+                                    </button>
+                                </div>
+                            </div>
+
+                            {messageSubTab === 'conversations' ? (
+                                <ConversationList onSelectConversation={setSelectedConversation} />
+                            ) : (
+                                <MessageRequests
+                                    onAccept={() => setMessageSubTab('conversations')}
+                                    onReject={() => { }}
+                                />
+                            )}
+                        </motion.div>
+                    )}
+
+                    {/* Profile */}
+                    {activeTab === 'profile' && (
+                        <motion.div
+                            key="profile"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="p-3 space-y-4"
+                        >
+                            <div className="mb-s4">
+                                <h2 className="text-h2 font-bold text-dark-100 mb-s1">Profile Settings</h2>
+                                <p className="text-body text-dark-400">Manage your creator profile</p>
+                            </div>
+
+                            {user.subscription?.status !== 'active' && (
+                                <div className="p-4 rounded-xl bg-indigo-950/60 border border-indigo-500/20">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div>
+                                            <h3 className="text-base font-semibold text-white mb-1">Upgrade to Pro Plan</h3>
+                                            <p className="text-indigo-300/70 max-w-md text-xs">Access advanced analytics, structured reports, and priority matching.</p>
+                                        </div>
+                                        <LoadingButton
+                                            onClick={handleUpgrade}
+                                            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors text-sm border-none"
+                                        >
+                                            Upgrade
+                                        </LoadingButton>
+                                    </div>
+                                </div>
+                            )}
+
+                            {profile && !isEditingProfile ? (
+                                <ProfileCard
+                                    profile={profile}
+                                    onEdit={() => setIsEditingProfile(true)}
+                                />
+                            ) : (
+                                <>
+                                    {profile && (
+                                        <div className="p-s4 rounded-premium-xl bg-dark-800/40 border border-dark-700/50 shadow-md">
+                                            <div className="flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="font-bold text-dark-100 mb-s1 uppercase tracking-wider text-xs-pure">Availability Status</h3>
+                                                    <p className="text-small text-dark-400">Let brands know you're open for work</p>
+                                                </div>
+                                                <LoadingButton
+                                                    onClick={handleToggleAvailability}
+                                                    status={availabilityStatus}
+                                                    className={`px-s4 py-s2 rounded-full text-xs-pure font-bold transition-all border-none shadow-sm ${profile.isAvailable
+                                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-glow'
+                                                        : 'bg-dark-700 text-dark-400 border border-dark-600'
+                                                        }`}
+                                                >
+                                                    {profile.isAvailable ? '● Available' : 'Unavailable'}
                                                 </LoadingButton>
                                             </div>
-                                        </motion.div>
-                                    </FocusWrapper>
-                                    )}
-
-                                    <FocusWrapper sectionId="promotions" currentFocus={focusMode} className="h-full">
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 0.6 }}
-                                            className="p-s5 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm h-full shadow-md hover:shadow-glow transition-all"
-                                        >
-                                            <div className="flex items-center gap-s4 mb-s3">
-                                                <div className="p-s3 rounded-full bg-purple-500/20 text-purple-400 shadow-sm">
-                                                    <HiSparkles className="text-h3" />
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure">Opportunity Match</h3>
-                                                    <p className="text-small text-dark-400">{promotions.length} new campaigns fit your niche</p>
-                                                </div>
-                                            </div>
-                                            <LoadingButton
-                                                onClick={() => setActiveTab('opportunities')}
-                                                className="w-full py-s2 rounded-premium-lg bg-indigo-600 hover:bg-indigo-500 text-small font-bold text-white transition-all border-none"
-                                            >
-                                                Explore Matches
-                                            </LoadingButton>
-                                        </motion.div>
-                                    </FocusWrapper>
-                                </div>
-                            </>
-                        ) : (
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                                <CreatorOnboarding onComplete={handleProfileSaved} />
-                            </motion.div>
-                        )}
-                    </motion.div>
-                )}
-
-                {/* Opportunities (Jobs) */}
-                {activeTab === 'opportunities' && (
-                    <motion.div
-                        key="opportunities"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="p-s4"
-                    >
-                        <div className="mb-s4">
-                            <h2 className="text-h2 font-bold text-dark-100 mb-s1">Available Opportunities</h2>
-                            <p className="text-body text-dark-400">{promotions.length} brand collaborations</p>
-                        </div>
-                        <PromotionList
-                            promotions={promotions}
-                            onApply={handleApplyToPromotion}
-                            creatorProfile={profile}
-                        />
-                    </motion.div>
-                )}
-
-                {/* Analytics */}
-                {activeTab === 'analytics' && (
-                    <motion.div
-                        key="analytics"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="p-s4"
-                    >
-                        <div className="mb-s4">
-                            <h2 className="text-h2 font-bold text-dark-100 mb-s1">Your Analytics</h2>
-                            <p className="text-body text-dark-400">Track your performance and earnings</p>
-                        </div>
-                        <AnalyticsDashboard userType="creator" />
-                    </motion.div>
-                )}
-
-                {/* Messages */}
-                {activeTab === 'messages' && (
-                    <motion.div
-                        key="messages"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="p-s4"
-                    >
-                        <div className="mb-s4">
-                            <h2 className="text-h2 font-bold text-dark-100 mb-s3">Messages</h2>
-                            <div className="flex gap-s2 p-1 bg-dark-800/40 rounded-premium-lg border border-dark-700/50">
-                                <button
-                                    onClick={() => setMessageSubTab('conversations')}
-                                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'conversations'
-                                        ? 'bg-primary-500 text-white'
-                                        : 'text-dark-400 hover:text-dark-200'
-                                        }`}
-                                >
-                                    Conversations
-                                </button>
-                                <button
-                                    onClick={() => setMessageSubTab('requests')}
-                                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${messageSubTab === 'requests'
-                                        ? 'bg-primary-500 text-white'
-                                        : 'text-dark-400 hover:text-dark-200'
-                                        }`}
-                                >
-                                    Requests
-                                </button>
-                            </div>
-                        </div>
-
-                        {messageSubTab === 'conversations' ? (
-                            <ConversationList onSelectConversation={setSelectedConversation} />
-                        ) : (
-                            <MessageRequests
-                                onAccept={() => setMessageSubTab('conversations')}
-                                onReject={() => { }}
-                            />
-                        )}
-                    </motion.div>
-                )}
-
-                {/* Profile */}
-                {activeTab === 'profile' && (
-                    <motion.div
-                        key="profile"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="p-3 space-y-4"
-                    >
-                        <div className="mb-s4">
-                            <h2 className="text-h2 font-bold text-dark-100 mb-s1">Profile Settings</h2>
-                            <p className="text-body text-dark-400">Manage your creator profile</p>
-                        </div>
-
-                        {user.subscription?.status !== 'active' && (
-                            <div className="p-4 rounded-xl bg-indigo-950/60 border border-indigo-500/20">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div>
-                                        <h3 className="text-base font-semibold text-white mb-1">Upgrade to Pro Plan</h3>
-                                        <p className="text-indigo-300/70 max-w-md text-xs">Access advanced analytics, structured reports, and priority matching.</p>
-                                    </div>
-                                    <LoadingButton
-                                        onClick={handleUpgrade}
-                                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors text-sm border-none"
-                                    >
-                                        Upgrade
-                                    </LoadingButton>
-                                </div>
-                            </div>
-                        )}
-
-                        {profile && !isEditingProfile ? (
-                            <ProfileCard
-                                profile={profile}
-                                onEdit={() => setIsEditingProfile(true)}
-                            />
-                        ) : (
-                            <>
-                                {profile && (
-                                    <div className="p-s4 rounded-premium-xl bg-dark-800/40 border border-dark-700/50 shadow-md">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h3 className="font-bold text-dark-100 mb-s1 uppercase tracking-wider text-xs-pure">Availability Status</h3>
-                                                <p className="text-small text-dark-400">Let brands know you're open for work</p>
-                                            </div>
-                                            <LoadingButton
-                                                onClick={handleToggleAvailability}
-                                                status={availabilityStatus}
-                                                className={`px-s4 py-s2 rounded-full text-xs-pure font-bold transition-all border-none shadow-sm ${profile.isAvailable
-                                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-glow'
-                                                    : 'bg-dark-700 text-dark-400 border border-dark-600'
-                                                    }`}
-                                            >
-                                                {profile.isAvailable ? '● Available' : 'Unavailable'}
-                                            </LoadingButton>
                                         </div>
-                                    </div>
-                                )}
-                                <ProfileForm profile={profile} onSave={handleProfileSaved} />
-                            </>
-                        )}
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                                    )}
+                                    <ProfileForm profile={profile} onSave={handleProfileSaved} />
+                                </>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </Suspense>
 
             {/* Quick Actions and Overlays */}

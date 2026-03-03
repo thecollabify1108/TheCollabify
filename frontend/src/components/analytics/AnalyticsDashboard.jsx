@@ -60,17 +60,19 @@ const AnalyticsDashboard = ({ userType = 'creator' }) => {
         try {
             setLoading(true);
 
-            // Fetch summary and historical data
+            // Fetch summary and historical data in parallel
             const [summaryRes, analyticsRes] = await Promise.all([
                 analyticsAPI.getSummary(),
                 analyticsAPI.getDashboard({ period, limit: 12 })
             ]);
 
             setSummary(summaryRes.data.data);
-            setAnalytics(analyticsRes.data.data.analytics);
+            setAnalytics(analyticsRes.data.data.analytics || []);
         } catch (error) {
             console.error('Error fetching analytics:', error);
-            toast.error('Failed to load analytics');
+            // Don't toast on every period change failure — just show empty state
+            setSummary(null);
+            setAnalytics([]);
         } finally {
             setLoading(false);
         }
@@ -78,11 +80,26 @@ const AnalyticsDashboard = ({ userType = 'creator' }) => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
+            <div className="flex items-center justify-center py-20">
                 <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-dark-400">Loading analytics...</p>
+                    <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-dark-400 text-sm">Loading analytics...</p>
                 </div>
+            </div>
+        );
+    }
+
+    // No data at all — show a friendly empty state
+    if (!summary && analytics.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center py-20 text-center px-4">
+                <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-4">
+                    <HiSparkles className="text-3xl text-purple-400" />
+                </div>
+                <h3 className="text-xl font-bold text-dark-100 mb-2">No Analytics Data Yet</h3>
+                <p className="text-dark-400 text-sm max-w-sm">
+                    Your analytics will appear here once you start completing campaigns and collaborations. Keep your profile active to attract more brands!
+                </p>
             </div>
         );
     }
