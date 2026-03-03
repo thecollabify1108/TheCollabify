@@ -9,7 +9,7 @@ import { HiSparkles, HiUserGroup, HiLightningBolt, HiBriefcase } from 'react-ico
 import { useAuth } from '../context/AuthContext';
 import { creatorAPI } from '../services/api';
 import { trackMatchFeedback } from '../services/feedback';
-import { getCached, setCache } from '../utils/dashboardCache';
+import { getCached, setCache, clearDashboardCache } from '../utils/dashboardCache';
 import toast from 'react-hot-toast';
 
 // Components
@@ -85,6 +85,25 @@ const CreatorDashboard = () => {
         return num.toString();
     };
 
+    /**
+     * Normalize profile data from the backend.
+     * Prisma stores flat fields (minPrice, maxPrice, aiScore) but
+     * frontend components expect nested structures (priceRange, insights).
+     */
+    const normalizeProfile = (p) => {
+        if (!p) return p;
+        return {
+            ...p,
+            // Map flat price fields to the nested shape UI components expect
+            priceRange: p.priceRange || {
+                min: p.minPrice ?? 0,
+                max: p.maxPrice ?? 0,
+            },
+            // Map aiScore into the insights.score shape ProfileCard reads
+            insights: p.insights || { score: p.aiScore ?? 0 },
+        };
+    };
+
     // Calculate profile completion percentage based on actual form fields
     const calculateProfileCompletion = () => {
         if (!profile) return 0;
@@ -117,7 +136,7 @@ const CreatorDashboard = () => {
             const cachedApplications = getCached('creator_applications');
 
             if (cachedProfile) {
-                setProfile(cachedProfile);
+                setProfile(normalizeProfile(cachedProfile));
                 setPromotions(cachedPromotions || []);
                 setApplications(cachedApplications || []);
                 setLoading(false);
@@ -135,7 +154,7 @@ const CreatorDashboard = () => {
             ]);
 
             if (profileRes.status === 'fulfilled') {
-                const freshProfile = profileRes.value.data.data.profile;
+                const freshProfile = normalizeProfile(profileRes.value.data.data.profile);
                 setProfile(freshProfile);
                 setCache('creator_profile', freshProfile);
             } else if (profileRes.reason?.response?.status === 404) {
@@ -161,13 +180,22 @@ const CreatorDashboard = () => {
         }
     };
 
-    const handleProfileSaved = () => {
+    const handleProfileSaved = (updatedProfile) => {
+        // Immediately apply the updated profile so the UI reflects changes
+        if (updatedProfile) {
+            const normalized = normalizeProfile(updatedProfile);
+            setProfile(normalized);
+            // Update the cache with fresh data so it doesn't serve stale values
+            setCache('creator_profile', normalized);
+        } else {
+            // Fallback: clear cache and re-fetch
+            clearDashboardCache();
+            fetchData(true);
+        }
         setShowProfileForm(false);
         setIsEditingProfile(false);
-        fetchData(true); // Seamless update
-        toast.success('Profile updated successfully!');
-        // Navigate to dashboard tab after successful save
-        setActiveTab('dashboard');
+        // Stay on profile tab so user sees their updated profile
+        setActiveTab('profile');
     };
 
     const handleUpgrade = () => {
