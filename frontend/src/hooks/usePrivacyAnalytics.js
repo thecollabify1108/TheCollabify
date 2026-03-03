@@ -25,7 +25,6 @@ const usePrivacyAnalytics = () => {
                 await api.post('analytics/track', payload);
             } catch (error) {
                 // Silently fail - never disrupt user experience for analytics
-                console.error('Analytics error:', error);
             }
         };
 

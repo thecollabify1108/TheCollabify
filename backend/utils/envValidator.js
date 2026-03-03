@@ -13,6 +13,7 @@ const requiredEnvVars = {
 // These are important but missing ones should NOT crash the app — features degrade gracefully
 const recommendedEnvVars = {
     SESSION_SECRET: 'Secret key for session management',
+    BREVO_API_KEY: 'Brevo (Sendinblue) API key for OTP emails (signup + password reset broken if missing)',
     GOOGLE_CLIENT_ID: 'Google OAuth Client ID (Google login disabled if missing)',
     GOOGLE_CLIENT_SECRET: 'Google OAuth Client Secret',
     GOOGLE_CALLBACK_URL: 'Google OAuth Callback URL',
