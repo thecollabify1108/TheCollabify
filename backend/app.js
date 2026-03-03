@@ -23,7 +23,7 @@ const ipAllowlist = require('./middleware/ipAllowlist');
 const apiKeyAuth = require('./middleware/apiKeyAuth');
 
 // Resilience Middleware
-const { timeoutMiddleware, timeoutErrorHandler } = require('./middleware/timeout');
+const { timeoutMiddleware, authTimeoutMiddleware, timeoutErrorHandler } = require('./middleware/timeout');
 const { cacheMiddleware } = require('./middleware/cache');
 
 // Error Handling Middleware
@@ -279,6 +279,15 @@ const initializeModules = async () => {
         } catch (e) {
             console.error('❌ Database connection failed:', e.message);
         }
+
+        // 2b. Keep-alive: ping DB every 4 minutes to prevent Azure cold-start
+        setInterval(async () => {
+            try {
+                await prisma.$queryRaw`SELECT 1`;
+            } catch (e) {
+                console.warn('⚠️  DB keep-alive ping failed:', e.message);
+            }
+        }, 4 * 60 * 1000); // every 4 minutes
 
         // 3. Load Passport
         try {
