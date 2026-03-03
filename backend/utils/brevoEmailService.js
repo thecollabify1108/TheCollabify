@@ -22,7 +22,7 @@ const sendOTPEmail = async (email, name, otpCode) => {
 
         sendSmtpEmail.sender = {
             name: "TheCollabify",
-            email: "thecollabify1108@gmail.com" // Verified sender
+            email: "noreply@thecollabify.tech"
         };
         sendSmtpEmail.to = [{ email: email, name: name }];
         sendSmtpEmail.subject = "Your OTP Code - TheCollabify";
@@ -79,9 +79,9 @@ const sendCreatorAppliedEmail = async (sellerEmail, sellerName, creatorName, pro
     try {
         if (!process.env.BREVO_API_KEY) return { success: true, mocked: true };
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-        sendSmtpEmail.sender = { name: "TheCollabify", email: "thecollabify1108@gmail.com" };
+        sendSmtpEmail.sender = { name: "TheCollabify", email: "noreply@thecollabify.tech" };
         sendSmtpEmail.to = [{ email: sellerEmail, name: sellerName }];
-        sendSmtpEmail.subject = `🎉 New Creator Application: ${creatorName}`;
+        sendSmtpEmail.subject = `New Creator Application: ${creatorName}`;
         sendSmtpEmail.htmlContent = `
             <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
                 <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
@@ -110,9 +110,9 @@ const sendCreatorAcceptedEmail = async (creatorEmail, creatorName, promotionTitl
     try {
         if (!process.env.BREVO_API_KEY) return { success: true, mocked: true };
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-        sendSmtpEmail.sender = { name: "TheCollabify", email: "thecollabify1108@gmail.com" };
+        sendSmtpEmail.sender = { name: "TheCollabify", email: "noreply@thecollabify.tech" };
         sendSmtpEmail.to = [{ email: creatorEmail, name: creatorName }];
-        sendSmtpEmail.subject = `🎉 Congratulations! You've been accepted!`;
+        sendSmtpEmail.subject = `Congratulations! You've been accepted!`;
         sendSmtpEmail.htmlContent = `
             <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
                 <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
@@ -141,9 +141,9 @@ const sendNewMatchEmail = async (creatorEmail, creatorName, promotionTitle, matc
     try {
         if (!process.env.BREVO_API_KEY) return { success: true, mocked: true };
         const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
-        sendSmtpEmail.sender = { name: "TheCollabify", email: "thecollabify1108@gmail.com" };
+        sendSmtpEmail.sender = { name: "TheCollabify", email: "noreply@thecollabify.tech" };
         sendSmtpEmail.to = [{ email: creatorEmail, name: creatorName }];
-        sendSmtpEmail.subject = `🔥 New Opportunity: ${matchScore}% Match!`;
+        sendSmtpEmail.subject = `New Opportunity: ${matchScore}% Match!`;
         sendSmtpEmail.htmlContent = `
             <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
                 <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
