@@ -21,7 +21,7 @@ const ContentCreatorTips = () => {
         {
             category: 'Engagement Boost',
             icon: <FaChartLine className="w-6 h-6" />,
-            color: 'from-purple-500 to-pink-500',
+            color: 'from-indigo-500 to-violet-500',
             bgColor: 'bg-purple-500/10',
             borderColor: 'border-purple-500/30',
             title: 'Peak Posting Times',

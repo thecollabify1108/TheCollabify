@@ -22,7 +22,7 @@ export const subscriptionPlans = {
         price: 0,
         billingPeriod: 'forever',
         description: 'Get started with basic intelligence',
-        badge: '🆓',
+        badge: 'Free',
         color: '#6B7280',
         targetRole: null,
         features: {
@@ -55,8 +55,8 @@ export const subscriptionPlans = {
         billingPeriod: 'month',
         yearlyPrice: 4990,
         description: 'Full intelligence for creators',
-        badge: '⭐',
-        color: '#8B5CF6',
+        badge: 'Pro',
+        color: '#6366f1',
         targetRole: 'creator',
         features: {
             campaigns: { limit: 'unlimited', description: 'Unlimited applications' },
@@ -95,8 +95,8 @@ export const subscriptionPlans = {
         billingPeriod: 'month',
         yearlyPrice: 9990,
         description: 'Complete intelligence for brands',
-        badge: '💎',
-        color: '#EC4899',
+        badge: 'Pro+',
+        color: '#818cf8',
         targetRole: 'seller',
         features: {
             campaigns: { limit: 'unlimited', description: 'Unlimited campaigns' },

@@ -73,7 +73,7 @@ const SocialActivityFeed = ({ requests, onViewCampaign }) => {
                     type: 'campaign_completed',
                     icon: <FaTrophy />,
                     iconBg: 'from-amber-400 to-yellow-500',
-                    title: 'Campaign completed successfully! 🎉',
+                    title: 'Campaign completed successfully.',
                     subtitle: request.title,
                     time: new Date(request.updatedAt),
                     likes: Math.floor(Math.random() * 200) + 50,

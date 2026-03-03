@@ -264,7 +264,7 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
 
                             <button
                                 onClick={() => {
-                                    toast.success('Payment system upgrade in progress! ⚡');
+                                    toast.success('Payment system upgrade in progress.');
                                 }}
                                 className="w-full py-s3 rounded-premium-xl bg-gradient-to-r from-emerald-600/50 to-teal-600/50 text-white/50 cursor-not-allowed font-black text-xs-pure uppercase tracking-widest shadow-glow hover:shadow-glow-lg transition-all flex items-center justify-center gap-2"
                             >

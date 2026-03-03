@@ -140,11 +140,11 @@ const ReviewRating = ({ campaignId, creatorId, creatorName, onClose, onSubmit })
                                     animate={{ opacity: 1, y: 0 }}
                                     className="mt-3 text-dark-400"
                                 >
-                                    {rating === 5 && '🌟 Exceptional!'}
-                                    {rating === 4 && '😊 Great work!'}
-                                    {rating === 3 && '👍 Good'}
-                                    {rating === 2 && '😐 Fair'}
-                                    {rating === 1 && '😞 Needs improvement'}
+                                    {rating === 5 && 'Exceptional'}
+                                    {rating === 4 && 'Great work'}
+                                    {rating === 3 && 'Good'}
+                                    {rating === 2 && 'Fair'}
+                                    {rating === 1 && 'Needs improvement'}
                                 </motion.p>
                             )}
                         </div>

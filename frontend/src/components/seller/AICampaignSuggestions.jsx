@@ -60,7 +60,7 @@ const AICampaignSuggestions = ({ requests = [], onCreateCampaign, onApplySuggest
         switch (type) {
             case 'timing': return 'from-blue-500 to-cyan-500';
             case 'category': return 'from-green-500 to-emerald-500';
-            case 'promotion': return 'from-purple-500 to-pink-500';
+            case 'promotion': return 'from-indigo-500 to-violet-500';
             case 'budget': return 'from-amber-500 to-orange-500';
             default: return 'from-primary-500 to-secondary-500';
         }

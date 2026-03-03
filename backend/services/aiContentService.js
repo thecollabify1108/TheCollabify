@@ -5,6 +5,13 @@ const genAI = process.env.GEMINI_API_KEY
     ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
     : null;
 
+// Shared generation config — low temperature for structured analytical output
+const GENERATION_CONFIG = {
+    temperature: 0.5,
+    topP: 0.85,
+    maxOutputTokens: 2048,
+};
+
 /**
  * Collabify Intelligence Engine
  * 
@@ -26,7 +33,7 @@ class AIContentService {
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: GENERATION_CONFIG });
 
             const platformGuidelines = {
                 Instagram: 'Instagram: Up to 2,200 characters. Front-load the hook in the first 125 characters (visible before truncation). Use line breaks for scannability. Hashtags in first comment or end of caption.',
@@ -86,7 +93,7 @@ FORMAT: Return ONLY the content text, ready to use. No labels, quotes, or meta-c
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: GENERATION_CONFIG });
             const prompt = `${this.SYSTEM_IDENTITY}
 
 TASK: Generate a strategically curated set of 15 discovery tags (hashtags).
@@ -198,7 +205,7 @@ FORMAT: Return ONLY a space-separated string of 15 hashtags. No commentary.`;
         }
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: GENERATION_CONFIG });
             const prompt = `${this.SYSTEM_IDENTITY}
 
 TASK: Generate exactly 4 strategic content recommendations for a ${category} creator on ${platform}.
@@ -341,7 +348,7 @@ FORMAT: Return ONLY the 4 recommendations, one per line. No numbering, no bullet
         if (!genAI) return fallback;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: GENERATION_CONFIG });
             const prompt = `${this.SYSTEM_IDENTITY}
 
 TASK: Perform a Match Intelligence analysis for a creator-campaign pairing.
@@ -414,7 +421,7 @@ CONSTRAINTS: No emojis. No filler. No hype. Be analytical and direct.`;
         if (!genAI) return fallback;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: GENERATION_CONFIG });
             const prompt = `${this.SYSTEM_IDENTITY}
 
 TASK: Perform a comprehensive Creator Audit.
@@ -493,7 +500,7 @@ CONSTRAINTS: No emojis. No filler. No hype. Be analytical and direct.`;
         if (!genAI) return fallback;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: GENERATION_CONFIG });
             const prompt = `${this.SYSTEM_IDENTITY}
 
 TASK: Develop a comprehensive Campaign Strategy.
@@ -562,7 +569,7 @@ CONSTRAINTS: No emojis. No filler. No hype. Be analytical and direct.`;
         if (!genAI) return fallback;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: GENERATION_CONFIG });
             const prompt = `${this.SYSTEM_IDENTITY}
 
 TASK: Generate an ROI & Performance Forecast for a planned campaign.
@@ -629,7 +636,7 @@ CONSTRAINTS: No emojis. No filler. No hype. Use specific numbers and ranges. Be 
         if (!genAI) return fallback;
 
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: GENERATION_CONFIG });
             const prompt = `${this.SYSTEM_IDENTITY}
 
 TASK: Perform a campaign Optimization analysis.

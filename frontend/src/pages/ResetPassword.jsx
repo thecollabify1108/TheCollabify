@@ -53,7 +53,7 @@ const ResetPassword = () => {
     return (
         <div className="min-h-screen bg-dark-950 flex items-center justify-center px-4 py-12 relative overflow-hidden">
             {/* Background orbs */}
-            <div className="floating-orb w-96 h-96 -top-48 -right-48 from-secondary-500 to-pink-500" />
+            <div className="floating-orb w-96 h-96 -top-48 -right-48 from-secondary-500 to-violet-500" />
             <div className="floating-orb w-72 h-72 bottom-1/4 -left-36" style={{ animationDelay: '-2s' }} />
 
             <div className="max-w-md w-full relative z-10">

@@ -43,8 +43,8 @@ const ParticlesCelebration = ({ trigger, onComplete }) => {
 
                 // Random vibrant colors
                 const colors = [
-                    '#8B5CF6', // Purple
-                    '#EC4899', // Pink
+                    '#6366f1', // Indigo
+                    '#818cf8', // Indigo Light
                     '#10B981', // Green
                     '#F59E0B', // Amber
                     '#3B82F6', // Blue

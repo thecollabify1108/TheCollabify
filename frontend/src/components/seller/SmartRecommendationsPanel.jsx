@@ -104,7 +104,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center">
+                    <div className="w-12 h-12 bg-indigo-700 rounded-xl flex items-center justify-center">
                         <FaRobot className="text-2xl text-white" />
                     </div>
                     <div>
@@ -121,7 +121,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                 {selectedCreators.length > 0 && (
                     <button
                         onClick={handleBulkInvite}
-                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity flex items-center gap-2"
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors flex items-center gap-2"
                     >
                         <FaEnvelope />
                         Invite {selectedCreators.length}
@@ -153,7 +153,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                     <div className="flex items-start gap-4">
                                         {/* Avatar */}
                                         <div className="relative">
-                                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-xl font-bold">
+                                            <div className="w-16 h-16 rounded-full bg-indigo-700 flex items-center justify-center text-white text-xl font-bold">
                                                 {creator.name?.charAt(0) || 'C'}
                                             </div>
                                             {selectedCreators.includes(creator._id) && (
@@ -247,7 +247,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                                     </div>
                                                     <div className="h-2 bg-dark-800 rounded-full overflow-hidden">
                                                         <div
-                                                            className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+                                                            className="h-full bg-gradient-to-r from-indigo-600 to-indigo-400"
                                                             style={{ width: `${creator.matchScore}%` }}
                                                         />
                                                     </div>

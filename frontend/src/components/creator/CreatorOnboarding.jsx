@@ -20,17 +20,17 @@ const CATEGORIES = [
 ];
 
 const COLLAB_TYPES = [
-    { id: 'ONLINE', label: 'Online', icon: '📱', desc: 'Post content online' },
-    { id: 'REMOTE', label: 'Remote', icon: '🌐', desc: 'Work from anywhere' },
-    { id: 'ONSITE', label: 'On-Site', icon: '📍', desc: 'In-person shoots' },
-    { id: 'HYBRID', label: 'Hybrid', icon: '🔄', desc: 'Mix of both' },
-    { id: 'EVENT', label: 'Event', icon: '🎪', desc: 'Live appearances' }
+    { id: 'ONLINE', label: 'Online', icon: '', desc: 'Post content online' },
+    { id: 'REMOTE', label: 'Remote', icon: '', desc: 'Work from anywhere' },
+    { id: 'ONSITE', label: 'On-Site', icon: '', desc: 'In-person shoots' },
+    { id: 'HYBRID', label: 'Hybrid', icon: '', desc: 'Mix of both' },
+    { id: 'EVENT', label: 'Event', icon: '', desc: 'Live appearances' }
 ];
 
 const AVAILABILITY_OPTIONS = [
-    { id: 'AVAILABLE_NOW', label: 'Available Now', color: 'emerald', icon: '🟢' },
-    { id: 'LIMITED_AVAILABILITY', label: 'Limited', color: 'amber', icon: '🟡' },
-    { id: 'NOT_AVAILABLE', label: 'Not Available', color: 'rose', icon: '🔴' }
+    { id: 'AVAILABLE_NOW', label: 'Available Now', color: 'emerald', icon: '' },
+    { id: 'LIMITED_AVAILABILITY', label: 'Limited', color: 'amber', icon: '' },
+    { id: 'NOT_AVAILABLE', label: 'Not Available', color: 'rose', icon: '' }
 ];
 
 const TRAVEL_OPTIONS = [
@@ -93,7 +93,7 @@ const Phase1 = ({ data, setData }) => (
         className="space-y-6"
     >
         <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Let's get you started ✨</h2>
+            <h2 className="text-2xl font-bold text-white mb-2">Let's get you started</h2>
             <p className="text-dark-400">Just the basics — takes about 30 seconds.</p>
         </div>
 
@@ -281,7 +281,7 @@ const Phase2 = ({ data, setData }) => {
             className="space-y-6"
         >
             <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Boost your visibility 🚀</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">Boost your visibility</h2>
                 <p className="text-dark-400">These are optional, but completing them improves match quality.</p>
             </div>
 
@@ -424,7 +424,7 @@ const Phase3 = ({ data, completionPct, userName }) => {
             className="space-y-6"
         >
             <div className="text-center mb-6">
-                <h2 className="text-2xl font-bold text-white mb-2">Your profile preview 👀</h2>
+                <h2 className="text-2xl font-bold text-white mb-2">Your profile preview</h2>
                 <p className="text-dark-400">This is how brands will discover you.</p>
             </div>
 
@@ -491,7 +491,7 @@ const Phase3 = ({ data, completionPct, userName }) => {
 
             {completionPct < 100 && (
                 <div className="bg-amber-500/5 border border-amber-500/20 rounded-xl p-4 text-sm text-dark-300">
-                    💡 <span className="text-amber-400 font-medium">Tip:</span> Go back and fill in the optional fields to reach 100% — it significantly improves your match quality.
+                    <span className="text-amber-400 font-medium">Tip:</span> Go back and fill in the optional fields to reach 100% — it significantly improves your match quality.
                 </div>
             )}
         </motion.div>
@@ -629,7 +629,7 @@ const CreatorOnboarding = ({ onComplete }) => {
         try {
             const profile = await saveToServer();
             trackEvent('onboarding_completed');
-            toast.success('🎉 Profile ready! Welcome aboard.');
+            toast.success('Profile ready. Welcome aboard.');
             if (onComplete) onComplete(profile);
         } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to finish');

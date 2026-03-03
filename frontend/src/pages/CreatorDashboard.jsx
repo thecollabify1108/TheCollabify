@@ -198,9 +198,9 @@ const CreatorDashboard = () => {
             setTimeout(() => setAvailabilityStatus('idle'), 2000);
 
             const labels = {
-                'AVAILABLE_NOW': 'Available Now ⚡',
-                'LIMITED_AVAILABILITY': 'Limited Availability ⏳',
-                'NOT_AVAILABLE': 'Not Available 🌙'
+                'AVAILABLE_NOW': 'Status: Available',
+                'LIMITED_AVAILABILITY': 'Status: Limited',
+                'NOT_AVAILABLE': 'Status: Unavailable'
             };
             toast.success(`Status: ${labels[nextStatus]}`);
         } catch (error) {
@@ -233,7 +233,7 @@ const CreatorDashboard = () => {
         return (
             <div className="min-h-screen bg-dark-950 pb-s20">
                 <Navbar />
-                <div className="max-w-7xl mx-auto px-s4 sm:px-s6 lg:px-s8 pt-s6 space-y-s8">
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-4 space-y-4">
                     {/* Hero Skeleton */}
                     <div className="glass-card p-s8 rounded-premium-2xl relative overflow-hidden">
                         <div className="relative z-10 space-y-s4">
@@ -250,7 +250,7 @@ const CreatorDashboard = () => {
                     <SkeletonStats />
 
                     {/* Charts Skeleton */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-s6 h-[400px]">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[300px]">
                         <div className="lg:col-span-2 glass-card p-s6">
                             <Skeleton variant="title" width="30%" height={28} className="mb-s6" />
                             <Skeleton variant="rectangular" width="100%" height="80%" />
@@ -262,7 +262,7 @@ const CreatorDashboard = () => {
                     </div>
 
                     {/* Action Items Skeleton */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-s4">
                         <div className="glass-card p-s6 h-40">
                             <Skeleton variant="title" width="50%" height={24} className="mb-s4" />
                             <Skeleton variant="rectangular" width="100%" height={8} className="rounded-full mb-s4" />
@@ -351,7 +351,7 @@ const CreatorDashboard = () => {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
-                        className="space-y-s8 pb-s6"
+                        className="space-y-4 pb-4"
                     >
                         {profile ? (
                             <>
@@ -370,7 +370,7 @@ const CreatorDashboard = () => {
 
                                 {/* 2. Stats Grid */}
                                 <FocusWrapper sectionId="stats" currentFocus={focusMode}>
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-s4 md:gap-s6">
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                                         <StatCard
                                             label="Active Jobs"
                                             value={pendingApplications}
@@ -408,7 +408,7 @@ const CreatorDashboard = () => {
 
                                 {/* 3. Charts & Activity Split */}
                                 <FocusWrapper sectionId="stats" currentFocus={focusMode}>
-                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-s6 min-h-[450px]">
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 min-h-[280px] sm:min-h-[350px]">
                                         {/* Active Collaborations Section */}
                                         <div className="lg:col-span-2 space-y-s4">
                                             <div className="flex items-center justify-between">
@@ -418,7 +418,7 @@ const CreatorDashboard = () => {
                                                 </span>
                                             </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-s4">
                                                 {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length === 0 ? (
                                                     <div className="md:col-span-2 p-s8 rounded-premium-2xl bg-dark-800/20 border border-dark-700/50 flex flex-col items-center justify-center text-center">
                                                         <FaHandshake className="text-4xl text-dark-700 mb-s3" />
@@ -433,7 +433,7 @@ const CreatorDashboard = () => {
                                                             className="p-s4 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm cursor-pointer hover:border-primary-500/30 transition-all group"
                                                         >
                                                             <div className="flex items-center gap-s3 mb-s4">
-                                                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-black shadow-glow">
+                                                                <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-white font-black">
                                                                     {(app.sellerId?.name || app.seller?.name || 'B').charAt(0)}
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
@@ -457,7 +457,7 @@ const CreatorDashboard = () => {
                                             </div>
 
                                             {/* Earnings overview (moved lower) */}
-                                            <div className="h-[250px] pt-s2">
+                                            <div className="h-[200px] sm:h-[250px] pt-s2">
                                                 <PerformanceChart
                                                     title="Earnings Overview"
                                                     data={[]}
@@ -485,24 +485,24 @@ const CreatorDashboard = () => {
                                 <CreatorInsightCards profileCompletion={calculateProfileCompletion()} />
 
                                 {/* 4. Action Items (Today's Focus - Modernized) */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-s4">
                                     {calculateProfileCompletion() < 100 && (
                                     <FocusWrapper sectionId="profile" currentFocus={focusMode} className="h-full">
                                         <motion.div
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: 0.5 }}
-                                            className="p-1 rounded-premium-2xl bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 h-full"
+                                            className="p-[1px] rounded-premium-2xl bg-gradient-to-r from-indigo-600 to-indigo-400 h-full"
                                         >
                                             <div className="bg-dark-900 rounded-premium-xl p-s5 h-full">
                                                 <div className="flex justify-between items-center mb-s2">
                                                     <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure">Profile Strength</h3>
-                                                    <span className="text-h3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-yellow-500">
+                                                    <span className="text-h3 font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400">
                                                         {calculateProfileCompletion()}%
                                                     </span>
                                                 </div>
                                                 <div className="w-full bg-dark-800 rounded-full h-2 mb-s4">
-                                                    <div className="bg-gradient-to-r from-pink-500 to-yellow-500 h-2 rounded-full shadow-glow" style={{ width: `${calculateProfileCompletion()}%` }} />
+                                                    <div className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-2 rounded-full" style={{ width: `${calculateProfileCompletion()}%` }} />
                                                 </div>
                                                 <LoadingButton
                                                     onClick={() => setActiveTab('profile')}
@@ -533,7 +533,7 @@ const CreatorDashboard = () => {
                                             </div>
                                             <LoadingButton
                                                 onClick={() => setActiveTab('opportunities')}
-                                                className="w-full py-s2 rounded-premium-lg bg-purple-600 hover:bg-purple-700 text-small font-bold text-white transition-all border-none shadow-md"
+                                                className="w-full py-s2 rounded-premium-lg bg-indigo-600 hover:bg-indigo-500 text-small font-bold text-white transition-all border-none"
                                             >
                                                 Explore Matches
                                             </LoadingButton>
@@ -638,7 +638,7 @@ const CreatorDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="p-s4 space-y-s6"
+                        className="p-3 space-y-4"
                     >
                         <div className="mb-s4">
                             <h2 className="text-h2 font-bold text-dark-100 mb-s1">Profile Settings</h2>
@@ -646,18 +646,17 @@ const CreatorDashboard = () => {
                         </div>
 
                         {user.subscription?.status !== 'active' && (
-                            <div className="p-s6 rounded-premium-2xl bg-gradient-to-br from-purple-600 to-indigo-700 shadow-premium relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-                                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-s6">
+                            <div className="p-4 rounded-xl bg-indigo-950/60 border border-indigo-500/20">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div>
-                                        <h3 className="text-h2 font-bold text-white mb-s2">Unlock Pro Features</h3>
-                                        <p className="text-purple-100 max-w-md text-body">Get AI-powered analytics, custom reports, and priority support to scale your creator career.</p>
+                                        <h3 className="text-base font-semibold text-white mb-1">Upgrade to Pro Plan</h3>
+                                        <p className="text-indigo-300/70 max-w-md text-xs">Access advanced analytics, structured reports, and priority matching.</p>
                                     </div>
                                     <LoadingButton
                                         onClick={handleUpgrade}
-                                        className="px-s8 py-s3 bg-white text-purple-600 rounded-premium-xl font-bold hover:bg-purple-50 transition-all shadow-premium border-none"
+                                        className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors text-sm border-none"
                                     >
-                                        Upgrade Now
+                                        Upgrade
                                     </LoadingButton>
                                 </div>
                             </div>

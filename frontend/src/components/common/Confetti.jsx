@@ -6,8 +6,8 @@ const Confetti = ({ active, duration = 3000, particleCount = 50, onComplete }) =
     useEffect(() => {
         if (active) {
             const colors = [
-                '#8b5cf6', // purple
-                '#ec4899', // pink
+                '#6366f1', // indigo
+                '#818cf8', // indigo-light
                 '#06b6d4', // cyan
                 '#22c55e', // green
                 '#f59e0b', // amber

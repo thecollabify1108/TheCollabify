@@ -56,7 +56,7 @@ const ForgotPassword = () => {
                 setOtpTimer(response.data.data.expiresIn);
                 setResetStep(2);
                 setCanResend(false);
-                toast.success('🎯 Reset code sent! Check your email');
+                toast.success('Reset code sent. Check your email');
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to send reset code');
@@ -84,7 +84,7 @@ const ForgotPassword = () => {
 
             if (response.data.success) {
                 setResetStep(3);
-                toast.success('✅ OTP verified! Set your new password');
+                toast.success('OTP verified. Set your new password');
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Invalid OTP');
@@ -120,7 +120,7 @@ const ForgotPassword = () => {
                 // Store token
                 localStorage.setItem('token', response.data.data.token);
 
-                toast.success('🎉 Password reset successful! Logging you in...');
+                toast.success('Password reset successful. Logging you in...');
 
                 setTimeout(() => {
                     if (response.data.data.user.role === 'creator') {
@@ -148,7 +148,7 @@ const ForgotPassword = () => {
                 setOtpTimer(response.data.data.expiresIn);
                 setCanResend(false);
                 setOtp(['', '', '', '', '', '']);
-                toast.success('📧 New code sent!');
+                toast.success('New code sent.');
             }
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to resend code');
@@ -165,8 +165,8 @@ const ForgotPassword = () => {
     const getStepTitle = () => {
         switch (resetStep) {
             case 1: return 'Forgot Password?';
-            case 2: return '📧 Verify Email';
-            case 3: return '🔒 Set New Password';
+            case 2: return 'Verify Email';
+            case 3: return 'Set New Password';
             default: return 'Reset Password';
         }
     };
@@ -184,7 +184,7 @@ const ForgotPassword = () => {
         <div className="min-h-screen bg-dark-950 flex items-center justify-center px-4 py-12 relative overflow-hidden">
             {/* Background orbs */}
             <div className="floating-orb w-96 h-96 -top-48 -left-48" />
-            <div className="floating-orb w-72 h-72 bottom-1/4 -right-36 from-secondary-500 to-pink-500" style={{ animationDelay: '-2s' }} />
+            <div className="floating-orb w-72 h-72 bottom-1/4 -right-36 from-secondary-500 to-violet-500" style={{ animationDelay: '-2s' }} />
 
             <div className="max-w-md w-full relative z-10">
                 <motion.div
@@ -262,7 +262,7 @@ const ForgotPassword = () => {
                                             </span>
                                         </p>
                                     ) : (
-                                        <p className="text-red-400">⚠️ Code expired. Please request a new one.</p>
+                                        <p className="text-red-400">Code expired. Please request a new one.</p>
                                     )}
                                 </div>
 
@@ -284,7 +284,7 @@ const ForgotPassword = () => {
                                             : 'text-dark-600 cursor-not-allowed'
                                             } transition-colors`}
                                     >
-                                        📧 Resend Code {!canResend && '(wait 60s)'}
+                                        Resend Code {!canResend && '(wait 60s)'}
                                     </button>
                                 </div>
                             </div>
@@ -336,7 +336,7 @@ const ForgotPassword = () => {
                                     disabled={loading}
                                     className="btn-3d w-full py-4 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    {loading ? 'Resetting...' : '🔐 Reset Password'}
+                                    {loading ? 'Resetting...' : 'Reset Password'}
                                 </button>
                             </form>
                         )}

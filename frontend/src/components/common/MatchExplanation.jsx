@@ -83,7 +83,7 @@ const MatchExplanation = ({ explanation, isInitialExpanded = false }) => {
                             {/* AI Disclaimer */}
                             <div className="pt-2 mt-2 border-t border-dark-700/50">
                                 <p className="text-[9px] text-dark-500 italic leading-snug">
-                                    🤖 Recommendations improve as collaborations complete. This analysis is objective and based on available data signals.
+                                    Recommendations improve as collaborations complete. This analysis is objective and based on available data signals.
                                 </p>
                             </div>
                         </div>

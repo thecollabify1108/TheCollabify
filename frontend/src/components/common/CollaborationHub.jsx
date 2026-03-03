@@ -322,7 +322,7 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
                 ) : isTerminal ? (
                     <div className="w-full text-center">
                         <p className={`font-medium ${collaboration.status === 'COMPLETED' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {collaboration.status === 'COMPLETED' ? '✨ Collaboration completed successfully' : '⊘ Collaboration was cancelled'}
+                            {collaboration.status === 'COMPLETED' ? 'Collaboration completed successfully' : '⊘ Collaboration was cancelled'}
                         </p>
                     </div>
                 ) : (

@@ -1,58 +1,45 @@
 import { motion } from 'framer-motion';
 
 const StatCard = ({ label, value, icon, trend, trendLabel, color = 'primary', delay = 0 }) => {
-    const colors = {
-        primary: 'from-primary-600 to-secondary-600',
-        emerald: 'from-emerald-500 to-teal-500',
-        amber: 'from-amber-500 to-orange-500',
-        purple: 'from-purple-500 to-pink-500',
-        blue: 'from-blue-500 to-cyan-500'
-    };
-
     const bgColors = {
-        primary: 'bg-primary-500/10 border-primary-500/20',
-        emerald: 'bg-emerald-500/10 border-emerald-500/20',
-        amber: 'bg-amber-500/10 border-amber-500/20',
-        purple: 'bg-purple-500/10 border-purple-500/20',
-        blue: 'bg-blue-500/10 border-blue-500/20'
+        primary: 'bg-indigo-500/8 border-indigo-500/15',
+        emerald: 'bg-emerald-500/8 border-emerald-500/15',
+        amber: 'bg-amber-500/8 border-amber-500/15',
+        purple: 'bg-violet-500/8 border-violet-500/15',
+        blue: 'bg-blue-500/8 border-blue-500/15'
     };
 
     const textColors = {
-        primary: 'text-primary-400',
+        primary: 'text-indigo-400',
         emerald: 'text-emerald-400',
         amber: 'text-amber-400',
-        purple: 'text-purple-400',
+        purple: 'text-violet-400',
         blue: 'text-blue-400'
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay }}
-            className={`p-s4 md:p-s5 rounded-premium-xl border backdrop-blur-sm relative overflow-hidden group shadow-md hover:shadow-glow transition-all duration-300 ${bgColors[color] || bgColors.primary}`}
+            className={`p-2.5 sm:p-3 md:p-4 rounded-lg border ${bgColors[color] || bgColors.primary}`}
         >
-            <div className="relative z-10">
-                <div className="flex justify-between items-start mb-s4">
-                    <div className={`p-s3 rounded-premium-lg bg-dark-900/50 ${textColors[color] || textColors.primary}`}>
-                        {icon}
-                    </div>
-                    {trend && (
-                        <div className={`flex items-center gap-s1 text-xs-pure font-bold px-s2 py-0.5 rounded-full bg-dark-900/50 ${trend > 0 ? 'text-emerald-400' : 'text-red-400'} uppercase tracking-wider`}>
-                            {trend > 0 ? '↑' : '↓'} {Math.abs(trend)}%
-                        </div>
-                    )}
+            <div className="flex justify-between items-start mb-1.5 sm:mb-2">
+                <div className={`p-1.5 sm:p-2 rounded bg-dark-900/50 ${textColors[color] || textColors.primary}`}>
+                    {icon}
                 </div>
-
-                <h3 className="text-h2 md:text-h1 font-bold text-white mb-s1 group-hover:scale-105 transition-transform origin-left">
-                    {value}
-                </h3>
-                <p className="text-dark-400 text-small font-medium uppercase tracking-wider">{label}</p>
-                {trendLabel && <p className="text-xs-pure text-dark-500 mt-s1">{trendLabel}</p>}
+                {trend !== undefined && trend !== null && (
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded bg-dark-900/50 ${trend > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {trend > 0 ? '+' : ''}{trend}%
+                    </span>
+                )}
             </div>
 
-            {/* Decorative Gradient Blob */}
-            <div className={`absolute -right-6 -bottom-6 w-24 h-24 rounded-full blur-2xl opacity-20 bg-gradient-to-br ${colors[color] || colors.primary} group-hover:opacity-30 transition-opacity`} />
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-white mb-0.5">
+                {value}
+            </h3>
+            <p className="text-dark-400 text-[11px] font-medium uppercase tracking-wider">{label}</p>
+            {trendLabel && <p className="text-[10px] text-dark-500 mt-0.5">{trendLabel}</p>}
         </motion.div>
     );
 };

@@ -117,7 +117,7 @@ const EnhancedCreatorSearch = ({ onSearch, onSelect }) => {
                             <div className="flex justify-between items-center text-xs-pure">
                                 <span className="text-dark-400 font-bold uppercase tracking-tighter">Rating</span>
                                 <span className="text-amber-400 font-black">
-                                    ⭐ {creator.rating}
+                                    {creator.rating}
                                 </span>
                             </div>
                         </div>

@@ -56,8 +56,8 @@ const GuidedAIMode = ({ role, onAction, onClose }) => {
             exit={{ opacity: 0, y: -20 }}
             className="relative mb-8"
         >
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-2xl blur-xl" />
-            <div className="relative bg-dark-900/80 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6 shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-950/20 to-violet-950/20 rounded-2xl blur-xl" />
+            <div className="relative bg-dark-900/80 backdrop-blur-sm border border-indigo-500/20 rounded-2xl p-6 shadow-xl">
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-dark-400 hover:text-dark-200 transition-colors"
@@ -66,7 +66,7 @@ const GuidedAIMode = ({ role, onAction, onClose }) => {
                 </button>
 
                 <div className="flex items-start gap-4 mb-6">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-purple-500/20">
+                    <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center flex-shrink-0">
                         <HiSparkles className="text-white text-xl" />
                     </div>
                     <div>
@@ -88,13 +88,13 @@ const GuidedAIMode = ({ role, onAction, onClose }) => {
                             onMouseEnter={() => onAction?.('hover', goal.target)}
                             onMouseLeave={() => onAction?.('leave', null)}
                             onClick={() => onAction?.('click', goal.target)}
-                            className="flex items-center gap-4 p-4 rounded-xl border border-dark-700 hover:border-purple-500/50 transition-all text-left group bg-dark-800/50"
+                            className="flex items-center gap-4 p-4 rounded-xl border border-dark-700 hover:border-indigo-500/50 transition-all text-left group bg-dark-800/50"
                         >
-                            <div className="w-10 h-10 rounded-lg bg-dark-700 group-hover:bg-purple-500/20 flex items-center justify-center text-purple-400 transition-colors">
+                            <div className="w-10 h-10 rounded-lg bg-dark-700 group-hover:bg-indigo-500/20 flex items-center justify-center text-indigo-400 transition-colors">
                                 {goal.icon}
                             </div>
                             <div>
-                                <h3 className="font-semibold text-dark-100 group-hover:text-purple-300 transition-colors">
+                                <h3 className="font-semibold text-dark-100 group-hover:text-indigo-300 transition-colors">
                                     {goal.label}
                                 </h3>
                                 <p className="text-xs text-dark-400 mt-0.5">

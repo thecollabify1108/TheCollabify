@@ -77,7 +77,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
             {/* User Profile */}
             <div className="p-4 border-t border-dark-800">
                 <div className="bg-dark-800/50 rounded-xl p-3 flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-white font-bold">
                         {user?.name?.charAt(0) || 'A'}
                     </div>
                     <div className="flex-1 min-w-0">

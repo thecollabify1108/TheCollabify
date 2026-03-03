@@ -163,8 +163,8 @@ const ContentCalendar = () => {
         let backgroundColor = '#3B82F6'; // Default blue
 
         switch (event.resource.type) {
-            case 'story': backgroundColor = '#EC4899'; break; // Pink
-            case 'reel': backgroundColor = '#8B5CF6'; break; // Purple
+            case 'story': backgroundColor = '#818cf8'; break; // Indigo light
+            case 'reel': backgroundColor = '#6366f1'; break; // Indigo
             case 'video': backgroundColor = '#EF4444'; break; // Red
             default: backgroundColor = '#3B82F6';
         }
@@ -532,7 +532,7 @@ const EventModal = ({ event, onClose, onSave }) => {
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="fixed inset-4 md:inset-20 bg-dark-900 rounded-2xl shadow-2xl z-50 overflow-hidden flex flex-col"
             >
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6">
+                <div className="bg-indigo-950 p-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-2xl font-bold text-white">
                             {event ? 'Edit Event' : 'Schedule Content'}
@@ -678,7 +678,7 @@ const EventModal = ({ event, onClose, onSave }) => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-xl font-medium transition-opacity disabled:opacity-50"
+                                    className="flex-1 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-medium transition-colors disabled:opacity-50"
                                 >
                                     {loading ? 'Saving...' : event ? 'Update' : 'Schedule'}
                                 </button>

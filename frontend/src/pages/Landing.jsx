@@ -572,7 +572,7 @@ const Landing = () => {
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.2 }}
                             >
-                                <div className="text-red-400 mb-s4 text-h2">❌</div>
+                                <div className="text-red-400 mb-s4 text-h2 font-bold">X</div>
                                 <h3 className="text-body font-bold text-dark-100 mb-s2">Manual Discovery is Broken</h3>
                                 <p className="text-dark-400 text-small leading-relaxed">
                                     Scrolling through hashtags and DMing creators is a full-time job. You need instant, data-backed matches, not a lucky guess.
@@ -600,7 +600,7 @@ const Landing = () => {
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.4 }}
                             >
-                                <div className="text-primary-400 mb-s4 text-h2">⚡</div>
+                                <div className="text-primary-400 mb-s4 text-h2 font-bold">//</div>
                                 <h3 className="text-body font-bold text-dark-100 mb-s2">AI is the Natural Step</h3>
                                 <p className="text-dark-400 text-small leading-relaxed">
                                     Technology should handle the logistics—contracts, payments, and matching—so you can focus on creating the actual content.
@@ -868,7 +868,7 @@ const Landing = () => {
                                 </div>
                                 {/* Decorative Elements */}
                                 <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-full blur-xl"></div>
-                                <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-secondary-500/20 to-pink-500/20 rounded-full blur-xl"></div>
+                                <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-secondary-500/20 to-violet-500/20 rounded-full blur-xl"></div>
                             </div>
 
                             {/* Content Side */}

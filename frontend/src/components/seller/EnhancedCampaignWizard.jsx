@@ -47,11 +47,11 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
     }, [initialData, isOpen]);
 
     const steps = [
-        { id: 'basics', title: 'Campaign Basics', icon: '📝' },
-        { id: 'targeting', title: 'Target Audience', icon: '🎯' },
-        { id: 'requirements', title: 'Requirements', icon: '📋' },
-        { id: 'budget', title: 'Budget & Timeline', icon: '💰' },
-        { id: 'review', title: 'Review & Launch', icon: '🚀' }
+        { id: 'basics', title: 'Campaign Basics', icon: '' },
+        { id: 'targeting', title: 'Target Audience', icon: '' },
+        { id: 'requirements', title: 'Requirements', icon: '' },
+        { id: 'budget', title: 'Budget & Timeline', icon: '' },
+        { id: 'review', title: 'Review & Launch', icon: '' }
     ];
 
     const categories = [

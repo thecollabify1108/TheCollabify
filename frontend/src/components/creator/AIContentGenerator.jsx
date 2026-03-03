@@ -72,7 +72,7 @@ const AIContentGenerator = ({ onSelect, platform = 'instagram' }) => {
 
     return (
         <div className="bg-dark-800 border border-dark-700 rounded-xl overflow-hidden">
-            <div className="p-4 bg-gradient-to-r from-purple-900/50 to-pink-900/50 border-b border-dark-700 flex items-center justify-between">
+            <div className="p-4 bg-indigo-950 border-b border-dark-700 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <FaRobot className="text-purple-400" />
                     <h3 className="font-bold text-white">Creator Toolkit</h3>
@@ -148,7 +148,7 @@ const AIContentGenerator = ({ onSelect, platform = 'instagram' }) => {
                     <button
                         onClick={activeTab === 'caption' ? handleGenerateCaption : handleGenerateHashtags}
                         disabled={loading || !topic}
-                        className="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
                     >
                         {loading ? (
                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

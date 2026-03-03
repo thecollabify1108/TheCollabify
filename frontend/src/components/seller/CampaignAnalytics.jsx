@@ -320,7 +320,7 @@ const CampaignAnalytics = ({ requests = [] }) => {
 
                         <div className="p-3 rounded-lg bg-primary-500/5 border border-primary-500/10">
                             <p className="text-[11px] text-dark-300 leading-relaxed italic">
-                                💡 Your "Match Trust Avg" is <strong>{stats.matchReliabilityAvg || '1.0'}</strong>. You are currently matching with creators who have a high history of successful brand partnerships.
+                                Your "Match Trust Avg" is <strong>{stats.matchReliabilityAvg || '1.0'}</strong>. You are currently matching with creators who have a high history of successful brand partnerships.
                             </p>
                         </div>
                     </div>

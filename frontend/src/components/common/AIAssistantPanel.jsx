@@ -329,7 +329,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
     return (
         <>
-            <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setIsOpen(true)} className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full shadow-2xl flex items-center justify-center text-white md:bottom-[calc(8rem+env(safe-area-inset-bottom))]">
+            <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setIsOpen(true)} className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 bg-indigo-700 hover:bg-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white md:bottom-[calc(8rem+env(safe-area-inset-bottom))]">
                 <FaMagic className="text-xl" />
             </motion.button>
 
@@ -340,7 +340,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
 
                         <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-dark-900 border-l border-dark-800 shadow-2xl z-[100] overflow-y-auto">
                             {/* Header */}
-                            <div className="sticky top-0 bg-gradient-to-r from-purple-600 to-pink-600 p-6 z-10">
+                            <div className="sticky top-0 bg-indigo-950 border-b border-indigo-800/50 p-5 z-10">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <HiSparkles className="text-3xl text-white" />
@@ -359,7 +359,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                         { id: 'intelligence', label: 'Intelligence', icon: <HiSparkles /> },
                                         { id: 'toolkit', label: 'Toolkit', icon: <FaMagic /> }
                                     ].map(tab => (
-                                        <button key={tab.id} onClick={() => { setActiveTab(tab.id); setModeResult(null); setGeneratedContent(null); }} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id ? 'bg-white text-purple-600' : 'bg-white/20 text-white hover:bg-white/30'}`}>
+                                        <button key={tab.id} onClick={() => { setActiveTab(tab.id); setModeResult(null); setGeneratedContent(null); }} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id ? 'bg-indigo-600 text-white' : 'bg-white/10 text-indigo-200 hover:bg-white/15'}`}>
                                             <span className="flex items-center justify-center gap-1">{tab.icon}<span className="hidden sm:inline">{tab.label}</span></span>
                                         </button>
                                     ))}
@@ -428,7 +428,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                                             />
                                                         )}
 
-                                                        <button onClick={handleRunMode} disabled={isGenerating || (dailyRemaining !== null && dailyRemaining <= 0)} className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium transition-opacity">
+                                                        <button onClick={handleRunMode} disabled={isGenerating || (dailyRemaining !== null && dailyRemaining <= 0)} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors">
                                                             {isGenerating ? 'Analyzing...' : dailyRemaining !== null && dailyRemaining <= 0 ? 'Daily Limit Reached' : 'Run Analysis'}
                                                         </button>
                                                     </>
@@ -479,7 +479,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                                                 ))}
                                                             </div>
                                                         </div>
-                                                        <button onClick={handleGenerateCaption} disabled={isGenerating || !params.topic.trim()} className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-opacity">{isGenerating ? 'Generating...' : 'Generate Brief'}</button>
+                                                        <button onClick={handleGenerateCaption} disabled={isGenerating || !params.topic.trim()} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors">{isGenerating ? 'Generating...' : 'Generate Brief'}</button>
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
@@ -496,7 +496,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse }) => {
                                                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-3 overflow-hidden">
                                                         <div><label className={labelCls}>Topic</label><input type="text" value={params.topic} onChange={e => setParams({ ...params, topic: e.target.value })} className={inputCls} placeholder="e.g. Sustainable fashion" /></div>
                                                         <div><label className={labelCls}>Category</label><select value={params.niche} onChange={e => setParams({ ...params, niche: e.target.value })} className={selectCls}>{NICHES.slice(0, 7).map(n => <option key={n} value={n}>{n}</option>)}</select></div>
-                                                        <button onClick={handleGenerateHashtags} disabled={isGenerating} className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-opacity">{isGenerating ? 'Generating...' : 'Generate Tags'}</button>
+                                                        <button onClick={handleGenerateHashtags} disabled={isGenerating} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors">{isGenerating ? 'Generating...' : 'Generate Tags'}</button>
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>

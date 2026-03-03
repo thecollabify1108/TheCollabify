@@ -95,7 +95,7 @@ class PushNotificationService {
      * Show notification for new creator application
      */
     showCreatorApplied(creatorName, promotionTitle) {
-        return this.show(`🎯 New Application!`, {
+        return this.show(`New Application`, {
             body: `${creatorName} applied to "${promotionTitle}"`,
             tag: 'creator-applied',
             url: '/seller/dashboard'
@@ -106,7 +106,7 @@ class PushNotificationService {
      * Show notification for acceptance
      */
     showAccepted(promotionTitle) {
-        return this.show(`🎉 Congratulations!`, {
+        return this.show(`Application Accepted`, {
             body: `Your application for "${promotionTitle}" was accepted!`,
             tag: 'accepted',
             url: '/creator/dashboard'
@@ -117,7 +117,7 @@ class PushNotificationService {
      * Show notification for new match
      */
     showNewMatch(promotionTitle, matchScore) {
-        return this.show(`🔥 New ${matchScore}% Match!`, {
+        return this.show(`New ${matchScore}% Match`, {
             body: `Check out "${promotionTitle}"`,
             tag: 'new-match',
             url: '/creator/dashboard'
@@ -128,7 +128,7 @@ class PushNotificationService {
      * Show notification for new message
      */
     showNewMessage(senderName) {
-        return this.show(`💬 New Message`, {
+        return this.show(`New Message`, {
             body: `${senderName} sent you a message`,
             tag: 'new-message',
             url: '/seller/dashboard'

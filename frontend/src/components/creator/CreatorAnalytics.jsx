@@ -96,7 +96,7 @@ const CreatorAnalytics = ({ profile, applications = [] }) => {
             title: 'Profile Score',
             value: `${stats.avgMatchScore}%`,
             icon: HiSparkles,
-            color: 'from-purple-500 to-pink-500',
+            color: 'from-indigo-500 to-violet-500',
             change: '+12%',
             positive: true
         }

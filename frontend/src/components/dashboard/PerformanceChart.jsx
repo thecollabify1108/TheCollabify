@@ -1,7 +1,7 @@
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { motion } from 'framer-motion';
 
-const PerformanceChart = ({ data, title, color = "#8b5cf6" }) => {
+const PerformanceChart = ({ data, title, color = "#6366f1" }) => {
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

@@ -96,7 +96,7 @@ const NotFound = () => {
                     transition={{ delay: 0.6 }}
                     className="mt-8 text-sm text-dark-500"
                 >
-                    Lost? Don't worry, even the best creators take wrong turns sometimes! 🚀
+                    Lost? Don't worry, even the best creators take wrong turns sometimes.
                 </motion.p>
             </div>
         </div>

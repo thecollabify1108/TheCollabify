@@ -51,7 +51,7 @@ const AdminDashboard = ({ stats, loading }) => {
         { name: 'Brands', value: stats.users?.sellers || 0 },
     ].filter(d => d.value > 0);
 
-    const COLORS = ['#8b5cf6', '#ec4899']; // Primary, Secondary
+    const COLORS = ['#6366f1', '#818cf8']; // Primary, Secondary
 
     const StatCard = ({ title, value, subtext, icon: Icon, color, trend }) => (
         <motion.div
@@ -124,8 +124,8 @@ const AdminDashboard = ({ stats, loading }) => {
                                 <AreaChart data={growthData}>
                                     <defs>
                                         <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                                         </linearGradient>
                                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.3} />
@@ -139,7 +139,7 @@ const AdminDashboard = ({ stats, loading }) => {
                                         contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
                                         itemStyle={{ color: '#e2e8f0' }}
                                     />
-                                    <Area type="monotone" dataKey="users" stroke="#8b5cf6" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
+                                    <Area type="monotone" dataKey="users" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorUsers)" />
                                     <Area type="monotone" dataKey="revenue" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" />
                                 </AreaChart>
                             </ResponsiveContainer>

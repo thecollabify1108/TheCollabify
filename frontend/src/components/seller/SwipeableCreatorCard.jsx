@@ -65,7 +65,7 @@ const SwipeableCreatorCard = ({ creators, onAccept, onReject, onRequest, onSave 
                 <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center mb-s6 shadow-premium">
                     <HiSparkles className="text-4xl text-primary-400" />
                 </div>
-                <h3 className="text-h1 font-bold text-dark-100 mb-s2">All caught up! 🎉</h3>
+                <h3 className="text-h1 font-bold text-dark-100 mb-s2">All caught up</h3>
                 <p className="text-body text-dark-400 text-center max-w-sm">
                     You've reviewed all pending creator applications. Create a new campaign to get more matches.
                 </p>

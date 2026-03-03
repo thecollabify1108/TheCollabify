@@ -64,7 +64,7 @@ const AIOpportunitySuggestions = ({ profile, promotions = [], onApplySuggestion 
     const getColorForType = (id) => {
         switch (id) {
             case 'engagement': return 'from-amber-500 to-orange-500';
-            case 'niche': return 'from-purple-500 to-pink-500';
+            case 'niche': return 'from-indigo-500 to-violet-500';
             case 'pricing': return 'from-amber-500 to-yellow-500';
             case 'timing': return 'from-blue-500 to-cyan-500';
             default: return 'from-primary-500 to-secondary-500';

@@ -173,7 +173,14 @@ async function callGemini({ userId, mode, prompt, fallback, parser }) {
 
     const start = Date.now();
     try {
-        const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+        const model = genAI.getGenerativeModel({
+            model: GEMINI_MODEL,
+            generationConfig: {
+                temperature: 0.5,   // Low temperature for structured, analytical outputs
+                topP: 0.85,
+                maxOutputTokens: 2048,
+            },
+        });
         const result = await model.generateContent(prompt);
         const response = result.response;
         const text = response.text().trim();

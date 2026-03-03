@@ -65,9 +65,9 @@ const NotificationPrompt = () => {
         const result = await requestPermission();
 
         if (result === 'granted') {
-            toast.success('🔔 Notifications enabled! You\'ll be notified about campaign updates, messages, and more.', {
+            toast.success('Notifications enabled. You\'ll be notified about campaign updates, messages, and more.', {
                 duration: 5000,
-                icon: '✅'
+                icon: ''
             });
         } else if (result === 'denied') {
             toast.error('Please enable notifications in your browser settings to receive updates.', {
@@ -129,7 +129,6 @@ const NotificationPrompt = () => {
                             Get instant notifications when creators apply, campaigns are accepted, or you receive new messages.
                         </p>
                         <p className="text-dark-400 text-xs mb-4 flex items-center gap-1">
-                            <span>💡</span>
                             <span>Make sure browser notifications are enabled in your device settings</span>
                         </p>
 

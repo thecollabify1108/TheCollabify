@@ -135,7 +135,7 @@ const SetPassword = () => {
             {/* Info Note */}
             <div className="mt-4 p-4 bg-primary-500/10 border border-primary-500/20 rounded-xl">
                 <p className="text-sm text-dark-300">
-                    💡 <strong>Tip:</strong> After setting a password, you can login with either Google or email/password on any device.
+                    <strong>Tip:</strong> After setting a password, you can login with either Google or email/password on any device.
                 </p>
             </div>
         </motion.div>

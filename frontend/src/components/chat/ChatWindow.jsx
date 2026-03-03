@@ -181,8 +181,8 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-dark-700 scrollbar-track-transparent">
                 {messages.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-dark-400 opacity-50">
-                        <div className="text-6xl mb-4">👋</div>
-                        <p>Say hello to start the conversation!</p>
+                        <div className="text-6xl mb-4">-</div>
+                        <p>Start a conversation</p>
                     </div>
                 )}
 

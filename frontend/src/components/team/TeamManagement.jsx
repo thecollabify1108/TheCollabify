@@ -89,7 +89,7 @@ const TeamManagement = () => {
             },
             Admin: {
                 icon: FaUserShield,
-                color: 'from-purple-500 to-pink-500',
+                color: 'from-indigo-500 to-violet-500',
                 bgColor: 'bg-purple-500/10',
                 textColor: 'text-purple-400',
                 description: 'Manage campaigns and team'

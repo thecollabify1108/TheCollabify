@@ -8,7 +8,7 @@ const campaignTemplates = [
         name: 'Fashion Brand Launch',
         description: 'Ideal for new apparel collections and fashion startups.',
         category: 'Fashion',
-        icon: '👗',
+        icon: 'F',
         template: {
             title: 'Summer Collection Showcase',
             description: 'Showcase our new eco-friendly summer collection through stylish content.',
@@ -26,7 +26,7 @@ const campaignTemplates = [
         name: 'Tech Gadget Review',
         description: 'Deep-dive reviews for electronics and consumer tech.',
         category: 'Tech',
-        icon: '📱',
+        icon: 'T',
         template: {
             title: 'Unboxing & In-depth Review',
             description: 'Provide an honest review and unboxing of our latest wireless headphones.',
@@ -44,7 +44,7 @@ const campaignTemplates = [
         name: 'Beauty & Skincare Tutorial',
         description: 'Step-by-step product usage and routine showcases.',
         category: 'Beauty',
-        icon: '💄',
+        icon: 'B',
         template: {
             title: 'Morning Skincare Routine',
             description: 'Integrate our hydrating serum into your daily morning routine video.',
@@ -62,7 +62,7 @@ const campaignTemplates = [
         name: 'Fitness Transformation',
         description: 'Long-term partnership for fitness programs and supplements.',
         category: 'Fitness',
-        icon: '💪',
+        icon: 'FT',
         template: {
             title: '30-Day Fitness Challenge',
             description: 'Share your journey using our daily performance supplements.',

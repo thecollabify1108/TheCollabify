@@ -44,12 +44,12 @@ export const GrowthChart = ({ data, title = "Growth Analytics" }) => {
                 <AreaChart data={data}>
                     <defs>
                         <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
                         </linearGradient>
                         <linearGradient id="colorGradient2" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#EC4899" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#EC4899" stopOpacity={0} />
+                            <stop offset="5%" stopColor="#818cf8" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
                         </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="#2D2D2D" />
@@ -66,7 +66,7 @@ export const GrowthChart = ({ data, title = "Growth Analytics" }) => {
                     <Area
                         type="monotone"
                         dataKey="applications"
-                        stroke="#8B5CF6"
+                        stroke="#6366f1"
                         fillOpacity={1}
                         fill="url(#colorGradient)"
                         animationDuration={2000}
@@ -75,7 +75,7 @@ export const GrowthChart = ({ data, title = "Growth Analytics" }) => {
                     <Area
                         type="monotone"
                         dataKey="collaborations"
-                        stroke="#EC4899"
+                        stroke="#818cf8"
                         fillOpacity={1}
                         fill="url(#colorGradient2)"
                         animationDuration={2000}
@@ -113,9 +113,9 @@ export const PerformanceChart = ({ data, title = "Performance Metrics" }) => {
                     <Line
                         type="monotone"
                         dataKey="engagement"
-                        stroke="#8B5CF6"
+                        stroke="#6366f1"
                         strokeWidth={3}
-                        dot={{ fill: '#8B5CF6', r: 5 }}
+                        dot={{ fill: '#6366f1', r: 5 }}
                         activeDot={{ r: 8 }}
                         animationDuration={2000}
                     />
@@ -165,7 +165,7 @@ export const CampaignStatsBar = ({ data, title = "Campaign Stats" }) => {
                     <Tooltip content={<CustomTooltip />} />
                     <Bar
                         dataKey="active"
-                        fill="#8B5CF6"
+                        fill="#6366f1"
                         radius={[8, 8, 0, 0]}
                         animationDuration={2000}
                     />

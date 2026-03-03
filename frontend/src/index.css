@@ -34,7 +34,7 @@
 
   /* Accessibility: Better focus indicators for keyboard navigation */
   *:focus-visible {
-    outline: 2px solid #8b5cf6;
+    outline: 2px solid #6366f1;
     outline-offset: 2px;
   }
 
@@ -43,7 +43,7 @@
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    outline: 2px solid #8b5cf6;
+    outline: 2px solid #6366f1;
     outline-offset: 2px;
   }
 
@@ -90,7 +90,7 @@
 
   /* Gradient text */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-400 via-secondary-400 via-pink-400 to-primary-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-indigo-400 via-violet-400 to-indigo-400 bg-clip-text text-transparent;
     background-size: 200% auto;
     animation: gradient 5s linear infinite;
   }
@@ -98,21 +98,20 @@
   /* 3D Button with Animated Glow */
   .btn-3d {
     @apply relative px-s3 py-s1.5 font-semibold rounded-premium-xl transition-all duration-200;
-    @apply bg-gradient-to-r from-primary-600 to-secondary-600;
-    @apply hover:from-primary-500 hover:to-secondary-500;
+    @apply bg-gradient-to-r from-indigo-700 to-indigo-600;
+    @apply hover:from-indigo-600 hover:to-indigo-500;
     @apply shadow-premium;
-    @apply transform hover:-translate-y-1 active:translate-y-0;
+    @apply transform hover:-translate-y-0.5 active:translate-y-0;
     @apply text-white;
   }
 
   .btn-3d:hover {
-    @apply shadow-glow;
-    animation: button-glow 1.5s ease-in-out infinite;
+    @apply shadow-lg;
   }
 
   .btn-3d::before {
     content: '';
-    @apply absolute inset-0 rounded-premium-xl bg-gradient-to-b from-white/20 to-transparent;
+    @apply absolute inset-0 rounded-premium-xl bg-gradient-to-b from-white/10 to-transparent;
   }
 
   /* Secondary button */
@@ -212,7 +211,7 @@
   }
 
   .progress-bar-fill {
-    @apply h-full rounded-full bg-gradient-to-r from-primary-500 to-secondary-500;
+    @apply h-full rounded-full bg-gradient-to-r from-indigo-600 to-indigo-400;
     @apply transition-all duration-500 ease-out;
   }
 
@@ -296,14 +295,14 @@
   position: absolute;
   border-radius: 50%;
   filter: blur(60px);
-  opacity: 0.4;
+  opacity: 0.2;
   animation: float-orb 20s ease-in-out infinite;
 }
 
 .floating-orb.orb-1 {
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
   top: -10%;
   left: -5%;
   animation-delay: 0s;
@@ -313,7 +312,7 @@
 .floating-orb.orb-2 {
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
   top: 60%;
   right: -5%;
   animation-delay: -5s;
@@ -323,7 +322,7 @@
 .floating-orb.orb-3 {
   width: 250px;
   height: 250px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.4) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
   bottom: -5%;
   left: 30%;
   animation-delay: -10s;
@@ -333,7 +332,7 @@
 .floating-orb.orb-4 {
   width: 200px;
   height: 200px;
-  background: radial-gradient(circle, rgba(249, 115, 22, 0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(129, 140, 248, 0.10) 0%, transparent 70%);
   top: 20%;
   right: 30%;
   animation-delay: -15s;
@@ -343,7 +342,7 @@
 .floating-orb.orb-5 {
   width: 350px;
   height: 350px;
-  background: radial-gradient(circle, rgba(34, 197, 94, 0.3) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.10) 0%, transparent 70%);
   bottom: 30%;
   left: -10%;
   animation-delay: -8s;
@@ -376,16 +375,14 @@
   0%,
   100% {
     box-shadow:
-      0 20px 40px -10px rgba(139, 92, 246, 0.4),
-      0 8px 16px -6px rgba(236, 72, 153, 0.3),
-      0 0 20px rgba(139, 92, 246, 0.5);
+      0 10px 20px -8px rgba(99, 102, 241, 0.2),
+      0 4px 8px -4px rgba(99, 102, 241, 0.15);
   }
 
   50% {
     box-shadow:
-      0 20px 40px -10px rgba(139, 92, 246, 0.5),
-      0 8px 16px -6px rgba(236, 72, 153, 0.4),
-      0 0 30px rgba(139, 92, 246, 0.6);
+      0 10px 20px -8px rgba(99, 102, 241, 0.3),
+      0 4px 8px -4px rgba(99, 102, 241, 0.2);
   }
 }
 
@@ -590,7 +587,7 @@
   display: inline-block;
   width: 3px;
   height: 1em;
-  background: linear-gradient(to bottom, var(--tw-gradient-from, #8b5cf6), var(--tw-gradient-to, #ec4899));
+  background: linear-gradient(to bottom, var(--tw-gradient-from, #6366f1), var(--tw-gradient-to, #818cf8));
   margin-left: 4px;
   animation: cursor-blink 1s step-end infinite;
 }
@@ -660,7 +657,7 @@
   content: '';
   position: absolute;
   inset: -2px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0), rgba(236, 72, 153, 0));
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0), rgba(129, 140, 248, 0));
   border-radius: inherit;
   z-index: -1;
   opacity: 0;
@@ -668,17 +665,17 @@
 }
 
 .card-glow:hover::before {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(236, 72, 153, 0.3));
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(129, 140, 248, 0.15));
   opacity: 1;
-  filter: blur(8px);
+  filter: blur(6px);
 }
 
 .card-glow:hover {
-  @apply shadow-2xl;
-  transform: translateY(-8px);
+  @apply shadow-xl;
+  transform: translateY(-4px);
   box-shadow:
-    0 20px 40px -10px rgba(139, 92, 246, 0.3),
-    0 10px 20px -5px rgba(236, 72, 153, 0.2);
+    0 10px 20px -8px rgba(99, 102, 241, 0.15),
+    0 4px 8px -4px rgba(99, 102, 241, 0.10);
 }
 
 /* ============================================
@@ -689,7 +686,7 @@
   background-size: 0% 2px;
   background-repeat: no-repeat;
   background-position: center bottom;
-  background-image: linear-gradient(to right, #8b5cf6, #ec4899);
+  background-image: linear-gradient(to right, #6366f1, #818cf8);
 }
 
 .input-animated:focus {
@@ -806,7 +803,7 @@
 }
 
 .carousel-dot.active {
-  background: linear-gradient(to right, #8b5cf6, #ec4899);
+  background: linear-gradient(to right, #6366f1, #818cf8);
   width: 24px;
   border-radius: 5px;
 }
@@ -868,4 +865,181 @@
   opacity: 0;
   transform: translateY(-20px);
   transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* ============================================
+   MOBILE-FIRST RESPONSIVE OVERRIDES
+   ============================================ */
+
+/* Small screens: 320-639px */
+@media (max-width: 639px) {
+  /* Hide excess orbs for performance */
+  .floating-orb.orb-4,
+  .floating-orb.orb-5 {
+    display: none;
+  }
+
+  .floating-orb.orb-1 {
+    width: 200px;
+    height: 200px;
+  }
+
+  .floating-orb.orb-2 {
+    width: 150px;
+    height: 150px;
+  }
+
+  .floating-orb.orb-3 {
+    width: 120px;
+    height: 120px;
+  }
+
+  /* Tighter scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  /* Disable hover lift on touch devices */
+  .card-hover:hover {
+    transform: none;
+  }
+
+  .card-glow:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Compact buttons */
+  .btn-3d {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  /* Reduce glass-card rounded corners */
+  .glass-card {
+    border-radius: 0.75rem;
+  }
+
+  /* Stack-friendly spacing */
+  .gradient-text {
+    font-size: 1.25rem;
+  }
+}
+
+/* Extra-small screens: 320-374px */
+@media (max-width: 374px) {
+  .floating-orb.orb-1 {
+    width: 150px;
+    height: 150px;
+  }
+
+  .floating-orb.orb-2,
+  .floating-orb.orb-3 {
+    display: none;
+  }
+
+  .btn-3d {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+  }
+
+  /* Prevent horizontal overflow at 320px */
+  body {
+    overflow-x: hidden;
+  }
+}
+
+/* ============================================
+   MOBILE-FIRST RESPONSIVE OVERRIDES
+   Targets 320px–414px small screens and
+   ensures no overlap/overflow at any width.
+   ============================================ */
+
+/* --- Global mobile typography reduction --- */
+@media (max-width: 639px) {
+  :root {
+    --text-h1: 1.5rem;    /* 24px (was 32) */
+    --text-h2: 1.25rem;   /* 20px (was 24) */
+    --text-h3: 1.125rem;  /* 18px (was 20) */
+    --text-body: 0.875rem;/* 14px (was 16) */
+    --text-small: 0.8125rem;/* 13px (was 14) */
+    --text-xs: 0.6875rem;  /* 11px (was 12) */
+  }
+
+  /* Smaller glass cards on mobile */
+  .glass-card {
+    border-radius: 0.75rem;
+  }
+
+  /* Reduce card hover lift on touch devices */
+  .card-hover {
+    @apply hover:-translate-y-0 hover:scale-100;
+  }
+
+  .card-glow:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Progress bar thinner on mobile */
+  .progress-bar {
+    @apply h-1.5;
+  }
+
+  /* Smaller floating orbs on mobile to prevent overflow */
+  .floating-orb.orb-1 {
+    width: 200px;
+    height: 200px;
+  }
+  .floating-orb.orb-2 {
+    width: 160px;
+    height: 160px;
+  }
+  .floating-orb.orb-3 {
+    width: 140px;
+    height: 140px;
+  }
+  .floating-orb.orb-4 {
+    width: 120px;
+    height: 120px;
+  }
+  .floating-orb.orb-5 {
+    width: 180px;
+    height: 180px;
+  }
+
+  /* Reduce button sizes for mobile */
+  .btn-3d {
+    @apply px-3 py-1.5 text-sm;
+  }
+
+  /* Ensure no horizontal overflow on small screens */
+  body {
+    overflow-x: hidden;
+  }
+
+  main {
+    overflow-x: hidden;
+  }
+}
+
+/* --- Ultra-narrow screens (320px) --- */
+@media (max-width: 374px) {
+  :root {
+    --text-h1: 1.25rem;
+    --text-h2: 1.125rem;
+    --text-h3: 1rem;
+  }
+
+  .floating-orb.orb-1,
+  .floating-orb.orb-5 {
+    width: 140px;
+    height: 140px;
+  }
+  .floating-orb.orb-2,
+  .floating-orb.orb-3,
+  .floating-orb.orb-4 {
+    width: 100px;
+    height: 100px;
+  }
 }

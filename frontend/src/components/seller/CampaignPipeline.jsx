@@ -25,7 +25,7 @@ const CampaignPipeline = ({ requests, onSelectRequest }) => {
         {
             id: 'Accepted',
             label: 'In Progress',
-            gradient: 'from-purple-500 to-pink-500',
+            gradient: 'from-indigo-500 to-violet-500',
             bgColor: 'bg-purple-500/10',
             borderColor: 'border-purple-500/30',
             icon: <FaComments />,

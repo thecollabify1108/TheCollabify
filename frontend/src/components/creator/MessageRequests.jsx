@@ -38,7 +38,7 @@ const MessageRequests = ({ onAccept }) => {
         setProcessing(prev => new Set([...prev, promotionId]));
         try {
             await creatorAPI.respondToRequest(promotionId, status);
-            toast.success(status === 'ACCEPTED' ? '✅ Request Accepted!' : 'Request Declined');
+            toast.success(status === 'ACCEPTED' ? 'Request accepted.' : 'Request declined.');
 
             // Remove from list
             setRequests(prev => prev.filter(r => r.promotion.id !== promotionId));

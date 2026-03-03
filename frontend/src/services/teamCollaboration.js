@@ -19,8 +19,8 @@ export const teamRoles = {
             team: { invite: true, remove: true, editRoles: true },
             settings: { edit: true }
         },
-        badge: '👑',
-        color: '#EC4899'
+        badge: 'Owner',
+        color: '#818cf8'
     },
     admin: {
         id: 'admin',
@@ -34,8 +34,8 @@ export const teamRoles = {
             team: { invite: true, remove: false, editRoles: false },
             settings: { edit: false }
         },
-        badge: '⚡',
-        color: '#8B5CF6'
+        badge: 'Admin',
+        color: '#6366f1'
     },
     manager: {
         id: 'manager',
@@ -79,7 +79,7 @@ export const teamRoles = {
             team: { invite: false, remove: false, editRoles: false },
             settings: { edit: false }
         },
-        badge: '👀',
+        badge: 'View',
         color: '#9CA3AF'
     }
 };

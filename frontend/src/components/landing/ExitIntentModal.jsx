@@ -91,7 +91,7 @@ const ExitIntentModal = ({ onClose }) => {
 
                             {/* Heading */}
                             <h2 className="text-2xl font-bold text-dark-100 text-center mb-2">
-                                Wait! Don't Miss Out 🚀
+                                Wait! Don't Miss Out
                             </h2>
 
                             <p className="text-dark-400 text-center mb-6">
@@ -137,7 +137,7 @@ const ExitIntentModal = ({ onClose }) => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
                             </div>
-                            <h3 className="text-xl font-bold text-dark-100 mb-2">You're all set! 🎉</h3>
+                            <h3 className="text-xl font-bold text-dark-100 mb-2">You're all set!</h3>
                             <p className="text-dark-400">We'll notify you about opportunities</p>
                         </motion.div>
                     )}

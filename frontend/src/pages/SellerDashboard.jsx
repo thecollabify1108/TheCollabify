@@ -203,7 +203,7 @@ const SellerDashboard = () => {
     const handleCreateRequest = async (data) => {
         try {
             const res = await sellerAPI.createRequest(data);
-            toast.success(`🎉 Campaign launched! Found ${res.data.data.matchedCreatorsCount} creators.`);
+            toast.success(`Campaign created. ${res.data.data.matchedCreatorsCount} creators matched.`);
             setShowRequestWizard(false);
             fetchRequests();
         } catch (error) {
@@ -269,7 +269,7 @@ const SellerDashboard = () => {
                 await collaborationAPI.initializeCollaboration(match._id).catch(err => console.error("Auto-init failed", err));
             }
             trackEvent('collaboration_accepted');
-            toast.success('✅ Creator accepted! Collaboration started.');
+            toast.success('Creator accepted. Collaboration initiated.');
             fetchRequests(true);
         } catch (error) {
             updateState('Matched'); // Revert (assuming it was matched)
@@ -487,7 +487,7 @@ const SellerDashboard = () => {
         return (
             <div className="min-h-screen bg-dark-950 pb-s20">
                 <Navbar />
-                <div className="max-w-7xl mx-auto px-s4 sm:px-s6 lg:px-s8 pt-s6 space-y-s8">
+                <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-4 space-y-4">
                     {/* Hero Skeleton */}
                     <div className="glass-card p-s8 rounded-premium-2xl relative overflow-hidden">
                         <div className="relative z-10 space-y-s4">
@@ -504,24 +504,24 @@ const SellerDashboard = () => {
                     <SkeletonStats />
 
                     {/* Charts Skeleton */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-s6 h-[400px]">
-                        <div className="lg:col-span-2 glass-card p-s6">
-                            <Skeleton variant="title" width="30%" height={28} className="mb-s6" />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[300px] lg:h-[400px]">
+                        <div className="lg:col-span-2 glass-card p-4">
+                            <Skeleton variant="title" width="30%" height={28} className="mb-4" />
                             <Skeleton variant="rectangular" width="100%" height="80%" />
                         </div>
-                        <div className="glass-card p-s6">
-                            <Skeleton variant="title" width="40%" height={28} className="mb-s6" />
+                        <div className="glass-card p-4">
+                            <Skeleton variant="title" width="40%" height={28} className="mb-4" />
                             <SkeletonList count={4} />
                         </div>
                     </div>
 
                     {/* Active Campaigns Skeleton */}
                     <div>
-                        <div className="flex justify-between items-center mb-s6">
+                        <div className="flex justify-between items-center mb-4">
                             <Skeleton variant="title" width={200} height={32} />
-                            <Skeleton width={140} height={40} className="rounded-premium-xl" />
+                            <Skeleton width={140} height={40} className="rounded-lg" />
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-s4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                             <SkeletonCard />
                             <SkeletonCard />
                             <SkeletonCard />
@@ -650,9 +650,9 @@ const SellerDashboard = () => {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                     >
-                        <div className="mb-s4">
-                            <h2 className="text-h2 font-black text-dark-100 mb-s1 uppercase tracking-widest">Campaign Analytics</h2>
-                            <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">Track your campaign performance</p>
+                        <div className="mb-3">
+                            <h2 className="text-sm font-semibold text-dark-100 uppercase tracking-wider">Analytics</h2>
+                            <p className="text-[10px] text-dark-500">Campaign performance metrics</p>
                         </div>
                         <AnalyticsDashboard userType="seller" requests={requests} />
                     </motion.div>
@@ -677,13 +677,13 @@ const SellerDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="space-y-s8 pb-s6"
+                        className="space-y-4 pb-4"
                     >
                         {/* 1. Hero Section */}
                         <DashboardHero
                             userName={user?.name?.split(' ')[0] || 'Brand'}
                             role="Seller"
-                            dailyInsight={requests?.[0]?.aiInsight || "Launch a new campaign to discover top matches! 🚀"}
+                            dailyInsight={requests?.[0]?.aiInsight || "Create a campaign to begin matching with creators."}
                             reliability={{
                                 level: getReliabilityLevel(user?.reliabilityScore || 1.0),
                                 score: user?.reliabilityScore || 1.0
@@ -693,7 +693,7 @@ const SellerDashboard = () => {
 
 
                         {/* 2. Campaign Pipeline Stats */}
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-s4 md:gap-s6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                             <StatCard
                                 label="Total Budget"
                                 value="₹0" // Placeholder until real budget logic
@@ -732,15 +732,15 @@ const SellerDashboard = () => {
                         <BrandInsightCards />
 
                         {/* 3. Charts & Applicant Feed */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-s6 lg:h-[450px]">
-                            <div className="lg:col-span-2 h-[300px] lg:h-full">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:h-[350px]">
+                            <div className="lg:col-span-2 h-[200px] sm:h-[250px] lg:h-full">
                                 <PerformanceChart
                                     title="Campaign Spend & ROI"
                                     color="#f59e0b"
                                     data={[]} // Empty data until analytics API is ready
                                 />
                             </div>
-                            <div className="h-[400px] lg:h-full">
+                            <div className="h-[280px] sm:h-[350px] lg:h-full">
                                 <ActivityFeed
                                     activities={pendingCreators.slice(0, 5).map(c => ({
                                         id: c.creatorId,
@@ -759,12 +759,12 @@ const SellerDashboard = () => {
                         <FocusWrapper sectionId="campaigns" currentFocus={focusMode}>
                             <div className="space-y-s6">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-h2 font-black text-dark-100 flex items-center gap-s3 uppercase tracking-widest">
-                                        <HiSparkles className="text-primary-400" /> Active Campaigns
+                                    <h2 className="text-sm font-semibold text-dark-100 flex items-center gap-2 uppercase tracking-wider">
+                                        Active Campaigns
                                     </h2>
                                     <LoadingButton
                                         onClick={() => setShowRequestWizard(true)}
-                                        className="px-s6 py-s3 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all border-none shadow-glow hover:shadow-glow-lg"
+                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-colors border-none"
                                     >
                                         + New Campaign
                                     </LoadingButton>
@@ -779,7 +779,7 @@ const SellerDashboard = () => {
                                         onAction={() => setShowRequestWizard(true)}
                                     />
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-s4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-s4">
                                         {requests.slice(0, 6).map((request, index) => (
                                             <motion.div
                                                 key={request._id}
@@ -819,7 +819,7 @@ const SellerDashboard = () => {
                                                     <motion.div
                                                         initial={{ width: 0 }}
                                                         animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
-                                                        className="bg-gradient-to-r from-primary-500 to-secondary-500 h-full rounded-free shadow-glow"
+                                                        className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-free"
                                                     />
                                                 </div>
                                             </motion.div>
