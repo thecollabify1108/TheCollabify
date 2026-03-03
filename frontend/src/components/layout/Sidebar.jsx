@@ -4,27 +4,27 @@ import Icon from '../common/Icon';
 
 const Sidebar = ({ tabs, activeTab, setActiveTab, user }) => {
     return (
-        <aside className="hidden lg:flex flex-col w-64 h-screen fixed top-0 left-0 bg-dark-950 border-r border-dark-800 z-40 pt-20">
+        <aside className="hidden lg:flex flex-col w-56 h-screen fixed top-0 left-0 bg-dark-950 border-r border-dark-800 z-40 pt-16">
             {/* Navigation Links */}
-            <div className="flex-1 px-s4 py-s6 space-y-s2 overflow-y-auto custom-scrollbar">
-                <div className="mb-s6 px-s4">
+            <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+                <div className="mb-3 px-3">
                     <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">Menu</p>
                 </div>
                 {tabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`w-full flex items-center gap-s3 px-s4 py-s3 rounded-premium-xl transition-all duration-200 group ${activeTab === tab.id
+                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all duration-200 group ${activeTab === tab.id
                             ? 'bg-primary-500/10 text-primary-400'
                             : 'text-dark-400 hover:bg-dark-800 hover:text-dark-200'
                             }`}
                     >
                         <Icon
                             name={tab.iconName || 'grid'}
-                            size={20}
+                            size={18}
                             className={activeTab === tab.id ? 'text-primary-500' : 'text-dark-400 group-hover:text-dark-300'}
                         />
-                        <span className="text-body font-bold uppercase tracking-wider">{tab.label}</span>
+                        <span className="text-sm font-semibold uppercase tracking-wider">{tab.label}</span>
 
                         {/* Badges */}
                         {tab.badge > 0 && (
@@ -45,9 +45,9 @@ const Sidebar = ({ tabs, activeTab, setActiveTab, user }) => {
             </div>
 
             {/* User Profile Snippet (Bottom) */}
-            <div className="p-s4 border-t border-dark-800 bg-dark-900/50">
-                <div className="flex items-center gap-s3 p-s2 rounded-premium-xl hover:bg-dark-800 transition cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold shadow-premium">
+            <div className="p-3 border-t border-dark-800 bg-dark-900/50">
+                <div className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-dark-800 transition cursor-pointer">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold text-sm shadow-premium">
                         {user?.name?.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">

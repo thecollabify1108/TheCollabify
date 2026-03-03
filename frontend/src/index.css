@@ -435,8 +435,19 @@
 /* Backdrop blur with light green background */
 .light-theme .bg-dark-950\/80,
 .light-theme .bg-dark-900\/80,
-.light-theme .bg-dark-900\/95 {
-  background-color: rgba(240, 249, 244, 0.9) !important;
+.light-theme .bg-dark-900\/95,
+.light-theme .bg-dark-950\/95,
+.light-theme .bg-dark-950\/70 {
+  background-color: rgba(240, 249, 244, 0.92) !important;
+}
+
+.light-theme .bg-dark-800\/40,
+.light-theme .bg-dark-800\/50 {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.light-theme .bg-dark-900\/50 {
+  background-color: rgba(240, 249, 244, 0.6) !important;
 }
 
 /* Text colors - Made darker and bolder for light theme */
@@ -578,6 +589,78 @@
 .light-theme .shadow-lg,
 .light-theme .shadow-xl {
   --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Light-theme: fix invisible text-white on light backgrounds --- */
+.light-theme .text-white {
+  color: #1e293b !important;
+}
+
+/* Gradient text readable in light mode */
+.light-theme .gradient-text {
+  background-image: linear-gradient(135deg, #4338ca, #6d28d9) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* GuidedAIMode goal buttons */
+.light-theme .border-dark-700\/50 {
+  border-color: #e2e8f0 !important;
+}
+
+.light-theme .border-indigo-500\/20 {
+  border-color: rgba(99, 102, 241, 0.35) !important;
+}
+
+/* StatCard / chart containers in light mode */
+.light-theme .glass-card,
+.light-theme [class*="bg-dark-800/40"],
+.light-theme [class*="bg-dark-800/50"] {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* Emerald / red trend badges readable */
+.light-theme .text-emerald-400 {
+  color: #059669 !important;
+}
+.light-theme .text-red-400 {
+  color: #dc2626 !important;
+}
+
+/* Primary color refinement */
+.light-theme .text-primary-400 {
+  color: #4f46e5 !important;
+}
+.light-theme .text-primary-500 {
+  color: #4338ca !important;
+}
+.light-theme .bg-primary-500\/10 {
+  background-color: rgba(67, 56, 202, 0.1) !important;
+}
+
+/* Indigo accent icons */
+.light-theme .text-indigo-400 {
+  color: #4338ca !important;
+}
+.light-theme .text-indigo-300 {
+  color: #4f46e5 !important;
+}
+
+/* Dark-500 text (menu labels, subtitles) */
+.light-theme .text-dark-500 {
+  color: #64748b !important;
+}
+.light-theme .text-dark-600 {
+  color: #94a3b8 !important;
+}
+
+/* White bg utilities in light mode */
+.light-theme .bg-white\/20 {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+.light-theme .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 /* ============================================

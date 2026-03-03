@@ -51,7 +51,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className={`sticky top-0 z-50 border-b transition-all duration-300 ${scrolled
+        <nav className={`sticky top-3 z-50 mx-3 sm:mx-4 lg:mx-6 rounded-2xl border transition-all duration-300 ${scrolled
             ? 'bg-dark-950/95 backdrop-blur-2xl border-dark-700 shadow-lg shadow-primary-500/5'
             : 'bg-dark-950/70 backdrop-blur-xl border-dark-800'
             }`}>
