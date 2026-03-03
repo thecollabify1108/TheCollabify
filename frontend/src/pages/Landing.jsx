@@ -143,7 +143,7 @@ const Landing = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await api.get('public/stats');
+                const response = await api.get('public/stats', { timeout: 30000 });
                 const result = response.data;
                 if (result.success) {
                     setStats({

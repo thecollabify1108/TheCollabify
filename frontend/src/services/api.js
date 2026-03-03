@@ -17,7 +17,7 @@ const API_URL = API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`;
 
 const api = axios.create({
     baseURL: API_URL,
-    timeout: 15000, // 15s — reduced from 30s; Azure should respond within this
+    timeout: 30000, // 30s — Azure DB can be slow on cold start
     headers: {
         'Content-Type': 'application/json'
     },
@@ -183,7 +183,7 @@ export const adminAPI = {
 
 // Public API
 export const publicAPI = {
-    getLeaderboard: (params) => api.get('leaderboard', { params })
+    getLeaderboard: (params) => api.get('leaderboard', { params, timeout: 30000 })
 };
 
 // Analytics API
