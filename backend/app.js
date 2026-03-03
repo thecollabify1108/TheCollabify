@@ -35,7 +35,7 @@ const { startFrictionScheduler, stopFrictionScheduler } = require('./services/fr
 
 // AI Engine Scheduler (weekly CQI/fraud/audience, monthly retrain)
 let startAIScheduler = () => console.log('[AIScheduler] Skipped (module load failed)');
-let stopAIScheduler = () => {};
+let stopAIScheduler = () => { };
 try {
     const sched = require('./services/ai/scheduler');
     startAIScheduler = sched.startAIScheduler;
@@ -226,7 +226,7 @@ app.use(helmet({
     hidePoweredBy: true,
     referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
     crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: false,
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }, // Allow Google OAuth popups
     crossOriginResourcePolicy: { policy: 'cross-origin' }
 }));
 
@@ -393,11 +393,15 @@ if (process.env.NODE_ENV !== 'test') {
     server.listen(PORT, '0.0.0.0', async () => {
         console.log(`✅ Server listening on port ${PORT}`);
 
-        // Start friction detection scheduler (runs every 24h automatically)
-        startFrictionScheduler();
+        // Start background tasks ONLY after a delay to ensure DB pool is ready
+        setTimeout(() => {
+            console.log('🔄 Starting background schedulers...');
+            // Start friction detection scheduler (runs every 24h automatically)
+            startFrictionScheduler();
 
-        // Start AI engine scheduler (weekly + monthly jobs)
-        startAIScheduler();
+            // Start AI engine scheduler (weekly + monthly jobs)
+            startAIScheduler();
+        }, 60 * 1000); // 1 minute delay after process start
 
         if (initializeSocketServer) {
             try {

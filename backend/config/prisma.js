@@ -28,9 +28,9 @@ function appendPoolParams(url) {
     if (!url) return url;
     const sep = url.includes('?') ? '&' : '?';
     const extras = [];
-    if (!url.includes('connection_limit'))  extras.push('connection_limit=5');
-    if (!url.includes('pool_timeout'))      extras.push('pool_timeout=30');
-    if (!url.includes('connect_timeout'))   extras.push('connect_timeout=30');
+    if (!url.includes('connection_limit')) extras.push('connection_limit=20');
+    if (!url.includes('pool_timeout')) extras.push('pool_timeout=60');
+    if (!url.includes('connect_timeout')) extras.push('connect_timeout=60');
     return extras.length ? `${url}${sep}${extras.join('&')}` : url;
 }
 
