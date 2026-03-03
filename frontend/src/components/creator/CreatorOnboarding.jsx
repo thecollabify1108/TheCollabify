@@ -547,54 +547,55 @@ const CreatorOnboarding = ({ onComplete }) => {
         return true;
     };
 
+    const buildPayload = () => {
+        const payload = {
+            category: data.categories?.[0] || '',
+            promotionTypes: data.promotionTypes,
+            priceRange: {
+                min: parseFloat(data.priceRange.min),
+                max: parseFloat(data.priceRange.max)
+            },
+            availabilityStatus: data.availabilityStatus,
+            collaborationTypes: data.collaborationTypes,
+            location: data.location,
+            isAvailable: data.availabilityStatus !== 'NOT_AVAILABLE'
+        };
+
+        // Phase 2 fields (only if filled)
+        if (data.bio?.trim()) payload.bio = data.bio.trim();
+        if (parseInt(data.followerCount) > 0) payload.followerCount = parseInt(data.followerCount);
+        if (parseFloat(data.engagementRate) > 0) payload.engagementRate = parseFloat(data.engagementRate);
+        if (data.portfolioLinks?.filter(l => l.trim()).length > 0) payload.portfolioLinks = data.portfolioLinks.filter(l => l.trim());
+        if (data.willingToTravel) payload.willingToTravel = data.willingToTravel;
+        if (data.pastExperience?.trim()) payload.pastExperience = data.pastExperience.trim();
+        if (data.instagramProfileUrl?.trim()) payload.instagramProfileUrl = data.instagramProfileUrl.trim();
+
+        return payload;
+    };
+
     const saveToServer = async () => {
         setSaving(true);
         try {
-            const payload = {
-                category: data.categories?.[0] || '',
-                promotionTypes: data.promotionTypes,
-                priceRange: {
-                    min: parseFloat(data.priceRange.min),
-                    max: parseFloat(data.priceRange.max)
-                },
-                availabilityStatus: data.availabilityStatus,
-                collaborationTypes: data.collaborationTypes,
-                location: data.location,
-                isAvailable: data.availabilityStatus !== 'NOT_AVAILABLE'
-            };
+            const payload = buildPayload();
 
-            // Phase 2 fields (only if filled)
-            if (data.bio?.trim()) payload.bio = data.bio.trim();
-            if (parseInt(data.followerCount) > 0) payload.followerCount = parseInt(data.followerCount);
-            if (parseFloat(data.engagementRate) > 0) payload.engagementRate = parseFloat(data.engagementRate);
-            if (data.portfolioLinks?.filter(l => l.trim()).length > 0) payload.portfolioLinks = data.portfolioLinks.filter(l => l.trim());
-            if (data.willingToTravel) payload.willingToTravel = data.willingToTravel;
-            if (data.pastExperience?.trim()) payload.pastExperience = data.pastExperience.trim();
-            if (data.instagramProfileUrl?.trim()) payload.instagramProfileUrl = data.instagramProfileUrl.trim();
-
-            const res = await creatorAPI.createProfile(payload);
-            return res.data.data.profile;
-        } catch (error) {
-            // If profile already exists, update instead
-            if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
-                const payload = {
-                    category: data.categories?.[0] || '',
-                    promotionTypes: data.promotionTypes,
-                    priceRange: { min: parseFloat(data.priceRange.min), max: parseFloat(data.priceRange.max) },
-                    availabilityStatus: data.availabilityStatus,
-                    collaborationTypes: data.collaborationTypes,
-                    location: data.location,
-                    bio: data.bio?.trim() || '',
-                    willingToTravel: data.willingToTravel,
-                    pastExperience: data.pastExperience?.trim() || '',
-                    instagramProfileUrl: data.instagramProfileUrl?.trim() || ''
-                };
-                if (parseInt(data.followerCount) > 0) payload.followerCount = parseInt(data.followerCount);
-                if (parseFloat(data.engagementRate) > 0) payload.engagementRate = parseFloat(data.engagementRate);
-                if (data.portfolioLinks?.filter(l => l.trim()).length > 0) payload.portfolioLinks = data.portfolioLinks.filter(l => l.trim());
-
-                const res = await creatorAPI.updateProfile(payload);
+            try {
+                const res = await creatorAPI.createProfile(payload);
                 return res.data.data.profile;
+            } catch (error) {
+                // If profile already exists, update instead
+                if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
+                    const res = await creatorAPI.updateProfile(payload);
+                    return res.data.data.profile;
+                }
+                throw error;
+            }
+        } catch (error) {
+            // Provide actionable error messages
+            if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+                throw new Error('Server is warming up. Please try again in a few seconds.');
+            }
+            if (!error.response) {
+                throw new Error('Network error. Check your connection and try again.');
             }
             throw error;
         } finally {
@@ -605,22 +606,22 @@ const CreatorOnboarding = ({ onComplete }) => {
     const handleNext = async () => {
         if (phase === 0) {
             if (!validatePhase1()) return;
-            // Save Phase 1 to server
             try {
                 await saveToServer();
                 toast.success(`Profile created! ${completionPct}% complete`);
                 setPhase(1);
             } catch (err) {
-                toast.error(err.response?.data?.message || 'Failed to save');
+                console.error('[Onboarding] Save failed:', err);
+                toast.error(err.response?.data?.message || err.message || 'Failed to save');
             }
         } else if (phase === 1) {
-            // Save Phase 2 updates
             try {
                 await saveToServer();
                 toast.success('Quality signals saved!');
                 setPhase(2);
             } catch (err) {
-                toast.error(err.response?.data?.message || 'Failed to save');
+                console.error('[Onboarding] Save failed:', err);
+                toast.error(err.response?.data?.message || err.message || 'Failed to save');
             }
         }
     };
@@ -632,7 +633,8 @@ const CreatorOnboarding = ({ onComplete }) => {
             toast.success('Profile ready. Welcome aboard.');
             if (onComplete) onComplete(profile);
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to finish');
+            console.error('[Onboarding] Finish failed:', err);
+            toast.error(err.response?.data?.message || err.message || 'Failed to finish');
         }
     };
 

@@ -161,6 +161,7 @@ router.post('/profile', auth, isCreator, [
 
         const {
             instagramUsername,
+            instagramProfileUrl,
             followerCount = 0,
             engagementRate = 0,
             category,
@@ -208,8 +209,9 @@ router.post('/profile', auth, isCreator, [
             lastAnalyzed: new Date()
         };
 
-        // Only set instagramUsername if provided
+        // Only set instagram fields if provided
         if (instagramUsername) createData.instagramUsername = instagramUsername;
+        if (instagramProfileUrl) createData.instagramProfileUrl = instagramProfileUrl;
 
         // Phase 1 optional fields
         if (location) createData.location = location;
@@ -233,12 +235,9 @@ router.post('/profile', auth, isCreator, [
             console.warn('[AI Embedding] Setup error:', err.message);
         }
 
-        // Notify about insights
-        try {
-            await notifyProfileInsights(req.userId, insights);
-        } catch (err) {
-            console.error('Failed to send insights notification:', err);
-        }
+        // Notify about insights (fire-and-forget to avoid blocking response)
+        notifyProfileInsights(req.userId, insights)
+            .catch(err => console.error('Failed to send insights notification:', err));
 
         // Calculate initial risk score in background
         updateRiskScoreByUserId(req.userId).catch(err => console.error('[RiskScore] Initial calc error:', err));
@@ -293,7 +292,7 @@ router.put('/profile', auth, isCreator, [
 
         // Update fields
         const updateData = {};
-        const fields = ['instagramUsername', 'followerCount', 'engagementRate', 'category', 'bio', 'isAvailable', 'availabilityStatus', 'willingToTravel', 'pastExperience'];
+        const fields = ['instagramUsername', 'instagramProfileUrl', 'followerCount', 'engagementRate', 'category', 'bio', 'isAvailable', 'availabilityStatus', 'willingToTravel', 'pastExperience'];
         fields.forEach(f => {
             if (req.body[f] !== undefined) updateData[f] = req.body[f];
         });
