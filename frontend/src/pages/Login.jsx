@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import toast from 'react-hot-toast';
 import Confetti from '../components/common/Confetti';
 import AuthLayout from '../components/auth/AuthLayout';
@@ -93,36 +93,34 @@ const Login = () => {
         }
     };
 
-    const loginWithGoogle = useGoogleLogin({
-        flow: 'implicit',
-        onSuccess: async (tokenResponse) => {
-            setGoogleLoading(true);
-            try {
-                const user = await googleLogin({
-                    accessToken: tokenResponse.access_token
-                });
-                toast.success('Login successful!');
-                if (user.role === 'creator') {
-                    navigate('/creator/dashboard');
-                } else if (user.role === 'seller') {
-                    navigate('/seller/dashboard');
-                } else if (user.role === 'admin') {
-                    navigate('/admin');
-                }
-            } catch (error) {
-                const message = !error.response && error.message?.includes('Network')
-                    ? 'Unable to reach the server. Please try again later.'
-                    : error.response?.data?.message || 'Google login failed';
-                toast.error(message);
-            } finally {
-                setGoogleLoading(false);
+    const handleGoogleCredential = async (credential) => {
+        setGoogleLoading(true);
+        try {
+            // Decode JWT payload (Google credential is a JWT with user info)
+            const payload = JSON.parse(atob(credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            const user = await googleLogin({
+                email: payload.email,
+                name: payload.name,
+                googleId: payload.sub,
+                avatar: payload.picture,
+            });
+            toast.success('Login successful!');
+            if (user.role === 'creator') {
+                navigate('/creator/dashboard');
+            } else if (user.role === 'seller') {
+                navigate('/seller/dashboard');
+            } else if (user.role === 'admin') {
+                navigate('/admin');
             }
-        },
-        onError: () => {
-            toast.error('Google authentication was cancelled or blocked by the browser.');
+        } catch (error) {
+            const message = !error.response && error.message?.includes('Network')
+                ? 'Unable to reach the server. Please try again later.'
+                : error.response?.data?.message || 'Google login failed';
+            toast.error(message);
+        } finally {
             setGoogleLoading(false);
         }
-    });
+    };
 
     // Animation variants
     const variants = {
@@ -289,16 +287,18 @@ const Login = () => {
                 </div>
             </div>
 
-            <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                onClick={() => loginWithGoogle()}
-                disabled={googleLoading}
-                className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 dark:bg-black/20 backdrop-blur-md border border-dark-200 dark:border-dark-700 hover:bg-white/10 dark:hover:bg-dark-800 font-medium rounded-xl transition-all text-dark-900 dark:text-dark-100 group"
-            >
-                <Icon name="google" size={20} className="group-hover:text-primary-400 transition-colors" />
-                <span>Google</span>
-            </motion.button>
+            <div className="w-full flex justify-center [&>div]:w-full">
+                <GoogleLogin
+                    onSuccess={(credentialResponse) => handleGoogleCredential(credentialResponse.credential)}
+                    onError={() => toast.error('Google authentication failed')}
+                    theme={isDark ? 'filled_black' : 'outline'}
+                    size="large"
+                    shape="pill"
+                    text="continue_with"
+                    width={480}
+                    logo_alignment="center"
+                />
+            </div>
 
             <div className="mt-8 text-center text-sm text-dark-400">
                 Don't have an account?{' '}

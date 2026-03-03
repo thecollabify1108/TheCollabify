@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGoogleLogin } from '@react-oauth/google';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
@@ -139,32 +139,28 @@ const Register = () => {
         }
     };
 
-    // Google Auth — custom styled button using useGoogleLogin
-    // COOP is fixed via public/_headers (Cross-Origin-Opener-Policy: unsafe-none)
-    const loginWithGoogle = useGoogleLogin({
-        flow: 'implicit',
-        onSuccess: async (tokenResponse) => {
-            setGoogleLoading(true);
-            try {
-                const user = await googleLogin({
-                    accessToken: tokenResponse.access_token,
-                    role: formData.role || undefined
-                });
-                toast.success('Welcome to TheCollabify!');
-                if (user.role === 'creator') navigate('/creator/dashboard');
-                else if (user.role === 'seller') navigate('/seller/dashboard');
-                else if (user.role === 'admin') navigate('/admin');
-            } catch (error) {
-                toast.error(error.response?.data?.message || 'Google sign-in failed');
-            } finally {
-                setGoogleLoading(false);
-            }
-        },
-        onError: () => {
-            toast.error('Google authentication failed');
+    // Google Auth — using GoogleLogin component (iframe-based, avoids popup COOP issues)
+    const handleGoogleCredential = async (credential) => {
+        setGoogleLoading(true);
+        try {
+            const payload = JSON.parse(atob(credential.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            const user = await googleLogin({
+                email: payload.email,
+                name: payload.name,
+                googleId: payload.sub,
+                avatar: payload.picture,
+                role: formData.role || undefined
+            });
+            toast.success('Welcome to TheCollabify!');
+            if (user.role === 'creator') navigate('/creator/dashboard');
+            else if (user.role === 'seller') navigate('/seller/dashboard');
+            else if (user.role === 'admin') navigate('/admin');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Google sign-in failed');
+        } finally {
             setGoogleLoading(false);
         }
-    });
+    };
 
     // UI Helpers
     const getStepTitle = () => {
@@ -286,19 +282,18 @@ const Register = () => {
                                         </div>
                                     </div>
 
-                                    <button
-                                        type="button"
-                                        onClick={() => loginWithGoogle()}
-                                        disabled={googleLoading}
-                                        className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white/10 dark:bg-white/5 backdrop-blur-md border border-dark-700 hover:border-dark-500 hover:bg-white/15 text-dark-100 font-medium rounded-xl transition-all shadow-lg"
-                                    >
-                                        <img
-                                            src="https://img.icons8.com/color/48/google-logo.png"
-                                            alt="Google"
-                                            className="w-5 h-5 object-contain flex-shrink-0"
+                                    <div className="w-full flex justify-center [&>div]:w-full">
+                                        <GoogleLogin
+                                            onSuccess={(credentialResponse) => handleGoogleCredential(credentialResponse.credential)}
+                                            onError={() => toast.error('Google authentication failed')}
+                                            theme={isDark ? 'filled_black' : 'outline'}
+                                            size="large"
+                                            shape="pill"
+                                            text="signup_with"
+                                            width={480}
+                                            logo_alignment="center"
                                         />
-                                        <span>{googleLoading ? 'Signing in...' : 'Continue with Google'}</span>
-                                    </button>
+                                    </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
