@@ -95,7 +95,9 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                         </div>
                         <div className="flex items-center gap-3 mb-1.5">
                             <h1 className="text-base sm:text-lg md:text-xl font-bold text-white leading-tight truncate">
-                                {getGreeting()}, {userName}
+                                <span className="hidden sm:inline">{getGreeting()}, </span>
+                                <span className="sm:hidden">Hi, </span>
+                                {userName}
                             </h1>
                             {reliability && (
                                 <ReliabilityBadge
