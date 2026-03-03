@@ -33,7 +33,14 @@ router.get('/', async (req, res) => {
                 }
             },
             take: 100 // Fetch a reasonable pool for scoring
-        });
+        }).catch(() => []);
+
+        if (!creators.length) {
+            return res.json({
+                success: true,
+                data: { creators: [], period }
+            });
+        }
 
         // Calculate scores in-memory
         const scoredCreators = creators.map(profile => {

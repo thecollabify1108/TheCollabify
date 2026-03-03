@@ -67,7 +67,10 @@ export const AuthProvider = ({ children }) => {
                     setUser(freshUser);
                     cacheUser(response.data.data.user);
                 } catch (error) {
-                    console.error('Failed to fetch user:', error);
+                    // Only log real errors, not expected 401s from expired tokens
+                    if (error.response?.status !== 401 && error.response?.status !== 403) {
+                        console.warn('Auth check failed:', error.message || error);
+                    }
                     // Clear invalid token (don't call logout() to avoid circular dependency)
                     if (error.response?.status === 401 || error.response?.status === 403) {
                         localStorage.removeItem('token');

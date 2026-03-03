@@ -154,7 +154,7 @@ const Landing = () => {
                     });
                 }
             } catch (error) {
-                console.error('Failed to fetch public stats:', error);
+                // Silently use fallback stats — landing page works fine with defaults
             }
         };
         fetchStats();

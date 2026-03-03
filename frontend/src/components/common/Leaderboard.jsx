@@ -25,8 +25,8 @@ const Leaderboard = () => {
                 setCreators(response.data.data.creators);
             }
         } catch (error) {
-            console.error('Failed to fetch leaderboard', error);
-            setError(error.message || 'Failed to load leaderboard');
+            console.warn('Leaderboard unavailable:', error.message || 'network error');
+            setError('Leaderboard is temporarily unavailable');
         } finally {
             setLoading(false);
         }

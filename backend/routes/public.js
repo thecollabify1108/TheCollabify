@@ -15,15 +15,15 @@ router.get('/stats', async (req, res) => {
             activeCampaigns,
             recentUsers
         ] = await Promise.all([
-            prisma.user.count({ where: { activeRole: 'CREATOR', isActive: true } }),
-            prisma.user.count({ where: { activeRole: 'SELLER', isActive: true } }),
-            prisma.promotionRequest.count({ where: { status: 'OPEN' } }),
+            prisma.user.count({ where: { activeRole: 'CREATOR', isActive: true } }).catch(() => 0),
+            prisma.user.count({ where: { activeRole: 'SELLER', isActive: true } }).catch(() => 0),
+            prisma.promotionRequest.count({ where: { status: 'OPEN' } }).catch(() => 0),
             prisma.user.findMany({
                 where: { isActive: true },
                 orderBy: { createdAt: 'desc' },
                 take: 5,
                 select: { name: true, activeRole: true, createdAt: true }
-            })
+            }).catch(() => [])
         ]);
 
         const activities = recentUsers.map(u => ({
