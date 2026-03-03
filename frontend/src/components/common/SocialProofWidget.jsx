@@ -6,7 +6,9 @@ import api from '../../services/api';
 
 /**
  * Social Proof Widget
- * Shows real-time activity and platform statistics
+ * Shows real-time activity and platform statistics.
+ * On mobile, the 4 stat cards are tap-to-expand (accordion style).
+ * On desktop (md+) they always show their values.
  */
 const SocialProofWidget = () => {
     const [recentActivity, setRecentActivity] = useState([]);
@@ -17,8 +19,7 @@ const SocialProofWidget = () => {
         successRate: 98
     });
     const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
-
-    // Recent activities (initially empty, fetched from API)
+    const [expandedCard, setExpandedCard] = useState(null); // mobile expand state
     const [activities, setActivities] = useState([]);
 
     useEffect(() => {
@@ -37,20 +38,15 @@ const SocialProofWidget = () => {
                 console.error('Failed to fetch public stats:', error);
             }
         };
-
         fetchStats();
-
-        // Rotate through activities
         const interval = setInterval(() => {
             if (activities.length > 0) {
                 setCurrentActivityIndex(prev => (prev + 1) % activities.length);
             }
         }, 4000);
-
         return () => clearInterval(interval);
     }, [activities.length]);
 
-    // Increment stats animation (keep for visual dynamism)
     useEffect(() => {
         const interval = setInterval(() => {
             setStats(prev => ({
@@ -58,60 +54,44 @@ const SocialProofWidget = () => {
                 activeCampaigns: prev.activeCampaigns + Math.floor(Math.random() * 2)
             }));
         }, 15000);
-
         return () => clearInterval(interval);
     }, []);
 
     const getActivityIcon = (type) => {
         switch (type) {
-            case 'signup':
-                return <HiUserGroup className="text-blue-400" />;
-            case 'campaign':
-                return <HiSparkles className="text-purple-400" />;
-            case 'match':
-                return <FaFire className="text-orange-400" />;
-            case 'payment':
-                return <HiTrendingUp className="text-green-400" />;
-            default:
-                return <HiSparkles />;
+            case 'signup': return <HiUserGroup className="text-blue-400" />;
+            case 'campaign': return <HiSparkles className="text-purple-400" />;
+            case 'match': return <FaFire className="text-orange-400" />;
+            case 'payment': return <HiTrendingUp className="text-green-400" />;
+            default: return <HiSparkles />;
         }
     };
 
     const getActivityText = (activity) => {
         switch (activity.type) {
-            case 'signup':
-                return (
-                    <>
-                        <strong>{activity.user}</strong> joined as a {activity.role}
-                    </>
-                );
-            case 'campaign':
-                return (
-                    <>
-                        <strong>{activity.brand}</strong> {activity.title}
-                    </>
-                );
-            case 'match':
-                return (
-                    <>
-                        <strong>{activity.creator}</strong> matched with <strong>{activity.brand}</strong>
-                    </>
-                );
-            case 'payment':
-                return (
-                    <>
-                        <strong>{activity.creator}</strong> earned <strong className="text-green-400">{activity.amount}</strong>
-                    </>
-                );
-            default:
-                return '';
+            case 'signup': return <><strong>{activity.user}</strong> joined as a {activity.role}</>;
+            case 'campaign': return <><strong>{activity.brand}</strong> {activity.title}</>;
+            case 'match': return <><strong>{activity.creator}</strong> matched with <strong>{activity.brand}</strong></>;
+            case 'payment': return <><strong>{activity.creator}</strong> earned <strong className="text-green-400">{activity.amount}</strong></>;
+            default: return '';
         }
     };
 
     const currentActivity = recentActivity[currentActivityIndex];
 
+    const statCards = [
+        { id: 'creators', icon: <HiUserGroup className="text-primary-400 text-lg" />, label: 'Creators', value: `${stats.totalCreators.toLocaleString()}+`, accent: 'border-primary-500/50 bg-primary-500/5' },
+        { id: 'brands', icon: <HiSparkles className="text-secondary-400 text-lg" />, label: 'Brands', value: `${stats.totalBrands.toLocaleString()}+`, accent: 'border-secondary-500/50 bg-secondary-500/5' },
+        { id: 'active', icon: <FaFire className="text-orange-400 text-lg" />, label: 'Active', value: stats.activeCampaigns.toLocaleString(), accent: 'border-orange-500/50 bg-orange-500/5' },
+        { id: 'success', icon: <HiTrendingUp className="text-green-400 text-lg" />, label: 'Success', value: `${stats.successRate}%`, accent: 'border-green-500/50 bg-green-500/5' }
+    ];
+
+    const handleCardClick = (id) => {
+        setExpandedCard(prev => prev === id ? null : id);
+    };
+
     return (
-        <div className="space-y-4">
+        <div className="space-y-3">
             {/* Recent Activity Ticker */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -134,7 +114,6 @@ const SocialProofWidget = () => {
                             )}
                         </AnimatePresence>
                     </div>
-
                     <div className="flex-1 min-w-0">
                         <AnimatePresence mode="wait">
                             {currentActivity && (
@@ -150,79 +129,60 @@ const SocialProofWidget = () => {
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                        <p className="text-xs text-dark-400 mt-1">
-                            {currentActivity?.time}
-                        </p>
+                        <p className="text-xs text-dark-400 mt-1">{currentActivity?.time}</p>
                     </div>
-
                     <div className="flex items-center gap-1">
                         {activities.map((_, index) => (
-                            <div
-                                key={index}
-                                className={`h-1.5 w-1.5 rounded-full transition-colors ${index === currentActivityIndex
-                                    ? 'bg-primary-500'
-                                    : 'bg-dark-700'
-                                    }`}
-                            />
+                            <div key={index} className={`h-1.5 w-1.5 rounded-full transition-colors ${index === currentActivityIndex ? 'bg-primary-500' : 'bg-dark-700'}`} />
                         ))}
                     </div>
                 </div>
             </motion.div>
 
-            {/* Platform Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <motion.div
-                    whileTap={{ scale: 0.95 }}
-                    className="bg-dark-800 border border-dark-700 rounded-xl p-4 shadow-lg"
-                >
-                    <div className="flex items-center gap-2 mb-2">
-                        <HiUserGroup className="text-primary-400 text-xl" />
-                        <span className="text-xs text-dark-400 group-hover:text-dark-300">Creators</span>
-                    </div>
-                    <p className="text-2xl font-bold text-dark-100">
-                        {stats.totalCreators.toLocaleString()}+
-                    </p>
-                </motion.div>
+            {/* Platform Stats Grid — tap to expand on mobile */}
+            <div className="flex gap-2">
+                {statCards.map(card => {
+                    const isExpanded = expandedCard === card.id;
+                    const isShrunk = expandedCard !== null && !isExpanded;
+                    return (
+                        <motion.button
+                            key={card.id}
+                            onClick={() => handleCardClick(card.id)}
+                            animate={{ flex: isExpanded ? 2.5 : isShrunk ? 0.55 : 1 }}
+                            transition={{ duration: 0.28, ease: 'easeInOut' }}
+                            className={`overflow-hidden border rounded-xl p-2.5 text-left transition-colors md:flex-1 ${isExpanded ? card.accent : 'bg-dark-800 border-dark-700 hover:border-dark-600'}`}
+                            style={{ minWidth: 0 }}
+                        >
+                            {/* Icon + label row */}
+                            <div className="flex items-center gap-1 mb-1">
+                                {card.icon}
+                                <span className={`text-dark-400 font-medium leading-none transition-all duration-200 truncate ${isShrunk ? 'text-[8px]' : 'text-[11px]'}`}>
+                                    {card.label}
+                                </span>
+                            </div>
 
-                <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="bg-dark-800 border border-dark-700 rounded-xl p-4 shadow-lg"
-                >
-                    <div className="flex items-center gap-2 mb-2">
-                        <HiSparkles className="text-secondary-400 text-xl" />
-                        <span className="text-xs text-dark-400">Brands</span>
-                    </div>
-                    <p className="text-2xl font-bold text-dark-100">
-                        {stats.totalBrands.toLocaleString()}+
-                    </p>
-                </motion.div>
-
-                <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="bg-dark-800 border border-dark-700 rounded-xl p-4 shadow-lg"
-                >
-                    <div className="flex items-center gap-2 mb-2">
-                        <FaFire className="text-orange-400 text-xl" />
-                        <span className="text-xs text-dark-400">Active</span>
-                    </div>
-                    <p className="text-2xl font-bold text-dark-100">
-                        {stats.activeCampaigns.toLocaleString()}
-                    </p>
-                </motion.div>
-
-                <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="bg-dark-800 border border-dark-700 rounded-xl p-4 shadow-lg"
-                >
-                    <div className="flex items-center gap-2 mb-2">
-                        <HiTrendingUp className="text-green-400 text-xl" />
-                        <span className="text-xs text-dark-400">Success</span>
-                    </div>
-                    <p className="text-2xl font-bold text-dark-100">
-                        {stats.successRate}%
-                    </p>
-                </motion.div>
+                            {/* Value: animated in on mobile when expanded, always visible on desktop */}
+                            <AnimatePresence>
+                                {isExpanded && (
+                                    <motion.p
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="text-lg font-bold text-dark-100 md:hidden"
+                                    >
+                                        {card.value}
+                                    </motion.p>
+                                )}
+                            </AnimatePresence>
+                            {/* Desktop always shows the value */}
+                            <p className="hidden md:block text-2xl font-bold text-dark-100">{card.value}</p>
+                        </motion.button>
+                    );
+                })}
             </div>
+            {/* Mobile hint */}
+            <p className="text-center text-dark-500 text-[10px] md:hidden">Tap a card to see the number</p>
         </div>
     );
 };

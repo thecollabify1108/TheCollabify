@@ -47,13 +47,11 @@ const ForgotPassword = () => {
     const handleSendOTP = async (e) => {
         e.preventDefault();
         setLoading(true);
-
         try {
-            const response = await api.post('auth/password-reset/send-otp', { email });
-
+            const response = await api.post('auth/forgot-password', { email });
             if (response.data.success) {
-                setTempUserId(response.data.data.tempUserId);
-                setOtpTimer(response.data.data.expiresIn);
+                setTempUserId(email); // store email as tempUserId for later
+                setOtpTimer(response.data.data?.expiresIn || 600);
                 setResetStep(2);
                 setCanResend(false);
                 toast.success('Reset code sent. Check your email');
@@ -68,24 +66,15 @@ const ForgotPassword = () => {
     // Step 2: Verify OTP
     const handleVerifyOTP = async () => {
         const otpCode = otp.join('');
-
         if (otpCode.length !== 6) {
             toast.error('Please enter complete OTP');
             return;
         }
-
         setOtpLoading(true);
-
         try {
-            const response = await api.post('auth/password-reset/verify-otp', {
-                tempUserId,
-                otp: otpCode
-            });
-
-            if (response.data.success) {
-                setResetStep(3);
-                toast.success('OTP verified. Set your new password');
-            }
+            // For the new flow, verification happens on reset - just move to step 3
+            setResetStep(3);
+            toast.success('Code accepted. Set your new password');
         } catch (error) {
             toast.error(error.response?.data?.message || 'Invalid OTP');
             setOtp(['', '', '', '', '', '']);
@@ -97,41 +86,29 @@ const ForgotPassword = () => {
     // Step 3: Reset password
     const handleResetPassword = async (e) => {
         e.preventDefault();
-
         if (newPassword !== confirmPassword) {
             toast.error('Passwords do not match');
             return;
         }
-
-        if (newPassword.length < 6) {
-            toast.error('Password must be at least 6 characters');
+        if (newPassword.length < 8) {
+            toast.error('Password must be at least 8 characters');
             return;
         }
-
         setLoading(true);
-
         try {
-            const response = await api.post('auth/password-reset/reset', {
-                tempUserId,
+            const otpCode = otp.join('');
+            const response = await api.post('auth/reset-password', {
+                email,
+                otp: otpCode,
                 newPassword
             });
-
             if (response.data.success) {
-                // Store token
-                localStorage.setItem('token', response.data.data.token);
-
-                toast.success('Password reset successful. Logging you in...');
-
-                setTimeout(() => {
-                    if (response.data.data.user.role === 'creator') {
-                        navigate('/creator/dashboard');
-                    } else {
-                        navigate('/seller/dashboard');
-                    }
-                }, 1000);
+                toast.success('Password reset successful. Redirecting to login...');
+                setTimeout(() => navigate('/login'), 1500);
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to reset password');
+            toast.error(error.response?.data?.message || 'Failed to reset password. Code may have expired.');
+            setResetStep(2); // go back to OTP step
         } finally {
             setLoading(false);
         }
@@ -141,11 +118,10 @@ const ForgotPassword = () => {
         if (!canResend) return;
 
         try {
-            const response = await api.post('auth/password-reset/send-otp', { email });
+            const response = await api.post('auth/forgot-password', { email });
 
             if (response.data.success) {
-                setTempUserId(response.data.data.tempUserId);
-                setOtpTimer(response.data.data.expiresIn);
+                setOtpTimer(response.data.data?.expiresIn || 600);
                 setCanResend(false);
                 setOtp(['', '', '', '', '', '']);
                 toast.success('New code sent.');

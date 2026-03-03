@@ -1185,4 +1185,78 @@ router.post('/upload-avatar', auth, upload.single('avatar'), async (req, res) =>
     }
 });
 
+// ============================================================
+// FORGOT PASSWORD - Send OTP to email
+// ============================================================
+router.post('/forgot-password', [
+    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        // Check if user exists
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) {
+            // Don't reveal if email exists for security
+            return res.json({
+                success: true,
+                message: 'If this email is registered, you will receive a reset code.'
+            });
+        }
+
+        // Use existing OTP service (Brevo sends the email)
+        const result = await createAndSendOTP(email, user.name, 'password_reset');
+
+        res.json({
+            success: true,
+            message: 'Password reset code sent to your email. Check your inbox.',
+            data: { expiresIn: result.expiresIn }
+        });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to send reset code. Please try again.'
+        });
+    }
+});
+
+// ============================================================
+// RESET PASSWORD - Verify OTP and update password
+// ============================================================
+router.post('/reset-password', [
+    body('email').isEmail().normalizeEmail(),
+    body('otp').isLength({ min: 6, max: 6 }).withMessage('Invalid OTP'),
+    body('newPassword').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 }).withMessage('Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        // Verify OTP
+        const otpResult = await verifyOTP(email, otp, 'password_reset');
+        if (!otpResult.success) {
+            return res.status(400).json({ success: false, message: otpResult.message });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+        // Update user password
+        await prisma.user.update({
+            where: { email },
+            data: { password: hashedPassword }
+        });
+
+        res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to reset password. Please try again.'
+        });
+    }
+});
+
 module.exports = router;

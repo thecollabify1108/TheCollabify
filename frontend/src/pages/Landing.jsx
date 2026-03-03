@@ -21,6 +21,8 @@ const Landing = () => {
     const { user, isAuthenticated } = useAuth();
     const [showScrollTop, setShowScrollTop] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [openAccordion, setOpenAccordion] = useState(null);
+    const toggleAccordion = (id) => setOpenAccordion(prev => prev === id ? null : id);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -204,15 +206,12 @@ const Landing = () => {
                 <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-950/80 backdrop-blur-xl border-b border-dark-800">
                     <div className="max-w-7xl mx-auto px-s2 sm:px-s3 lg:px-s4">
                         <div className="flex items-center justify-between h-16">
-                            {/* Logo */}
-                            <Link to="/" className="flex items-center space-x-s2 md:space-x-s3 group">
-                                <Logo className="h-8 w-8 object-contain transition-all duration-300 group-hover:rotate-12 group-hover:scale-110" />
-                                <div className="flex flex-col">
-                                    <div className="flex items-baseline">
-                                        <span className="text-small italic text-dark-100 mr-1">The</span>
-                                        <span className="text-body font-bold text-dark-100">Collabify</span>
-                                    </div>
-                                    <span className="text-xs-pure text-dark-400 -mt-1 tracking-wide hidden sm:block">Collaboration Intelligence Platform</span>
+                            {/* Logo — centered on mobile, left on desktop */}
+                            <Link to="/" className="flex items-center gap-2 group absolute left-1/2 -translate-x-1/2 lg:static lg:left-auto lg:translate-x-0">
+                                <Logo className="h-7 w-7 object-contain transition-all duration-300 group-hover:rotate-12 group-hover:scale-110 flex-shrink-0" />
+                                <div className="flex items-baseline leading-none">
+                                    <span className="text-small italic text-dark-100">The</span>
+                                    <span className="text-body font-bold text-dark-100 ml-0.5">Collabify</span>
                                 </div>
                             </Link>
 
@@ -383,9 +382,9 @@ const Landing = () => {
                             and fraud detection — built on real collaboration data.
                         </motion.p>
 
-                        {/* Two CTA Buttons - VRInfluence Style */}
+                        {/* CTA Buttons — hidden on mobile (sticky bar handles it), shown on desktop */}
                         <motion.div
-                            className="flex flex-col sm:flex-row items-center justify-center gap-s3"
+                            className="hidden sm:flex flex-col sm:flex-row items-center justify-center gap-s3"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.3 }}
@@ -445,7 +444,7 @@ const Landing = () => {
                 </section>
 
                 {/* AI Transparency - Trust & Learning Loop */}
-                <section className="py-24 px-s2 relative bg-dark-900 border-t border-dark-800/50">
+                <section className="pt-8 pb-16 px-s2 relative bg-dark-900 border-t border-dark-800/50">
                     <div className="max-w-5xl mx-auto">
                         <div className="text-center mb-s12">
                             <span className="text-emerald-400 text-xs-pure font-bold tracking-widest uppercase mb-s3 block">Transparency First</span>
@@ -462,7 +461,75 @@ const Landing = () => {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-s12 items-center">
+                        {/* --- Mobile: Accordion cards for the 3 subsections --- */}
+                        <div className="lg:hidden space-y-3 mt-6">
+                            {/* 1. The 3 Core Signals */}
+                            <div className="bg-dark-800/50 border border-dark-700/50 rounded-2xl overflow-hidden">
+                                <button
+                                    onClick={() => toggleAccordion('signals')}
+                                    className="w-full flex items-center justify-between p-4 text-left"
+                                >
+                                    <span className="text-body font-bold text-dark-100">The 3 Core Signals</span>
+                                    <span className={`text-dark-400 transition-transform duration-200 ${openAccordion === 'signals' ? 'rotate-180' : ''}`}>▼</span>
+                                </button>
+                                <AnimatePresence>
+                                    {openAccordion === 'signals' && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.25 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="px-4 pb-4 space-y-4">
+                                                {[{ n: '1', title: 'Deep Relevance', desc: 'Semantic embeddings analyze content style, brand values, and audience overlap — not just keyword matching.' }, { n: '2', title: 'Creator Quality Index', desc: 'Composite CQI score from content quality, engagement authenticity, delivery reliability, and collaboration history.' }, { n: '3', title: 'Fraud Detection', desc: 'Multi-signal fraud scoring detects fake followers, engagement manipulation, and suspicious growth patterns in real time.' }].map(sig => (
+                                                    <div key={sig.n} className="flex gap-3">
+                                                        <div className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center text-primary-400 font-bold border border-dark-600 flex-shrink-0 text-sm">{sig.n}</div>
+                                                        <div>
+                                                            <h4 className="text-small font-bold text-dark-100">{sig.title}</h4>
+                                                            <p className="text-dark-400 text-xs leading-relaxed mt-0.5">{sig.desc}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* 2. The Learning Loop */}
+                            <div className="bg-dark-800/50 border border-dark-700/50 rounded-2xl overflow-hidden">
+                                <button
+                                    onClick={() => toggleAccordion('loop')}
+                                    className="w-full flex items-center justify-between p-4 text-left"
+                                >
+                                    <span className="text-body font-bold text-dark-100">The Learning Loop</span>
+                                    <span className={`text-dark-400 transition-transform duration-200 ${openAccordion === 'loop' ? 'rotate-180' : ''}`}>▼</span>
+                                </button>
+                                <AnimatePresence>
+                                    {openAccordion === 'loop' && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.25 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="px-4 pb-4 space-y-2 text-dark-300 text-sm">
+                                                <div className="flex items-center gap-2">🤝 <span>Match Made</span></div>
+                                                <div className="flex items-center gap-2">📊 <span>Campaign Data Collected</span></div>
+                                                <div className="flex items-center gap-2">💬 <span>Feedback Recorded</span></div>
+                                                <div className="flex items-center gap-2">📈 <span>AI Gets Smarter Next Time</span></div>
+                                                <p className="text-dark-400 text-xs mt-3">It's a decision <strong className="text-white">assistant</strong>, not a replacement. You always have the final say.</p>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </div>
+
+                        {/* --- Desktop: Original 2-column layout --- */}
+                        <div className="hidden lg:grid grid-cols-2 gap-s12 items-center">
                             {/* Left: The Signals */}
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
@@ -564,7 +631,43 @@ const Landing = () => {
                             </p>
                         </motion.div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-s8 text-left">
+                        {/* Mobile accordion for the 3 problems */}
+                        <div className="md:hidden space-y-2 text-left mt-4">
+                            {[
+                                { id: 'broken', emoji: 'X', emojiColor: 'text-red-400', title: 'Manual Discovery is Broken', desc: 'Scrolling through hashtags and DMing creators is a full-time job. You need instant, data-backed matches, not a lucky guess.' },
+                                { id: 'trust', emoji: '⚠️', emojiColor: 'text-amber-400', title: 'Trust is Hard to Verify', desc: "Fake followers and inflated numbers are everywhere. We verify every single datapoint so you don't have to worry about fraud." },
+                                { id: 'ai', emoji: '//', emojiColor: 'text-primary-400', title: 'AI is the Natural Step', desc: 'Technology should handle the logistics—contracts, payments, and matching—so you can focus on creating the actual content.' },
+                            ].map(item => (
+                                <div key={item.id} className="bg-dark-800/30 border border-dark-700/50 rounded-xl overflow-hidden">
+                                    <button
+                                        onClick={() => toggleAccordion(`prob-${item.id}`)}
+                                        className="w-full flex items-center justify-between px-4 py-3 text-left"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className={`font-bold text-base ${item.emojiColor}`}>{item.emoji}</span>
+                                            <span className="text-small font-bold text-dark-100">{item.title}</span>
+                                        </div>
+                                        <span className={`text-dark-400 text-xs transition-transform duration-200 ${openAccordion === `prob-${item.id}` ? 'rotate-180' : ''}`}>▼</span>
+                                    </button>
+                                    <AnimatePresence>
+                                        {openAccordion === `prob-${item.id}` && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.22 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <p className="px-4 pb-3 text-dark-400 text-xs leading-relaxed">{item.desc}</p>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop: original 3-column grid */}
+                        <div className="hidden md:grid grid-cols-3 gap-s8 text-left">
                             <motion.div
                                 className="p-s6 rounded-premium-2xl bg-dark-800/20 border border-dark-700/50"
                                 initial={{ opacity: 0, y: 20 }}
@@ -607,6 +710,7 @@ const Landing = () => {
                                 </p>
                             </motion.div>
                         </div>
+
                     </div>
                 </section>
 
@@ -1004,25 +1108,28 @@ const Landing = () => {
                     </div>
                 </footer>
 
-                {/* Floating Mobile CTA Bar - High Conversion */}
+                {/* Compact Sticky Mobile CTA Bar */}
                 <motion.div
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 1, duration: 0.5 }}
-                    className="fixed bottom-0 left-0 right-0 md:hidden bg-dark-900/95 backdrop-blur-xl border-t border-dark-700 p-4 z-50"
+                    transition={{ delay: 1, duration: 0.4 }}
+                    className="fixed bottom-0 left-0 right-0 md:hidden z-50"
+                    style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
                 >
-                    <div className="flex gap-3">
+                    <div className="bg-dark-950/95 backdrop-blur-xl border-t border-dark-800/80 px-4 py-2.5 flex gap-2">
                         <Link
                             to="/register?role=creator"
-                            className="flex-1 text-center py-3 px-4 rounded-xl bg-dark-800 border border-dark-600 hover:border-primary-500 text-dark-100 font-semibold transition-all"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-dark-800 border border-dark-600 text-dark-100 text-sm font-semibold transition-all active:scale-95"
                         >
-                            I'm a Creator
+                            <Icon name="user" size={14} className="text-primary-400" />
+                            Creator
                         </Link>
                         <Link
                             to="/register?role=seller"
-                            className="flex-1 text-center py-3 px-4 rounded-xl bg-primary-500 text-white font-semibold hover:bg-primary-600 transition shadow-lg shadow-primary-500/30"
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-semibold shadow-lg shadow-primary-500/20 transition-all active:scale-95"
                         >
-                            I'm a Brand
+                            <Icon name="building" size={14} />
+                            Brand
                         </Link>
                     </div>
                 </motion.div>
