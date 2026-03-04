@@ -58,16 +58,40 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
 
-  <!-- Trusted Types default policy — allows dynamic script.src assignments
-       from Google Analytics, Simple Analytics, etc. without browser blocking -->
+  <!-- Trusted Types default policy — allows dynamic script.src from trusted CDNs -->
   <script>
-    if (window.trustedTypes && window.trustedTypes.createPolicy) {
-      window.trustedTypes.createPolicy('default', {
-        createScriptURL: function(url) { return url; },
-        createHTML: function(html) { return html; },
-        createScript: function(script) { return script; }
-      });
-    }
+    (function () {
+      if (!window.trustedTypes || !window.trustedTypes.createPolicy) return;
+      // Only create if 'default' policy not already registered
+      try {
+        window.trustedTypes.createPolicy('default', {
+          createScriptURL: function (url) {
+            // Allow specific trusted origins
+            var allowed = [
+              'https://www.googletagmanager.com',
+              'https://www.google-analytics.com',
+              'https://scripts.simpleanalyticscdn.com',
+              'https://fonts.googleapis.com',
+              'https://fonts.gstatic.com',
+              'https://accounts.google.com',
+              'https://apis.google.com',
+            ];
+            try {
+              var parsed = new URL(url, window.location.origin);
+              for (var i = 0; i < allowed.length; i++) {
+                if (parsed.href.startsWith(allowed[i])) return url;
+              }
+              // Allow same-origin URLs (our own assets)
+              if (parsed.origin === window.location.origin) return url;
+            } catch (e) { /* relative URL — allow */ return url; }
+            console.warn('[TrustedTypes] Blocked script URL:', url);
+            throw new TypeError('Untrusted script URL: ' + url);
+          },
+          createHTML: function (html) { return html; },
+          createScript: function (script) { return script; }
+        });
+      } catch (e) { /* policy already exists */ }
+    })();
   </script>
 
   <!-- Google Analytics 4 -->
@@ -85,7 +109,17 @@
       var saScript = document.createElement('script');
       saScript.async = true;
       saScript.defer = true;
-      saScript.src = 'https://scripts.simpleanalyticscdn.com/latest.js';
+      var saUrl = 'https://scripts.simpleanalyticscdn.com/latest.js';
+      // Use Trusted Types policy if available, otherwise assign directly
+      try {
+        if (window.trustedTypes && window.trustedTypes.defaultPolicy) {
+          saScript.src = window.trustedTypes.defaultPolicy.createScriptURL(saUrl);
+        } else {
+          saScript.src = saUrl;
+        }
+      } catch (e) {
+        saScript.src = saUrl;
+      }
       document.head.appendChild(saScript);
     }
   </script>
