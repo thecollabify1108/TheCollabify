@@ -1259,4 +1259,117 @@ router.post('/reset-password', [
     }
 });
 
+/**
+ * @route   POST /api/auth/google
+ * @desc    Authenticate with Google OAuth (find or create user)
+ * @access  Public
+ */
+router.post('/google', [
+    body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+    body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
+    body('googleId').trim().isLength({ min: 1 }).withMessage('Google ID is required'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { email, name, googleId, avatar, role } = req.body;
+
+        // Find existing user by email OR googleId
+        let user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email },
+                    { googleId }
+                ]
+            },
+            include: { roles: true }
+        });
+
+        if (user) {
+            // User exists — update googleId if missing, add role if needed
+            const updateData = {};
+            if (!user.googleId) updateData.googleId = googleId;
+            if (!user.avatar && avatar) updateData.avatar = avatar;
+            if (!user.emailVerified) updateData.emailVerified = true;
+
+            // Add role if user doesn't already have it
+            if (role && user.roles) {
+                const hasRole = user.roles.some(r => r.type === role.toUpperCase());
+                if (!hasRole) {
+                    await prisma.role.create({
+                        data: {
+                            type: role.toUpperCase(),
+                            userId: user.id
+                        }
+                    });
+                }
+            }
+
+            if (Object.keys(updateData).length > 0) {
+                user = await prisma.user.update({
+                    where: { id: user.id },
+                    data: updateData,
+                    include: { roles: true }
+                });
+            }
+
+            // Set active role
+            const activeRole = role
+                ? role.toLowerCase()
+                : (user.activeRole ? user.activeRole.toLowerCase() : (user.roles[0]?.type?.toLowerCase() || 'creator'));
+
+            if (user.activeRole !== activeRole.toUpperCase()) {
+                user = await prisma.user.update({
+                    where: { id: user.id },
+                    data: { activeRole: activeRole.toUpperCase() },
+                    include: { roles: true }
+                });
+            }
+
+        } else {
+            // New user — create with Google
+            const selectedRole = (role || 'creator').toUpperCase();
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    name,
+                    googleId,
+                    avatar: avatar || null,
+                    emailVerified: true,
+                    activeRole: selectedRole,
+                    password: null,
+                    roles: {
+                        create: [{ type: selectedRole }]
+                    }
+                },
+                include: { roles: true }
+            });
+
+            // Send welcome notification (non-blocking)
+            try { await notifyWelcome(user.id, user.name); } catch (_) { }
+        }
+
+        const token = generateToken(user.id, user.activeRole?.toLowerCase() || 'creator');
+        setCookieToken(res, token);
+
+        return res.json({
+            success: true,
+            message: 'Google authentication successful',
+            data: {
+                token,
+                user: sanitizeUser({
+                    ...user,
+                    role: user.activeRole?.toLowerCase() || 'creator'
+                })
+            }
+        });
+
+    } catch (error) {
+        console.error('Google auth error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Google authentication failed. Please try again.'
+        });
+    }
+});
+
 module.exports = router;
