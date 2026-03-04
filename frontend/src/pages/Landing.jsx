@@ -947,33 +947,33 @@ const Landing = () => {
                 <FAQAccordion />
 
                 {/* Final CTA Section */}
-                <section className="py-28 md:py-32 px-s2 relative">
-                    <div className="max-w-4xl mx-auto">
+                <section className="py-10 md:py-14 px-s2 relative">
+                    <div className="max-w-3xl mx-auto">
                         <motion.div
-                            className="glass-card p-s12 md:p-s12 text-center relative overflow-hidden shadow-premium"
+                            className="glass-card p-8 md:p-12 text-center relative overflow-hidden shadow-premium"
                             initial={{ opacity: 0, scale: 0.95 }}
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5 }}
                         >
                             <div className="relative z-10">
-                                <Icon name="handshake" size={64} className="text-primary-400 mx-auto mb-s6" />
-                                <h2 className="text-h2 md:text-h1 font-bold mb-s6 text-dark-100">
+                                <Icon name="handshake" size={44} className="text-primary-400 mx-auto mb-4" />
+                                <h2 className="text-xl md:text-h2 font-bold mb-3 text-dark-100">
                                     Ready to Start Collaborating?
                                 </h2>
-                                <p className="text-dark-400 text-body md:text-h3 mb-s12 max-w-xl mx-auto font-medium">
-                                    Join the intelligence layer powering creator commerce. Every collaboration makes the system smarter.
+                                <p className="text-dark-400 text-xs md:text-small mb-8 max-w-md mx-auto">
+                                    Join the intelligence layer powering creator commerce.
                                 </p>
-                                <div className="flex flex-col sm:flex-row items-center justify-center gap-s4">
+                                <div className="flex flex-row items-center justify-center gap-3">
                                     <button
                                         onClick={() => navigate('/register')}
-                                        className="btn-3d text-body px-s8 py-s4"
+                                        className="flex-1 max-w-[180px] py-3 rounded-xl bg-gradient-to-r from-primary-600 to-secondary-600 text-white text-sm font-bold shadow-lg shadow-primary-500/25 transition-all active:scale-95 hover:shadow-xl hover:shadow-primary-500/30"
                                     >
                                         Create Free Account
                                     </button>
                                     <button
                                         onClick={() => navigate('/login')}
-                                        className="btn-secondary text-body px-s8 py-s4"
+                                        className="flex-1 max-w-[180px] py-3 rounded-xl bg-gradient-to-r from-dark-700 to-dark-600 border border-dark-500 text-dark-100 text-sm font-bold transition-all active:scale-95 hover:border-primary-500/50 hover:from-dark-600 hover:to-dark-500"
                                     >
                                         Login
                                     </button>
@@ -984,17 +984,17 @@ const Landing = () => {
                 </section>
 
                 {/* About Section */}
-                <section id="about" className="py-28 md:py-32 px-s2 relative">
+                <section id="about" className="py-10 md:py-14 px-s2 relative">
                     <div className="max-w-7xl mx-auto">
                         <motion.div
                             initial={{ opacity: 0, y: 30 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.6 }}
-                            className="grid grid-cols-1 lg:grid-cols-2 gap-s12 items-center"
+                            className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
                         >
                             {/* Image Side */}
-                            <div className="relative">
+                            <div className="relative hidden md:block">
                                 <div className="relative rounded-premium-2xl overflow-hidden">
                                     <img
                                         src="/favicon.png"
@@ -1002,38 +1002,39 @@ const Landing = () => {
                                         className="w-full h-auto max-w-md mx-auto opacity-80"
                                     />
                                 </div>
-                                {/* Decorative Elements */}
                                 <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-gradient-to-br from-primary-500/20 to-secondary-500/20 rounded-full blur-xl"></div>
                                 <div className="absolute -top-4 -left-4 w-32 h-32 bg-gradient-to-br from-secondary-500/20 to-violet-500/20 rounded-full blur-xl"></div>
                             </div>
 
                             {/* Content Side */}
                             <div>
-                                <span className="text-primary-400 text-xs-pure font-bold tracking-widest uppercase mb-s2 block">About</span>
-                                <h2 className="text-h2 md:text-h1 font-bold text-dark-100 mb-s6">
+                                <span className="text-primary-400 text-xs-pure font-bold tracking-widest uppercase mb-2 block">About</span>
+                                <h2 className="text-xl md:text-h2 font-bold text-dark-100 mb-4">
                                     The Collabify
                                 </h2>
-                                <p className="text-dark-300 text-body leading-relaxed mb-s8">
-                                    The Collabify is an AI collaboration intelligence platform that goes beyond matching.
-                                    We provide predictive analytics, quality scoring, fraud detection, and adaptive
+                                <p className="text-dark-300 text-xs md:text-small leading-relaxed mb-4">
+                                    The Collabify is an AI collaboration intelligence platform. We provide predictive analytics, quality scoring, fraud detection, and adaptive
                                     learning — infrastructure that gets smarter with every collaboration.
                                 </p>
-                                <p className="text-dark-400 text-body leading-relaxed mb-s8">
+                                <p className="text-dark-400 text-xs md:text-small leading-relaxed mb-6">
                                     Our self-improving AI engine processes real collaboration outcomes to continuously
-                                    refine match quality, predict campaign performance, and surface authentic creators.
+                                    refine match quality and surface authentic creators.
                                 </p>
-                                <div className="flex flex-wrap gap-s12">
+                                {/* Stats — all 3 on one row */}
+                                <div className="flex flex-row items-center gap-6">
                                     <div className="text-center">
-                                        <div className="text-h1 font-bold text-primary-400">{stats.totalCreators}</div>
-                                        <div className="text-dark-400 text-xs-pure font-bold uppercase tracking-wider">Creators</div>
+                                        <div className="text-xl md:text-h2 font-extrabold text-primary-400">{stats.totalCreators}</div>
+                                        <div className="text-dark-400 text-[10px] font-bold uppercase tracking-wider">Creators</div>
                                     </div>
+                                    <div className="w-px h-8 bg-dark-700 flex-shrink-0"></div>
                                     <div className="text-center">
-                                        <div className="text-h1 font-bold text-secondary-400">{stats.totalBrands}</div>
-                                        <div className="text-dark-400 text-xs-pure font-bold uppercase tracking-wider">Brands</div>
+                                        <div className="text-xl md:text-h2 font-extrabold text-secondary-400">{stats.totalBrands}</div>
+                                        <div className="text-dark-400 text-[10px] font-bold uppercase tracking-wider">Brands</div>
                                     </div>
+                                    <div className="w-px h-8 bg-dark-700 flex-shrink-0"></div>
                                     <div className="text-center">
-                                        <div className="text-h1 font-bold text-pink-400">{stats.activeCampaigns}</div>
-                                        <div className="text-dark-400 text-xs-pure font-bold uppercase tracking-wider">Campaigns</div>
+                                        <div className="text-xl md:text-h2 font-extrabold text-pink-400">{stats.activeCampaigns}</div>
+                                        <div className="text-dark-400 text-[10px] font-bold uppercase tracking-wider">Campaigns</div>
                                     </div>
                                 </div>
                             </div>
