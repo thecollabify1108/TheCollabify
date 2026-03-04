@@ -69,25 +69,26 @@ export const AuthProvider = ({ children }) => {
 
             if (currentToken) {
                 try {
-                    // Use a short 10s timeout for auth/me — if backend is cold-starting
-                    // we already have a cached user so we don't need to block the UI.
-                    const response = await api.get('auth/me', { timeout: 10000 });
+                    // 25s timeout — Azure cold start can take 15-20s on free/basic tier
+                    const response = await api.get('auth/me', { timeout: 25000 });
                     const freshUser = normalizeUser(response.data.data.user);
                     setUser(freshUser);
                     cacheUser(response.data.data.user);
                 } catch (error) {
-                    // Only log real errors, not expected 401s from expired tokens
-                    if (error.response?.status !== 401 && error.response?.status !== 403) {
-                        console.warn('Auth check failed:', error.message || error);
-                    }
-                    // Clear invalid token (don't call logout() to avoid circular dependency)
-                    if (error.response?.status === 401 || error.response?.status === 403) {
+                    const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ERR_CANCELED' || error.message?.includes('timeout');
+                    const isAuthError = error.response?.status === 401 || error.response?.status === 403;
+
+                    if (isAuthError) {
+                        // Token is invalid — clear it
                         localStorage.removeItem('token');
                         sessionStorage.removeItem('cachedUser');
                         setToken(null);
                         setUser(null);
+                    } else if (!isTimeout) {
+                        // Only log unexpected errors, not cold-start timeouts
+                        console.warn('Auth check failed:', error.message || error);
                     }
-                    // For network errors (e.g. cold start timeout), keep the cached user and token
+                    // For timeouts: silently keep the cached user — backend is waking up
                 }
             }
             setLoading(false);
