@@ -20,12 +20,15 @@ const Leaderboard = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await publicAPI.getLeaderboard({ period, limit: 10 });
+            const response = await publicAPI.getLeaderboard({ period, limit: 10 }, { timeout: 8000 });
             if (response.data.success) {
                 setCreators(response.data.data.creators);
             }
         } catch (error) {
-            console.warn('Leaderboard unavailable:', error.message || 'network error');
+            const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+            if (!isTimeout) {
+                console.warn('Leaderboard unavailable:', error.message || 'network error');
+            }
             setError('Leaderboard is temporarily unavailable');
         } finally {
             setLoading(false);
