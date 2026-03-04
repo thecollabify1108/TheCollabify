@@ -604,6 +604,7 @@
 .light-theme .gradient-text {
   background-image: linear-gradient(135deg, #4338ca, #6d28d9) !important;
   -webkit-background-clip: text !important;
+  background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
 }
 

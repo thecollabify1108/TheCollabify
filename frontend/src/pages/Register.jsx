@@ -104,7 +104,7 @@ const Register = () => {
                 name: formData.name,
                 password: formData.password,
                 role: formData.role
-            });
+            }, { timeout: 35000 }); // 35s — Azure backend can take 15-20s on cold start
 
             if (response.data.success) {
                 setTempUserId(response.data.data.tempUserId);
@@ -114,7 +114,12 @@ const Register = () => {
                 toast.success('Code sent! Check your email.');
             }
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to register');
+            const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+            if (isTimeout) {
+                toast.error('Server is waking up — please wait 10 seconds then try again.', { duration: 5000 });
+            } else {
+                toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
