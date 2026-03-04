@@ -22,6 +22,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import GoogleCallback from './pages/GoogleCallback';
 
 // Pages - Errors (load immediately for better UX)
 import NotFound from './pages/NotFound';
@@ -161,6 +162,8 @@ function App() {
                     />
                     <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
                     <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
+                    {/* Google OAuth callback — handles redirect return from Google */}
+                    <Route path="/auth/google/callback" element={<GoogleCallback />} />
                     <Route path="/for-brands" element={<PageTransition><ForBrands /></PageTransition>} />
                     <Route path="/for-creators" element={<PageTransition><ForCreators /></PageTransition>} />
                     <Route path="/terms" element={<PageTransition><TermsConditions /></PageTransition>} />

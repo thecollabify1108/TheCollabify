@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import toast from 'react-hot-toast';
@@ -146,39 +145,24 @@ const Register = () => {
         }
     };
 
-    // Google Auth — using useGoogleLogin hook (avoids GSI credential button webview restriction)
-    const handleGoogleLogin = useGoogleLogin({
-        flow: 'implicit',
-        onSuccess: async (tokenResponse) => {
-            setGoogleLoading(true);
-            try {
-                // Fetch user profile from Google using the access token
-                const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                    headers: { Authorization: `Bearer ${tokenResponse.access_token}` }
-                });
-                const profile = await resp.json();
-                const user = await googleLogin({
-                    email: profile.email,
-                    name: profile.name,
-                    googleId: profile.sub,
-                    avatar: profile.picture,
-                    role: formData.role || undefined
-                });
-                toast.success('Welcome to TheCollabify!');
-                if (user.role === 'creator') navigate('/creator/dashboard');
-                else if (user.role === 'seller') navigate('/seller/dashboard');
-                else if (user.role === 'admin') navigate('/admin');
-            } catch (error) {
-                toast.error(error.response?.data?.message || 'Google sign-in failed');
-            } finally {
-                setGoogleLoading(false);
-            }
-        },
-        onError: () => {
-            toast.error('Google authentication failed. Please try again.');
-            setGoogleLoading(false);
-        }
-    });
+    // Google Auth — full-page redirect (no popup = no COOP issues)
+    const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
+        || '223460533138-nkmmomsvj3nvjd8geg77gdp2rqho3o22.apps.googleusercontent.com';
+
+    const handleGoogleLogin = () => {
+        const redirectUri = `${window.location.origin}/auth/google/callback`;
+        const state = formData.role ? `role:${formData.role}` : 'role:';
+        const params = new URLSearchParams({
+            client_id: GOOGLE_CLIENT_ID,
+            redirect_uri: redirectUri,
+            response_type: 'token',
+            scope: 'openid email profile',
+            state,
+            prompt: 'select_account'
+        });
+        window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+    };
+
 
     // UI Helpers
     const getStepTitle = () => {
