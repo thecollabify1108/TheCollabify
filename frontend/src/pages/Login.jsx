@@ -92,11 +92,22 @@ const Login = () => {
         }
     };
 
+    // Detect in-app browsers (Instagram, Facebook, etc.) — Google blocks OAuth in WebViews
+    const isInAppBrowser = () => {
+        const ua = navigator.userAgent || '';
+        return /FBAN|FBAV|Instagram|Line\/|Twitter|MicroMessenger|Snapchat|Pinterest/i.test(ua);
+    };
+    const [showWebViewBanner, setShowWebViewBanner] = useState(false);
+
     // Google Auth — full-page redirect (no popup/GSI = no TrustedScriptURL issues)
     const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
         || '223460533138-nkmmomsvj3nvjd8geg77gdp2rqho3o22.apps.googleusercontent.com';
 
     const handleGoogleLogin = () => {
+        if (isInAppBrowser()) {
+            setShowWebViewBanner(true);
+            return;
+        }
         const redirectUri = `${window.location.origin}/auth/google/callback`;
         const params = new URLSearchParams({
             client_id: GOOGLE_CLIENT_ID,
@@ -272,6 +283,28 @@ const Login = () => {
                     <span className={`px-4 ${isDark ? 'bg-dark-950' : 'bg-[#FDFBF7]'} text-dark-400`}>or continue with</span>
                 </div>
             </div>
+
+            {/* WebView warning banner */}
+            {showWebViewBanner && (
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-sm space-y-2 mb-4">
+                    <p className="font-semibold">Google Sign-In isn't available in this browser</p>
+                    <p className="text-amber-300/80 text-xs">You're using an in-app browser (Instagram, Facebook, etc.) which Google blocks for security. Please:</p>
+                    <ol className="text-xs text-amber-300/80 list-decimal list-inside space-y-1">
+                        <li>Tap the <strong>⋮</strong> or <strong>...</strong> menu above</li>
+                        <li>Select <strong>"Open in Chrome"</strong> or <strong>"Open in Browser"</strong></li>
+                        <li>Then try Google Sign-In again</li>
+                    </ol>
+                    <button
+                        onClick={() => {
+                            navigator.clipboard?.writeText(window.location.href);
+                            toast.success('Link copied! Paste it in Chrome or Safari.');
+                        }}
+                        className="mt-2 w-full py-2 px-3 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 text-xs font-medium transition-colors"
+                    >
+                        Copy Link to Clipboard
+                    </button>
+                </div>
+            )}
 
             <button
                 onClick={handleGoogleLogin}

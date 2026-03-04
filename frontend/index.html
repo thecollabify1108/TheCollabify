@@ -58,6 +58,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
 
+  <!-- Trusted Types default policy — allows dynamic script.src assignments
+       from Google Analytics, Simple Analytics, etc. without browser blocking -->
+  <script>
+    if (window.trustedTypes && window.trustedTypes.createPolicy) {
+      window.trustedTypes.createPolicy('default', {
+        createScriptURL: function(url) { return url; },
+        createHTML: function(html) { return html; },
+        createScript: function(script) { return script; }
+      });
+    }
+  </script>
+
   <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-QC608XJKBS"></script>
   <script>
@@ -67,13 +79,13 @@
     gtag('config', 'G-QC608XJKBS');
   </script>
 
-  <!-- Simple Analytics - Production Only (Azure) -->
+  <!-- Simple Analytics - Production Only -->
   <script>
     if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      const saScript = document.createElement('script');
+      var saScript = document.createElement('script');
       saScript.async = true;
       saScript.defer = true;
-      saScript.src = "https://scripts.simpleanalyticscdn.com/latest.js";
+      saScript.src = 'https://scripts.simpleanalyticscdn.com/latest.js';
       document.head.appendChild(saScript);
     }
   </script>
