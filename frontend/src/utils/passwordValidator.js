@@ -8,51 +8,58 @@ export const validatePasswordStrength = (password) => {
         return {
             strength: 0,
             level: 'none',
-            feedback: []
+            feedback: [],
+            isValid: false
         };
     }
 
     let strength = 0;
     const feedback = [];
 
-    // Length check
-    if (password.length >= 8) {
-        strength += 25;
-    } else {
-        feedback.push('At least 8 characters');
-    }
+    // Length check (min 8)
+    const hasLength = password.length >= 8;
+    if (hasLength) strength += 25;
+    else feedback.push('At least 8 characters');
 
-    // Uppercase check
-    if (/[A-Z]/.test(password)) {
-        strength += 25;
-    } else {
-        feedback.push('One uppercase letter');
-    }
+    // Uppercase check (REQUIRED by backend)
+    const hasUppercase = /[A-Z]/.test(password);
+    if (hasUppercase) strength += 25;
+    else feedback.push('One uppercase letter (A-Z)');
 
     // Lowercase check
-    if (/[a-z]/.test(password)) {
-        strength += 25;
-    } else {
-        feedback.push('One lowercase letter');
-    }
+    const hasLowercase = /[a-z]/.test(password);
+    if (hasLowercase) strength += 25;
+    else feedback.push('One lowercase letter (a-z)');
 
-    // Number or special character check
-    if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) {
-        strength += 25;
-    } else {
-        feedback.push('One number or special character');
-    }
+    // Number check (REQUIRED by backend)
+    const hasNumber = /[0-9]/.test(password);
+    if (hasNumber) strength += 25;
+    else feedback.push('One number (0-9)');
 
-    // Determine level
+    // All 4 required = strong; 3 = medium; ≤ 2 = weak
+    const criteriaMet = [hasLength, hasUppercase, hasLowercase, hasNumber].filter(Boolean).length;
     let level = 'weak';
-    if (strength >= 75) level = 'strong';
-    else if (strength >= 50) level = 'medium';
+    if (criteriaMet === 4) level = 'strong';
+    else if (criteriaMet >= 3) level = 'medium';
 
     return {
         strength,
         level,
-        feedback
+        feedback,
+        isValid: criteriaMet === 4
     };
+};
+
+/**
+ * Mirrors the backend isStrongPassword check exactly:
+ * min 8 chars, at least 1 uppercase, 1 lowercase, 1 number
+ */
+export const isValidForRegister = (password) => {
+    if (!password || password.length < 8) return false;
+    if (!/[A-Z]/.test(password)) return false;
+    if (!/[a-z]/.test(password)) return false;
+    if (!/[0-9]/.test(password)) return false;
+    return true;
 };
 
 export const getStrengthColor = (level) => {

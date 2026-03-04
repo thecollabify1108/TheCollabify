@@ -11,6 +11,7 @@ import OTPInput from '../components/common/OTPInput';
 import PasswordStrengthIndicator from '../components/common/PasswordStrengthIndicator';
 import AuthLayout from '../components/auth/AuthLayout';
 import Icon from '../components/common/Icon';
+import { isValidForRegister } from '../utils/passwordValidator';
 
 const Register = () => {
     const { isDark } = useTheme();
@@ -88,6 +89,12 @@ const Register = () => {
 
         if (formData.password !== formData.confirmPassword) {
             toast.error('Passwords do not match');
+            return;
+        }
+
+        // Client-side validation matching backend exactly
+        if (!isValidForRegister(formData.password)) {
+            toast.error('Password must be 8+ characters with at least 1 uppercase letter, 1 lowercase letter, and 1 number.');
             return;
         }
 
