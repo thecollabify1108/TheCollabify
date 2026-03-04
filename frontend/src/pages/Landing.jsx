@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import ThemeToggle from '../components/common/ThemeToggle';
+import QuickTourGuide from '../components/common/QuickTourGuide';
 import AnimatedCounter from '../components/common/AnimatedCounter';
 // import TestimonialsCarousel from '../components/common/TestimonialsCarousel';
 import FAQAccordion from '../components/common/FAQAccordion';
@@ -373,13 +374,13 @@ const Landing = () => {
                         </motion.h1>
 
                         <motion.p
-                            className="text-h2 text-dark-400 max-w-3xl mx-auto mb-s6 leading-relaxed"
+                            className="text-sm md:text-body lg:text-h3 text-dark-400 max-w-2xl mx-auto mb-s6 leading-relaxed px-2"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            The intelligence layer for creator commerce. Predictive matching, quality scoring,
-                            and fraud detection — built on real collaboration data.
+                            The intelligence layer for creator commerce. Predictive matching,
+                            quality scoring, and fraud detection — built on real collaboration data.
                         </motion.p>
 
                         {/* CTA Buttons — hidden on mobile (sticky bar handles it), shown on desktop */}
@@ -715,75 +716,85 @@ const Landing = () => {
                 </section>
 
                 {/* Early Insights - Qualitative Traction */}
-                <section className="py-s12 px-s2 relative bg-dark-950 border-b border-dark-800/50">
+                <section className="pt-6 pb-10 px-s2 relative bg-dark-950 border-b border-dark-800/50">
                     <div className="max-w-6xl mx-auto">
-                        <div className="text-center mb-s12">
-                            <span className="text-primary-400 text-xs-pure font-bold tracking-widest uppercase mb-s2 block">Real Insights</span>
+                        <div className="text-center mb-6">
+                            <span className="text-primary-400 text-xs-pure font-bold tracking-widest uppercase mb-1 block">Real Insights</span>
                             <motion.h2
-                                className="text-h2 md:text-h1 font-bold mb-s4 text-dark-100"
+                                className="text-xl md:text-h1 font-bold mb-2 text-dark-100"
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                             >
                                 What We're Hearing
                             </motion.h2>
-                            <p className="text-dark-400 text-body max-w-2xl mx-auto">
-                                We spoke to over <span className="text-white font-semibold">500+ creators and brands</span> before writing a single line of code. Here is the reality.
+                            <p className="text-dark-400 text-xs md:text-small max-w-xl mx-auto">
+                                We spoke to over <span className="text-white font-semibold">500+ creators and brands</span> before writing a single line of code.
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-s6">
-                            {/* Insight 1 */}
-                            <motion.div
-                                className="glass-card p-s8 border-l-4 border-l-red-500 relative overflow-hidden"
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.1 }}
-                            >
+                        {/* Mobile: accordion cards */}
+                        <div className="md:hidden space-y-2">
+                            {[
+                                { id: 'ghost', accent: 'border-l-red-500', badge: '80%', badgeColor: 'bg-red-500/20 text-red-400', badgeLabel: 'Non-response rate', title: 'The "Ghosting" Epidemic', quote: '"I send 50 DMs, get 2 replies, and 0 contracts. It feels like I\'m shouting into a void."' },
+                                { id: 'niche', accent: 'border-l-emerald-500', badge: '10x', badgeColor: 'bg-emerald-500/20 text-emerald-400', badgeLabel: 'Higher ROI', title: 'Niche Power > Fame', quote: '"My 10k followers are die-hard fans. The guy with 1M followers gets likes, but I get sales."' },
+                                { id: 'pay', accent: 'border-l-amber-500', badge: '#1', badgeColor: 'bg-amber-500/20 text-amber-400', badgeLabel: 'Escrow Request', title: 'Payment Anxiety', quote: '"Brand deals are great until you have to chase the invoice for 3 months. I just want to be safe."' },
+                            ].map(item => (
+                                <div key={item.id} className={`glass-card border-l-4 ${item.accent} overflow-hidden`}>
+                                    <button
+                                        onClick={() => toggleAccordion(`ins-${item.id}`)}
+                                        className="w-full flex items-center justify-between px-4 py-3 text-left"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-7 h-7 rounded-full ${item.badgeColor} flex items-center justify-center text-[10px] font-bold flex-shrink-0`}>{item.badge}</div>
+                                            <span className="text-small font-bold text-dark-100">{item.title}</span>
+                                        </div>
+                                        <span className={`text-dark-400 text-xs transition-transform duration-200 flex-shrink-0 ${openAccordion === `ins-${item.id}` ? 'rotate-180' : ''}`}>▼</span>
+                                    </button>
+                                    <AnimatePresence>
+                                        {openAccordion === `ins-${item.id}` && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.22 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <p className="px-4 pb-3 text-dark-300 italic text-xs leading-relaxed">{item.quote}</p>
+                                                <div className="px-4 pb-3 flex items-center gap-2">
+                                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${item.badgeColor.split(' ')[1]}`}>{item.badgeLabel}</span>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop: 3-col grid */}
+                        <div className="hidden md:grid grid-cols-3 gap-s6">
+                            <motion.div className="glass-card p-s8 border-l-4 border-l-red-500 relative overflow-hidden" initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
                                 <div className="absolute top-s4 right-s4 text-h1 text-dark-800/50 font-serif">"</div>
                                 <h3 className="text-h3 font-bold text-dark-100 mb-s4">The "Ghosting" Epidemic</h3>
-                                <p className="text-dark-300 italic mb-s6 text-small">
-                                    "I send 50 DMs, get 2 replies, and 0 contracts. It feels like I'm shouting into a void."
-                                </p>
+                                <p className="text-dark-300 italic mb-s6 text-small">"I send 50 DMs, get 2 replies, and 0 contracts. It feels like I'm shouting into a void."</p>
                                 <div className="flex items-center gap-s3 mt-auto pt-s4 border-t border-dark-800/50">
                                     <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center text-red-400 text-xs-pure font-bold">80%</div>
                                     <span className="text-xs-pure text-dark-400 font-bold uppercase tracking-wider">Non-response rate</span>
                                 </div>
                             </motion.div>
-
-                            {/* Insight 2 */}
-                            <motion.div
-                                className="glass-card p-s8 border-l-4 border-l-emerald-500 relative overflow-hidden"
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.2 }}
-                            >
+                            <motion.div className="glass-card p-s8 border-l-4 border-l-emerald-500 relative overflow-hidden" initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.2 }}>
                                 <div className="absolute top-s4 right-s4 text-h1 text-dark-800/50 font-serif">"</div>
                                 <h3 className="text-h3 font-bold text-dark-100 mb-s4">Niche Power &gt; Fame</h3>
-                                <p className="text-dark-300 italic mb-s6 text-small">
-                                    "My 10k followers are die-hard fans. The guy with 1M followers gets likes, but I get sales."
-                                </p>
+                                <p className="text-dark-300 italic mb-s6 text-small">"My 10k followers are die-hard fans. The guy with 1M followers gets likes, but I get sales."</p>
                                 <div className="flex items-center gap-s3 mt-auto pt-s4 border-t border-dark-800/50">
                                     <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs-pure font-bold">10x</div>
                                     <span className="text-xs-pure text-dark-400 font-bold uppercase tracking-wider">Higher ROI</span>
                                 </div>
                             </motion.div>
-
-                            {/* Insight 3 */}
-                            <motion.div
-                                className="glass-card p-s8 border-l-4 border-l-amber-500 relative overflow-hidden"
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.3 }}
-                            >
+                            <motion.div className="glass-card p-s8 border-l-4 border-l-amber-500 relative overflow-hidden" initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 }}>
                                 <div className="absolute top-s4 right-s4 text-h1 text-dark-800/50 font-serif">"</div>
                                 <h3 className="text-h3 font-bold text-dark-100 mb-s4">Payment Anxiety</h3>
-                                <p className="text-dark-300 italic mb-s6 text-small">
-                                    "Brand deals are great until you have to chase the invoice for 3 months. I just want to be safe."
-                                </p>
+                                <p className="text-dark-300 italic mb-s6 text-small">"Brand deals are great until you have to chase the invoice for 3 months. I just want to be safe."</p>
                                 <div className="flex items-center gap-s3 mt-auto pt-s4 border-t border-dark-800/50">
                                     <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs-pure font-bold">#1</div>
                                     <span className="text-xs-pure text-dark-400 font-bold uppercase tracking-wider">Escrow Request</span>
@@ -793,45 +804,53 @@ const Landing = () => {
                     </div>
                 </section>
 
-                {/* How It Works - Large Numbers Style */}
-                <section id="how-it-works" className="py-28 md:py-32 px-s2 relative">
+                {/* How It Works */}
+                <section id="how-it-works" className="py-10 md:py-14 px-s2 relative">
                     <div className="max-w-6xl mx-auto">
-                        <div className="text-center mb-s12">
-                            <motion.h2
-                                className="text-h2 md:text-h1 font-bold mb-s4"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                            >
+                        <div className="text-center mb-5">
+                            <motion.h2 className="text-xl md:text-h1 font-bold mb-2" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
                                 <span className="gradient-text">How It Works</span>
                             </motion.h2>
-                            <motion.p
-                                className="text-dark-400 text-body max-w-2xl mx-auto"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.1 }}
-                            >
+                            <motion.p className="text-dark-400 text-xs md:text-small max-w-xl mx-auto" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
                                 Simple, streamlined process to connect brands with creators
                             </motion.p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-s6">
+                        {/* Mobile: accordion steps */}
+                        <div className="md:hidden space-y-2">
                             {steps.map((step, index) => (
-                                <motion.div
-                                    key={index}
-                                    className="glass-card p-s8 relative overflow-hidden group hover:border-primary-500/30 transition-all duration-300"
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                    whileHover={{ y: -5 }}
-                                >
-                                    {/* Large Number Background */}
-                                    <div className="absolute -top-4 -right-4 text-[120px] font-extrabold text-primary-500/5 leading-none select-none">
-                                        {step.number}
-                                    </div>
+                                <div key={index} className="glass-card overflow-hidden">
+                                    <button
+                                        onClick={() => toggleAccordion(`step-${index}`)}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                                    >
+                                        <span className="text-primary-400 font-extrabold text-lg leading-none flex-shrink-0 w-6">{step.number}</span>
+                                        <span className="text-small font-bold text-dark-100 flex-1">{step.title}</span>
+                                        <span className={`text-dark-400 text-xs transition-transform duration-200 flex-shrink-0 ${openAccordion === `step-${index}` ? 'rotate-180' : ''}`}>▼</span>
+                                    </button>
+                                    <AnimatePresence>
+                                        {openAccordion === `step-${index}` && (
+                                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden">
+                                                <ul className="px-4 pb-3 space-y-1.5">
+                                                    {step.points.map((point, i) => (
+                                                        <li key={i} className="flex items-start text-dark-400 text-xs">
+                                                            <Icon name="check" size={13} className="text-emerald-400 mr-2 mt-0.5 flex-shrink-0" />
+                                                            {point}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            ))}
+                        </div>
 
+                        {/* Desktop: 4-col grid */}
+                        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-s6">
+                            {steps.map((step, index) => (
+                                <motion.div key={index} className="glass-card p-s8 relative overflow-hidden group hover:border-primary-500/30 transition-all duration-300" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -5 }}>
+                                    <div className="absolute -top-4 -right-4 text-[120px] font-extrabold text-primary-500/5 leading-none select-none">{step.number}</div>
                                     <div className="relative z-10">
                                         <div className="text-h1 font-bold text-primary-500/40 mb-s4">{step.number}</div>
                                         <h3 className="text-h3 font-bold mb-s4 text-dark-100">{step.title}</h3>
@@ -850,53 +869,66 @@ const Landing = () => {
                     </div>
                 </section>
 
-                {/* Features - Bento Box Style */}
-                <section id="features" className="py-28 md:py-32 px-s2 relative bg-dark-900/50">
+                {/* Features - Why Choose Us */}
+                <section id="features" className="py-10 md:py-14 px-s2 relative bg-dark-900/50">
                     <div className="max-w-6xl mx-auto relative z-10">
-                        <div className="text-center mb-s12">
-                            <motion.h2
-                                className="text-h2 md:text-h1 font-bold mb-s4"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                            >
+                        <div className="text-center mb-5">
+                            <motion.h2 className="text-xl md:text-h1 font-bold mb-2" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
                                 <span className="gradient-text">Why Choose Us</span>
                             </motion.h2>
-                            <motion.p
-                                className="text-dark-400 text-body max-w-2xl mx-auto"
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: 0.1 }}
-                            >
+                            <motion.p className="text-dark-400 text-xs md:text-small max-w-xl mx-auto" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 }}>
                                 Everything you need to run successful influencer campaigns
                             </motion.p>
                         </div>
 
-                        {/* Bento Grid */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-s6">
+                        {/* Mobile: accordion */}
+                        <div className="md:hidden space-y-2">
+                            {features.map((feature, index) => (
+                                <div key={index} className="glass-card overflow-hidden">
+                                    <button
+                                        onClick={() => toggleAccordion(`feat-${index}`)}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-left"
+                                    >
+                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white flex-shrink-0 text-sm">
+                                            {feature.icon}
+                                        </div>
+                                        <span className="text-small font-bold text-dark-100 flex-1 truncate">{feature.title}</span>
+                                        <span className={`px-1.5 py-0.5 text-[9px] font-bold rounded-full border ${feature.badgeColor} uppercase tracking-wider flex-shrink-0 hidden xs:inline`}>{feature.badge}</span>
+                                        <span className={`text-dark-400 text-xs transition-transform duration-200 flex-shrink-0 ${openAccordion === `feat-${index}` ? 'rotate-180' : ''}`}>▼</span>
+                                    </button>
+                                    <AnimatePresence>
+                                        {openAccordion === `feat-${index}` && (
+                                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} className="overflow-hidden">
+                                                <p className="px-4 pb-3 text-dark-400 text-xs leading-relaxed">{feature.description}</p>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop: Bento Grid */}
+                        <div className="hidden md:grid grid-cols-2 gap-s6">
                             {features.map((feature, index) => (
                                 <motion.div
                                     key={index}
-                                    className="glass-card p-s8 hover:border-primary-500/30 transition-all duration-300 group"
+                                    className="glass-card p-s6 hover:border-primary-500/30 transition-all duration-300 group"
                                     initial={{ opacity: 0, y: 20 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ duration: 0.5, delay: index * 0.1 }}
                                     whileHover={{ y: -5 }}
                                 >
-                                    <div className="flex items-start gap-s6">
-                                        <div className="w-16 h-16 rounded-premium-2xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md group-hover:shadow-glow">
+                                    <div className="flex items-start gap-s4">
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white flex-shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-md">
                                             {feature.icon}
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-s3 mb-s2">
-                                                <h3 className="text-h3 font-bold text-dark-100">{feature.title}</h3>
-                                                <span className={`px-s2 py-0.5 text-xs-pure font-bold rounded-full border ${feature.badgeColor} uppercase tracking-wider`}>
-                                                    {feature.badge}
-                                                </span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                                <h3 className="text-body font-bold text-dark-100">{feature.title}</h3>
+                                                <span className={`px-2 py-0.5 text-xs-pure font-bold rounded-full border ${feature.badgeColor} uppercase tracking-wider`}>{feature.badge}</span>
                                             </div>
-                                            <p className="text-dark-400 text-body leading-relaxed">{feature.description}</p>
+                                            <p className="text-dark-400 text-small leading-relaxed">{feature.description}</p>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -1009,101 +1041,57 @@ const Landing = () => {
                     </div>
                 </section>
 
-                {/* Footer - VRInfluence Style */}
-                <footer className="py-s12 px-s2 border-t border-dark-800 bg-dark-950/50 backdrop-blur-md">
+                {/* Footer */}
+                <footer className="py-8 px-s2 border-t border-dark-800 bg-dark-950/50 backdrop-blur-md">
                     <div className="max-w-7xl mx-auto">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-s12">
+                        {/* Top: Logo + 2-col link area */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                             {/* Logo & Description */}
                             <div>
-                                <Link to="/" className="flex items-center space-x-s3 mb-s6 group">
-                                    <img src="/favicon.png" alt="" className="w-8 h-8 object-contain transition-transform group-hover:rotate-12" />
-                                    <div className="flex flex-col">
-                                        <div className="flex items-baseline">
-                                            <span className="text-body italic text-dark-100 mr-1">The</span>
-                                            <span className="text-h3 font-bold text-dark-100">Collabify</span>
-                                        </div>
+                                <Link to="/" className="flex items-center gap-2 mb-4 group">
+                                    <img src="/favicon.png" alt="" className="w-7 h-7 object-contain transition-transform group-hover:rotate-12" />
+                                    <div className="flex items-baseline">
+                                        <span className="text-small italic text-dark-100 mr-0.5">The</span>
+                                        <span className="text-body font-bold text-dark-100">Collabify</span>
                                     </div>
                                 </Link>
-                                <p className="text-dark-400 text-small leading-relaxed mb-s4">
-                                    The intelligence layer for creator commerce.
-                                    Predictive matching, quality scoring, fraud detection, and adaptive
-                                    learning — built on real collaboration data.
-                                </p>
-                                <p className="text-dark-400 text-small leading-relaxed">
-                                    Infrastructure that gets smarter with every partnership.
-                                    Built for brands and creators who demand transparency.
+                                <p className="text-dark-400 text-xs leading-relaxed">
+                                    The intelligence layer for creator commerce. Predictive matching, fraud detection, and adaptive learning.
                                 </p>
                             </div>
 
-                            {/* Solutions */}
-                            <div>
-                                <h4 className="text-body font-bold text-dark-100 mb-s6">Solutions</h4>
-                                <ul className="space-y-s4">
-                                    <li>
-                                        <Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition text-small">
-                                            For Brands
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition text-small">
-                                            For Influencers
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/why-collabify" className="text-dark-400 hover:text-dark-200 transition text-small">
-                                            Why Collabify
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/insights" className="text-dark-400 hover:text-dark-200 transition text-small">
-                                            Platform Insights
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/roadmap" className="text-dark-400 hover:text-dark-200 transition text-small">
-                                            AI Roadmap
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/register" className="text-dark-400 hover:text-dark-200 transition text-small">
-                                            Get Started
-                                        </Link>
-                                    </li>
-                                </ul>
-                            </div>
+                            {/* Solutions + Legal side by side on mobile, separate on desktop */}
+                            <div className="grid grid-cols-2 md:contents gap-6">
+                                {/* Solutions */}
+                                <div>
+                                    <h4 className="text-small font-bold text-dark-100 mb-3">Solutions</h4>
+                                    <ul className="space-y-2">
+                                        <li><Link to="/for-brands" className="text-dark-400 hover:text-dark-200 transition text-xs">For Brands</Link></li>
+                                        <li><Link to="/for-creators" className="text-dark-400 hover:text-dark-200 transition text-xs">For Influencers</Link></li>
+                                        <li><Link to="/why-collabify" className="text-dark-400 hover:text-dark-200 transition text-xs">Why Collabify</Link></li>
+                                        <li><Link to="/roadmap" className="text-dark-400 hover:text-dark-200 transition text-xs">AI Roadmap</Link></li>
+                                        <li><Link to="/register" className="text-dark-400 hover:text-dark-200 transition text-xs">Get Started</Link></li>
+                                    </ul>
+                                </div>
 
-                            {/* Legal & Contact */}
-                            <div>
-                                <h4 className="text-lg font-bold text-dark-100 mb-4">Legal</h4>
-                                <ul className="space-y-3">
-                                    <li>
-                                        <Link to="/terms" className="text-dark-400 hover:text-dark-200 transition text-sm">
-                                            Terms & Conditions
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link to="/privacy" className="text-dark-400 hover:text-dark-200 transition text-sm">
-                                            Privacy Policy
-                                        </Link>
-                                    </li>
-                                </ul>
-                                <div className="mt-6">
-                                    <h5 className="text-dark-200 font-medium mb-2 text-sm">Contact Us</h5>
-                                    <a
-                                        href="mailto:support@thecollabify.ai"
-                                        className="text-primary-400 hover:text-primary-300 transition text-sm"
-                                    >
-                                        support@thecollabify.ai
-                                    </a>
+                                {/* Legal */}
+                                <div>
+                                    <h4 className="text-small font-bold text-dark-100 mb-3">Legal</h4>
+                                    <ul className="space-y-2">
+                                        <li><Link to="/terms" className="text-dark-400 hover:text-dark-200 transition text-xs">Terms & Conditions</Link></li>
+                                        <li><Link to="/privacy" className="text-dark-400 hover:text-dark-200 transition text-xs">Privacy Policy</Link></li>
+                                    </ul>
+                                    <div className="mt-4">
+                                        <h5 className="text-dark-200 font-medium mb-1 text-xs">Contact</h5>
+                                        <a href="mailto:support@thecollabify.ai" className="text-primary-400 hover:text-primary-300 transition text-xs">support@thecollabify.ai</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Copyright */}
-                        <div className="border-t border-dark-800 mt-12 pt-8 text-center">
-                            <p className="text-dark-400 text-sm">
-                                © {new Date().getFullYear()} The Collabify. All rights reserved.
-                            </p>
+                        <div className="border-t border-dark-800 pt-4 text-center">
+                            <p className="text-dark-500 text-xs">© {new Date().getFullYear()} The Collabify. All rights reserved.</p>
                         </div>
                     </div>
                 </footer>
@@ -1134,7 +1122,7 @@ const Landing = () => {
                     </div>
                 </motion.div>
 
-                {/* Scroll to Top Button - Optimized for Mobile */}
+                {/* Scroll to Top Button */}
                 {showScrollTop && (
                     <button
                         onClick={scrollToTop}
@@ -1144,9 +1132,13 @@ const Landing = () => {
                         <span className="text-lg md:text-xl">↑</span>
                     </button>
                 )}
-            </div >
+
+                {/* Quick Tour Guide — shows once per session to first-time visitors */}
+                <QuickTourGuide />
+            </div>
         </>
     );
 };
 
 export default Landing;
+

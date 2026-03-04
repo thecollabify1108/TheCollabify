@@ -239,7 +239,8 @@
 /* Utility classes */
 @layer utilities {
   .text-balance {
-    overflow-wrap: break-word; /* universal fallback */
+    overflow-wrap: break-word;
+    /* universal fallback */
   }
 
   @supports (text-wrap: balance) {
@@ -250,16 +251,19 @@
 
   /* Hide scrollbar but keep functionality */
   .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE/Edge */
+    -ms-overflow-style: none;
+    /* IE/Edge */
   }
 
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;  /* Chrome/Safari/Opera */
+    display: none;
+    /* Chrome/Safari/Opera */
   }
 
   @supports (scrollbar-width: none) {
     .scrollbar-hide {
-      scrollbar-width: none;  /* Firefox 64+ */
+      scrollbar-width: none;
+      /* Firefox 64+ */
     }
   }
 
@@ -624,6 +628,7 @@
 .light-theme .text-emerald-400 {
   color: #059669 !important;
 }
+
 .light-theme .text-red-400 {
   color: #dc2626 !important;
 }
@@ -632,9 +637,11 @@
 .light-theme .text-primary-400 {
   color: #4f46e5 !important;
 }
+
 .light-theme .text-primary-500 {
   color: #4338ca !important;
 }
+
 .light-theme .bg-primary-500\/10 {
   background-color: rgba(67, 56, 202, 0.1) !important;
 }
@@ -643,24 +650,46 @@
 .light-theme .text-indigo-400 {
   color: #4338ca !important;
 }
+
 .light-theme .text-indigo-300 {
   color: #4f46e5 !important;
 }
 
 /* Dark-500 text (menu labels, subtitles) */
 .light-theme .text-dark-500 {
-  color: #64748b !important;
+  color: #4b5563 !important;
+  font-weight: 500;
 }
+
 .light-theme .text-dark-600 {
-  color: #94a3b8 !important;
+  color: #6b7280 !important;
 }
 
 /* White bg utilities in light mode */
 .light-theme .bg-white\/20 {
   background-color: rgba(0, 0, 0, 0.06) !important;
 }
+
 .light-theme .border-white\/10 {
   border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Ensure spans, labels, list items and anchors inside light-theme glass-cards are dark */
+.light-theme .glass-card span,
+.light-theme .glass-card label,
+.light-theme .glass-card li,
+.light-theme .glass-card a:not([class*="text-primary"]):not([class*="text-secondary"]):not([class*="gradient-text"]) {
+  color: #374151;
+}
+
+/* Make btn-3d text always white (it has dark gradient bg) */
+.light-theme .btn-3d {
+  color: #ffffff !important;
+}
+
+/* Italic/secondary text darker in light mode */
+.light-theme .italic {
+  color: #374151 !important;
 }
 
 /* ============================================
@@ -956,6 +985,7 @@
 
 /* Small screens: 320-639px */
 @media (max-width: 639px) {
+
   /* Hide excess orbs for performance */
   .floating-orb.orb-4,
   .floating-orb.orb-5 {
@@ -1042,12 +1072,18 @@
 /* --- Global mobile typography reduction --- */
 @media (max-width: 639px) {
   :root {
-    --text-h1: 1.5rem;    /* 24px (was 32) */
-    --text-h2: 1.25rem;   /* 20px (was 24) */
-    --text-h3: 1.125rem;  /* 18px (was 20) */
-    --text-body: 0.875rem;/* 14px (was 16) */
-    --text-small: 0.8125rem;/* 13px (was 14) */
-    --text-xs: 0.6875rem;  /* 11px (was 12) */
+    --text-h1: 1.5rem;
+    /* 24px (was 32) */
+    --text-h2: 1.25rem;
+    /* 20px (was 24) */
+    --text-h3: 1.125rem;
+    /* 18px (was 20) */
+    --text-body: 0.875rem;
+    /* 14px (was 16) */
+    --text-small: 0.8125rem;
+    /* 13px (was 14) */
+    --text-xs: 0.6875rem;
+    /* 11px (was 12) */
   }
 
   /* Smaller glass cards on mobile */
@@ -1074,18 +1110,22 @@
     width: 200px;
     height: 200px;
   }
+
   .floating-orb.orb-2 {
     width: 160px;
     height: 160px;
   }
+
   .floating-orb.orb-3 {
     width: 140px;
     height: 140px;
   }
+
   .floating-orb.orb-4 {
     width: 120px;
     height: 120px;
   }
+
   .floating-orb.orb-5 {
     width: 180px;
     height: 180px;
@@ -1119,6 +1159,7 @@
     width: 140px;
     height: 140px;
   }
+
   .floating-orb.orb-2,
   .floating-orb.orb-3,
   .floating-orb.orb-4 {
