@@ -198,12 +198,14 @@ export const AuthProvider = ({ children }) => {
             }
         }
 
-        const response = await api.post('auth/google', finalData);
+        // 45s timeout — Azure can cold-start for 15-20s + DB queries
+        const response = await api.post('auth/google', finalData, { timeout: 45000 });
         const { token: newToken, user: userData } = response.data.data;
 
         localStorage.setItem('token', newToken);
         setToken(newToken);
         setUser(normalizeUser(userData));
+        cacheUser(userData);
 
         return normalizeUser(userData);
     };

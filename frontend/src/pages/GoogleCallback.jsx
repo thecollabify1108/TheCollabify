@@ -69,13 +69,26 @@ const GoogleCallback = () => {
 
                 setStatus('Creating your account...');
 
-                const user = await googleLogin({
-                    email: profile.email,
-                    name: profile.name,
-                    googleId: profile.sub,
-                    avatar: profile.picture,
-                    role
-                });
+                // Retry up to 2 times — Azure cold-start can cause the first attempt to timeout
+                let user;
+                let lastErr;
+                for (let attempt = 0; attempt < 2; attempt++) {
+                    try {
+                        user = await googleLogin({
+                            email: profile.email,
+                            name: profile.name,
+                            googleId: profile.sub,
+                            avatar: profile.picture,
+                            role
+                        });
+                        break;
+                    } catch (retryErr) {
+                        lastErr = retryErr;
+                        const isTimeout = retryErr.code === 'ECONNABORTED' || retryErr.message?.includes('timeout');
+                        if (!isTimeout || attempt === 1) throw retryErr;
+                        setStatus('Server is waking up, retrying...');
+                    }
+                }
 
                 toast.success('Welcome to TheCollabify!');
 
