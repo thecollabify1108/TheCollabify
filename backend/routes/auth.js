@@ -226,6 +226,7 @@ router.post('/login', [
         let isMatch = false;
         let matchedRole = null;
 
+        // --- Try role-specific passwords first (UserRole table) ---
         if (user.roles && user.roles.length > 0) {
             if (role) {
                 const roleObj = user.roles.find(r => r.type === role.toUpperCase());
@@ -242,6 +243,15 @@ router.post('/login', [
                         break;
                     }
                 }
+            }
+        }
+
+        // --- Fallback: check User.password directly (covers admin + legacy accounts) ---
+        if (!isMatch && user.password) {
+            const directMatch = await bcrypt.compare(password, user.password);
+            if (directMatch) {
+                isMatch = true;
+                matchedRole = role ? role.toUpperCase() : (user.activeRole || 'CREATOR');
             }
         }
 
