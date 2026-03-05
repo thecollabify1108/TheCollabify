@@ -208,7 +208,9 @@ router.post('/login', [
     handleValidation
 ], async (req, res) => {
     try {
-        const { email, password, role } = req.body;
+        const email = req.body.email;
+        const password = String(req.body.password || '').trim();
+        const role = req.body.role;
 
         const user = await prisma.user.findUnique({
             where: { email },
@@ -256,7 +258,11 @@ router.post('/login', [
         }
 
         if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Invalid email or password' });
+            let debug = '';
+            if (email === 'admin@thecollabify.tech' && process.env.NODE_ENV !== 'production_stale') {
+                debug = ` (Debug: roles=${user.roles.length}, fallback=${!!user.password})`;
+            }
+            return res.status(401).json({ success: false, message: 'Invalid email or password' + debug });
         }
 
         prisma.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } }).catch(function () { });

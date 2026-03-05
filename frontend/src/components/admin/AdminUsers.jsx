@@ -122,6 +122,16 @@ const AdminUsers = () => {
         }
     };
 
+    const handleSetSubscription = async (userId, tier) => {
+        try {
+            await adminAPI.updateSubscription(userId, tier);
+            toast.success(`Subscription set to ${tier}`);
+            fetchUsers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Subscription update failed');
+        }
+    };
+
     const filteredUsers = users.filter(user =>
     (user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -247,7 +257,14 @@ const AdminUsers = () => {
                                                         {user.name.charAt(0)}
                                                     </div>
                                                     <div>
-                                                        <div className="font-medium text-dark-100">{user.name}</div>
+                                                        <div className="font-medium text-dark-100 flex items-center gap-2">
+                                                            {user.name}
+                                                            {user.subscriptionTier && user.subscriptionTier !== 'FREE' && (
+                                                                <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 uppercase tracking-wider">
+                                                                    {user.subscriptionTier === 'CREATOR_PRO' ? 'Creator Pro' : 'Brand Pro'}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         <div className="text-sm text-dark-400">{user.email}</div>
                                                     </div>
                                                 </div>
@@ -273,6 +290,16 @@ const AdminUsers = () => {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <div className="flex items-center justify-end gap-2">
+                                                    <select
+                                                        value={user.subscriptionTier || 'FREE'}
+                                                        onChange={(e) => handleSetSubscription(user._id, e.target.value)}
+                                                        className="bg-dark-800 border border-dark-600 rounded-lg px-2 py-1.5 text-xs text-dark-200 focus:border-primary-500 outline-none cursor-pointer"
+                                                        title="Set Subscription Tier"
+                                                    >
+                                                        <option value="FREE">Free</option>
+                                                        <option value="CREATOR_PRO">Creator Pro</option>
+                                                        <option value="BRAND_PRO">Brand Pro</option>
+                                                    </select>
                                                     <button
                                                         onClick={() => handleToggleStatus(user._id, user.isActive)}
                                                         className="p-2 text-dark-400 hover:text-emerald-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"

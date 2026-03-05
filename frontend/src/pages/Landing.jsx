@@ -44,7 +44,7 @@ const Landing = () => {
     }, [mobileMenuOpen]);
 
     // Typing animation effect
-    const phrases = ['Smarter Partnerships', 'Predictive Matches', 'Verified Creators', 'Real ROI'];
+    const phrases = ['Verified Creators', 'Predictive Matches', 'Fraud-Free Campaigns', 'Data-Driven ROI'];
     const [currentPhraseIndex, setCurrentPhraseIndex] = useState(0);
     const [displayText, setDisplayText] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
@@ -167,23 +167,28 @@ const Landing = () => {
     const steps = [
         {
             number: '01',
-            title: 'Brand Creates Campaign',
-            points: ['Set your budget', 'Define target audience', 'Specify promotion type']
+            title: 'Creator Joins and Submits Profile',
+            points: ['Upload platform data', 'Link social accounts', 'Set collaboration preferences']
         },
         {
             number: '02',
-            title: 'AI Scores & Predicts',
-            points: ['CQI + fraud detection runs', 'Predictive ROI calculated', 'Confidence-ranked matches']
+            title: 'Collabify Verifies Authenticity',
+            points: ['Follower legitimacy check', 'Engagement pattern analysis', 'Creator Quality Index assigned']
         },
         {
             number: '03',
-            title: 'Creators Apply',
-            points: ['Review opportunities', 'Submit applications', 'Showcase their style']
+            title: 'AI Analyzes Engagement and Risk',
+            points: ['Fraud signal detection', 'Audience overlap scoring', 'Predictive campaign fit']
         },
         {
             number: '04',
-            title: 'Connect & Learn',
-            points: ['Accept best fits', 'Chat directly', 'Feedback improves AI']
+            title: 'Brands Discover Verified Creators',
+            points: ['Filter by niche, budget, CQI', 'View confidence-ranked matches', 'Review fraud and risk indicators']
+        },
+        {
+            number: '05',
+            title: 'Campaign Performance Predicted',
+            points: ['AI forecasts ROI before launch', 'Post-campaign data feeds model', 'Match quality improves over time']
         }
     ];
 
@@ -365,10 +370,9 @@ const Landing = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.1 }}
                         >
-                            <span className="text-dark-100">Connect </span>
-                            <span className="gradient-text">Brands</span>
-                            <span className="text-dark-100"> with</span>
+                            <span className="text-dark-100">Creator Intelligence</span>
                             <br />
+                            <span className="text-dark-100">Built for </span>
                             <span className="gradient-text">{displayText}</span>
                             <span className="typing-cursor"></span>
                         </motion.h1>
@@ -379,8 +383,7 @@ const Landing = () => {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            The intelligence layer for creator commerce. Predictive matching,
-                            quality scoring, and fraud detection — built on real collaboration data.
+                            AI-driven creator verification and brand collaboration intelligence. Discover authentic creators, predict campaign performance, and eliminate fraud — all in one platform.
                         </motion.p>
 
                         {/* CTA Buttons — hidden on mobile (sticky bar handles it), shown on desktop */}
@@ -428,7 +431,7 @@ const Landing = () => {
                                 className="text-dark-400 hover:text-primary-400 transition-colors flex items-center justify-center gap-s1 mx-auto text-xs-pure font-bold border-b border-transparent hover:border-primary-400 pb-0.5"
                             >
                                 <Icon name="zap" size={14} />
-                                Not ready to join? Try the Interactive Demo
+                                Explore the platform without signing up
                             </button>
                         </motion.div>
 
@@ -458,7 +461,7 @@ const Landing = () => {
                                 How Our AI <span className="gradient-text">Actually Works</span>
                             </motion.h2>
                             <p className="text-body text-dark-300 max-w-2xl mx-auto">
-                                No black boxes. No magic tricks. Just a system designed to learn what successful partnerships look like for YOU.
+                                Full transparency into how every match score is calculated. No proprietary black boxes — just a documented scoring system designed to improve with every collaboration.
                             </p>
                         </div>
 
@@ -517,10 +520,10 @@ const Landing = () => {
                                             className="overflow-hidden"
                                         >
                                             <div className="px-4 pb-4 space-y-2 text-dark-300 text-sm">
-                                                <div className="flex items-center gap-2">🤝 <span>Match Made</span></div>
-                                                <div className="flex items-center gap-2">📊 <span>Campaign Data Collected</span></div>
-                                                <div className="flex items-center gap-2">💬 <span>Feedback Recorded</span></div>
-                                                <div className="flex items-center gap-2">📈 <span>AI Gets Smarter Next Time</span></div>
+                                                <div className="flex items-center gap-2"><span className="text-primary-400 font-bold text-xs">01</span> <span>Match Confirmed</span></div>
+                                                <div className="flex items-center gap-2"><span className="text-primary-400 font-bold text-xs">02</span> <span>Campaign Data Collected</span></div>
+                                                <div className="flex items-center gap-2"><span className="text-primary-400 font-bold text-xs">03</span> <span>Outcome Feedback Recorded</span></div>
+                                                <div className="flex items-center gap-2"><span className="text-emerald-400 font-bold text-xs">04</span> <span>AI Improves Next Prediction</span></div>
                                                 <p className="text-dark-400 text-xs mt-3">It's a decision <strong className="text-white">assistant</strong>, not a replacement. You always have the final say.</p>
                                             </div>
                                         </motion.div>
@@ -582,22 +585,30 @@ const Landing = () => {
 
                                     {/* Orbital Nodes */}
                                     <div className="absolute top-0 left-1/2 -translate-x-1/2 text-center w-32">
-                                        <div className="w-10 h-10 mx-auto bg-dark-700 rounded-full flex items-center justify-center border border-dark-600 mb-2 text-xl">🤝</div>
-                                        <span className="text-xs text-dark-300 font-medium">Match Made</span>
+                                        <div className="w-10 h-10 mx-auto bg-dark-700 rounded-full flex items-center justify-center border border-dark-600 mb-2">
+                                            <Icon name="check" size={18} className="text-primary-400" />
+                                        </div>
+                                        <span className="text-xs text-dark-300 font-medium">Match Confirmed</span>
                                     </div>
 
                                     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center w-32">
-                                        <span className="text-xs text-dark-300 font-medium block mb-2">Smarter Next Time</span>
-                                        <div className="w-10 h-10 mx-auto bg-emerald-900/30 rounded-full flex items-center justify-center border border-emerald-500/30 text-emerald-400 text-xl">📈</div>
+                                        <span className="text-xs text-dark-300 font-medium block mb-2">AI Improves</span>
+                                        <div className="w-10 h-10 mx-auto bg-emerald-900/30 rounded-full flex items-center justify-center border border-emerald-500/30">
+                                            <Icon name="chart" size={18} className="text-emerald-400" />
+                                        </div>
                                     </div>
 
                                     <div className="absolute top-1/2 right-0 -translate-y-1/2 text-center w-24">
-                                        <div className="w-10 h-10 mx-auto bg-dark-700 rounded-full flex items-center justify-center border border-dark-600 mb-2 text-xl">📊</div>
+                                        <div className="w-10 h-10 mx-auto bg-dark-700 rounded-full flex items-center justify-center border border-dark-600 mb-2">
+                                            <Icon name="sparkles" size={18} className="text-primary-400" />
+                                        </div>
                                         <span className="text-xs text-dark-300 font-medium">Data</span>
                                     </div>
 
                                     <div className="absolute top-1/2 left-0 -translate-y-1/2 text-center w-24">
-                                        <div className="w-10 h-10 mx-auto bg-dark-700 rounded-full flex items-center justify-center border border-dark-600 mb-2 text-xl">💬</div>
+                                        <div className="w-10 h-10 mx-auto bg-dark-700 rounded-full flex items-center justify-center border border-dark-600 mb-2">
+                                            <Icon name="bell" size={18} className="text-primary-400" />
+                                        </div>
                                         <span className="text-xs text-dark-300 font-medium">Feedback</span>
                                     </div>
 
@@ -628,7 +639,7 @@ const Landing = () => {
                             </h2>
 
                             <p className="text-body md:text-h3 text-dark-300 font-medium leading-relaxed mb-s12">
-                                "We built Collabify because the old way of spreadsheets, cold emails, and guessing games just doesn't scale."
+                                "We built Collabify because brands and creators were wasting weeks on outreach, guesswork, and unverified data. There had to be a better way."
                             </p>
                         </motion.div>
 
@@ -636,7 +647,7 @@ const Landing = () => {
                         <div className="md:hidden space-y-2 text-left mt-4">
                             {[
                                 { id: 'broken', emoji: 'X', emojiColor: 'text-red-400', title: 'Manual Discovery is Broken', desc: 'Scrolling through hashtags and DMing creators is a full-time job. You need instant, data-backed matches, not a lucky guess.' },
-                                { id: 'trust', emoji: '⚠️', emojiColor: 'text-amber-400', title: 'Trust is Hard to Verify', desc: "Fake followers and inflated numbers are everywhere. We verify every single datapoint so you don't have to worry about fraud." },
+                                { id: 'trust', emoji: '!', emojiColor: 'text-amber-400', title: 'Trust is Hard to Verify', desc: "Fake followers and inflated numbers are everywhere. We verify every single datapoint so you don't have to worry about fraud." },
                                 { id: 'ai', emoji: '//', emojiColor: 'text-primary-400', title: 'AI is the Natural Step', desc: 'Technology should handle the logistics—contracts, payments, and matching—so you can focus on creating the actual content.' },
                             ].map(item => (
                                 <div key={item.id} className="bg-dark-800/30 border border-dark-700/50 rounded-xl overflow-hidden">
@@ -690,7 +701,7 @@ const Landing = () => {
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.3 }}
                             >
-                                <div className="text-amber-400 mb-s4 text-h2">⚠️</div>
+                                <div className="text-amber-400 mb-s4 text-h2 font-bold">!</div>
                                 <h3 className="text-body font-bold text-dark-100 mb-s2">Trust is Hard to Verify</h3>
                                 <p className="text-dark-400 text-small leading-relaxed">
                                     Fake followers and inflated numbers are everywhere. We verify every single datapoint so you don't have to worry about fraud.
@@ -846,8 +857,8 @@ const Landing = () => {
                             ))}
                         </div>
 
-                        {/* Desktop: 4-col grid */}
-                        <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-s6">
+                        {/* Desktop: 5-col grid */}
+                        <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-s6">
                             {steps.map((step, index) => (
                                 <motion.div key={index} className="glass-card p-s8 relative overflow-hidden group hover:border-primary-500/30 transition-all duration-300" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -5 }}>
                                     <div className="absolute -top-4 -right-4 text-[120px] font-extrabold text-primary-500/5 leading-none select-none">{step.number}</div>
@@ -933,6 +944,52 @@ const Landing = () => {
                                     </div>
                                 </motion.div>
                             ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Product Roadmap Section */}
+                <section id="roadmap" className="py-10 md:py-14 px-s2 relative bg-dark-900/30 border-t border-dark-800/50">
+                    <div className="max-w-5xl mx-auto">
+                        <div className="text-center mb-8">
+                            <span className="text-primary-400 text-xs-pure font-bold tracking-widest uppercase mb-2 block">What's Coming</span>
+                            <motion.h2 className="text-xl md:text-h1 font-bold mb-2 text-dark-100" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                                Platform <span className="gradient-text">Roadmap</span>
+                            </motion.h2>
+                            <p className="text-dark-400 text-xs md:text-small max-w-xl mx-auto">
+                                A clear path from MVP to a full-scale creator intelligence platform.
+                            </p>
+                        </div>
+                        <div className="relative">
+                            {/* Vertical line on desktop */}
+                            <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-dark-700/60"></div>
+                            <div className="space-y-6">
+                                {[
+                                    { phase: 'Now', label: 'Live', color: 'text-emerald-400', bgColor: 'bg-emerald-500/10 border-emerald-500/30', title: 'Automated Creator Verification', desc: 'Real-time fraud detection, Creator Quality Index, and audience authenticity scoring for every creator on the platform.', side: 'left' },
+                                    { phase: 'Q3 2025', label: 'Building', color: 'text-primary-400', bgColor: 'bg-primary-500/10 border-primary-500/30', title: 'Campaign ROI Prediction Engine', desc: 'Pre-launch AI forecasting that predicts engagement rates, estimated reach, and conversion potential before a brand spends a dollar.', side: 'right' },
+                                    { phase: 'Q4 2025', label: 'Planned', color: 'text-amber-400', bgColor: 'bg-amber-500/10 border-amber-500/30', title: 'Advanced Brand Analytics Dashboard', desc: 'Full campaign reporting suite: performance benchmarks, creator comparison, audience overlap analysis, and attribution modeling.', side: 'left' },
+                                    { phase: 'Q1 2026', label: 'Planned', color: 'text-purple-400', bgColor: 'bg-purple-500/10 border-purple-500/30', title: 'Multi-Platform Engagement Scoring', desc: 'Cross-platform scoring across Instagram, YouTube, TikTok, and LinkedIn. Unified creator profile with platform-specific risk indicators.', side: 'right' },
+                                    { phase: 'Q2 2026', label: 'Vision', color: 'text-cyan-400', bgColor: 'bg-cyan-500/10 border-cyan-500/30', title: 'Brand Campaign Intelligence Suite', desc: 'Automated brief generation, contract templates, milestone tracking, and post-campaign AI debrief with optimization recommendations.', side: 'left' },
+                                ].map((item, index) => (
+                                    <motion.div key={index} className={`md:w-[46%] ${item.side === 'right' ? 'md:ml-auto' : ''} relative`}
+                                        initial={{ opacity: 0, x: item.side === 'left' ? -20 : 20 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: index * 0.1 }}
+                                    >
+                                        <div className={`glass-card p-s6 border ${item.bgColor}`}>
+                                            <div className="flex items-center gap-3 mb-3">
+                                                <span className={`text-xs-pure font-bold uppercase tracking-wider ${item.color}`}>{item.phase}</span>
+                                                <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${item.bgColor} ${item.color} uppercase tracking-wider`}>{item.label}</span>
+                                            </div>
+                                            <h3 className="text-body font-bold text-dark-100 mb-2">{item.title}</h3>
+                                            <p className="text-dark-400 text-small leading-relaxed">{item.desc}</p>
+                                        </div>
+                                        {/* Dot on the center line */}
+                                        <div className={`hidden md:block absolute top-6 ${item.side === 'left' ? '-right-[27px]' : '-left-[27px]'} w-3 h-3 rounded-full bg-dark-700 border-2 ${item.bgColor.split(' ')[0].replace('bg-', 'border-').replace('/10', '/60')}`}></div>
+                                    </motion.div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </section>

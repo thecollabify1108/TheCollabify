@@ -184,7 +184,9 @@ export const adminAPI = {
     verifyCreator: (id, data) => api.post(`admin/creators/${id}/verify`, data),
     // Risk score
     getCreatorRisk: (id) => api.get(`admin/creators/${id}/risk`),
-    recalculateRisk: (id) => api.post(`admin/creators/${id}/recalculate-risk`)
+    recalculateRisk: (id) => api.post(`admin/creators/${id}/recalculate-risk`),
+    // Subscription / Pro Access
+    updateSubscription: (id, tier) => api.put(`admin/users/${id}/subscription`, { tier })
 };
 
 // Public API

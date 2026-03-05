@@ -111,6 +111,7 @@ router.get('/users', auth, isAdmin, async (req, res) => {
                     activeRole: true,
                     isActive: true,
                     avatar: true,
+                    subscriptionTier: true,
                     createdAt: true
                 },
                 orderBy,
@@ -735,6 +736,34 @@ router.get('/creators/:id/risk', auth, isAdmin, async (req, res) => {
     } catch (error) {
         console.error('Get risk data error:', error);
         res.status(500).json({ success: false, message: 'Failed to get risk data' });
+    }
+});
+
+// Grant or revoke Pro subscription tier for a user
+router.put('/users/:id/subscription', auth, isAdmin, [
+    body('tier').isIn(['FREE', 'CREATOR_PRO', 'BRAND_PRO']).withMessage('Invalid subscription tier')
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ success: false, errors: errors.array() });
+
+    try {
+        const user = await prisma.user.findUnique({ where: { id: req.params.id } });
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        const updated = await prisma.user.update({
+            where: { id: req.params.id },
+            data: { subscriptionTier: req.body.tier },
+            select: { id: true, name: true, email: true, subscriptionTier: true }
+        });
+
+        res.json({
+            success: true,
+            message: `Subscription updated to ${req.body.tier}`,
+            data: updated
+        });
+    } catch (error) {
+        console.error('Update subscription error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update subscription' });
     }
 });
 
