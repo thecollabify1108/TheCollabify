@@ -58,12 +58,12 @@ jobs:
         # Express CORS middleware runs instead.
         # Method 1: Remove all allowed origins via `az webapp cors`
         az webapp cors remove --name thecollabify-api \
-          --resource-group TheCollabify \
+          --resource-group TheCollabify_Production \
           --allowed-origins '*' 2>/dev/null || true
         # Method 2: Directly set empty allowedOrigins array via resource update
         az resource update \
           --name web \
-          --resource-group TheCollabify \
+          --resource-group TheCollabify_Production \
           --namespace Microsoft.Web \
           --resource-type config \
           --parent sites/thecollabify-api \

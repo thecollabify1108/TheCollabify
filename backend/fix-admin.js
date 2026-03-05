@@ -15,7 +15,6 @@ async function main() {
         update: {
             password: hashed,
             activeRole: 'ADMIN',
-            role: 'ADMIN',
             isActive: true
         },
         create: {
@@ -23,7 +22,6 @@ async function main() {
             password: hashed,
             name: 'Admin',
             activeRole: 'ADMIN',
-            role: 'ADMIN',
             authProvider: 'LOCAL'
         }
     });
