@@ -1,20 +1,33 @@
 const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
+const SibApiV3Sdk = require('@sendinblue/client');
 
 // -----------------------------------------------------------------------
 // Multi-transport email sender
-// Priority: 1) Resend API (HTTPS, never blocked by Azure)
-//           2) Gmail SMTP port 465 (SSL)
-//           3) Gmail SMTP port 587 (STARTTLS)
+// Priority: 1) Brevo API (HTTPS, never blocked by Azure) ← primary
+//           2) Resend API (HTTPS fallback)
+//           3) Gmail SMTP port 465 (SSL)
+//           4) Gmail SMTP port 587 (STARTTLS)
 // -----------------------------------------------------------------------
 
+let brevoApi = null;
 let resendClient = null;
 let smtpTransporter465 = null;
 let smtpTransporter587 = null;
 
+const getBrevo = () => {
+    const key = process.env.BREVO_API_KEY;
+    if (!key || key.includes('your_')) return null;
+    if (!brevoApi) {
+        brevoApi = new SibApiV3Sdk.TransactionalEmailsApi();
+        brevoApi.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, key);
+    }
+    return brevoApi;
+};
+
 const getResend = () => {
     const key = process.env.RESEND_API_KEY;
-    if (!key || key.startsWith('your_')) return null;
+    if (!key || key.includes('your_')) return null;
     if (!resendClient) resendClient = new Resend(key);
     return resendClient;
 };
@@ -493,7 +506,7 @@ const templates = {
     })
 };
 
-// Send email function — tries Resend (HTTPS), then SMTP 465, then SMTP 587
+// Send email function — tries Brevo (HTTPS), Resend (HTTPS), SMTP-465, SMTP-587
 // NEVER throws — always returns a result object
 const sendEmail = async (to, templateName, data) => {
     const template = templates[templateName];
@@ -504,14 +517,31 @@ const sendEmail = async (to, templateName, data) => {
 
     const emailContent = typeof template === 'function' ? template(data) : template;
     const fromEmail = process.env.EMAIL_USER || 'thecollabify1108@gmail.com';
-    const fromName = 'TheCollabify';
 
-    // --- Attempt 1: Resend API (works on Azure, uses HTTPS port 443) ---
+    // --- Attempt 1: Brevo API (HTTPS, works on Azure) ---
+    const brevo = getBrevo();
+    if (brevo) {
+        try {
+            const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
+            sendSmtpEmail.sender = { name: 'TheCollabify', email: 'noreply@thecollabify.tech' };
+            sendSmtpEmail.to = [{ email: to }];
+            sendSmtpEmail.subject = emailContent.subject;
+            sendSmtpEmail.htmlContent = emailContent.html;
+            await brevo.sendTransacEmail(sendSmtpEmail);
+            console.log('[Email/Brevo] Sent to', to);
+            return { success: true, provider: 'brevo' };
+        } catch (err) {
+            console.warn('[Email/Brevo] Failed, trying Resend:', err.message);
+            brevoApi = null;
+        }
+    }
+
+    // --- Attempt 2: Resend API (HTTPS fallback) ---
     const resend = getResend();
     if (resend) {
         try {
             const result = await resend.emails.send({
-                from: `${fromName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+                from: `TheCollabify <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
                 to,
                 subject: emailContent.subject,
                 html: emailContent.html
@@ -523,9 +553,9 @@ const sendEmail = async (to, templateName, data) => {
         }
     }
 
-    // --- Attempt 2: Gmail SMTP port 465 (SSL) ---
+    // --- Attempt 3: Gmail SMTP port 465 (SSL) ---
     const smtpMailOptions = {
-        from: `"${fromName}" <${fromEmail}>`,
+        from: `"TheCollabify" <${fromEmail}>`,
         to,
         subject: emailContent.subject,
         html: emailContent.html
@@ -541,11 +571,11 @@ const sendEmail = async (to, templateName, data) => {
             return { success: true, provider: 'smtp-465', messageId: info.messageId };
         } catch (err) {
             console.warn('[Email/SMTP-465] Failed, trying port 587:', err.message);
-            smtpTransporter465 = null; // reset bad connection
+            smtpTransporter465 = null;
         }
     }
 
-    // --- Attempt 3: Gmail SMTP port 587 (STARTTLS) ---
+    // --- Attempt 4: Gmail SMTP port 587 (STARTTLS) ---
     const smtp587 = getSMTP(587);
     if (smtp587) {
         try {
@@ -556,7 +586,7 @@ const sendEmail = async (to, templateName, data) => {
             return { success: true, provider: 'smtp-587', messageId: info.messageId };
         } catch (err) {
             console.warn('[Email/SMTP-587] Failed:', err.message);
-            smtpTransporter587 = null; // reset bad connection
+            smtpTransporter587 = null;
         }
     }
 
