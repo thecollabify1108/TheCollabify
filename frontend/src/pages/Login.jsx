@@ -141,14 +141,16 @@ const Login = () => {
                             className="space-y-4"
                         >
                             <div className="space-y-1 group">
-                                <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">
+                                <label htmlFor="login-email" className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">
                                     Email Address
                                 </label>
                                 <div className="relative">
                                     <input
                                         ref={emailRef}
+                                        id="login-email"
                                         type="email"
                                         name="email"
+                                        autoComplete="email"
                                         value={formData.email}
                                         onChange={handleChange}
                                         className="w-full py-3 px-4 bg-dark-50/50 dark:bg-dark-800/50 border border-dark-200 dark:border-dark-700 rounded-xl text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50 pl-10"
@@ -185,7 +187,7 @@ const Login = () => {
 
                             <div className="space-y-1 group">
                                 <div className="flex justify-between items-center">
-                                    <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Password</label>
+                                    <label htmlFor="login-password" className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Password</label>
                                     <Link
                                         to="/forgot-password"
                                         className="text-xs font-semibold text-primary-500 hover:text-primary-600 transition-colors"
@@ -196,8 +198,10 @@ const Login = () => {
                                 <div className="relative">
                                     <input
                                         ref={passwordRef}
+                                        id="login-password"
                                         type={showPassword ? 'text' : 'password'}
                                         name="password"
+                                        autoComplete="current-password"
                                         value={formData.password}
                                         onChange={handleChange}
                                         className="w-full py-3 px-4 bg-dark-50/50 dark:bg-dark-800/50 border border-dark-200 dark:border-dark-700 rounded-xl text-dark-900 dark:text-dark-100 focus:border-primary-500 outline-none transition-all placeholder-dark-300/50 pl-10 pr-10"
