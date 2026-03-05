@@ -392,6 +392,60 @@ const templates = {
 </body>
 </html>
         `
+    }),
+
+    // Creator Application Received (to Seller)
+    creatorApplied: (data) => ({
+        subject: `New Creator Application: ${data.creatorName}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
+                    <h2 style="color: #8b5cf6;">🎯 New Application!</h2>
+                    <p>Hi ${data.sellerName},</p>
+                    <p><strong>${data.creatorName}</strong> has applied to your promotion: <strong>"${data.promotionTitle}"</strong></p>
+                    <p>Log in to your dashboard to review their profile.</p>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="https://thecollabify.tech/seller/dashboard" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">View Application</a>
+                    </div>
+                </div>
+            </div>
+        `
+    }),
+
+    // Creator Accepted (to Creator)
+    creatorAccepted: (data) => ({
+        subject: `Congratulations! You've been accepted!`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
+                    <h2 style="color: #10b981;">🎊 You're Accepted!</h2>
+                    <p>Hi ${data.creatorName},</p>
+                    <p>Great news! <strong>${data.sellerName}</strong> has accepted your application for: <strong>"${data.promotionTitle}"</strong></p>
+                    <p>You can now start collaborating!</p>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="https://thecollabify.tech/creator/dashboard" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Start Working</a>
+                    </div>
+                </div>
+            </div>
+        `
+    }),
+
+    // New Match Notification
+    newMatch: (data) => ({
+        subject: `New Opportunity: ${data.matchScore}% Match!`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333;">
+                    <h2 style="color: #8b5cf6;">🚀 New Match!</h2>
+                    <p>Hi ${data.creatorName},</p>
+                    <p>A new ${data.category} promotion matches your profile with a <strong>${data.matchScore}% score</strong>:</p>
+                    <p><strong>"${data.promotionTitle}"</strong></p>
+                    <div style="margin-top: 30px; text-align: center;">
+                        <a href="https://thecollabify.tech/creator/dashboard" style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold;">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+        `
     })
 };
 
