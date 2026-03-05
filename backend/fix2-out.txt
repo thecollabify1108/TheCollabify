@@ -1,0 +1,4 @@
+Γ£à Prisma DB connection warmed up
+User.password match: true
+UserRole.password match: true
+Email: admin@thecollabify.tech | Password: Admin@Collabify2026

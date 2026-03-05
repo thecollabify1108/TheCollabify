@@ -1,0 +1,6 @@
+1. Pinging server...
+Ping OK: 200 {"success":true,"message":"pong","timestamp":"2026-03-05T10:58:46.468Z"}
+
+2. Testing login...
+Login STATUS: 401
+Login BODY: {"success":false,"message":"Invalid email or password"}

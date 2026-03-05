@@ -1,0 +1,8 @@
+Γ£à Prisma DB connection warmed up
+Role ID: 561d17fc-31f1-4f23-8d02-5f251f83c114
+Hash in DB: $2a$12$/SFBUmLMW4BIAuZmMrCipuxKSvGj6ysQCNcOsp2i/dihpuYbE3WPm
+bcrypt match locally: true
+
+User lookup:
+Found: true | isActive: true | roles: 1
+Role ADMIN | match: true | same hash: true

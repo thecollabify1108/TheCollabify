@@ -150,12 +150,12 @@ router.post('/register/verify-otp', [
 
         // Fire-and-forget welcome email
         const tpl = role === 'creator' ? 'welcomeCreator' : 'welcomeSeller';
-        sendEmail(user.email, tpl, user.name).catch(function() {});
+        sendEmail(user.email, tpl, user.name).catch(function () { });
 
         try {
             var notifSvc = require('../services/notificationService');
-            notifSvc.notifyWelcome(user.id, role).catch(function() {});
-        } catch (e2) {}
+            notifSvc.notifyWelcome(user.id, role).catch(function () { });
+        } catch (e2) { }
 
         res.status(201).json({
             success: true,
@@ -259,7 +259,7 @@ router.post('/login', [
             return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
 
-        prisma.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } }).catch(function() {});
+        prisma.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } }).catch(function () { });
 
         const token = generateToken(user.id);
         setCookieToken(res, token);
@@ -372,7 +372,7 @@ router.post('/change-password', auth, [
 // ============================================================
 router.post('/set-password', auth, [
     body('password').isLength({ min: 6 }),
-    body('confirmPassword').custom(function(v, obj) { if (v !== obj.req.body.password) throw new Error('Passwords do not match'); return true; }),
+    body('confirmPassword').custom(function (v, obj) { if (v !== obj.req.body.password) throw new Error('Passwords do not match'); return true; }),
     handleValidation
 ], async (req, res) => {
     try {
@@ -488,8 +488,8 @@ router.post('/google', async (req, res) => {
 
             try {
                 var notifSvc2 = require('../services/notificationService');
-                notifSvc2.notifyWelcome(user.id, finalRole).catch(function() {});
-            } catch (e3) {}
+                notifSvc2.notifyWelcome(user.id, finalRole).catch(function () { });
+            } catch (e3) { }
         }
 
         const token = generateToken(user.id);
@@ -509,7 +509,7 @@ router.post('/google', async (req, res) => {
 // ============================================================
 // 13. LOGOUT
 // ============================================================
-router.post('/logout', function(req, res) {
+router.post('/logout', function (req, res) {
     res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'none' });
     res.json({ success: true, message: 'Logged out successfully' });
 });

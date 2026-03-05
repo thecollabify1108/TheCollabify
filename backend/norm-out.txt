@@ -1,0 +1,2 @@
+Original via req.body: admin@thecollabify.tech
+Result: {"normalizedEmail":"admin@thecollabify.tech"}
