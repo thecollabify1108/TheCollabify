@@ -87,7 +87,7 @@ router.get('/users', auth, isAdmin, async (req, res) => {
         const where = {};
 
         if (role && role !== 'all') {
-            where.role = role.toUpperCase();
+            where.activeRole = role.toUpperCase();
         }
 
         if (search) {
@@ -107,7 +107,6 @@ router.get('/users', auth, isAdmin, async (req, res) => {
                     id: true,
                     name: true,
                     email: true,
-                    role: true,
                     activeRole: true,
                     isActive: true,
                     avatar: true,
@@ -155,7 +154,6 @@ router.get('/users/:id', auth, isAdmin, async (req, res) => {
                 id: true,
                 name: true,
                 email: true,
-                role: true,
                 activeRole: true,
                 isActive: true,
                 avatar: true,
@@ -172,7 +170,7 @@ router.get('/users/:id', auth, isAdmin, async (req, res) => {
         }
 
         let profile = null;
-        if (user.role === 'CREATOR') {
+        if (user.activeRole === 'CREATOR') {
             profile = await prisma.creatorProfile.findUnique({
                 where: { userId: user.id }
             });
@@ -250,7 +248,7 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
         }
 
         // Prevent deleting admin accounts
-        if (user.role === 'ADMIN') {
+        if (user.activeRole === 'ADMIN') {
             return res.status(403).json({
                 success: false,
                 message: 'Cannot delete admin accounts'
@@ -264,11 +262,11 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
 
         await prisma.$transaction(async (tx) => {
             // 1. Role-specific cleanup
-            if (user.role === 'CREATOR') {
+            if (user.activeRole === 'CREATOR') {
                 await tx.creatorProfile.deleteMany({ where: { userId: user.id } });
                 // Applications are matchedCreator in our schema
                 await tx.matchedCreator.deleteMany({ where: { creatorId: user.id } });
-            } else if (user.role === 'SELLER') {
+            } else if (user.activeRole === 'SELLER') {
                 // Delete conversations and messages linked to promotion requests
                 const prompts = await tx.promotionRequest.findMany({ where: { sellerId: user.id } });
                 const promptIds = prompts.map(p => p.id);
@@ -300,7 +298,7 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
             details: {
                 userId: user.id,
                 email: user.email,
-                role: user.role
+                role: user.activeRole
             }
         });
     } catch (error) {
@@ -336,7 +334,7 @@ router.post('/bulk-delete', auth, isAdmin, [
             });
         }
 
-        const adminUsers = users.filter(u => u.role === 'ADMIN');
+        const adminUsers = users.filter(u => u.activeRole === 'ADMIN');
         if (adminUsers.length > 0) {
             return res.status(403).json({
                 success: false,
@@ -351,10 +349,10 @@ router.post('/bulk-delete', auth, isAdmin, [
             let count = 0;
             for (const user of users) {
                 // Same logic as single delete but in loop or optimized queries
-                if (user.role === 'CREATOR') {
+                if (user.activeRole === 'CREATOR') {
                     await tx.creatorProfile.deleteMany({ where: { userId: user.id } });
                     await tx.matchedCreator.deleteMany({ where: { creatorId: user.id } });
-                } else if (user.role === 'SELLER') {
+                } else if (user.activeRole === 'SELLER') {
                     const promptIds = (await tx.promotionRequest.findMany({
                         where: { sellerId: user.id },
                         select: { id: true }
@@ -503,7 +501,6 @@ router.post('/create-admin', auth, isAdmin, [
                 email,
                 password: hashedPassword,
                 name,
-                role: 'ADMIN',
                 activeRole: 'ADMIN'
             }
         });
@@ -516,7 +513,7 @@ router.post('/create-admin', auth, isAdmin, [
                     id: admin.id,
                     email: admin.email,
                     name: admin.name,
-                    role: admin.role
+                    role: admin.activeRole
                 }
             }
         });

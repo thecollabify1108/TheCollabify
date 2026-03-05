@@ -270,11 +270,11 @@ const AdminUsers = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.role === 'admin' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                                        user.role === 'creator' ? 'bg-secondary-500/10 text-secondary-400 border-secondary-500/20' :
+                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${user.activeRole === 'ADMIN' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                                        user.activeRole === 'CREATOR' ? 'bg-secondary-500/10 text-secondary-400 border-secondary-500/20' :
                                                             'bg-primary-500/10 text-primary-400 border-primary-500/20'
                                                     }`}>
-                                                    {user.role}
+                                                    {user.activeRole?.toLowerCase()}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
