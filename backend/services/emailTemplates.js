@@ -1,34 +1,58 @@
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Email configuration — with aggressive timeouts so a broken SMTP never blocks API responses
-let transporter = null;
+// -----------------------------------------------------------------------
+// Multi-transport email sender
+// Priority: 1) Resend API (HTTPS, never blocked by Azure)
+//           2) Gmail SMTP port 465 (SSL)
+//           3) Gmail SMTP port 587 (STARTTLS)
+// -----------------------------------------------------------------------
 
-const getTransporter = () => {
-    if (transporter) return transporter;
+let resendClient = null;
+let smtpTransporter465 = null;
+let smtpTransporter587 = null;
 
+const getResend = () => {
+    const key = process.env.RESEND_API_KEY;
+    if (!key || key.startsWith('your_')) return null;
+    if (!resendClient) resendClient = new Resend(key);
+    return resendClient;
+};
+
+const getSMTP = (port) => {
     const emailUser = process.env.EMAIL_USER;
     const emailPass = process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD;
+    if (!emailUser || !emailPass) return null;
 
-    if (!emailUser || !emailPass) {
-        console.warn('⚠️  EMAIL_USER or EMAIL_PASS not configured. Emails will be skipped.');
-        return null;
+    if (port === 465) {
+        if (!smtpTransporter465) {
+            smtpTransporter465 = nodemailer.createTransport({
+                host: 'smtp.gmail.com',
+                port: 465,
+                secure: true,
+                auth: { user: emailUser, pass: emailPass },
+                connectionTimeout: 10000,
+                greetingTimeout: 10000,
+                socketTimeout: 12000,
+                tls: { rejectUnauthorized: false }
+            });
+        }
+        return smtpTransporter465;
     }
 
-    transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.EMAIL_PORT, 10) || 587,
-        secure: false,
-        auth: {
-            user: emailUser,
-            pass: emailPass
-        },
-        connectionTimeout: 8000,  // 8s to establish TCP connection
-        greetingTimeout: 8000,    // 8s for SMTP greeting
-        socketTimeout: 10000,     // 10s for socket inactivity
-        pool: false               // Don't pool — simpler for low-volume
-    });
-
-    return transporter;
+    if (!smtpTransporter587) {
+        smtpTransporter587 = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: { user: emailUser, pass: emailPass },
+            connectionTimeout: 10000,
+            greetingTimeout: 10000,
+            socketTimeout: 12000,
+            tls: { rejectUnauthorized: false }
+        });
+    }
+    return smtpTransporter587;
 };
 
 // Email Templates
@@ -469,43 +493,75 @@ const templates = {
     })
 };
 
-// Send email function — NEVER blocks/throws; always returns a result object
+// Send email function — tries Resend (HTTPS), then SMTP 465, then SMTP 587
+// NEVER throws — always returns a result object
 const sendEmail = async (to, templateName, data) => {
-    try {
-        const mailer = getTransporter();
-        if (!mailer) {
-            console.warn(`[Email] Skipped "${templateName}" to ${to} — SMTP not configured`);
-            return { success: false, error: 'SMTP not configured', skipped: true };
-        }
-
-        const template = templates[templateName];
-        if (!template) {
-            console.error(`[Email] Template "${templateName}" not found`);
-            return { success: false, error: `Template "${templateName}" not found` };
-        }
-
-        const emailContent = typeof template === 'function' ? template(data) : template;
-
-        const mailOptions = {
-            from: `"TheCollabify" <${process.env.EMAIL_USER}>`,
-            to,
-            subject: emailContent.subject,
-            html: emailContent.html
-        };
-
-        // Race against a 12s timeout so a hung SMTP never blocks the caller
-        const sendPromise = mailer.sendMail(mailOptions);
-        const timeoutPromise = new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Email send timed out after 12s')), 12000)
-        );
-
-        const info = await Promise.race([sendPromise, timeoutPromise]);
-        console.log('[Email] Sent:', info.messageId, 'to', to);
-        return { success: true, messageId: info.messageId };
-    } catch (error) {
-        console.error('[Email] Failed:', templateName, 'to', to, '-', error.message);
-        return { success: false, error: error.message };
+    const template = templates[templateName];
+    if (!template) {
+        console.error(`[Email] Template "${templateName}" not found`);
+        return { success: false, error: `Template "${templateName}" not found` };
     }
+
+    const emailContent = typeof template === 'function' ? template(data) : template;
+    const fromEmail = process.env.EMAIL_USER || 'thecollabify1108@gmail.com';
+    const fromName = 'TheCollabify';
+
+    // --- Attempt 1: Resend API (works on Azure, uses HTTPS port 443) ---
+    const resend = getResend();
+    if (resend) {
+        try {
+            const result = await resend.emails.send({
+                from: `${fromName} <${process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'}>`,
+                to,
+                subject: emailContent.subject,
+                html: emailContent.html
+            });
+            console.log('[Email/Resend] Sent to', to, '- id:', result.data?.id);
+            return { success: true, provider: 'resend', id: result.data?.id };
+        } catch (err) {
+            console.warn('[Email/Resend] Failed, trying SMTP:', err.message);
+        }
+    }
+
+    // --- Attempt 2: Gmail SMTP port 465 (SSL) ---
+    const smtpMailOptions = {
+        from: `"${fromName}" <${fromEmail}>`,
+        to,
+        subject: emailContent.subject,
+        html: emailContent.html
+    };
+
+    const smtp465 = getSMTP(465);
+    if (smtp465) {
+        try {
+            const sendP = smtp465.sendMail(smtpMailOptions);
+            const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('SMTP 465 timed out')), 13000));
+            const info = await Promise.race([sendP, timeout]);
+            console.log('[Email/SMTP-465] Sent to', to, '-', info.messageId);
+            return { success: true, provider: 'smtp-465', messageId: info.messageId };
+        } catch (err) {
+            console.warn('[Email/SMTP-465] Failed, trying port 587:', err.message);
+            smtpTransporter465 = null; // reset bad connection
+        }
+    }
+
+    // --- Attempt 3: Gmail SMTP port 587 (STARTTLS) ---
+    const smtp587 = getSMTP(587);
+    if (smtp587) {
+        try {
+            const sendP = smtp587.sendMail(smtpMailOptions);
+            const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('SMTP 587 timed out')), 13000));
+            const info = await Promise.race([sendP, timeout]);
+            console.log('[Email/SMTP-587] Sent to', to, '-', info.messageId);
+            return { success: true, provider: 'smtp-587', messageId: info.messageId };
+        } catch (err) {
+            console.warn('[Email/SMTP-587] Failed:', err.message);
+            smtpTransporter587 = null; // reset bad connection
+        }
+    }
+
+    console.error(`[Email] ALL transports failed for "${templateName}" to ${to}`);
+    return { success: false, error: 'All email transports failed' };
 };
 
 module.exports = {
