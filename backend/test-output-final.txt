@@ -1,0 +1,9 @@
+Testing Email Configuration...
+User: thecollabify1108@gmail.com
+Pass: ********
+Host: smtp.gmail.com
+Port: 587
+Verifying transporter...
+Γ£à Transporter is ready
+Sending test email...
+Γ£à Email sent successfully: <ed674b38-4818-94e2-77af-b1df473cac25@gmail.com>

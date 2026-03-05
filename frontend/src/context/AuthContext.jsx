@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
-import axios from 'axios';
 
 const AuthContext = createContext(null);
 
@@ -176,40 +175,6 @@ export const AuthProvider = ({ children }) => {
         return response.data;
     };
 
-    // Google OAuth Login
-    const googleLogin = async (googleData) => {
-        let finalData = { ...googleData };
-
-        // If we only have accessToken, fetch profile info from Google
-        if (googleData.accessToken && !googleData.googleId) {
-            try {
-                // Fetch profile using the access token
-                const googleRes = await axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${googleData.accessToken}`);
-                finalData = {
-                    email: googleRes.data.email,
-                    name: googleRes.data.name,
-                    googleId: googleRes.data.sub,
-                    avatar: googleRes.data.picture,
-                    role: googleData.role
-                };
-            } catch (error) {
-                console.error('Failed to fetch Google profile:', error);
-                throw new Error('Failed to retrieve your Google profile information. Please try again.');
-            }
-        }
-
-        // 45s timeout — Azure can cold-start for 15-20s + DB queries
-        const response = await api.post('auth/google', finalData, { timeout: 45000 });
-        const { token: newToken, user: userData } = response.data.data;
-
-        localStorage.setItem('token', newToken);
-        setToken(newToken);
-        setUser(normalizeUser(userData));
-        cacheUser(userData);
-
-        return normalizeUser(userData);
-    };
-
     const value = {
         user,
         token,
@@ -222,8 +187,7 @@ export const AuthProvider = ({ children }) => {
         updateProfile,
         forgotPassword,
         resetPassword,
-        changePassword,
-        googleLogin
+        changePassword
     };
 
     return (
