@@ -82,6 +82,13 @@ const Register = () => {
         setFormData(prev => ({ ...prev, role }));
     };
 
+    const doSendOtp = (timeout) => api.post('auth/register/send-otp', {
+        email: formData.email,
+        name: formData.name,
+        password: formData.password,
+        role: formData.role
+    }, { timeout });
+
     const handleSubmitDetails = async (e) => {
         e.preventDefault();
 
@@ -97,36 +104,41 @@ const Register = () => {
         }
 
         setLoading(true);
-        try {
-            const response = await api.post('auth/register/send-otp', {
-                email: formData.email,
-                name: formData.name,
-                password: formData.password,
-                role: formData.role
-            }, { timeout: 45000 }); // 45s — Azure backend can take 15-20s on cold start + SMTP up to 12s
 
-            if (response.data.success) {
-                setTempUserId(response.data.data.tempUserId);
-                setOtpTimer(response.data.data.expiresIn);
-                setStep(3); // Move to OTP
-                setCanResend(false);
-
-                // Show appropriate toast based on whether email was actually delivered
-                if (response.data.data.emailSent === false) {
-                    toast('Code generated! Email delivery may be delayed — tap Resend if needed.', {
-                        icon: '⚠️',
-                        duration: 6000
-                    });
-                } else {
-                    toast.success('Code sent! Check your email.');
-                }
-            }
-        } catch (error) {
-            const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
-            if (isTimeout) {
-                toast.error('Server is waking up — please wait 10 seconds then try again.', { duration: 5000 });
+        const handleSuccess = (data) => {
+            setTempUserId(data.tempUserId);
+            setOtpTimer(data.expiresIn);
+            setStep(3);
+            setCanResend(false);
+            if (data.emailSent === false) {
+                toast('Code generated! Email delivery may be delayed — tap Resend if needed.', { icon: '⚠️', duration: 6000 });
             } else {
-                toast.error(error.response?.data?.message || 'Registration failed. Please try again.');
+                toast.success('Code sent! Check your email.');
+            }
+        };
+
+        try {
+            // First attempt — 60s timeout
+            const response = await doSendOtp(60000);
+            if (response.data.success) handleSuccess(response.data.data);
+        } catch (firstError) {
+            const isTimeout = firstError.code === 'ECONNABORTED' || firstError.message?.includes('timeout');
+            if (!isTimeout) {
+                toast.error(firstError.response?.data?.message || 'Registration failed. Please try again.');
+                setLoading(false);
+                return;
+            }
+
+            // Auto-retry after 8s — Azure server was cold-starting
+            const toastId = toast.loading('Server is starting up, retrying in 8 seconds…');
+            await new Promise(r => setTimeout(r, 8000));
+            toast.dismiss(toastId);
+
+            try {
+                const retryResponse = await doSendOtp(90000);
+                if (retryResponse.data.success) handleSuccess(retryResponse.data.data);
+            } catch (retryError) {
+                toast.error('Server is taking too long to respond. Please try again in 30 seconds.');
             }
         } finally {
             setLoading(false);
