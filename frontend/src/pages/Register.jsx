@@ -82,6 +82,19 @@ const Register = () => {
         setFormData(prev => ({ ...prev, role }));
     };
 
+    const handleGoogleSignup = () => {
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+        if (!clientId) {
+            toast.error('Google sign-in is not configured.');
+            return;
+        }
+        const redirectUri = `${window.location.origin}/auth/callback`;
+        const scope = 'openid email profile';
+        const state = formData.role ? `role:${formData.role}` : '';
+        const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}${state ? `&state=${encodeURIComponent(state)}` : ''}`;
+        window.location.href = url;
+    };
+
     const doSendOtp = (timeout) => api.post('auth/register/send-otp', {
         email: formData.email,
         name: formData.name,
@@ -297,6 +310,21 @@ const Register = () => {
                                         <Icon name="arrow-right" size={18} className="group-hover:translate-x-1 transition-transform" />
                                     </button>
 
+                                    {/* Divider */}
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1 h-px bg-dark-700" />
+                                        <span className="text-xs text-dark-500">or</span>
+                                        <div className="flex-1 h-px bg-dark-700" />
+                                    </div>
+
+                                    {/* Google Signup Button */}
+                                    <button
+                                        onClick={handleGoogleSignup}
+                                        className="w-full py-3 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-dark-700 hover:border-dark-500 rounded-xl text-dark-200 text-sm font-medium transition-all"
+                                    >
+                                        <Icon name="google" size={18} />
+                                        Continue with Google
+                                    </button>
                                 </motion.div>
                             )}
                         </AnimatePresence>

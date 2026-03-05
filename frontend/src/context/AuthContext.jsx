@@ -47,7 +47,7 @@ export const AuthProvider = ({ children }) => {
         // Proactive warm-up: fire a no-cors ping to wake up the Azure backend
         // before the auth/me call. This reduces perceived cold-start delay.
         if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            const pingUrl = (import.meta.env.VITE_API_URL || 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net/api').replace(/\/+$/, '') + '/ping';
+            const pingUrl = (import.meta.env.VITE_API_URL || 'https://thecollabify-api-hhc2huheexegagff.centralindia-01.azurewebsites.net/api').replace(/\/+$/, '') + '/ping';
             fetch(pingUrl, { method: 'GET', mode: 'no-cors', cache: 'no-store' }).catch(() => { });
         }
 
@@ -175,6 +175,16 @@ export const AuthProvider = ({ children }) => {
         return response.data;
     };
 
+    const googleLogin = async ({ email, name, googleId, avatar, role }) => {
+        const response = await api.post('oauth/google-login', { email, name, googleId, avatar, role }, { timeout: 45000 });
+        const { token: newToken, user: userData } = response.data.data;
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+        setUser(normalizeUser(userData));
+        cacheUser(userData);
+        return normalizeUser(userData);
+    };
+
     const value = {
         user,
         token,
@@ -183,6 +193,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         verifyOTP,
+        googleLogin,
         logout,
         updateProfile,
         forgotPassword,

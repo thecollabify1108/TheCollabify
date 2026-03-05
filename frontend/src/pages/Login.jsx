@@ -55,6 +55,18 @@ const Login = () => {
         setStep(1);
     };
 
+    const handleGoogleLogin = () => {
+        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+        if (!clientId) {
+            toast.error('Google sign-in is not configured.');
+            return;
+        }
+        const redirectUri = `${window.location.origin}/auth/callback`;
+        const scope = 'openid email profile';
+        const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}`;
+        window.location.href = url;
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -249,7 +261,23 @@ const Login = () => {
                 </motion.button>
             </form>
 
-            <div className="mt-8 text-center text-sm text-dark-400">
+            {/* Divider */}
+            <div className="flex items-center gap-3 mt-6">
+                <div className="flex-1 h-px bg-dark-700" />
+                <span className="text-xs text-dark-500">or</span>
+                <div className="flex-1 h-px bg-dark-700" />
+            </div>
+
+            {/* Google Login Button */}
+            <button
+                onClick={handleGoogleLogin}
+                className="mt-4 w-full py-3 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-dark-700 hover:border-dark-500 rounded-xl text-dark-200 text-sm font-medium transition-all"
+            >
+                <Icon name="google" size={18} />
+                Continue with Google
+            </button>
+
+            <div className="mt-6 text-center text-sm text-dark-400">
                 Don't have an account?{' '}
                 <Link to="/register" className="font-semibold text-primary-400 hover:text-primary-300 transition-colors">
                     Create account

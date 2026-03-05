@@ -215,6 +215,105 @@ router.post('/complete-registration', [
 });
 
 /**
+ * @route   POST /api/oauth/google-login
+ * @desc    Authenticate or register a user using Google profile data (frontend redirect flow)
+ * @access  Public
+ */
+router.post('/google-login', [
+    body('email').isEmail().normalizeEmail(),
+    body('googleId').notEmpty(),
+    body('name').notEmpty().trim().escape(),
+    body('role').optional().isIn(['creator', 'seller'])
+], async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
+        }
+
+        const { email, name, googleId, avatar, role } = req.body;
+
+        // Check if user exists by googleId
+        let user = await prisma.user.findUnique({ where: { googleId } });
+
+        if (!user) {
+            // Check by email (link accounts)
+            user = await prisma.user.findUnique({ where: { email } });
+
+            if (user) {
+                // Link Google to existing account
+                user = await prisma.user.update({
+                    where: { id: user.id },
+                    data: { googleId, authProvider: 'GOOGLE', avatar: avatar || user.avatar, lastLogin: new Date() }
+                });
+            }
+        }
+
+        if (!user) {
+            // New user
+            if (!role || !['creator', 'seller'].includes(role)) {
+                // No role provided — need registration completion
+                return res.status(202).json({
+                    success: false,
+                    code: 'ROLE_REQUIRED',
+                    message: 'Role selection required to complete registration',
+                    data: { email, name, googleId, avatar }
+                });
+            }
+
+            const roleUpper = role.toUpperCase();
+            user = await prisma.user.create({
+                data: {
+                    googleId,
+                    email,
+                    name,
+                    role: roleUpper,
+                    activeRole: roleUpper,
+                    authProvider: 'GOOGLE',
+                    avatar: avatar || '',
+                    isActive: true,
+                    emailVerified: true,
+                    lastLogin: new Date()
+                }
+            });
+
+            await prisma.userRole.create({
+                data: { userId: user.id, type: roleUpper, password: '' }
+            });
+        } else {
+            await prisma.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } });
+        }
+
+        const token = jwt.sign(
+            { userId: user.id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        setCookieToken(res, token);
+
+        return res.json({
+            success: true,
+            data: {
+                token,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    role: user.role ? user.role.toLowerCase() : null,
+                    activeRole: user.activeRole ? user.activeRole.toLowerCase() : null,
+                    avatar: user.avatar
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Google login error:', error);
+        res.status(500).json({ success: false, message: 'Google sign-in failed' });
+    }
+});
+
+/**
  * @route   GET /api/oauth/session-data
  * @desc    Get Google profile data from session (for registration form)
  * @access  Public (requires session)
