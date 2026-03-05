@@ -1,5 +1,5 @@
 const NodeCache = require('node-cache');
-const { getRedisClient, isRedisEnabled } = require('../config/redis');
+// Redis removed — using in-memory NodeCache only
 
 // Fallback local cache for development or Redis failure
 const localCache = new NodeCache({ stdTTL: 300, checkperiod: 60 });
@@ -23,13 +23,8 @@ const cacheMiddleware = (duration = 300) => async (req, res, next) => {
     const key = `__express__${req.originalUrl || req.url}`;
 
     try {
-        // 4. Check Cache (Redis or Local)
-        let cachedBody;
-        if (isRedisEnabled()) {
-            cachedBody = await getRedisClient().get(key);
-        } else {
-            cachedBody = localCache.get(key);
-        }
+        // 4. Check in-memory cache
+        const cachedBody = localCache.get(key);
 
         // 5. Serve from cache if hit
         if (cachedBody) {
@@ -43,13 +38,8 @@ const cacheMiddleware = (duration = 300) => async (req, res, next) => {
         const originalSend = res.send;
 
         res.send = function (body) {
-            // Only cache successful JSON responses
             if (res.statusCode >= 200 && res.statusCode < 300) {
-                if (isRedisEnabled()) {
-                    getRedisClient().set(key, body, 'EX', duration).catch(err => console.error('Redis Set Error:', err));
-                } else {
-                    localCache.set(key, body, duration);
-                }
+                localCache.set(key, body, duration);
             }
             originalSend.call(this, body);
         };
@@ -76,12 +66,7 @@ const userCacheMiddleware = (duration = 30) => async (req, res, next) => {
     const key = `__usercache__${userId}:${req.originalUrl || req.url}`;
 
     try {
-        let cachedBody;
-        if (isRedisEnabled()) {
-            cachedBody = await getRedisClient().get(key);
-        } else {
-            cachedBody = localCache.get(key);
-        }
+        const cachedBody = localCache.get(key);
 
         if (cachedBody) {
             res.set('X-Cache', 'HIT');
@@ -95,11 +80,7 @@ const userCacheMiddleware = (duration = 30) => async (req, res, next) => {
 
         res.send = function (body) {
             if (res.statusCode >= 200 && res.statusCode < 300) {
-                if (isRedisEnabled()) {
-                    getRedisClient().set(key, body, 'EX', duration).catch(err => console.error('User Cache Set Error:', err));
-                } else {
-                    localCache.set(key, body, duration);
-                }
+                localCache.set(key, body, duration);
             }
             originalSend.call(this, body);
         };
@@ -116,33 +97,18 @@ const userCacheMiddleware = (duration = 30) => async (req, res, next) => {
  */
 const clearCache = async (key) => {
     try {
-        if (isRedisEnabled()) {
-            if (key) {
-                // Support wildcard patterns for user cache clearing
-                if (key.includes('*')) {
-                    const keys = await getRedisClient().keys(key);
-                    if (keys.length > 0) await getRedisClient().del(...keys);
-                } else {
-                    await getRedisClient().del(key);
+        if (key) {
+            if (key.includes('*')) {
+                const pattern = new RegExp('^' + key.replace(/\*/g, '.*') + '$');
+                const allKeys = localCache.keys();
+                for (const k of allKeys) {
+                    if (pattern.test(k)) localCache.del(k);
                 }
             } else {
-                await getRedisClient().flushdb();
+                localCache.del(key);
             }
         } else {
-            if (key) {
-                // For local cache, if wildcard, iterate and match
-                if (key.includes('*')) {
-                    const pattern = new RegExp('^' + key.replace(/\*/g, '.*') + '$');
-                    const allKeys = localCache.keys();
-                    for (const k of allKeys) {
-                        if (pattern.test(k)) localCache.del(k);
-                    }
-                } else {
-                    localCache.del(key);
-                }
-            } else {
-                localCache.flushAll();
-            }
+            localCache.flushAll();
         }
     } catch (error) {
         console.error('Clear Cache Error:', error);

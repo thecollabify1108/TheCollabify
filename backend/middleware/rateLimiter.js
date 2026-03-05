@@ -1,22 +1,8 @@
 const rateLimit = require('express-rate-limit');
-const { RedisStore } = require('rate-limit-redis');
-const { getRedisClient } = require('../config/redis');
 
-/**
- * Build a Redis-backed store if Redis is available, otherwise fall back to memory.
- * This ensures brute-force protection persists across container restarts on Azure.
- */
-const buildStore = (prefix) => {
-    const client = getRedisClient();
-    if (client) {
-        return new RedisStore({
-            sendCommand: (...args) => client.call(...args),
-            prefix: `rl:${prefix}:`,
-        });
-    }
-    // Graceful fallback: in-memory (acceptable for local dev where Redis is not running)
-    return undefined;
-};
+// Using in-memory rate limiting (Redis removed to reduce cost).
+// In-memory is fine for a single Azure instance.
+const buildStore = (_prefix) => undefined; // undefined = express-rate-limit default memory store
 
 /**
  * Multi-tier rate limiting for brute force protection
