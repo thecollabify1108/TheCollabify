@@ -550,6 +550,7 @@ const sendEmail = async (to, templateName, data) => {
             return { success: true, provider: 'resend', id: result.data?.id };
         } catch (err) {
             console.warn('[Email/Resend] Failed, trying SMTP:', err.message);
+            resendClient = null;
         }
     }
 
