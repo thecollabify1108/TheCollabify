@@ -81,6 +81,27 @@ const templates = {
         `
     }),
 
+    // Registration OTP Email
+    registrationOTP: (data) => ({
+        subject: `Your OTP Code - TheCollabify`,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; background: #0D0D0D; color: #fff;">
+                <div style="background: #1a1a1a; padding: 30px; border-radius: 12px; border: 1px solid #333; max-width: 500px; margin: 0 auto;">
+                    <h1 style="color: #8b5cf6; text-align: center;">✨ TheCollabify</h1>
+                    <p>Hi ${data.name},</p>
+                    <p>Your verification code is:</p>
+                    <div style="background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%); padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: white;">${data.otpCode}</span>
+                    </div>
+                    <p>This code is valid for 10 minutes. 🔒 Never share this code with anyone.</p>
+                    <div style="text-align: center; margin-top: 20px; color: #666; font-size: 12px;">
+                        © ${new Date().getFullYear()} TheCollabify
+                    </div>
+                </div>
+            </div>
+        `
+    }),
+
     // Welcome Email for Sellers
     welcomeSeller: (name) => ({
         subject: '🚀 Welcome to TheCollabify - Find Your Perfect Creators!',

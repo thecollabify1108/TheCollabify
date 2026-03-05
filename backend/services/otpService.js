@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const prisma = require('../config/prisma');
-const { sendOTPEmail } = require('../utils/brevoEmailService');
+const { sendEmail } = require('./emailTemplates');
 
 /**
  * OTP Service
@@ -51,8 +51,8 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
             }
         });
 
-        // Send OTP via email
-        await sendOTPEmail(email, name, otpCode);
+        // Send OTP via email using unified email service (Gmail SMTP fallback)
+        await sendEmail(email, 'registrationOTP', { name, otpCode });
 
         return {
             success: true,
