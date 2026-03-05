@@ -959,7 +959,7 @@ router.post('/set-password', auth, [
  */
 router.post('/google', async (req, res) => {
     try {
-        const { email, name, googleId, avatar } = req.body;
+        const { email, name, googleId, avatar, role: requestedRole } = req.body;
 
         if (!email || !googleId) {
             return res.status(400).json({
@@ -967,6 +967,11 @@ router.post('/google', async (req, res) => {
                 message: 'Email and Google ID are required'
             });
         }
+
+        // Normalize requested role (default to CREATOR if missing or invalid)
+        const finalRole = (requestedRole && ['creator', 'seller'].includes(requestedRole.toLowerCase()))
+            ? requestedRole.toUpperCase()
+            : 'CREATOR';
 
         // Find or create user
         let user = await prisma.user.findUnique({
@@ -976,17 +981,36 @@ router.post('/google', async (req, res) => {
 
         if (user) {
             // User exists - update Google ID if not set
+            const updateData = {
+                lastLogin: new Date()
+            };
+
             if (!user.googleId) {
-                user = await prisma.user.update({
-                    where: { email },
-                    data: {
-                        googleId,
-                        authProvider: 'GOOGLE',
-                        avatar: avatar || user.avatar
-                    },
-                    include: { roles: true }
-                });
+                updateData.googleId = googleId;
+                updateData.authProvider = 'GOOGLE';
+                updateData.avatar = avatar || user.avatar;
             }
+
+            // Check if user already has this role, if not, add it
+            const hasRole = user.roles.some(r => r.type === finalRole);
+            if (!hasRole) {
+                updateData.activeRole = finalRole;
+                updateData.roles = {
+                    create: {
+                        type: finalRole,
+                        password: crypto.randomBytes(32).toString('hex')
+                    }
+                };
+            } else {
+                // Just switch active role if they logged in choosing a specific role they already have
+                updateData.activeRole = finalRole;
+            }
+
+            user = await prisma.user.update({
+                where: { email },
+                data: updateData,
+                include: { roles: true }
+            });
 
             // Check if account is active
             if (!user.isActive) {
@@ -996,7 +1020,7 @@ router.post('/google', async (req, res) => {
                 });
             }
         } else {
-            // New user - default to 'CREATOR'
+            // New user - use the selected role
             user = await prisma.user.create({
                 data: {
                     email,
@@ -1005,10 +1029,10 @@ router.post('/google', async (req, res) => {
                     avatar: avatar || "",
                     authProvider: 'GOOGLE',
                     emailVerified: true,
-                    activeRole: 'CREATOR',
+                    activeRole: finalRole,
                     roles: {
                         create: {
-                            type: 'CREATOR',
+                            type: finalRole,
                             password: crypto.randomBytes(32).toString('hex')
                         }
                     }
@@ -1018,7 +1042,7 @@ router.post('/google', async (req, res) => {
 
             // Send welcome notification
             try {
-                await notifyWelcome(user.id, 'CREATOR');
+                await notifyWelcome(user.id, finalRole);
             } catch (err) {
                 console.error('Failed to send welcome notification:', err);
             }
