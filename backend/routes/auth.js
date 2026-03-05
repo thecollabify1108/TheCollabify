@@ -138,7 +138,7 @@ router.post('/register/verify-otp', [
                     name,
                     activeRole: role.toUpperCase(),
                     emailVerified: true,
-                    authProvider: 'EMAIL',
+                    authProvider: 'LOCAL',
                     roles: { create: { type: role.toUpperCase(), password: hashedPassword } }
                 },
                 include: { roles: true }
