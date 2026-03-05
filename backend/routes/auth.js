@@ -150,15 +150,21 @@ router.post('/register/send-otp', [
         // Store user data temporarily
         const tempData = Buffer.from(JSON.stringify({ email, name, password, role, isAddingRole })).toString('base64');
 
+        // If email wasn't delivered, warn the user but don't block registration
+        const message = result.emailSent
+            ? (isAddingRole
+                ? `OTP sent! You're adding ${role} role to your account.`
+                : 'OTP sent to your email. Please check your inbox.')
+            : 'Verification code generated. If you don\'t receive an email, click Resend.';
+
         res.json({
             success: true,
-            message: isAddingRole
-                ? `OTP sent! You're adding ${role} role to your account.`
-                : 'OTP sent to your email. Please check your inbox.',
+            message,
             data: {
                 tempUserId: tempData,
                 expiresIn: result.expiresIn,
-                isAddingRole
+                isAddingRole,
+                emailSent: result.emailSent
             }
         });
     } catch (error) {

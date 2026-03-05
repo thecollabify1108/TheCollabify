@@ -104,14 +104,23 @@ const Register = () => {
                 name: formData.name,
                 password: formData.password,
                 role: formData.role
-            }, { timeout: 35000 }); // 35s — Azure backend can take 15-20s on cold start
+            }, { timeout: 45000 }); // 45s — Azure backend can take 15-20s on cold start + SMTP up to 12s
 
             if (response.data.success) {
                 setTempUserId(response.data.data.tempUserId);
                 setOtpTimer(response.data.data.expiresIn);
                 setStep(3); // Move to OTP
                 setCanResend(false);
-                toast.success('Code sent! Check your email.');
+
+                // Show appropriate toast based on whether email was actually delivered
+                if (response.data.data.emailSent === false) {
+                    toast('Code generated! Email delivery may be delayed — tap Resend if needed.', {
+                        icon: '⚠️',
+                        duration: 6000
+                    });
+                } else {
+                    toast.success('Code sent! Check your email.');
+                }
             }
         } catch (error) {
             const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
@@ -147,6 +156,22 @@ const Register = () => {
             setOtp(['', '', '', '', '', '']);
         } finally {
             setOtpLoading(false);
+        }
+    };
+
+    const handleResendOTP = async () => {
+        if (!tempUserId) return;
+        try {
+            setCanResend(false);
+            const response = await api.post('auth/register/resend-otp', { tempUserId }, { timeout: 45000 });
+            if (response.data.success) {
+                setOtpTimer(response.data.data.expiresIn || 600);
+                setOtp(['', '', '', '', '', '']);
+                toast.success('New code sent! Check your email.');
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to resend code. Please try again.');
+            setCanResend(true);
         }
     };
 
@@ -457,10 +482,10 @@ const Register = () => {
                         </div>
 
                         <div className="text-center">
-                            {otpTimer > 0 ? (
+                            {otpTimer > 0 && !canResend ? (
                                 <p className="text-dark-400 text-sm">Resend in <span className="font-mono text-primary-500">{Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}</span></p>
                             ) : (
-                                <button className="text-primary-500 hover:text-primary-600 text-sm font-medium">Resend Code</button>
+                                <button onClick={handleResendOTP} className="text-primary-500 hover:text-primary-600 text-sm font-medium">Resend Code</button>
                             )}
                         </div>
 

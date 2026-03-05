@@ -25,7 +25,7 @@ const SocialProofWidget = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await api.get('public/stats');
+                const response = await api.get('public/stats', { timeout: 10000 });
                 const result = response.data;
                 if (result.success) {
                     setStats(prev => ({ ...prev, ...result.data }));
@@ -35,7 +35,8 @@ const SocialProofWidget = () => {
                     }
                 }
             } catch (error) {
-                console.error('Failed to fetch public stats:', error);
+                // Silently ignore — use default stats. This is non-critical UI.
+                // Don't pollute console on cold-start timeouts.
             }
         };
         fetchStats();

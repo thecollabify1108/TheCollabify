@@ -1,15 +1,35 @@
 const nodemailer = require('nodemailer');
 
-// Email configuration
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: process.env.EMAIL_PORT || 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD
+// Email configuration — with aggressive timeouts so a broken SMTP never blocks API responses
+let transporter = null;
+
+const getTransporter = () => {
+    if (transporter) return transporter;
+
+    const emailUser = process.env.EMAIL_USER;
+    const emailPass = process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD;
+
+    if (!emailUser || !emailPass) {
+        console.warn('⚠️  EMAIL_USER or EMAIL_PASS not configured. Emails will be skipped.');
+        return null;
     }
-});
+
+    transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.EMAIL_PORT, 10) || 587,
+        secure: false,
+        auth: {
+            user: emailUser,
+            pass: emailPass
+        },
+        connectionTimeout: 8000,  // 8s to establish TCP connection
+        greetingTimeout: 8000,    // 8s for SMTP greeting
+        socketTimeout: 10000,     // 10s for socket inactivity
+        pool: false               // Don't pool — simpler for low-volume
+    });
+
+    return transporter;
+};
 
 // Email Templates
 const templates = {
@@ -449,12 +469,19 @@ const templates = {
     })
 };
 
-// Send email function
+// Send email function — NEVER blocks/throws; always returns a result object
 const sendEmail = async (to, templateName, data) => {
     try {
+        const mailer = getTransporter();
+        if (!mailer) {
+            console.warn(`[Email] Skipped "${templateName}" to ${to} — SMTP not configured`);
+            return { success: false, error: 'SMTP not configured', skipped: true };
+        }
+
         const template = templates[templateName];
         if (!template) {
-            throw new Error(`Template "${templateName}" not found`);
+            console.error(`[Email] Template "${templateName}" not found`);
+            return { success: false, error: `Template "${templateName}" not found` };
         }
 
         const emailContent = typeof template === 'function' ? template(data) : template;
@@ -466,11 +493,17 @@ const sendEmail = async (to, templateName, data) => {
             html: emailContent.html
         };
 
-        const info = await transporter.sendMail(mailOptions);
-        console.log('Email sent:', info.messageId);
+        // Race against a 12s timeout so a hung SMTP never blocks the caller
+        const sendPromise = mailer.sendMail(mailOptions);
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Email send timed out after 12s')), 12000)
+        );
+
+        const info = await Promise.race([sendPromise, timeoutPromise]);
+        console.log('[Email] Sent:', info.messageId, 'to', to);
         return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('[Email] Failed:', templateName, 'to', to, '-', error.message);
         return { success: false, error: error.message };
     }
 };

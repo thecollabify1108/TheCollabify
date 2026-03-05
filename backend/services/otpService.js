@@ -51,13 +51,24 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
             }
         });
 
-        // Send OTP via email using unified email service (Gmail SMTP fallback)
-        await sendEmail(email, 'registrationOTP', { name, otpCode });
+        // Send OTP via email — don't block registration if email fails
+        let emailSent = false;
+        try {
+            const emailResult = await sendEmail(email, 'registrationOTP', { name, otpCode });
+            emailSent = emailResult?.success === true;
+        } catch (emailErr) {
+            console.error('[OTP] Email send failed (non-fatal):', emailErr.message);
+        }
+
+        if (!emailSent) {
+            console.warn(`[OTP] Email NOT delivered to ${email}. OTP: ${otpCode} (logged for dev/debug only)`);
+        }
 
         return {
             success: true,
             otpId: otpDoc.id,
-            expiresIn: 600 // seconds
+            expiresIn: 600, // seconds
+            emailSent
         };
     } catch (error) {
         console.error('Error creating OTP:', error);

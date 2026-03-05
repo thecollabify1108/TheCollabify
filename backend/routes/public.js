@@ -9,21 +9,28 @@ const prisma = require('../config/prisma');
  */
 router.get('/stats', async (req, res) => {
     try {
+        // Race all queries against a 8s timeout so this endpoint always responds fast
+        const queryWithTimeout = (promise, fallback) =>
+            Promise.race([
+                promise,
+                new Promise(resolve => setTimeout(() => resolve(fallback), 8000))
+            ]).catch(() => fallback);
+
         const [
             totalCreators,
             totalSellers,
             activeCampaigns,
             recentUsers
         ] = await Promise.all([
-            prisma.user.count({ where: { activeRole: 'CREATOR', isActive: true } }).catch(() => 0),
-            prisma.user.count({ where: { activeRole: 'SELLER', isActive: true } }).catch(() => 0),
-            prisma.promotionRequest.count({ where: { status: 'OPEN' } }).catch(() => 0),
-            prisma.user.findMany({
+            queryWithTimeout(prisma.user.count({ where: { activeRole: 'CREATOR', isActive: true } }), 0),
+            queryWithTimeout(prisma.user.count({ where: { activeRole: 'SELLER', isActive: true } }), 0),
+            queryWithTimeout(prisma.promotionRequest.count({ where: { status: 'OPEN' } }), 0),
+            queryWithTimeout(prisma.user.findMany({
                 where: { isActive: true },
                 orderBy: { createdAt: 'desc' },
                 take: 5,
                 select: { name: true, activeRole: true, createdAt: true }
-            }).catch(() => [])
+            }), [])
         ]);
 
         const activities = recentUsers.map(u => ({
