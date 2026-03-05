@@ -166,12 +166,8 @@ export const AuthProvider = ({ children }) => {
         return response.data;
     };
 
-    const resetPassword = async (token, password) => {
-        const response = await api.post(`auth/reset-password/${token}`, { password });
-        if (response.data.data?.token) {
-            localStorage.setItem('token', response.data.data.token);
-            setToken(response.data.data.token);
-        }
+    const resetPassword = async (email, otp, newPassword) => {
+        const response = await api.post('auth/reset-password', { email, otp, newPassword });
         return response.data;
     };
 

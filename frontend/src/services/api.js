@@ -98,7 +98,7 @@ export const authAPI = {
     getMe: () => api.get('auth/me'),
     updateProfile: (data) => api.put('auth/update', data),
     forgotPassword: (email) => api.post('auth/forgot-password', { email }),
-    resetPassword: (token, password) => api.post(`auth/reset-password/${token}`, { password }),
+    resetPassword: (email, otp, newPassword) => api.post('auth/reset-password', { email, otp, newPassword }),
     changePassword: (data) => api.post('auth/change-password', data),
     subscribeNewsletter: (email) => api.post('auth/newsletter', { email })
 };

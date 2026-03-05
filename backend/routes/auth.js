@@ -1,37 +1,27 @@
 const express = require('express');
-const AnalyticsService = require('../services/analyticsService');
-
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const crypto = require('crypto');
 const prisma = require('../config/prisma');
 const bcrypt = require('bcryptjs');
 const { auth, generateToken } = require('../middleware/auth');
-const { notifyWelcome } = require('../services/notificationService');
 const { createAndSendOTP, verifyOTP } = require('../services/otpService');
 const { sendEmail } = require('../services/emailTemplates');
 const { upload } = require('../services/storageService');
-// Removed legacy emailService
 
-/**
- * SECURITY: Secure cookie configuration helper
- * Sets HttpOnly, Secure, and SameSite=Strict for production
- */
+// ---------- helpers ----------
+
 const setCookieToken = (res, token) => {
     res.cookie('token', token, {
         httpOnly: true,
-        secure: true,            // Always true (HTTPS in production)
-        sameSite: 'none',        // Required for cross-origin (frontend at .tech, API at api.tech)
+        secure: true,
+        sameSite: 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
 };
 
-/**
- * SECURITY: Sanitize user object - remove sensitive fields
- * Never return passwords, tokens, or sensitive data in API responses
- */
 const sanitizeUser = (user) => {
-    const sanitized = {
+    const out = {
         id: user.id,
         email: user.email,
         name: user.name,
@@ -42,80 +32,32 @@ const sanitizeUser = (user) => {
         subscriptionTier: user.subscriptionTier || 'FREE',
         createdAt: user.createdAt
     };
-
-    // Add optional fields if they exist
-    if (user.roles) {
-        sanitized.availableRoles = user.roles.map(r => r.type);
-    }
-
-    return sanitized;
+    if (user.roles) out.availableRoles = user.roles.map(r => r.type);
+    return out;
 };
 
-/**
- * Validation middleware
- */
 const handleValidation = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({
-            success: false,
-            message: 'Validation failed',
-            errors: errors.array()
-        });
+        return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
     }
     next();
 };
 
-/**
- * @swagger
- * /auth/register/send-otp:
- *   post:
- *     summary: Send OTP for email verification during registration
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - name
- *               - password
- *               - role
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               name:
- *                 type: string
- *                 minLength: 2
- *                 maxLength: 50
- *               password:
- *                 type: string
- *                 format: password
- *               role:
- *                 type: string
- *                 enum: [creator, seller]
- *     responses:
- *       200:
- *         description: OTP sent successfully
- *       400:
- *         description: Validation failed or user already exists
- *       500:
- *         description: Server error
- */
+// ============================================================
+// 1. REGISTRATION - Step 1: send OTP
+// ============================================================
 router.post('/register/send-otp', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-    body('name').trim().escape().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
-    body('password').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 }).withMessage('Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number'),
-    body('role').isIn(['creator', 'seller']).withMessage('Role must be either creator or seller'),
+    body('email').isEmail().normalizeEmail(),
+    body('name').trim().escape().isLength({ min: 2, max: 50 }),
+    body('password').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 })
+        .withMessage('Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number'),
+    body('role').isIn(['creator', 'seller']),
     handleValidation
 ], async (req, res) => {
     try {
         const { email, name, password, role } = req.body;
 
-        // Check if user already exists
         const existingUser = await prisma.user.findUnique({
             where: { email },
             include: { roles: true }
@@ -124,389 +66,163 @@ router.post('/register/send-otp', [
         let isAddingRole = false;
 
         if (existingUser) {
-            // Check if user already has this role
-            if (existingUser.roles && existingUser.roles.length > 0) {
-                const hasRole = existingUser.roles.some(r => r.type === role.toUpperCase());
-                if (hasRole) {
-                    return res.status(400).json({
-                        success: false,
-                        message: `You already have a ${role} account with this email`
-                    });
-                }
-                isAddingRole = true;
-            } else if (existingUser.activeRole === role.toUpperCase()) {
-                return res.status(400).json({
-                    success: false,
-                    message: `You already have a ${role} account with this email`
-                });
-            } else {
-                isAddingRole = true;
+            const hasRole = existingUser.roles && existingUser.roles.some(r => r.type === role.toUpperCase());
+            if (hasRole || (!existingUser.roles.length && existingUser.activeRole === role.toUpperCase())) {
+                return res.status(400).json({ success: false, message: 'You already have a ' + role + ' account with this email' });
             }
+            isAddingRole = true;
         }
 
-        // Generate and send OTP
         const result = await createAndSendOTP(email, name, 'registration');
 
-        // Store user data temporarily
         const tempData = Buffer.from(JSON.stringify({ email, name, password, role, isAddingRole })).toString('base64');
 
-        // If email wasn't delivered, warn the user but don't block registration
         const message = result.emailSent
-            ? (isAddingRole
-                ? `OTP sent! You're adding ${role} role to your account.`
-                : 'OTP sent to your email. Please check your inbox.')
-            : 'Verification code generated. If you don\'t receive an email, click Resend.';
+            ? (isAddingRole ? 'OTP sent! Adding ' + role + ' role.' : 'OTP sent to your email. Check your inbox.')
+            : 'Code generated. If you do not receive an email within 30s, tap Resend.';
 
         res.json({
             success: true,
             message,
-            data: {
-                tempUserId: tempData,
-                expiresIn: result.expiresIn,
-                isAddingRole,
-                emailSent: result.emailSent
-            }
+            data: { tempUserId: tempData, expiresIn: result.expiresIn, isAddingRole, emailSent: result.emailSent }
         });
     } catch (error) {
         console.error('Send OTP error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to send OTP. Please try again.'
-        });
+        res.status(500).json({ success: false, message: error.message || 'Failed to send OTP.' });
     }
 });
 
-/**
- * @swagger
- * /auth/register/verify-otp:
- *   post:
- *     summary: Verify OTP and complete registration
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - tempUserId
- *               - otp
- *             properties:
- *               tempUserId:
- *                 type: string
- *                 description: Base64 encoded temporary user data received from send-otp
- *               otp:
- *                 type: string
- *                 minLength: 6
- *                 maxLength: 6
- *     responses:
- *       201:
- *         description: Registration successful
- *       400:
- *         description: Invalid OTP or user data
- *       500:
- *         description: Server error
- */
+// ============================================================
+// 2. REGISTRATION - Step 2: verify OTP and create account
+// ============================================================
 router.post('/register/verify-otp', [
-    body('tempUserId').notEmpty().withMessage('User data is required'),
-    body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
+    body('tempUserId').notEmpty(),
+    body('otp').isLength({ min: 6, max: 6 }),
     handleValidation
 ], async (req, res) => {
     try {
         const { tempUserId, otp } = req.body;
 
-        // Decode temporary user data
         let userData;
         try {
-            const decoded = Buffer.from(tempUserId, 'base64').toString('utf-8');
-            userData = JSON.parse(decoded);
-        } catch (err) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid user data'
-            });
+            userData = JSON.parse(Buffer.from(tempUserId, 'base64').toString('utf-8'));
+        } catch (e) {
+            return res.status(400).json({ success: false, message: 'Invalid registration data. Please start over.' });
         }
 
         const { email, name, password, role, isAddingRole } = userData;
 
-        // Verify OTP
         const otpResult = await verifyOTP(email, otp, 'registration');
-
         if (!otpResult.success) {
-            return res.status(400).json({
-                success: false,
-                message: otpResult.message
-            });
+            return res.status(400).json({ success: false, message: otpResult.message });
         }
 
-        // Check if adding to existing user or creating new
-        let user = await prisma.user.findUnique({
-            where: { email },
-            include: { roles: true }
-        });
-        let token;
+        const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Hash password manually before creating/updating
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        let user;
 
-        if (isAddingRole && user) {
-            // Update existing user with new role
+        if (isAddingRole) {
             user = await prisma.user.update({
                 where: { email },
                 data: {
                     activeRole: role.toUpperCase(),
                     emailVerified: true,
-                    roles: {
-                        create: {
-                            type: role.toUpperCase(),
-                            password: hashedPassword
-                        }
-                    }
-                }
+                    roles: { create: { type: role.toUpperCase(), password: hashedPassword } }
+                },
+                include: { roles: true }
             });
-
-            token = generateToken(user.id);
-
         } else {
-            // Create new user
             user = await prisma.user.create({
                 data: {
                     email,
                     name,
                     activeRole: role.toUpperCase(),
                     emailVerified: true,
-                    roles: {
-                        create: {
-                            type: role.toUpperCase(),
-                            password: hashedPassword
-                        }
-                    }
-                }
+                    authProvider: 'EMAIL',
+                    roles: { create: { type: role.toUpperCase(), password: hashedPassword } }
+                },
+                include: { roles: true }
             });
-
-            token = generateToken(user.id);
         }
 
-        // Fire-and-forget: non-critical post-registration tasks (don't block response)
-        AnalyticsService.recordFrictionEvent({
-            userId: user.id,
-            type: 'ONBOARDING_START',
-            severity: 'LOW',
-            meta: { role: role.toUpperCase(), method: 'OTP' }
-        }).catch(err => console.error('Friction event failed:', err));
-
-        // Fire-and-forget: welcome notification + email
-        Promise.allSettled([
-            notifyWelcome(user.id, role),
-            role === 'creator' ? sendEmail(user.email, 'welcomeCreator', user.name) : null,
-            role === 'seller' ? sendEmail(user.email, 'welcomeSeller', user.name) : null
-        ].filter(Boolean)).catch(err => console.error('Welcome notifications failed:', err));
-
-        // Set cross-origin cookie + return token in body (both required)
+        const token = generateToken(user.id);
         setCookieToken(res, token);
+
+        // Fire-and-forget welcome email
+        const tpl = role === 'creator' ? 'welcomeCreator' : 'welcomeSeller';
+        sendEmail(user.email, tpl, user.name).catch(function() {});
+
+        try {
+            var notifSvc = require('../services/notificationService');
+            notifSvc.notifyWelcome(user.id, role).catch(function() {});
+        } catch (e2) {}
 
         res.status(201).json({
             success: true,
-            message: 'Email verified! Registration successful',
-            data: {
-                token,
-                user: sanitizeUser({ ...user, activeRole: role.toUpperCase() })
-            }
+            message: 'Registration successful!',
+            data: { token, user: sanitizeUser({ ...user, activeRole: role.toUpperCase() }) }
         });
     } catch (error) {
         console.error('Verify OTP error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'OTP verification failed. Please try again.'
-        });
+        res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
     }
 });
 
-/**
- * @route   POST /api/auth/register/resend-otp
- * @desc    Resend OTP for registration
- * @access  Public
- */
+// ============================================================
+// 3. REGISTRATION - Resend OTP
+// ============================================================
 router.post('/register/resend-otp', [
-    body('tempUserId').notEmpty().withMessage('User data is required'),
+    body('tempUserId').notEmpty(),
     handleValidation
 ], async (req, res) => {
     try {
         const { tempUserId } = req.body;
 
-        // Decode temporary user data
         let userData;
         try {
-            const decoded = Buffer.from(tempUserId, 'base64').toString('utf-8');
-            userData = JSON.parse(decoded);
-        } catch (err) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid user data'
-            });
+            userData = JSON.parse(Buffer.from(tempUserId, 'base64').toString('utf-8'));
+        } catch (e) {
+            return res.status(400).json({ success: false, message: 'Invalid data. Please restart registration.' });
         }
 
-        const { email, name } = userData;
-
-        // Generate and send new OTP
-        const result = await createAndSendOTP(email, name, 'registration');
+        const result = await createAndSendOTP(userData.email, userData.name, 'registration');
 
         res.json({
             success: true,
-            message: 'New OTP sent to your email',
-            data: {
-                expiresIn: result.expiresIn
-            }
+            message: result.emailSent ? 'New code sent!' : 'Code generated. Check your email.',
+            data: { expiresIn: result.expiresIn, emailSent: result.emailSent }
         });
     } catch (error) {
         console.error('Resend OTP error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to resend OTP. Please try again.'
-        });
+        res.status(500).json({ success: false, message: error.message || 'Failed to resend code.' });
     }
 });
 
-/**
- * @route   POST /api/auth/register
- * @desc    Register a new user (creator or seller)
- * @access  Public
- */
-router.post('/register', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-    body('password').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 }).withMessage('Weak password'),
-    body('name').trim().escape().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
-    body('role').isIn(['creator', 'seller']).withMessage('Role must be either creator or seller'),
-    handleValidation
-], async (req, res) => {
-    try {
-        const { email, password, name, role } = req.body;
-
-        // Check if user already exists (Prisma)
-        const existingUser = await prisma.user.findUnique({ where: { email } });
-        if (existingUser) {
-            return res.status(400).json({
-                success: false,
-                message: 'User with this email already exists'
-            });
-        }
-
-        // Hash password
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Create user + role via Prisma
-        const user = await prisma.user.create({
-            data: {
-                email,
-                name,
-                authProvider: 'EMAIL',
-                emailVerified: false,
-                activeRole: role.toUpperCase(),
-                roles: {
-                    create: {
-                        type: role.toUpperCase(),
-                        password: hashedPassword
-                    }
-                }
-            },
-            include: { roles: true }
-        });
-
-        // Generate token
-        const token = generateToken(user.id);
-
-        // Send welcome notification
-        try {
-            await notifyWelcome(user.id, role);
-        } catch (err) {
-            console.error('Failed to send welcome notification:', err);
-        }
-
-        // Set cross-origin cookie + return token in body (both required)
-        setCookieToken(res, token);
-
-        res.status(201).json({
-            success: true,
-            message: 'Registration successful',
-            data: {
-                token,
-                user: sanitizeUser({ ...user, activeRole: role.toUpperCase() })
-            }
-        });
-    } catch (error) {
-        console.error('Registration error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Registration failed. Please try again.'
-        });
-    }
-});
-
-/**
- * @swagger
- * /auth/login:
- *   post:
- *     summary: Login user
- *     tags: [Authentication]
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - email
- *               - password
- *             properties:
- *               email:
- *                 type: string
- *                 format: email
- *               password:
- *                 type: string
- *               role:
- *                 type: string
- *                 enum: [creator, seller]
- *     responses:
- *       200:
- *         description: Login successful
- *       401:
- *         description: Invalid credentials or deactivated account
- *       500:
- *         description: Server error
- */
+// ============================================================
+// 4. LOGIN
+// ============================================================
 router.post('/login', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-    body('password').notEmpty().withMessage('Password is required'),
-    body('role').optional().isIn(['creator', 'seller']).withMessage('Role must be creator or seller'),
+    body('email').isEmail().normalizeEmail(),
+    body('password').notEmpty(),
+    body('role').optional().isIn(['creator', 'seller']),
     handleValidation
 ], async (req, res) => {
     try {
         const { email, password, role } = req.body;
 
-        // Find user and include roles
         const user = await prisma.user.findUnique({
             where: { email },
             include: { roles: true }
         });
 
         if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: 'Invalid email or password'
-            });
+            return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
 
-        // Check if account is active
         if (!user.isActive) {
-            return res.status(401).json({
-                success: false,
-                message: 'Account has been deactivated. Please contact support.'
-            });
+            return res.status(401).json({ success: false, message: 'Account deactivated. Contact support.' });
         }
 
-        // Compare password based on role
         let isMatch = false;
         let matchedRole = null;
 
@@ -518,12 +234,11 @@ router.post('/login', [
                     matchedRole = role.toUpperCase();
                 }
             } else {
-                // Try all roles
-                for (const roleObj of user.roles) {
-                    const match = await bcrypt.compare(password, roleObj.password);
+                for (var i = 0; i < user.roles.length; i++) {
+                    var match = await bcrypt.compare(password, user.roles[i].password);
                     if (match) {
                         isMatch = true;
-                        matchedRole = roleObj.type;
+                        matchedRole = user.roles[i].type;
                         break;
                     }
                 }
@@ -531,62 +246,30 @@ router.post('/login', [
         }
 
         if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                message: role
-                    ? `Invalid password for ${role} role`
-                    : 'Invalid email or password'
-            });
+            return res.status(401).json({ success: false, message: 'Invalid email or password' });
         }
 
-        // Update last login
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date() }
-        });
+        prisma.user.update({ where: { id: user.id }, data: { lastLogin: new Date() } }).catch(function() {});
 
-        // Generate token
         const token = generateToken(user.id);
-
-        // Set cross-origin cookie + return token in body (both required)
         setCookieToken(res, token);
 
         res.json({
             success: true,
             message: 'Login successful',
-            data: {
-                token,
-                user: sanitizeUser({ ...user, activeRole: matchedRole })
-            }
+            data: { token, user: sanitizeUser({ ...user, activeRole: matchedRole }) }
         });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Login failed. Please try again.'
-        });
+        res.status(500).json({ success: false, message: 'Login failed. Please try again.' });
     }
 });
 
-/**
- * @swagger
- * /auth/me:
- *   get:
- *     summary: Get current authenticated user
- *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User information retrieved successfully
- *       401:
- *         description: Unauthorized
- *       500:
- *         description: Server error
- */
+// ============================================================
+// 5. GET CURRENT USER
+// ============================================================
 router.get('/me', auth, async (req, res) => {
     try {
-        // Auth middleware already loaded the user — only fetch roles to supplement
         const roles = await prisma.userRole.findMany({
             where: { userId: req.userId },
             select: { type: true }
@@ -594,811 +277,257 @@ router.get('/me', auth, async (req, res) => {
 
         res.json({
             success: true,
-            data: {
-                user: sanitizeUser({ ...req.user, roles })
-            }
+            data: { user: sanitizeUser({ ...req.user, roles }) }
         });
     } catch (error) {
         console.error('Get user error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to get user information'
-        });
+        res.status(500).json({ success: false, message: 'Failed to get user information' });
     }
 });
 
-/**
- * @route   PUT /api/auth/update
- * @desc    Update current user
- * @access  Private
- */
+// ============================================================
+// 6. UPDATE PROFILE
+// ============================================================
 router.put('/update', auth, [
-    body('name').optional().trim().isLength({ min: 2, max: 50 }).withMessage('Name must be between 2 and 50 characters'),
-    body('avatar').optional().isURL().withMessage('Avatar must be a valid URL'),
+    body('name').optional().trim().isLength({ min: 2, max: 50 }),
+    body('avatar').optional().isURL(),
     handleValidation
 ], async (req, res) => {
     try {
-        const { name, avatar } = req.body;
-
         const updateData = {};
-        if (name) updateData.name = name;
-        if (avatar) updateData.avatar = avatar;
+        if (req.body.name) updateData.name = req.body.name;
+        if (req.body.avatar) updateData.avatar = req.body.avatar;
 
-        const user = await prisma.user.update({
-            where: { id: req.userId },
-            data: updateData
-        });
+        const user = await prisma.user.update({ where: { id: req.userId }, data: updateData });
 
         res.json({
             success: true,
-            message: 'Profile updated successfully',
-            data: {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.activeRole,
-                    avatar: user.avatar
-                }
-            }
+            message: 'Profile updated',
+            data: { user: { id: user.id, email: user.email, name: user.name, role: user.activeRole, avatar: user.avatar } }
         });
     } catch (error) {
-        console.error('Update user error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to update profile'
-        });
+        console.error('Update error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update profile' });
     }
 });
 
-/**
- * @route   POST /api/auth/password-reset/send-otp
- * @desc    Send OTP for password reset
- * @access  Public
- */
-router.post('/password-reset/send-otp', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-    handleValidation
-], async (req, res) => {
+// ============================================================
+// 7. UPLOAD AVATAR
+// ============================================================
+router.post('/upload-avatar', auth, upload.single('avatar'), async (req, res) => {
     try {
-        const { email } = req.body;
+        if (!req.file) return res.status(400).json({ success: false, message: 'Please upload an image' });
 
-        const user = await prisma.user.findUnique({
-            where: { email }
-        });
+        const avatarUrl = req.file.path;
+        await prisma.user.update({ where: { id: req.userId }, data: { avatar: avatarUrl } });
 
-        // Always respond with success to prevent email enumeration
-        if (!user) {
-            return res.json({
-                success: true,
-                message: 'If an account with that email exists, we sent a password reset OTP.',
-                data: {
-                    tempUserId: Buffer.from(JSON.stringify({ email })).toString('base64'),
-                    expiresIn: 600
-                }
-            });
-        }
-
-        // Generate and send OTP
-        const result = await createAndSendOTP(email, user.name, 'password-reset');
-
-        // Create tempUserId (base64 encoded email)
-        const tempUserId = Buffer.from(JSON.stringify({ email })).toString('base64');
-
-        res.json({
-            success: true,
-            message: 'Password reset OTP sent to your email. Please check your inbox.',
-            data: {
-                tempUserId,
-                expiresIn: result.expiresIn
-            }
-        });
+        res.json({ success: true, message: 'Avatar updated', avatar: avatarUrl });
     } catch (error) {
-        console.error('Send password reset OTP error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to send OTP. Please try again.'
-        });
+        console.error('Avatar upload error:', error);
+        res.status(500).json({ success: false, message: 'Failed to upload avatar' });
     }
 });
 
-/**
- * @route   POST /api/auth/password-reset/verify-otp
- * @desc    Verify OTP (step 2 of 3)
- * @access  Public
- */
-router.post('/password-reset/verify-otp', [
-    body('tempUserId').notEmpty().withMessage('User data is required'),
-    body('otp').isLength({ min: 6, max: 6 }).withMessage('OTP must be 6 digits'),
-    handleValidation
-], async (req, res) => {
-    try {
-        const { tempUserId, otp } = req.body;
-
-        // Decode tempUserId to get email
-        let email;
-        try {
-            const decoded = Buffer.from(tempUserId, 'base64').toString('utf-8');
-            const data = JSON.parse(decoded);
-            email = data.email;
-        } catch (err) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid user data'
-            });
-        }
-
-        // Verify OTP
-        const otpResult = await verifyOTP(email, otp, 'password-reset');
-
-        if (!otpResult.success) {
-            return res.status(400).json({
-                success: false,
-                message: otpResult.message
-            });
-        }
-
-        res.json({
-            success: true,
-            message: 'OTP verified successfully'
-        });
-    } catch (error) {
-        console.error('Verify OTP error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to verify OTP. Please try again.'
-        });
-    }
-});
-
-/**
- * @route   POST /api/auth/password-reset/reset
- * @desc    Reset password (step 3 of 3)
- * @access  Public
- */
-router.post('/password-reset/reset', [
-    body('tempUserId').notEmpty().withMessage('User data is required'),
-    body('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    handleValidation
-], async (req, res) => {
-    try {
-        const { tempUserId, newPassword } = req.body;
-
-        // Decode tempUserId to get email
-        let email;
-        try {
-            const decoded = Buffer.from(tempUserId, 'base64').toString('utf-8');
-            const data = JSON.parse(decoded);
-            email = data.email;
-        } catch (err) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid user data'
-            });
-        }
-
-        // Find user
-        const user = await prisma.user.findUnique({
-            where: { email },
-            include: { roles: true }
-        });
-
-        if (!user) {
-            return res.status(400).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-
-        // Hash password manually
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-        // Update password for ALL roles of this user for consistency during reset
-        await prisma.userRole.updateMany({
-            where: { userId: user.id },
-            data: { password: hashedPassword }
-        });
-
-        // Also update legacy password field if needed (though we primarily use roles)
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { password: hashedPassword }
-        });
-
-        // Generate token for auto-login
-        const token = generateToken(user.id);
-
-        // Set HTTPOnly cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
-
-        res.json({
-            success: true,
-            message: 'Password reset successful! You are now logged in.',
-            data: {
-                token,
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.activeRole
-                }
-            }
-        });
-    } catch (error) {
-        console.error('Reset password error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to reset password. Please try again.'
-        });
-    }
-});
-
-// DELETED legacy token-based handles: /forgot-password and /reset-password/:token
-// Use /password-reset/send-otp and /password-reset/reset instead
-
-/**
- * @route   POST /api/auth/change-password
- * @desc    Change password (requires current password)
- * @access  Private
- */
+// ============================================================
+// 8. CHANGE PASSWORD (authenticated)
+// ============================================================
 router.post('/change-password', auth, [
-    body('currentPassword').notEmpty().withMessage('Current password is required'),
-    body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters'),
+    body('currentPassword').notEmpty(),
+    body('newPassword').isLength({ min: 6 }),
     handleValidation
 ], async (req, res) => {
     try {
         const { currentPassword, newPassword } = req.body;
+        const user = await prisma.user.findUnique({ where: { id: req.userId }, include: { roles: true } });
 
-        const user = await prisma.user.findUnique({
-            where: { id: req.userId },
-            include: { roles: true }
-        });
+        const roleObj = user.roles.find(r => r.type === (user.activeRole || 'CREATOR'));
+        if (!roleObj) return res.status(400).json({ success: false, message: 'User role not found' });
 
-        // Find the role password to compare against (using activeRole or primary role)
-        const roleToMatch = user.activeRole || 'CREATOR';
-        const roleObj = user.roles.find(r => r.type === roleToMatch);
-
-        if (!roleObj) {
-            return res.status(400).json({
-                success: false,
-                message: 'User role not found'
-            });
-        }
-
-        // Verify current password
         const isMatch = await bcrypt.compare(currentPassword, roleObj.password);
+        if (!isMatch) return res.status(400).json({ success: false, message: 'Current password is incorrect' });
 
-        if (!isMatch) {
-            return res.status(400).json({
-                success: false,
-                message: 'Current password is incorrect'
-            });
-        }
+        const hashed = await bcrypt.hash(newPassword, 12);
+        await prisma.userRole.updateMany({ where: { userId: user.id }, data: { password: hashed } });
+        await prisma.user.update({ where: { id: user.id }, data: { password: hashed } });
 
-        // Update password
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-        await prisma.userRole.updateMany({
-            where: { userId: user.id },
-            data: { password: hashedPassword }
-        });
-
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { password: hashedPassword }
-        });
-
-        res.json({
-            success: true,
-            message: 'Password changed successfully'
-        });
+        res.json({ success: true, message: 'Password changed successfully' });
     } catch (error) {
         console.error('Change password error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to change password'
-        });
+        res.status(500).json({ success: false, message: 'Failed to change password' });
     }
 });
 
-/**
- * @route   POST /api/auth/set-password
- * @desc    Set password for OAuth users (Google sign-up)
- * @access  Private
- */
+// ============================================================
+// 9. SET PASSWORD (Google OAuth users)
+// ============================================================
 router.post('/set-password', auth, [
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-    body('confirmPassword').custom((value, { req }) => {
-        if (value !== req.body.password) {
-            throw new Error('Passwords do not match');
-        }
-        return true;
-    }),
+    body('password').isLength({ min: 6 }),
+    body('confirmPassword').custom(function(v, obj) { if (v !== obj.req.body.password) throw new Error('Passwords do not match'); return true; }),
     handleValidation
 ], async (req, res) => {
     try {
-        const { password } = req.body;
+        const hashed = await bcrypt.hash(req.body.password, 12);
+        await prisma.user.update({ where: { id: req.userId }, data: { password: hashed } });
+        await prisma.userRole.updateMany({ where: { userId: req.userId }, data: { password: hashed } });
 
-        const user = await prisma.user.findUnique({
-            where: { id: req.userId }
-        });
-
-        // Set new password
-        const salt = await bcrypt.genSalt(12);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { password: hashedPassword }
-        });
-
-        // Ensure roles have this password too
-        await prisma.userRole.updateMany({
-            where: { userId: user.id },
-            data: { password: hashedPassword }
-        });
-
-        res.json({
-            success: true,
-            message: 'Password set successfully! You can now login with email and password.'
-        });
+        res.json({ success: true, message: 'Password set successfully' });
     } catch (error) {
         console.error('Set password error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to set password'
-        });
-    }
-});
-
-/**
- * @route   POST /api/auth/google
- * @desc    Login or Register with Google OAuth
- * @access  Public
- */
-router.post('/google', async (req, res) => {
-    try {
-        const { email, name, googleId, avatar, role: requestedRole } = req.body;
-
-        if (!email || !googleId) {
-            return res.status(400).json({
-                success: false,
-                message: 'Email and Google ID are required'
-            });
-        }
-
-        // Normalize requested role (default to CREATOR if missing or invalid)
-        const finalRole = (requestedRole && ['creator', 'seller'].includes(requestedRole.toLowerCase()))
-            ? requestedRole.toUpperCase()
-            : 'CREATOR';
-
-        // Find or create user
-        let user = await prisma.user.findUnique({
-            where: { email },
-            include: { roles: true }
-        });
-
-        if (user) {
-            // User exists - update Google ID if not set
-            const updateData = {
-                lastLogin: new Date()
-            };
-
-            if (!user.googleId) {
-                updateData.googleId = googleId;
-                updateData.authProvider = 'GOOGLE';
-                updateData.avatar = avatar || user.avatar;
-            }
-
-            // Check if user already has this role, if not, add it
-            const hasRole = user.roles.some(r => r.type === finalRole);
-            if (!hasRole) {
-                updateData.activeRole = finalRole;
-                updateData.roles = {
-                    create: {
-                        type: finalRole,
-                        password: crypto.randomBytes(32).toString('hex')
-                    }
-                };
-            } else {
-                // Just switch active role if they logged in choosing a specific role they already have
-                updateData.activeRole = finalRole;
-            }
-
-            user = await prisma.user.update({
-                where: { email },
-                data: updateData,
-                include: { roles: true }
-            });
-
-            // Check if account is active
-            if (!user.isActive) {
-                return res.status(401).json({
-                    success: false,
-                    message: 'Account has been deactivated. Please contact support.'
-                });
-            }
-        } else {
-            // New user - use the selected role
-            user = await prisma.user.create({
-                data: {
-                    email,
-                    name,
-                    googleId,
-                    avatar: avatar || "",
-                    authProvider: 'GOOGLE',
-                    emailVerified: true,
-                    activeRole: finalRole,
-                    roles: {
-                        create: {
-                            type: finalRole,
-                            password: crypto.randomBytes(32).toString('hex')
-                        }
-                    }
-                },
-                include: { roles: true }
-            });
-
-            // Send welcome notification
-            try {
-                await notifyWelcome(user.id, finalRole);
-            } catch (err) {
-                console.error('Failed to send welcome notification:', err);
-            }
-        }
-
-        // Update last login
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date() }
-        });
-
-        // Generate token
-        const token = generateToken(user.id);
-
-        // Use activeRole or first role
-        const userRole = user.activeRole || (user.roles[0] ? user.roles[0].type : 'CREATOR');
-
-        // Set HTTPOnly cookie
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-        });
-
-        res.json({
-            success: true,
-            message: 'Google login successful',
-            data: {
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: userRole,
-                    avatar: user.avatar,
-                    availableRoles: user.roles.map(r => r.type)
-                },
-                token
-            }
-        });
-    } catch (error) {
-        console.error('Google auth error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Google authentication failed. Please try again.'
-        });
-    }
-});
-
-/**
- * @route   POST /api/auth/logout
- * @desc    Logout user (clear HTTPOnly cookie)
- * @access  Public
- */
-router.post('/logout', (req, res) => {
-    try {
-        // Clear the HTTPOnly cookie
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
-        });
-
-        res.json({
-            success: true,
-            message: 'Logged out successfully'
-        });
-    } catch (error) {
-        console.error('Logout error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Logout failed'
-        });
-    }
-});
-
-/**
- * @route   POST /api/auth/newsletter
- * @desc    Subscribe to newsletter
- * @access  Public
- */
-router.post('/newsletter', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
-    handleValidation
-], async (req, res) => {
-    try {
-        const { email } = req.body;
-
-        // Check if already subscribed (Prisma)
-        const existing = await prisma.subscriber.findUnique({ where: { email } });
-
-        if (existing) {
-            if (!existing.isActive) {
-                await prisma.subscriber.update({ where: { email }, data: { isActive: true } });
-                return res.json({ success: true, message: 'Welcome back! You have been resubscribed.' });
-            }
-            return res.json({ success: true, message: 'You are already subscribed to our newsletter.' });
-        }
-
-        // Create new subscriber
-        await prisma.subscriber.create({ data: { email } });
-
-        res.status(201).json({
-            success: true,
-            message: 'Successfully subscribed to newsletter!'
-        });
-    } catch (error) {
-        console.error('Newsletter subscription error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to subscribe. Please try again.'
-        });
-    }
-});
-
-/**
- * @swagger
- * /auth/upload-avatar:
- *   post:
- *     summary: Upload and update user avatar
- *     tags: [Authentication]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             properties:
- *               avatar:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200:
- *         description: Avatar uploaded successfully
- */
-router.post('/upload-avatar', auth, upload.single('avatar'), async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: 'Please upload an image file'
-            });
-        }
-
-        const avatarUrl = req.file.path; // Cloudinary URL
-
-        const user = await prisma.user.update({
-            where: { id: req.userId },
-            data: { avatar: avatarUrl }
-        });
-
-        res.json({
-            success: true,
-            message: 'Avatar updated successfully',
-            avatar: avatarUrl
-        });
-    } catch (error) {
-        console.error('Avatar upload error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to upload avatar'
-        });
+        res.status(500).json({ success: false, message: 'Failed to set password' });
     }
 });
 
 // ============================================================
-// FORGOT PASSWORD - Send OTP to email
+// 10. FORGOT PASSWORD - send OTP
 // ============================================================
 router.post('/forgot-password', [
-    body('email').isEmail().normalizeEmail().withMessage('Please provide a valid email'),
+    body('email').isEmail().normalizeEmail(),
     handleValidation
 ], async (req, res) => {
     try {
         const { email } = req.body;
-
-        // Check if user exists
         const user = await prisma.user.findUnique({ where: { email } });
+
         if (!user) {
-            // Don't reveal if email exists for security
-            return res.json({
-                success: true,
-                message: 'If this email is registered, you will receive a reset code.'
-            });
+            return res.json({ success: true, message: 'If this email is registered, you will receive a reset code.', data: { expiresIn: 600 } });
         }
 
-        // Use existing OTP service (Brevo sends the email)
         const result = await createAndSendOTP(email, user.name, 'password_reset');
-
-        res.json({
-            success: true,
-            message: 'Password reset code sent to your email. Check your inbox.',
-            data: { expiresIn: result.expiresIn }
-        });
+        res.json({ success: true, message: 'Reset code sent to your email.', data: { expiresIn: result.expiresIn } });
     } catch (error) {
         console.error('Forgot password error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Failed to send reset code. Please try again.'
-        });
+        res.status(500).json({ success: false, message: 'Failed to send reset code.' });
     }
 });
 
 // ============================================================
-// RESET PASSWORD - Verify OTP and update password
+// 11. RESET PASSWORD - verify OTP + update
 // ============================================================
 router.post('/reset-password', [
     body('email').isEmail().normalizeEmail(),
-    body('otp').isLength({ min: 6, max: 6 }).withMessage('Invalid OTP'),
-    body('newPassword').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 }).withMessage('Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number'),
+    body('otp').isLength({ min: 6, max: 6 }),
+    body('newPassword').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 }),
     handleValidation
 ], async (req, res) => {
     try {
         const { email, otp, newPassword } = req.body;
 
-        // Verify OTP
         const otpResult = await verifyOTP(email, otp, 'password_reset');
-        if (!otpResult.success) {
-            return res.status(400).json({ success: false, message: otpResult.message });
-        }
+        if (!otpResult.success) return res.status(400).json({ success: false, message: otpResult.message });
 
-        // Hash new password
-        const hashedPassword = await bcrypt.hash(newPassword, 12);
-
-        // Update user password
-        await prisma.user.update({
-            where: { email },
-            data: { password: hashedPassword }
-        });
+        const hashed = await bcrypt.hash(newPassword, 12);
+        await prisma.user.update({ where: { email }, data: { password: hashed } });
+        await prisma.userRole.updateMany({ where: { user: { email } }, data: { password: hashed } });
 
         res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
     } catch (error) {
         console.error('Reset password error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to reset password. Please try again.'
-        });
+        res.status(500).json({ success: false, message: 'Failed to reset password.' });
     }
 });
 
-/**
- * @route   POST /api/auth/google
- * @desc    Authenticate with Google OAuth (find or create user)
- * @access  Public
- */
-router.post('/google', [
-    body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
-    body('name').trim().isLength({ min: 1 }).withMessage('Name is required'),
-    body('googleId').trim().isLength({ min: 1 }).withMessage('Google ID is required'),
-    handleValidation
-], async (req, res) => {
+// ============================================================
+// 12. GOOGLE OAUTH
+// ============================================================
+router.post('/google', async (req, res) => {
     try {
-        const { email, name, googleId, avatar, role } = req.body;
+        const { email, name, googleId, avatar, role: requestedRole } = req.body;
 
-        // Find existing user by email OR googleId
+        if (!email || !googleId) {
+            return res.status(400).json({ success: false, message: 'Email and Google ID are required' });
+        }
+
+        const finalRole = (requestedRole && ['creator', 'seller'].includes(requestedRole.toLowerCase()))
+            ? requestedRole.toUpperCase()
+            : 'CREATOR';
+
         let user = await prisma.user.findFirst({
-            where: {
-                OR: [
-                    { email },
-                    { googleId }
-                ]
-            },
+            where: { OR: [{ email }, { googleId }] },
             include: { roles: true }
         });
 
         if (user) {
-            // User exists — update googleId if missing, add role if needed
-            const updateData = {};
-            if (!user.googleId) updateData.googleId = googleId;
+            var updateData = { lastLogin: new Date() };
+            if (!user.googleId) { updateData.googleId = googleId; updateData.authProvider = 'GOOGLE'; }
             if (!user.avatar && avatar) updateData.avatar = avatar;
             if (!user.emailVerified) updateData.emailVerified = true;
+            updateData.activeRole = finalRole;
 
-            // Add role if user doesn't already have it
-            if (role && user.roles) {
-                const hasRole = user.roles.some(r => r.type === role.toUpperCase());
-                if (!hasRole) {
-                    await prisma.role.create({
-                        data: {
-                            type: role.toUpperCase(),
-                            userId: user.id
-                        }
-                    });
-                }
+            var hasRole = user.roles && user.roles.some(r => r.type === finalRole);
+            if (!hasRole) {
+                updateData.roles = { create: { type: finalRole, password: crypto.randomBytes(32).toString('hex') } };
             }
 
-            if (Object.keys(updateData).length > 0) {
-                user = await prisma.user.update({
-                    where: { id: user.id },
-                    data: updateData,
-                    include: { roles: true }
-                });
+            user = await prisma.user.update({ where: { id: user.id }, data: updateData, include: { roles: true } });
+
+            if (!user.isActive) {
+                return res.status(401).json({ success: false, message: 'Account deactivated. Contact support.' });
             }
-
-            // Set active role
-            const activeRole = role
-                ? role.toLowerCase()
-                : (user.activeRole ? user.activeRole.toLowerCase() : (user.roles[0]?.type?.toLowerCase() || 'creator'));
-
-            if (user.activeRole !== activeRole.toUpperCase()) {
-                user = await prisma.user.update({
-                    where: { id: user.id },
-                    data: { activeRole: activeRole.toUpperCase() },
-                    include: { roles: true }
-                });
-            }
-
         } else {
-            // New user — create with Google
-            const selectedRole = (role || 'creator').toUpperCase();
             user = await prisma.user.create({
                 data: {
-                    email,
-                    name,
-                    googleId,
+                    email, name, googleId,
                     avatar: avatar || null,
+                    authProvider: 'GOOGLE',
                     emailVerified: true,
-                    activeRole: selectedRole,
-                    password: null,
-                    roles: {
-                        create: [{ type: selectedRole }]
-                    }
+                    activeRole: finalRole,
+                    roles: { create: { type: finalRole, password: crypto.randomBytes(32).toString('hex') } }
                 },
                 include: { roles: true }
             });
 
-            // Send welcome notification (non-blocking)
-            try { await notifyWelcome(user.id, user.name); } catch (_) { }
+            try {
+                var notifSvc2 = require('../services/notificationService');
+                notifSvc2.notifyWelcome(user.id, finalRole).catch(function() {});
+            } catch (e3) {}
         }
 
-        const token = generateToken(user.id, user.activeRole?.toLowerCase() || 'creator');
+        const token = generateToken(user.id);
         setCookieToken(res, token);
 
-        return res.json({
+        res.json({
             success: true,
             message: 'Google authentication successful',
-            data: {
-                token,
-                user: sanitizeUser({
-                    ...user,
-                    role: user.activeRole?.toLowerCase() || 'creator'
-                })
-            }
+            data: { token, user: sanitizeUser({ ...user, activeRole: finalRole }) }
         });
-
     } catch (error) {
         console.error('Google auth error:', error);
-        res.status(500).json({
-            success: false,
-            message: error.message || 'Google authentication failed. Please try again.'
-        });
+        res.status(500).json({ success: false, message: 'Google authentication failed.' });
+    }
+});
+
+// ============================================================
+// 13. LOGOUT
+// ============================================================
+router.post('/logout', function(req, res) {
+    res.clearCookie('token', { httpOnly: true, secure: true, sameSite: 'none' });
+    res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// ============================================================
+// 14. NEWSLETTER
+// ============================================================
+router.post('/newsletter', [
+    body('email').isEmail().normalizeEmail(),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { email } = req.body;
+        const existing = await prisma.subscriber.findUnique({ where: { email } });
+
+        if (existing) {
+            if (!existing.isActive) {
+                await prisma.subscriber.update({ where: { email }, data: { isActive: true } });
+                return res.json({ success: true, message: 'Welcome back! Resubscribed.' });
+            }
+            return res.json({ success: true, message: 'Already subscribed.' });
+        }
+
+        await prisma.subscriber.create({ data: { email } });
+        res.status(201).json({ success: true, message: 'Subscribed!' });
+    } catch (error) {
+        console.error('Newsletter error:', error);
+        res.status(500).json({ success: false, message: 'Failed to subscribe.' });
     }
 });
 
