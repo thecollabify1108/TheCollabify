@@ -356,7 +356,7 @@ try { safeRoute('/api/creators', require('./routes/creators')); } catch (e) { co
 try { safeRoute('/api/sellers', require('./routes/sellers')); } catch (e) { console.error('sellers route failed:', e.message); }
 try { safeRoute('/api/notifications', require('./routes/notifications')); } catch (e) { console.error('notifications route failed:', e.message); }
 try { safeRoute('/api/chat', require('./routes/chat')); } catch (e) { console.error('chat route failed:', e.message); }
-try { safeRoute('/api/admin', ipAllowlist, require('./routes/admin')); } catch (e) { console.error('admin route failed:', e.message); }
+try { safeRoute('/api/admin', require('./routes/admin')); } catch (e) { console.error('admin route failed:', e.message); }
 try { safeRoute('/api/analytics', require('./routes/analytics')); } catch (e) { console.error('analytics route failed:', e.message); }
 try { safeRoute('/api/calendar', require('./routes/contentCalendar')); } catch (e) { console.error('calendar route failed:', e.message); }
 try { safeRoute('/api/team', require('./routes/teamManagement')); } catch (e) { console.error('team route failed:', e.message); }
