@@ -167,28 +167,33 @@ const Landing = () => {
     const steps = [
         {
             number: '01',
-            title: 'Creator Joins and Submits Profile',
-            points: ['Upload platform data', 'Link social accounts', 'Set collaboration preferences']
+            title: 'Creator Onboards',
+            icon: 'user',
+            points: ['Upload creator profile information', 'Connect social media account', 'Set collaboration preferences']
         },
         {
             number: '02',
-            title: 'Collabify Verifies Authenticity',
-            points: ['Follower legitimacy check', 'Engagement pattern analysis', 'Creator Quality Index assigned']
+            title: 'Authenticity Verification',
+            icon: 'shield-check',
+            points: ['Follower legitimacy analysis', 'Engagement pattern verification', 'Creator trust score generated']
         },
         {
             number: '03',
-            title: 'AI Analyzes Engagement and Risk',
-            points: ['Fraud signal detection', 'Audience overlap scoring', 'Predictive campaign fit']
+            title: 'AI Engagement Analysis',
+            icon: 'sparkles',
+            points: ['Audience alignment detection', 'Fraud signal identification', 'Campaign compatibility scoring']
         },
         {
             number: '04',
-            title: 'Brands Discover Verified Creators',
-            points: ['Filter by niche, budget, CQI', 'View confidence-ranked matches', 'Review fraud and risk indicators']
+            title: 'Brand Discovery',
+            icon: 'search',
+            points: ['Brands explore verified creators', 'Filter by niche, budget, and campaign goals', 'View AI confidence score for matches']
         },
         {
             number: '05',
-            title: 'Campaign Performance Predicted',
-            points: ['AI forecasts ROI before launch', 'Post-campaign data feeds model', 'Match quality improves over time']
+            title: 'Campaign Insights',
+            icon: 'chart',
+            points: ['Estimated engagement potential', 'Risk indicators highlighted', 'Data-driven creator selection']
         }
     ];
 
@@ -835,7 +840,9 @@ const Landing = () => {
                                         onClick={() => toggleAccordion(`step-${index}`)}
                                         className="w-full flex items-center gap-3 px-4 py-3 text-left"
                                     >
-                                        <span className="text-primary-400 font-extrabold text-lg leading-none flex-shrink-0 w-6">{step.number}</span>
+                                        <div className="w-7 h-7 rounded-md bg-primary-500/10 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
+                                            <Icon name={step.icon} size={13} className="text-primary-400" />
+                                        </div>
                                         <span className="text-small font-bold text-dark-100 flex-1">{step.title}</span>
                                         <span className={`text-dark-400 text-xs transition-transform duration-200 flex-shrink-0 ${openAccordion === `step-${index}` ? 'rotate-180' : ''}`}>▼</span>
                                     </button>
@@ -860,15 +867,20 @@ const Landing = () => {
                         {/* Desktop: 5-col grid */}
                         <div className="hidden md:grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-s6">
                             {steps.map((step, index) => (
-                                <motion.div key={index} className="glass-card p-s8 relative overflow-hidden group hover:border-primary-500/30 transition-all duration-300" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -5 }}>
-                                    <div className="absolute -top-4 -right-4 text-[120px] font-extrabold text-primary-500/5 leading-none select-none">{step.number}</div>
+                                <motion.div key={index} className="glass-card p-s6 relative overflow-hidden group hover:border-primary-500/30 hover:shadow-lg hover:shadow-primary-500/10 transition-all duration-200" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.1 }} whileHover={{ y: -5 }}>
+                                    <div className="absolute -top-4 -right-4 text-[100px] font-extrabold text-primary-500/5 leading-none select-none">{step.number}</div>
                                     <div className="relative z-10">
-                                        <div className="text-h1 font-bold text-primary-500/40 mb-s4">{step.number}</div>
-                                        <h3 className="text-h3 font-bold mb-s4 text-dark-100">{step.title}</h3>
-                                        <ul className="space-y-s2">
+                                        <div className="flex items-center gap-2 mb-s3">
+                                            <div className="w-7 h-7 rounded-md bg-primary-500/10 border border-primary-500/20 flex items-center justify-center flex-shrink-0">
+                                                <Icon name={step.icon} size={14} className="text-primary-400" />
+                                            </div>
+                                            <span className="text-small font-extrabold text-primary-500/60 tracking-wider">{step.number}</span>
+                                        </div>
+                                        <h3 className="text-h3 font-bold mb-s3 text-dark-100">{step.title}</h3>
+                                        <ul className="space-y-1.5">
                                             {step.points.map((point, i) => (
-                                                <li key={i} className="flex items-center text-dark-400 text-small">
-                                                    <Icon name="check" size={16} className="text-emerald-400 mr-2 flex-shrink-0" />
+                                                <li key={i} className="flex items-start text-dark-400 text-small">
+                                                    <Icon name="check" size={13} className="text-emerald-400 mr-2 mt-0.5 flex-shrink-0" />
                                                     {point}
                                                 </li>
                                             ))}
