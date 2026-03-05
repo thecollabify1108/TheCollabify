@@ -8,10 +8,8 @@ import AuthLayout from '../components/auth/AuthLayout';
 import Icon from '../components/common/Icon';
 
 const Login = () => {
-    const { isDark } = useTheme();
     const navigate = useNavigate();
     const { login } = useAuth();
-    const [googleLoading, setGoogleLoading] = useState(false);
 
     // Multi-step state
     const [step, setStep] = useState(1);

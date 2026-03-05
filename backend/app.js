@@ -289,6 +289,17 @@ const initializeModules = async () => {
             }
         }, 2 * 60 * 1000); // every 2 minutes
 
+        // 2c. HTTP self-ping every 4 minutes — keeps Azure App Service from sleeping
+        const selfPingUrl = process.env.SELF_PING_URL || `http://localhost:${process.env.PORT || 8080}/api/ping`;
+        setInterval(() => {
+            const http = require('http');
+            const https = require('https');
+            const mod = selfPingUrl.startsWith('https') ? https : http;
+            mod.get(selfPingUrl, (res) => {
+                // success — Azure stays warm
+            }).on('error', () => { /* ignore self-ping errors */ });
+        }, 4 * 60 * 1000); // every 4 minutes
+
         // 3. Load Passport
         try {
             passport = require('./config/passport');
