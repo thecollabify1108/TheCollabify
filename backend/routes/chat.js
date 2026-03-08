@@ -2,7 +2,13 @@ let newrelic;
 try {
     newrelic = require('newrelic');
 } catch (e) {
-    newrelic = { recordCustomEvent: () => { }, startSegment: (name, record, fn) => fn ? fn() : null };
+    newrelic = {
+        recordCustomEvent: () => {},
+        startSegment: (name, record, fn) => fn ? fn() : null,
+        addCustomParameters: () => {},
+        recordMetric: () => {},
+        noticeError: () => {}
+    };
 }
 
 const express = require('express');
@@ -639,6 +645,41 @@ router.post('/conversations/:id/messages', auth, [
             });
         }
 
+        // ── ANTI-BYPASS: Pre-escrow negotiation limits ─────────────
+        const PRE_ESCROW_MSG_LIMIT = 5;
+        if (!conversation.isEscrowUnlocked) {
+            const userMsgCount = isSeller ? (conversation.sellerMsgCount || 0) : (conversation.creatorMsgCount || 0);
+            if (userMsgCount >= PRE_ESCROW_MSG_LIMIT) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Finalize collaboration to unlock full messaging.',
+                    isLocked: true,
+                    escrowRequired: true,
+                    messagesUsed: userMsgCount,
+                    limit: PRE_ESCROW_MSG_LIMIT
+                });
+            }
+
+            // Block attachments, links and contact info pre-escrow
+            const content = req.body.content || '';
+            const hasLink = /https?:\/\//i.test(content);
+            const hasContact = /(\+91|\+1|whatsapp|telegram|@gmail|@yahoo|instagram\.com\/direct)/i.test(content);
+            if (hasLink || hasContact) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Links and contact information are blocked before escrow payment. Finalize the collaboration to share these.',
+                    isLocked: true
+                });
+            }
+            if (req.body.messageType && req.body.messageType !== 'TEXT') {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Attachments are disabled before escrow payment. Finalize the collaboration to enable attachments.',
+                    isLocked: true
+                });
+            }
+        }
+
         let contentToSave = req.body.content;
 
         // Also check Conversation status
@@ -650,8 +691,7 @@ router.post('/conversations/:id/messages', auth, [
             });
         }
 
-
-        newrelic.addCustomParameters({
+        newrelic?.addCustomParameters?.({
             conversationId,
             senderId: userId,
             isSeller
@@ -674,19 +714,25 @@ router.post('/conversations/:id/messages', auth, [
         });
 
         // Record custom metric for successful messages
-        newrelic.recordMetric('Custom/Chat/MessageSent', 1);
+        newrelic?.recordMetric?.('Custom/Chat/MessageSent', 1);
 
         // Update conversation with last message and unread count
         const unreadUpdate = isSeller
             ? { unreadCountCreator: { increment: 1 } }
             : { unreadCountSeller: { increment: 1 } };
 
+        // Increment pre-escrow message counter if not yet unlocked
+        const msgCountUpdate = !conversation.isEscrowUnlocked
+            ? (isSeller ? { sellerMsgCount: { increment: 1 } } : { creatorMsgCount: { increment: 1 } })
+            : {};
+
         await prisma.conversation.update({
             where: { id: conversationId },
             data: {
                 lastMessage: contentToSave.substring(0, 100),
                 lastMessageAt: new Date(),
-                ...unreadUpdate
+                ...unreadUpdate,
+                ...msgCountUpdate
             }
         });
 
@@ -696,7 +742,7 @@ router.post('/conversations/:id/messages', auth, [
         });
 
     } catch (error) {
-        newrelic.noticeError(error);
+        newrelic?.noticeError?.(error);
         console.error('Send message error:', error);
         res.status(500).json({
             success: false,

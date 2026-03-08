@@ -3,7 +3,7 @@ const prisma = require('../config/prisma');
 /**
  * Create a notification for a user
  */
-const createNotification = async ({ userId, type, title, message, relatedRequest, relatedCreator }) => {
+const createNotification = async ({ userId, type, title, message, relatedRequest, relatedCreator, link }) => {
     try {
         const notification = await prisma.notification.create({
             data: {
@@ -11,8 +11,7 @@ const createNotification = async ({ userId, type, title, message, relatedRequest
                 type,
                 title,
                 message,
-                relatedRequestId: relatedRequest,
-                relatedCreatorId: relatedCreator
+                link: link || null
             }
         });
 
@@ -205,4 +204,65 @@ module.exports = {
     getUserNotifications,
     markAsRead,
     markAllAsRead
+};
+
+// ─── Marketplace Notification Helpers ────────────────────────────
+
+/**
+ * Notify both parties when escrow is deposited
+ */
+module.exports.notifyEscrowDeposited = async (brandUserId, creatorUserId, amount, collaborationId) => {
+    return Promise.allSettled([
+        createNotification({ userId: creatorUserId, type: 'escrow_payment', title: 'Escrow Payment Received', message: `A brand has deposited ₹${amount} in escrow. Full chat unlocked.`, link: `/collaborations/${collaborationId}` }),
+        createNotification({ userId: brandUserId, type: 'escrow_payment', title: 'Escrow Confirmed', message: `Your escrow deposit of ₹${amount} is confirmed. Full messaging is now available.`, link: `/collaborations/${collaborationId}` })
+    ]);
+};
+
+/**
+ * Notify creator when payment is released
+ */
+module.exports.notifyPaymentReleased = async (creatorUserId, amount, collaborationId) => {
+    return createNotification({
+        userId: creatorUserId,
+        type: 'payment_release',
+        title: 'Payment Released!',
+        message: `₹${amount} has been released to your account. Collaboration complete!`,
+        link: `/collaborations/${collaborationId}`
+    });
+};
+
+/**
+ * Notify brand when deliverables are submitted
+ */
+module.exports.notifyDeliverablesSubmitted = async (brandUserId, collaborationId) => {
+    return createNotification({
+        userId: brandUserId,
+        type: 'deliverable_submitted',
+        title: 'Deliverables Submitted',
+        message: 'The creator has submitted deliverables for your review. Please approve or request revisions.',
+        link: `/collaborations/${collaborationId}`
+    });
+};
+
+/**
+ * Notify creator when revision is requested
+ */
+module.exports.notifyRevisionRequested = async (creatorUserId, revisionNumber, maxRevisions, collaborationId) => {
+    return createNotification({
+        userId: creatorUserId,
+        type: 'revision_requested',
+        title: 'Revision Requested',
+        message: `Revision ${revisionNumber}/${maxRevisions} requested by the brand. Please resubmit updated deliverables.`,
+        link: `/collaborations/${collaborationId}`
+    });
+};
+
+/**
+ * Notify both parties when a dispute is opened
+ */
+module.exports.notifyDisputeOpened = async (brandUserId, creatorUserId, collaborationId) => {
+    return Promise.allSettled([
+        createNotification({ userId: creatorUserId, type: 'dispute_opened', title: 'Dispute Opened', message: 'The brand has opened a dispute. Admin will review and resolve.', link: `/collaborations/${collaborationId}` }),
+        createNotification({ userId: brandUserId, type: 'dispute_opened', title: 'Dispute Submitted', message: 'Your dispute has been submitted. Admin will review and resolve.', link: `/collaborations/${collaborationId}` })
+    ]);
 };

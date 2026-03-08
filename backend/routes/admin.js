@@ -764,4 +764,369 @@ router.put('/users/:id/subscription', auth, isAdmin, [
     }
 });
 
+// ─── FOLLOWER RANGE MANAGEMENT ───────────────────────────────────
+
+/**
+ * @route   PUT /api/admin/creators/:id/follower-range
+ * @desc    Admin overrides a creator's follower range enum (bypasses monthly throttle)
+ * @access  Private (Admin)
+ */
+router.put('/creators/:id/follower-range', auth, isAdmin, [
+    body('followerRange')
+        .isIn(['RANGE_1K_5K', 'RANGE_5K_10K', 'RANGE_10K_50K', 'RANGE_50K_100K', 'RANGE_100K_PLUS'])
+        .withMessage('Invalid follower range value'),
+    handleValidation
+], async (req, res) => {
+    try {
+        const profile = await prisma.creatorProfile.findUnique({ where: { id: req.params.id } });
+        if (!profile) {
+            return res.status(404).json({ success: false, message: 'Creator profile not found' });
+        }
+
+        const updated = await prisma.creatorProfile.update({
+            where: { id: req.params.id },
+            data: {
+                followerRange: req.body.followerRange,
+                // Clear the throttle timestamp so the creator can change it again immediately if needed
+                followerRangeChangedAt: null
+            },
+            select: { id: true, followerRange: true, followerRangeChangedAt: true }
+        });
+
+        res.json({
+            success: true,
+            message: `Follower range updated to ${req.body.followerRange}. Throttle cleared.`,
+            data: updated
+        });
+    } catch (error) {
+        console.error('Admin follower range update error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update follower range' });
+    }
+});
+
+// ─── AVAILABILITY CAMPAIGN MANAGEMENT ────────────────────────────
+
+/**
+ * @route   GET /api/admin/availability-campaigns
+ * @desc    List all availability campaigns (for moderation)
+ * @access  Private (Admin)
+ */
+router.get('/availability-campaigns', auth, isAdmin, async (req, res) => {
+    try {
+        const { isActive, page = 1, limit = 20 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const where = {};
+        if (isActive !== undefined) where.isActive = isActive === 'true';
+
+        const [campaigns, total] = await Promise.all([
+            prisma.availabilityCampaign.findMany({
+                where,
+                skip,
+                take: parseInt(limit),
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    creatorProfile: {
+                        select: {
+                            id: true,
+                            user: { select: { id: true, name: true, email: true } }
+                        }
+                    }
+                }
+            }),
+            prisma.availabilityCampaign.count({ where })
+        ]);
+
+        res.json({
+            success: true,
+            data: { campaigns, total, page: parseInt(page), limit: parseInt(limit) }
+        });
+    } catch (error) {
+        console.error('List availability campaigns error:', error);
+        res.status(500).json({ success: false, message: 'Failed to list campaigns' });
+    }
+});
+
+/**
+ * @route   DELETE /api/admin/availability-campaigns/:id
+ * @desc    Remove a spam/fake availability campaign
+ * @access  Private (Admin)
+ */
+router.delete('/availability-campaigns/:id', auth, isAdmin, async (req, res) => {
+    try {
+        const campaign = await prisma.availabilityCampaign.findUnique({
+            where: { id: req.params.id }
+        });
+        if (!campaign) {
+            return res.status(404).json({ success: false, message: 'Campaign not found' });
+        }
+
+        await prisma.availabilityCampaign.update({
+            where: { id: req.params.id },
+            data: { isActive: false }
+        });
+
+        res.json({ success: true, message: 'Campaign deactivated successfully' });
+    } catch (error) {
+        console.error('Delete availability campaign error:', error);
+        res.status(500).json({ success: false, message: 'Failed to deactivate campaign' });
+    }
+});
+
+// ─── DISPUTE MANAGEMENT ──────────────────────────────────────────
+
+/**
+ * @route   GET /api/admin/disputes
+ * @desc    List all collaboration disputes
+ * @access  Private (Admin)
+ */
+router.get('/disputes', auth, isAdmin, async (req, res) => {
+    try {
+        const { status, page = 1, limit = 20 } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const where = {};
+        if (status) where.status = status;
+
+        const [disputes, total] = await Promise.all([
+            prisma.collaborationDispute.findMany({
+                where,
+                skip,
+                take: parseInt(limit),
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    collaboration: {
+                        select: {
+                            id: true,
+                            status: true,
+                            escrowPayment: {
+                                select: { id: true, status: true, totalDeposited: true, collaborationAmount: true }
+                            }
+                        }
+                    }
+                }
+            }),
+            prisma.collaborationDispute.count({ where })
+        ]);
+
+        res.json({
+            success: true,
+            data: { disputes, total, page: parseInt(page), limit: parseInt(limit) }
+        });
+    } catch (error) {
+        console.error('List disputes error:', error);
+        res.status(500).json({ success: false, message: 'Failed to list disputes' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/disputes/:id/resolve
+ * @desc    Resolve a dispute — award funds to creator or refund brand
+ * @access  Private (Admin)
+ */
+router.post('/disputes/:id/resolve', auth, isAdmin, [
+    body('resolution')
+        .isIn(['RESOLVED_CREATOR', 'RESOLVED_BRAND'])
+        .withMessage('resolution must be RESOLVED_CREATOR or RESOLVED_BRAND'),
+    body('notes').optional().isString().trim().isLength({ max: 1000 }),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { resolution, notes } = req.body;
+
+        const dispute = await prisma.collaborationDispute.findUnique({
+            where: { id: req.params.id },
+            include: {
+                collaboration: {
+                    include: {
+                        escrowPayment: true
+                    }
+                }
+            }
+        });
+
+        if (!dispute) {
+            return res.status(404).json({ success: false, message: 'Dispute not found' });
+        }
+        if (dispute.status === 'RESOLVED_CREATOR' || dispute.status === 'RESOLVED_BRAND' || dispute.status === 'CLOSED') {
+            return res.status(409).json({ success: false, message: 'Dispute is already resolved' });
+        }
+
+        const escrow = dispute.collaboration?.escrowPayment;
+        const collaborationId = dispute.collaborationId;
+
+        await prisma.$transaction(async (tx) => {
+            // Update dispute status
+            await tx.collaborationDispute.update({
+                where: { id: req.params.id },
+                data: {
+                    status: resolution,
+                    resolvedByAdminId: req.userId,
+                    resolvedAt: new Date(),
+                    resolutionNotes: notes || null
+                }
+            });
+
+            if (escrow) {
+                if (resolution === 'RESOLVED_CREATOR') {
+                    // Release funds to creator
+                    await tx.escrowPayment.update({
+                        where: { id: escrow.id },
+                        data: { status: 'RELEASED', releasedAt: new Date() }
+                    });
+                    // Credit creator earnings
+                    await tx.creatorProfile.updateMany({
+                        where: { userId: escrow.creatorUserId },
+                        data: { totalEarnings: { increment: escrow.collaborationAmount } }
+                    });
+                    // Mark collaboration completed
+                    await tx.collaboration.update({
+                        where: { id: collaborationId },
+                        data: { status: 'COMPLETED' }
+                    });
+                } else {
+                    // Refund brand
+                    await tx.escrowPayment.update({
+                        where: { id: escrow.id },
+                        data: { status: 'REFUNDED', refundedAt: new Date() }
+                    });
+                    await tx.collaboration.update({
+                        where: { id: collaborationId },
+                        data: { status: 'CANCELLED' }
+                    });
+                }
+            }
+        });
+
+        // Notify both parties
+        const { notifyPaymentReleased } = require('../services/notificationService');
+        if (escrow && resolution === 'RESOLVED_CREATOR') {
+            await notifyPaymentReleased(escrow.creatorUserId, escrow.collaborationAmount, collaborationId).catch(() => {});
+        }
+
+        res.json({
+            success: true,
+            message: `Dispute resolved: ${resolution}`,
+            data: { disputeId: req.params.id, resolution, collaborationId }
+        });
+    } catch (error) {
+        console.error('Resolve dispute error:', error);
+        res.status(500).json({ success: false, message: 'Failed to resolve dispute' });
+    }
+});
+
+// ─── MANUAL ESCROW MANAGEMENT ────────────────────────────────────
+
+/**
+ * @route   POST /api/admin/escrow/:id/release
+ * @desc    Manually release a held escrow payment (admin override)
+ * @access  Private (Admin)
+ */
+router.post('/escrow/:id/release', auth, isAdmin, async (req, res) => {
+    try {
+        const escrow = await prisma.escrowPayment.findUnique({
+            where: { id: req.params.id },
+            include: { collaboration: true }
+        });
+
+        if (!escrow) {
+            return res.status(404).json({ success: false, message: 'Escrow payment not found' });
+        }
+        if (escrow.status === 'RELEASED') {
+            return res.status(409).json({ success: false, message: 'Escrow already released' });
+        }
+        if (!['HELD', 'DISPUTED'].includes(escrow.status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot release escrow in status: ${escrow.status}`
+            });
+        }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.escrowPayment.update({
+                where: { id: req.params.id },
+                data: { status: 'RELEASED', releasedAt: new Date() }
+            });
+
+            await tx.creatorProfile.updateMany({
+                where: { userId: escrow.creatorUserId },
+                data: { totalEarnings: { increment: escrow.collaborationAmount } }
+            });
+
+            await tx.collaboration.update({
+                where: { id: escrow.collaborationId },
+                data: { status: 'COMPLETED' }
+            });
+        });
+
+        const { notifyPaymentReleased } = require('../services/notificationService');
+        await notifyPaymentReleased(escrow.creatorUserId, escrow.collaborationAmount, escrow.collaborationId).catch(() => {});
+
+        res.json({
+            success: true,
+            message: 'Escrow released by admin',
+            data: {
+                escrowId: escrow.id,
+                collaborationId: escrow.collaborationId,
+                amountReleased: escrow.collaborationAmount
+            }
+        });
+    } catch (error) {
+        console.error('Admin escrow release error:', error);
+        res.status(500).json({ success: false, message: 'Failed to release escrow' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/escrow/:id/refund
+ * @desc    Force-refund an escrow payment to brand (admin override)
+ * @access  Private (Admin)
+ */
+router.post('/escrow/:id/refund', auth, isAdmin, [
+    body('reason').optional().isString().trim().isLength({ max: 500 }),
+    handleValidation
+], async (req, res) => {
+    try {
+        const escrow = await prisma.escrowPayment.findUnique({
+            where: { id: req.params.id }
+        });
+
+        if (!escrow) {
+            return res.status(404).json({ success: false, message: 'Escrow payment not found' });
+        }
+        if (escrow.status === 'REFUNDED') {
+            return res.status(409).json({ success: false, message: 'Escrow already refunded' });
+        }
+        if (!['HELD', 'DEPOSITED', 'DISPUTED'].includes(escrow.status)) {
+            return res.status(400).json({
+                success: false,
+                message: `Cannot refund escrow in status: ${escrow.status}`
+            });
+        }
+
+        await prisma.$transaction(async (tx) => {
+            await tx.escrowPayment.update({
+                where: { id: req.params.id },
+                data: { status: 'REFUNDED', refundedAt: new Date() }
+            });
+
+            await tx.collaboration.update({
+                where: { id: escrow.collaborationId },
+                data: { status: 'CANCELLED' }
+            });
+        });
+
+        res.json({
+            success: true,
+            message: 'Escrow refunded to brand by admin',
+            data: {
+                escrowId: escrow.id,
+                collaborationId: escrow.collaborationId,
+                amountRefunded: escrow.totalDeposited
+            }
+        });
+    } catch (error) {
+        console.error('Admin escrow refund error:', error);
+        res.status(500).json({ success: false, message: 'Failed to refund escrow' });
+    }
+});
+
 module.exports = router;

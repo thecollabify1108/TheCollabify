@@ -3,7 +3,13 @@ try {
     newrelic = require('newrelic');
 } catch (e) {
     // New Relic failed to load, which is fine, we'll just skip it
-    newrelic = { recordCustomEvent: () => { }, startSegment: (name, record, fn) => fn ? fn() : null };
+    newrelic = {
+        recordCustomEvent: () => {},
+        startSegment: (name, record, fn) => fn ? fn() : null,
+        addCustomParameters: () => {},
+        recordMetric: () => {},
+        noticeError: () => {}
+    };
 }
 
 const FrictionService = require('../services/frictionService');
@@ -360,6 +366,118 @@ router.post('/campaign-intent', auth, async (req, res) => {
             success: false,
             message: 'Failed to track campaign intent'
         });
+    }
+});
+
+// ─── Marketplace Analytics ────────────────────────────────────────
+
+/**
+ * @route   GET /api/analytics/creator-stats
+ * @desc    Creator dashboard: earnings, completions, acceptance rate, response rate, profile views
+ * @access  Private (Creator)
+ */
+router.get('/creator-stats', auth, userCacheMiddleware(60), async (req, res) => {
+    try {
+        if (req.user.activeRole !== 'CREATOR') {
+            return res.status(403).json({ success: false, message: 'Creator access only.' });
+        }
+
+        const profile = await prisma.creatorProfile.findUnique({ where: { userId: req.userId } });
+        if (!profile) return res.status(404).json({ success: false, message: 'Creator profile not found.' });
+
+        // Aggregate collaboration stats
+        const [totalMatches, acceptedMatches, completedCollabs, totalEarningsResult] = await Promise.all([
+            prisma.matchedCreator.count({ where: { creatorId: profile.id } }),
+            prisma.matchedCreator.count({ where: { creatorId: profile.id, status: 'ACCEPTED' } }),
+            prisma.collaboration.count({
+                where: {
+                    matchedCreator: { creatorId: profile.id },
+                    status: 'COMPLETED'
+                }
+            }),
+            prisma.escrowPayment.aggregate({
+                where: { creatorUserId: req.userId, status: 'RELEASED' },
+                _sum: { collaborationAmount: true }
+            })
+        ]);
+
+        const acceptanceRate = totalMatches > 0 ? Math.round((acceptedMatches / totalMatches) * 100) : 0;
+
+        // Response rate: matches where creator responded (applied) vs total matches
+        const respondedCount = await prisma.matchedCreator.count({
+            where: { creatorId: profile.id, status: { in: ['APPLIED', 'ACCEPTED', 'REJECTED'] } }
+        });
+        const responseRate = totalMatches > 0 ? Math.round((respondedCount / totalMatches) * 100) : 0;
+
+        res.json({
+            success: true,
+            data: {
+                totalEarnings: totalEarningsResult._sum.collaborationAmount || profile.totalEarnings || 0,
+                collaborationsCompleted: completedCollabs,
+                acceptanceRate,
+                responseRate,
+                profileViews: profile.profileViews || 0,
+                totalMatches,
+                acceptedMatches
+            }
+        });
+    } catch (error) {
+        console.error('Creator stats error:', error);
+        res.status(500).json({ success: false, message: 'Failed to get creator stats' });
+    }
+});
+
+/**
+ * @route   GET /api/analytics/brand-stats
+ * @desc    Brand dashboard: campaign success rate, creator engagement, ROI estimates
+ * @access  Private (Seller)
+ */
+router.get('/brand-stats', auth, userCacheMiddleware(60), async (req, res) => {
+    try {
+        if (req.user.activeRole !== 'SELLER') {
+            return res.status(403).json({ success: false, message: 'Brand/Seller access only.' });
+        }
+
+        const [totalCampaigns, completedCampaigns, totalSpent, avgMatchScore] = await Promise.all([
+            prisma.promotionRequest.count({ where: { sellerId: req.userId } }),
+            prisma.promotionRequest.count({ where: { sellerId: req.userId, status: 'COMPLETED' } }),
+            prisma.escrowPayment.aggregate({
+                where: { brandUserId: req.userId, status: 'RELEASED' },
+                _sum: { totalDeposited: true }
+            }),
+            prisma.matchedCreator.aggregate({
+                where: { promotion: { sellerId: req.userId } },
+                _avg: { matchScore: true }
+            })
+        ]);
+
+        const campaignSuccessRate = totalCampaigns > 0 ? Math.round((completedCampaigns / totalCampaigns) * 100) : 0;
+
+        // Estimate creator engagement from completed collaborations
+        const completedCreators = await prisma.matchedCreator.count({
+            where: { promotion: { sellerId: req.userId }, status: 'ACCEPTED' }
+        });
+
+        // Simple ROI estimate: for each completed campaign, estimate based on avg engagement
+        const roiEstimate = completedCampaigns > 0
+            ? `${Math.round(completedCampaigns * 3.2 * 10) / 10}x` // rough 3.2x avg for influencer marketing
+            : 'N/A';
+
+        res.json({
+            success: true,
+            data: {
+                totalCampaigns,
+                completedCampaigns,
+                campaignSuccessRate,
+                totalAmountSpent: totalSpent._sum.totalDeposited || 0,
+                creatorEngagementCount: completedCreators,
+                averageMatchScore: Math.round(avgMatchScore._avg.matchScore || 0),
+                roiEstimate
+            }
+        });
+    } catch (error) {
+        console.error('Brand stats error:', error);
+        res.status(500).json({ success: false, message: 'Failed to get brand stats' });
     }
 });
 

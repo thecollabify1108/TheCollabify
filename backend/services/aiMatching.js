@@ -622,7 +622,22 @@ const findMatchingCreators = async (promotionRequest) => {
         console.warn('[Matching] Dynamic weights unavailable, using defaults');
     }
 
-    const filteredCreators = await filterCreators(promotionRequest);
+    let filteredCreators = await filterCreators(promotionRequest);
+
+    // ── LOCATION EXPANSION: City → State → Country ─────────────────
+    // If no creators found, progressively expand search radius
+    if (filteredCreators.length === 0 && promotionRequest.location && promotionRequest.locationType !== 'REMOTE') {
+        console.log('[Matching] No creators found at city level — expanding to state...');
+        const relaxedRequest = { ...promotionRequest, locationType: 'REMOTE' };
+        filteredCreators = await filterCreators(relaxedRequest);
+
+        if (filteredCreators.length === 0) {
+            console.log('[Matching] Still no creators — broadening to national pool...');
+            const broadRequest = { ...promotionRequest, locationType: 'REMOTE', location: null };
+            filteredCreators = await filterCreators(broadRequest);
+        }
+    }
+
     if (filteredCreators.length === 0) return [];
 
     const rankedCreators = await rankCreators(filteredCreators, promotionRequest);
@@ -656,8 +671,68 @@ const findMatchingCreators = async (promotionRequest) => {
 
     // Re-sort by blended score
     enhancedCreators.sort((a, b) => b.matchScore - a.matchScore);
-    return enhancedCreators.slice(0, 20);
+
+    // ── FAIR EXPOSURE ROTATION SYSTEM ──────────────────────────────
+    // Prevents top-creator bias by rotating display order per brand.
+    // Each seller sees a deterministically different ordering of equally-
+    // scored creator groups, ensuring fair discovery opportunities.
+    const rotated = applyFairExposureRotation(enhancedCreators, promotionRequest.sellerId);
+
+    return rotated.slice(0, 20);
 };
+
+/**
+ * Fair Exposure Rotation
+ *
+ * Creators with scores within 5 points are considered "tied".
+ * Within each band, ordering rotates based on a hash of the sellerId.
+ * Different brands see different orderings within the same score band.
+ *
+ * Example:
+ *   Band 90-95: [A, B, C]
+ *   Brand X hash=1 → sees [B, C, A]
+ *   Brand Y hash=2 → sees [C, A, B]
+ */
+function applyFairExposureRotation(rankedCreators, sellerId) {
+    if (!sellerId || rankedCreators.length <= 1) return rankedCreators;
+
+    // Create a stable numeric offset from sellerId (deterministic per brand)
+    const offset = sellerId.split('').reduce((acc, ch, idx) => acc + ch.charCodeAt(0) * (idx + 1), 0);
+
+    const BAND_SIZE = 5; // creators within 5 points are considered equal quality
+
+    // Group into score bands
+    const bands = [];
+    let currentBand = [];
+    let bandMin = null;
+
+    for (const creator of rankedCreators) {
+        const score = creator.matchScore;
+        if (bandMin === null) {
+            bandMin = score;
+            currentBand = [creator];
+        } else if (bandMin - score <= BAND_SIZE) {
+            currentBand.push(creator);
+        } else {
+            bands.push(currentBand);
+            currentBand = [creator];
+            bandMin = score;
+        }
+    }
+    if (currentBand.length > 0) bands.push(currentBand);
+
+    // Within each band, rotate by seller-specific offset
+    const rotatedBands = bands.map((band, bandIdx) => {
+        if (band.length <= 1) return band;
+        const rotateBy = (offset + bandIdx) % band.length;
+        return [...band.slice(rotateBy), ...band.slice(0, rotateBy)];
+    });
+
+    return rotatedBands.flat();
+}
+
+module.exports.applyFairExposureRotation = applyFairExposureRotation;
+
 
 /**
  * Get match explanation for a specific creator-request pair

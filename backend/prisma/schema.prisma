@@ -103,6 +103,43 @@ enum SubscriptionTier {
   BRAND_PRO
 }
 
+// ─── Marketplace: Follower Range Enum ────────────────────────────
+enum FollowerRange {
+  RANGE_1K_5K       // 1,000 – 5,000
+  RANGE_5K_10K      // 5,000 – 10,000
+  RANGE_10K_50K     // 10,000 – 50,000
+  RANGE_50K_100K    // 50,000 – 100,000
+  RANGE_100K_PLUS   // 100,000+
+}
+
+// ─── Marketplace: Escrow Status ───────────────────────────────────
+enum EscrowStatus {
+  PENDING_DEPOSIT
+  DEPOSITED
+  HELD
+  RELEASED
+  REFUNDED
+  DISPUTED
+}
+
+// ─── Marketplace: Deliverable Status ─────────────────────────────
+enum DeliverableStatus {
+  PENDING
+  SUBMITTED
+  REVISION_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+// ─── Marketplace: Dispute Status ─────────────────────────────────
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_CREATOR
+  RESOLVED_BRAND
+  CLOSED
+}
+
 model User {
   id                    String         @id @default(uuid())
   email                 String         @unique
@@ -126,6 +163,7 @@ model User {
   // Relations
   roles                 UserRole[]
   creatorProfile        CreatorProfile?
+  brandProfile          BrandProfile?
   sellerCampaigns       PromotionRequest[] @relation("SellerCampaigns")
   analytics             Analytics[]
   notifications         Notification[]
@@ -173,9 +211,14 @@ model CreatorProfile {
   instagramProfileUrl   String?          @default("")
   instagramVerified     Boolean          @default(false)
   lastVerifiedAt        DateTime?
-  
+
+  // Follower range (structured enum — prevents fake inflation)
+  followerRange         FollowerRange?
+  followerRangeChangedAt DateTime?       // Throttle: once per month
+
   followerCount         Int              @default(0)
   engagementRate        Float            @default(0)
+  engagementRateWarning Boolean          @default(true) // Show approximate warning
   category              Category
   promotionTypes        PromotionType[]
   
@@ -185,6 +228,9 @@ model CreatorProfile {
   isAvailable           Boolean          @default(true) // Deprecated
   availabilityStatus    AvailabilityStatus @default(AVAILABLE_NOW)
   availabilityUpdatedAt DateTime         @default(now())
+
+  // Profile edit throttle
+  profileLastEditedAt   DateTime?        // Throttle: once per week
   
   // AI Insights
   engagementQuality     String?          @default("Medium") // Low, Medium, High
@@ -238,6 +284,7 @@ model CreatorProfile {
   matchedCampaigns     MatchedCreator[]
   acceptedCampaigns    PromotionRequest[]
   conversations        Conversation[]
+  availabilityCampaigns AvailabilityCampaign[]
   
   // AI Engine relations
   qualityIndex         CreatorQualityIndex?
@@ -348,6 +395,11 @@ model Conversation {
   // Acceptance Status
   creatorAccepted   String             @default("pending") // pending, accepted, rejected
   sellerAccepted    String             @default("accepted")
+
+  // Anti-bypass / negotiation gate
+  isEscrowUnlocked  Boolean            @default(false)  // true after escrow deposited
+  sellerMsgCount    Int                @default(0)      // pre-escrow message counter
+  creatorMsgCount   Int                @default(0)      // pre-escrow message counter
   
   lastMessageContent String?
   lastMessageSenderId String?
@@ -638,7 +690,7 @@ model Collaboration {
   statusUpdatedAt  DateTime            @default(now())
   statusHistory    Json?               // [{ from, to, at, userId }]
   
-  deliverables     String[]
+  deliverableItems String[]           // Free-text deliverable descriptions
   
   startDate        DateTime?
   endDate          DateTime?
@@ -654,6 +706,11 @@ model Collaboration {
   
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
+
+  // Marketplace relations
+  escrowPayment    EscrowPayment?
+  deliverables     CollaborationDeliverable[]
+  disputes         CollaborationDispute[]
   
   @@index([status])
 }
@@ -978,3 +1035,141 @@ model AIUsageLog {
   @@index([mode])
   @@index([userId, createdAt])
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// MARKETPLACE MODELS
+// ═══════════════════════════════════════════════════════════════════
+
+// ─── Brand Profile ──────────────────────────────────────────────
+model BrandProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+
+  brandName   String
+  category    Category
+  website     String?
+  instagramBusinessUrl String?
+  description String?  @db.Text
+
+  // Location — private, never shown to creators
+  locationCity  String?
+  locationState String?
+  locationCountry String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+}
+
+// ─── Creator Availability Campaigns ─────────────────────────────
+model AvailabilityCampaign {
+  id                String         @id @default(uuid())
+  creatorProfileId  String
+  creatorProfile    CreatorProfile @relation(fields: [creatorProfileId], references: [id])
+  creatorUserId     String
+
+  niche             Category
+  locationCity      String?
+  locationState     String?
+  locationCountry   String?
+  deliverablesOffered String[]     // [REELS, POSTS, STORIES]
+  collaborationBudgetMin Float
+  collaborationBudgetMax Float
+  description       String?        @db.Text
+
+  durationDays      Int            // 3–5 FREE, 3–10 PREMIUM
+  expiresAt         DateTime
+  isActive          Boolean        @default(true)
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([niche])
+  @@index([isActive, expiresAt])
+  @@index([locationCity])
+}
+
+// ─── Escrow Payment ──────────────────────────────────────────────
+model EscrowPayment {
+  id                String       @id @default(uuid())
+  collaborationId   String       @unique
+  collaboration     Collaboration @relation(fields: [collaborationId], references: [id])
+
+  brandUserId       String       // who deposited
+  creatorUserId     String       // who receives on release
+
+  collaborationAmount Float      // Agreed amount
+  platformFee       Float        // Commission retained
+  totalDeposited    Float        // collaborationAmount + platformFee
+
+  status            EscrowStatus @default(PENDING_DEPOSIT)
+
+  stripePaymentIntentId String?
+  stripeTransferId      String?
+
+  depositedAt       DateTime?
+  releasedAt        DateTime?
+  refundedAt        DateTime?
+
+  notes             String?
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([brandUserId])
+  @@index([creatorUserId])
+  @@index([status])
+}
+
+// ─── Collaboration Deliverables ──────────────────────────────────
+model CollaborationDeliverable {
+  id                String             @id @default(uuid())
+  collaborationId   String
+  collaboration     Collaboration      @relation(fields: [collaborationId], references: [id])
+
+  submittedByUserId String
+  revisionCount     Int                @default(0)
+  maxRevisions      Int                @default(3)
+
+  contentLinks      String[]
+  screenshotUrls    String[]
+  fileUrls          String[]
+  description       String?            @db.Text
+
+  status            DeliverableStatus  @default(PENDING)
+  revisionNotes     String?            @db.Text
+
+  submittedAt       DateTime?
+  reviewedAt        DateTime?
+  approvedAt        DateTime?
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([collaborationId, status])
+}
+
+// ─── Collaboration Disputes ──────────────────────────────────────
+model CollaborationDispute {
+  id                String         @id @default(uuid())
+  collaborationId   String
+  collaboration     Collaboration  @relation(fields: [collaborationId], references: [id])
+
+  raisedByUserId    String
+  reason            String         @db.Text
+  evidence          String[]       // file/link URLs
+
+  status            DisputeStatus  @default(OPEN)
+  resolvedByAdminId String?
+  resolutionNotes   String?        @db.Text
+  resolvedAt        DateTime?
+
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([collaborationId])
+  @@index([status])
+}
+

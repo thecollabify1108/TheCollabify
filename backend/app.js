@@ -376,6 +376,10 @@ try {
     safeRoute('/api/ai', aiLimiter, attachFeatures, require('./routes/ai'));
 } catch (e) { console.error('ai route failed:', e.message); }
 try { safeRoute('/api/collaboration', require('./routes/collaboration')); } catch (e) { console.error('collaboration route failed:', e.message); }
+try { safeRoute('/api/brands', require('./routes/brands')); } catch (e) { console.error('brands route failed:', e.message); }
+try { safeRoute('/api/availability', require('./routes/availabilityCampaigns')); } catch (e) { console.error('availabilityCampaigns route failed:', e.message); }
+try { safeRoute('/api/escrow', require('./routes/escrow')); } catch (e) { console.error('escrow route failed:', e.message); }
+try { safeRoute('/api/deliverables', require('./routes/deliverables')); } catch (e) { console.error('deliverables route failed:', e.message); }
 
 // Root endpoint
 app.get('/', (req, res) => {

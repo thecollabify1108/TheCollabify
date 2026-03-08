@@ -2,7 +2,13 @@ let newrelic;
 try {
     newrelic = require('newrelic');
 } catch (e) {
-    newrelic = { recordCustomEvent: () => { }, startSegment: (name, record, fn) => fn ? fn() : null };
+    newrelic = {
+        recordCustomEvent: () => {},
+        startSegment: (name, record, fn) => fn ? fn() : null,
+        addCustomParameters: () => {},
+        recordMetric: () => {},
+        noticeError: () => {}
+    };
 }
 
 const express = require('express');
@@ -300,14 +306,14 @@ router.post('/:id/transition', auth, [
  * @access  Private
  */
 router.patch('/:id', auth, [
-    body('deliverables').optional().isArray().withMessage('Deliverables must be an array'),
+    body('deliverableItems').optional().isArray().withMessage('Deliverables must be an array'),
     body('milestones').optional().isArray().withMessage('Milestones must be an array'),
     body('startDate').optional({ nullable: true }).isISO8601().withMessage('startDate must be a valid ISO date'),
     body('endDate').optional({ nullable: true }).isISO8601().withMessage('endDate must be a valid ISO date')
 ], handleValidation, async (req, res) => {
     try {
         const { id } = req.params;
-        const { deliverables, startDate, endDate, milestones } = req.body;
+        const { deliverableItems, startDate, endDate, milestones } = req.body;
 
         // Fetch current to check editability and ownership
         const existing = await prisma.collaboration.findUnique({
@@ -341,7 +347,7 @@ router.patch('/:id', auth, [
         }
 
         const updateData = {};
-        if (deliverables !== undefined) updateData.deliverables = deliverables;
+        if (deliverableItems !== undefined) updateData.deliverableItems = deliverableItems;
         if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
         if (endDate !== undefined) updateData.endDate = endDate ? new Date(endDate) : null;
         if (milestones !== undefined) updateData.milestones = milestones;
