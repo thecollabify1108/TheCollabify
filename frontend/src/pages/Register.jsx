@@ -84,12 +84,13 @@ const Register = () => {
 
     const handleGoogleSignup = () => {
         // Use backend passport OAuth flow — avoids redirect_uri_mismatch issues
+        // Role is NOT passed here; OAuthCompleteRegistration handles role selection
+        // reliably for new users (session-based role passing is unreliable on Azure)
         const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
         const backendBase = apiUrl
             ? `${apiUrl}/oauth/google`
             : 'https://api.thecollabify.tech/api/oauth/google';
-        const role = formData.role || '';
-        window.location.href = role ? `${backendBase}?role=${encodeURIComponent(role)}` : backendBase;
+        window.location.href = backendBase;
     };
 
     const doSendOtp = (timeout) => api.post('auth/register/send-otp', {
@@ -236,6 +237,22 @@ const Register = () => {
                         transition={{ duration: 0.3 }}
                         className="space-y-6"
                     >
+                        {/* Google Signup — always visible at top of step 1 */}
+                        <div className="space-y-4 mb-2">
+                            <button
+                                onClick={handleGoogleSignup}
+                                className="w-full py-3 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-dark-700 hover:border-dark-500 rounded-xl text-dark-200 text-sm font-medium transition-all"
+                            >
+                                <Icon name="google" size={18} />
+                                Sign up with Google
+                            </button>
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1 h-px bg-dark-700" />
+                                <span className="text-xs text-dark-500">or sign up with email</span>
+                                <div className="flex-1 h-px bg-dark-700" />
+                            </div>
+                        </div>
+
                         <div className="grid gap-4">
                             {/* Seller Option */}
                             <button
@@ -290,14 +307,14 @@ const Register = () => {
                             </button>
                         </div>
 
-                        {/* Google Signup & Next Button - Conditional on Role Selection */}
+                        {/* Continue with Details — only shown after role selected */}
                         <AnimatePresence>
                             {formData.role && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: -10 }}
-                                    className="pt-6 space-y-6"
+                                    className="pt-4"
                                 >
                                     <button
                                         onClick={handleNextStep}
@@ -305,22 +322,6 @@ const Register = () => {
                                     >
                                         <span>Continue with Details</span>
                                         <Icon name="arrow-right" size={18} className="group-hover:translate-x-1 transition-transform" />
-                                    </button>
-
-                                    {/* Divider */}
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex-1 h-px bg-dark-700" />
-                                        <span className="text-xs text-dark-500">or</span>
-                                        <div className="flex-1 h-px bg-dark-700" />
-                                    </div>
-
-                                    {/* Google Signup Button */}
-                                    <button
-                                        onClick={handleGoogleSignup}
-                                        className="w-full py-3 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-dark-700 hover:border-dark-500 rounded-xl text-dark-200 text-sm font-medium transition-all"
-                                    >
-                                        <Icon name="google" size={18} />
-                                        Continue with Google
                                     </button>
                                 </motion.div>
                             )}

@@ -129,11 +129,10 @@ router.get('/conversations', auth, userCacheMiddleware(15), async (req, res) => 
             ? { sellerId: userId }
             : { creatorUserId: userId };
 
-        // We only show conversations that are NOT deleted by this user
-        // Using Prisma's JSON filtering for deletedBy array
-        // However, since deletedBy is likely an array of objects, we might need a better way.
-        // For simplicity, let's assume we filter them in memory or use a direct check if possible.
-        // Actually, let's just fetch all and filter for now, or use JSON path if supported.
+        // Filter out conversations the user has deleted (via ConversationDeletion relation)
+        const deletionFilter = {
+            deletions: { none: { userId: userId } }
+        };
 
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
@@ -141,24 +140,18 @@ router.get('/conversations', auth, userCacheMiddleware(15), async (req, res) => 
 
         const [conversations, total] = await Promise.all([
             prisma.conversation.findMany({
-                where: {
-                    ...where,
-                    NOT: {
-                        deletedBy: {
-                            path: ['$[*]'],
-                            array_contains: { userId: userId }
-                        }
-                    }
-                },
+                where: { ...where, ...deletionFilter },
                 select: {
                     id: true,
                     status: true,
-                    lastMessage: true,
-                    lastMessageAt: true,
+                    lastMessageContent: true,
+                    lastMessageCreatedAt: true,
+                    lastMessageSenderId: true,
                     unreadCountSeller: true,
                     unreadCountCreator: true,
                     updatedAt: true,
-                    acceptanceStatus: true,
+                    creatorAccepted: true,
+                    sellerAccepted: true,
                     sellerId: true,
                     creatorUserId: true,
                     seller: {
@@ -176,15 +169,7 @@ router.get('/conversations', auth, userCacheMiddleware(15), async (req, res) => 
                 take: limit
             }),
             prisma.conversation.count({
-                where: {
-                    ...where,
-                    NOT: {
-                        deletedBy: {
-                            path: ['$[*]'],
-                            array_contains: { userId: userId }
-                        }
-                    }
-                }
+                where: { ...where, ...deletionFilter }
             })
         ]);
 

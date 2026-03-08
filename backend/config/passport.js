@@ -90,7 +90,7 @@ passport.deserializeUser(async (data, done) => {
                     id: true,
                     email: true,
                     name: true,
-                    role: true,
+                    activeRole: true,
                     avatar: true,
                     isActive: true
                 }
