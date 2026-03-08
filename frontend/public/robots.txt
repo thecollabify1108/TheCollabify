@@ -1,4 +1,8 @@
 User-agent: *
 Allow: /
 
+Disallow: /admin/
+Disallow: /creator/dashboard
+Disallow: /seller/dashboard
+
 Sitemap: https://thecollabify.tech/sitemap.xml

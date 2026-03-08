@@ -38,3 +38,10 @@ coverage/
 *.log
 .cache/
 backend/doppler_secrets.json
+
+# Debug scripts and logs
+debug_*
+*_log.txt
+*.bat
+_gitstatus.txt
+azure-logs.zip
