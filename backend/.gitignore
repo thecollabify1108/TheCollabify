@@ -1,5 +1,6 @@
 node_modules
 .env
+.env.*
 .azure_credentials.json
 .DS_Store
 npm-debug.log
@@ -9,3 +10,34 @@ dist
 build
 test-db.js
 test-url.js
+
+# FIX #10/#19: Sensitive secrets and credentials — NEVER commit these
+doppler_secrets.json
+output_keys.txt
+
+# Log files — FIX #19
+*.log
+newrelic_agent.log
+error.log
+server_crash.log
+server_output.log
+server_test.log
+server_trace.log
+migrate_err.txt
+migration_error.log
+migration_lifecycle.log
+migration_onboarding.log
+prisma_error.log
+
+# Backup/debug files
+*.bak
+auth.js.bak
+api-out*.txt
+check-out.txt
+check2.txt
+fix2-out.txt
+hash-out.txt
+norm-out.txt
+test-login-out.txt
+test-output*.txt
+test_output.txt

@@ -36,7 +36,8 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
 
         // Generate new OTP
         const otpCode = generateOTP();
-        const hashedOTP = await bcrypt.hash(otpCode, 10);
+        // FIX #4: cost 8 instead of 10 — still secure for a 6-digit time-limited OTP, saves ~75ms per request
+        const hashedOTP = await bcrypt.hash(otpCode, 8);
 
         // Calculate expiry (10 minutes from now)
         const expiresAt = new Date(Date.now() + 10 * 60 * 1000);

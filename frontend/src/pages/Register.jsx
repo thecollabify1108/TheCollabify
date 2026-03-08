@@ -48,23 +48,38 @@ const Register = () => {
     }, [searchParams]);
 
     // OTP Timer Logic — allow resend after 60 seconds
+    // FIX #11: Track a separate small countdown (0-60s) so the displayed "Resend in Xs" is
+    // clear and accurate. The main otpTimer tracks full OTP expiry (600s).
+    const [resendCountdown, setResendCountdown] = useState(60);
+
+    useEffect(() => {
+        if (step !== 3) return;
+        setResendCountdown(60);
+        setCanResend(false);
+        const interval = setInterval(() => {
+            setResendCountdown(prev => {
+                if (prev <= 1) {
+                    clearInterval(interval);
+                    setCanResend(true);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [step]); // only re-run when step changes
+
     useEffect(() => {
         if (step !== 3 || otpTimer <= 0) return;
         const timer = setInterval(() => {
             setOtpTimer(prev => {
                 const next = prev - 1;
-                if (next <= 0) {
-                    clearInterval(timer);
-                    setCanResend(true);
-                    return 0;
-                }
-                // Allow resend after 60 seconds have elapsed (i.e. timer drops below initial-60)
-                if (!canResend && next <= 540) setCanResend(true);
+                if (next <= 0) { clearInterval(timer); return 0; }
                 return next;
             });
         }, 1000);
         return () => clearInterval(timer);
-    }, [step]); // only re-run when step changes, not every tick
+    }, [step]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -443,7 +458,8 @@ const Register = () => {
                             {canResend ? (
                                 <button onClick={handleResendOTP} className="text-primary-500 hover:text-primary-600 text-sm font-medium">Resend Code</button>
                             ) : (
-                                <p className="text-dark-400 text-sm">Resend available in <span className="font-mono text-primary-500">{otpTimer > 540 ? Math.ceil((otpTimer - 540)) : 0}s</span></p>
+                                // FIX #11: Show clear "Resend in Xs" countdown — resendCountdown ticks 60→0
+                                <p className="text-dark-400 text-sm">Resend available in <span className="font-mono text-primary-500">{resendCountdown}s</span></p>
                             )}
                         </div>
 

@@ -148,14 +148,20 @@ router.post('/register/verify-otp', [
         const token = generateToken(user.id);
         setCookieToken(res, token);
 
-        // Fire-and-forget welcome email
+        // Fire-and-forget welcome email — FIX #15: log errors instead of silently swallowing
         const tpl = role === 'creator' ? 'welcomeCreator' : 'welcomeSeller';
-        sendEmail(user.email, tpl, user.name).catch(function () { });
+        sendEmail(user.email, tpl, user.name).catch(function (emailErr) {
+            console.error('[Email] Welcome email failed (non-fatal):', emailErr.message);
+        });
 
         try {
-            var notifSvc = require('../services/notificationService');
-            notifSvc.notifyWelcome(user.id, role).catch(function () { });
-        } catch (e2) { }
+            const notifSvc = require('../services/notificationService');
+            notifSvc.notifyWelcome(user.id, role).catch(function (notifErr) {
+                console.error('[Notif] Welcome notif failed (non-fatal):', notifErr.message);
+            });
+        } catch (e2) {
+            console.error('[Notif] Welcome notif module error:', e2.message);
+        }
 
         res.status(201).json({
             success: true,
@@ -237,8 +243,9 @@ router.post('/login', [
                     matchedRole = role.toUpperCase();
                 }
             } else {
-                for (var i = 0; i < user.roles.length; i++) {
-                    var match = await bcrypt.compare(password, user.roles[i].password);
+                // FIX #17: use const/let — var hoists out of for-block causing subtle bugs
+                for (let i = 0; i < user.roles.length; i++) {
+                    const match = await bcrypt.compare(password, user.roles[i].password);
                     if (match) {
                         isMatch = true;
                         matchedRole = user.roles[i].type;
@@ -463,13 +470,14 @@ router.post('/google', async (req, res) => {
         });
 
         if (user) {
-            var updateData = { lastLogin: new Date() };
+            // FIX #17: use const instead of var
+            const updateData = { lastLogin: new Date() };
             if (!user.googleId) { updateData.googleId = googleId; updateData.authProvider = 'GOOGLE'; }
             if (!user.avatar && avatar) updateData.avatar = avatar;
             if (!user.emailVerified) updateData.emailVerified = true;
             updateData.activeRole = finalRole;
 
-            var hasRole = user.roles && user.roles.some(r => r.type === finalRole);
+            const hasRole = user.roles && user.roles.some(r => r.type === finalRole);
             if (!hasRole) {
                 updateData.roles = { create: { type: finalRole, password: crypto.randomBytes(32).toString('hex') } };
             }
@@ -493,9 +501,13 @@ router.post('/google', async (req, res) => {
             });
 
             try {
-                var notifSvc2 = require('../services/notificationService');
-                notifSvc2.notifyWelcome(user.id, finalRole).catch(function () { });
-            } catch (e3) { }
+                const notifSvc2 = require('../services/notificationService');
+                notifSvc2.notifyWelcome(user.id, finalRole).catch(function (err) {
+                    console.error('[Notif] Google welcome notif failed (non-fatal):', err.message);
+                });
+            } catch (e3) {
+                console.error('[Notif] Google welcome notif module error:', e3.message);
+            }
         }
 
         const token = generateToken(user.id);

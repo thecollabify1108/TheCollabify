@@ -77,12 +77,14 @@ passport.serializeUser((user, done) => {
 });
 
 // Deserialize user from session
+// FIX #14: Added explicit guard — if session data is corrupted (neither isNewUser object
+// nor a valid numeric/string ID), fail gracefully with null instead of crashing Prisma.
 passport.deserializeUser(async (data, done) => {
     try {
-        if (data.isNewUser) {
+        if (data && typeof data === 'object' && data.isNewUser) {
             // Return the profile data for new users
             done(null, data.profileData);
-        } else {
+        } else if (data && (typeof data === 'number' || typeof data === 'string')) {
             // Fetch user from database for existing users
             const user = await prisma.user.findUnique({
                 where: { id: data },
@@ -95,7 +97,11 @@ passport.deserializeUser(async (data, done) => {
                     isActive: true
                 }
             });
-            done(null, user);
+            done(null, user || null);
+        } else {
+            // Corrupted or unknown session data \u2014 treat as unauthenticated
+            console.warn('[Passport] Unexpected session data format \u2014 treating as unauthenticated:', typeof data);
+            done(null, null);
         }
     } catch (error) {
         done(error, null);

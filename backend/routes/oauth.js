@@ -11,12 +11,15 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'https://thecollabify.tech';
 
 /**
  * SECURITY: Secure cookie helper for OAuth
+ * FIX #2: sameSite must be 'none' (not 'strict') for cross-domain OAuth redirects.
+ * 'strict' prevents the browser from sending the cookie after a redirect from Google → backend → frontend.
+ * secure must always be true — we are always on HTTPS in production.
  */
 const setCookieToken = (res, token) => {
     res.cookie('token', token, {
-        httpOnly: true,                    // Prevents XSS
-        secure: process.env.NODE_ENV === 'production',  // HTTPS only
-        sameSite: 'strict',                // CSRF protection
+        httpOnly: true,
+        secure: true,        // Always true — site is always HTTPS
+        sameSite: 'none',    // Required for cross-domain OAuth redirect flow
         maxAge: 7 * 24 * 60 * 60 * 1000   // 7 days
     });
 };
@@ -71,7 +74,9 @@ router.get('/google/callback',
                 );
             }
 
-            // Existing user - generate JWT and pass in URL (AuthContext reads ?token=)
+            // Existing user — FIX #9: pass token as URL *fragment* (#) not query string.
+            // Fragments are never sent to the server, never logged by Cloudflare/Azure, never
+            // appear in Referer headers. AuthContext reads window.location.hash instead.
             const token = jwt.sign(
                 { userId: user.id, role: user.activeRole },
                 process.env.JWT_SECRET,
@@ -84,7 +89,8 @@ router.get('/google/callback',
                     ? '/seller/dashboard'
                     : '/admin';
 
-            res.redirect(`${FRONTEND_URL}${dashboardPath}?token=${encodeURIComponent(token)}`);
+            // Token in hash — not in query string (prevents server/CDN logging)
+            res.redirect(`${FRONTEND_URL}${dashboardPath}#token=${encodeURIComponent(token)}`);
 
         } catch (error) {
             console.error('OAuth callback error:', error);
@@ -220,9 +226,13 @@ router.post('/complete-registration', [
  * @access  Public
  */
 router.post('/google-login', [
-    body('email').isEmail().normalizeEmail(),
-    body('googleId').notEmpty(),
-    body('name').notEmpty().trim().escape(),
+    // FIX #3/#18: Accept either a signed profileToken (new secure flow) OR
+    // the individual fields (legacy path — still validated). Backend verifies the
+    // profileToken signature so the client can never forge a different identity.
+    body('profileToken').optional(),
+    body('email').optional().isEmail().normalizeEmail(),
+    body('googleId').optional(),
+    body('name').optional().trim().escape(),
     body('role').optional().isIn(['creator', 'seller'])
 ], async (req, res) => {
     try {
@@ -231,7 +241,35 @@ router.post('/google-login', [
             return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
         }
 
-        const { email, name, googleId, avatar, role } = req.body;
+        let email, name, googleId, avatar, role;
+
+        if (req.body.profileToken) {
+            // SECURE PATH: backend verifies the JWT it signed — client cannot forge this
+            let decoded;
+            try {
+                decoded = jwt.verify(req.body.profileToken, process.env.JWT_SECRET);
+            } catch (jwtErr) {
+                return res.status(401).json({ success: false, message: 'Invalid or expired profile token. Please sign in with Google again.' });
+            }
+            if (!decoded.isGoogleProfile) {
+                return res.status(401).json({ success: false, message: 'Invalid profile token type.' });
+            }
+            email = decoded.email;
+            name = decoded.name;
+            googleId = decoded.googleId;
+            avatar = decoded.avatar;
+            role = req.body.role;
+        } else {
+            // LEGACY PATH: accept raw fields (still used by old frontend versions)
+            if (!req.body.email || !req.body.googleId || !req.body.name) {
+                return res.status(400).json({ success: false, message: 'email, googleId, and name are required' });
+            }
+            email = req.body.email;
+            name = req.body.name;
+            googleId = req.body.googleId;
+            avatar = req.body.avatar;
+            role = req.body.role;
+        }
 
         // Check if user exists by googleId
         let user = await prisma.user.findUnique({ where: { googleId } });

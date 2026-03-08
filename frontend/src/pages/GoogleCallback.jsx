@@ -37,20 +37,14 @@ const GoogleCallback = () => {
                     }
 
                     setStatus('Setting up your account...');
-                    // Decode JWT payload (backend will validate on POST)
-                    const [, payloadB64] = oauthProfile.split('.');
-                    const profile = JSON.parse(
-                        atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))
-                    );
 
+                    // FIX #3: Do NOT decode the JWT client-side (was vulnerable to forgery).
+                    // Send the raw signed profileToken to the backend which verifies the signature.
                     let user;
                     for (let attempt = 0; attempt < 2; attempt++) {
                         try {
                             user = await googleLogin({
-                                email: profile.email,
-                                name: profile.name,
-                                googleId: profile.googleId,
-                                avatar: profile.avatar,
+                                profileToken: oauthProfile,  // backend verifies JWT signature
                                 role: roleParam
                             });
                             break;

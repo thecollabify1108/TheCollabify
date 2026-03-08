@@ -290,13 +290,23 @@ const initializeModules = async () => {
         }
 
         // 2a. Run pending migrations on startup (safe: only applies unapplied migrations)
+        // FIX #1: Use async exec — execSync was blocking the event loop for up to 30s, causing all
+        // incoming requests (including register/send-otp) to time out during cold start.
         try {
-            const { execSync } = require('child_process');
-            console.log('🔄 [Startup] Running prisma migrate deploy...');
-            execSync('npx prisma migrate deploy', { cwd: __dirname, stdio: 'pipe', timeout: 30000 });
-            console.log('✅ [Startup] Migrations applied');
+            const { exec } = require('child_process');
+            console.log('🔄 [Startup] Running prisma migrate deploy (async)...');
+            await new Promise((resolve) => {
+                exec('npx prisma migrate deploy', { cwd: __dirname, timeout: 30000 }, (migErr, stdout, stderr) => {
+                    if (migErr) {
+                        console.warn('⚠️  [Startup] Migration warning (non-fatal):', migErr.message?.substring(0, 200));
+                    } else {
+                        console.log('✅ [Startup] Migrations applied');
+                    }
+                    resolve(); // always resolve — don't block startup on migration errors
+                });
+            });
         } catch (migErr) {
-            console.warn('⚠️  [Startup] Migration warning (non-fatal):', migErr.message?.substring(0, 200));
+            console.warn('⚠️  [Startup] Migration outer error (non-fatal):', migErr.message?.substring(0, 200));
         }
 
         // 2b. Keep-alive: ping DB every 2 minutes to prevent Azure cold-start
@@ -375,9 +385,10 @@ const safeRoute = (path, ...handlers) => {
     }
 };
 
-try { safeRoute('/api/auth', require('./routes/auth')); } catch (e) { console.error('auth route failed:', e.message); }
-try { safeRoute('/api/auth/password-reset', strictLimiter, require('./routes/passwordReset')); } catch (e) { console.error('passwordReset route failed:', e.message); }
-try { safeRoute('/api/oauth', require('./routes/oauth')); } catch (e) { console.error('oauth route failed:', e.message); }
+// FIX #12: Apply authTimeoutMiddleware to auth routes (shorter timeout for auth endpoints)
+try { safeRoute('/api/auth', authTimeoutMiddleware, require('./routes/auth')); } catch (e) { console.error('auth route failed:', e.message); }
+try { safeRoute('/api/auth/password-reset', authTimeoutMiddleware, strictLimiter, require('./routes/passwordReset')); } catch (e) { console.error('passwordReset route failed:', e.message); }
+try { safeRoute('/api/oauth', authTimeoutMiddleware, require('./routes/oauth')); } catch (e) { console.error('oauth route failed:', e.message); }
 try { safeRoute('/api/search', cacheMiddleware(300), require('./routes/search')); } catch (e) { console.error('search route failed:', e.message); }
 try { safeRoute('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard')); } catch (e) { console.error('leaderboard route failed:', e.message); }
 try { safeRoute('/api/achievements', cacheMiddleware(300), require('./routes/achievements')); } catch (e) { console.error('achievements route failed:', e.message); }
@@ -388,7 +399,7 @@ try { safeRoute('/api/notifications', require('./routes/notifications')); } catc
 try { safeRoute('/api/chat', require('./routes/chat')); } catch (e) { console.error('chat route failed:', e.message); }
 try { safeRoute('/api/admin', require('./routes/admin')); } catch (e) { console.error('admin route failed:', e.message); }
 try { safeRoute('/api/analytics', require('./routes/analytics')); } catch (e) { console.error('analytics route failed:', e.message); }
-try { safeRoute('/api/calendar', require('./routes/contentCalendar')); } catch (e) { console.error('calendar route failed:', e.message); }
+// FIX #16: Removed duplicate /api/calendar route — contentCalendar is already registered above as /api/calendar (routes/contentCalendar.js). Only one is needed.
 try { safeRoute('/api/team', require('./routes/teamManagement')); } catch (e) { console.error('team route failed:', e.message); }
 try {
     const { attachFeatures } = require('./middleware/featureGate');

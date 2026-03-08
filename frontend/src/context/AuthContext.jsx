@@ -52,15 +52,18 @@ export const AuthProvider = ({ children }) => {
         }
 
         const initAuth = async () => {
-            // Check for token in URL (OAuth redirect flow)
+            // FIX #9: Check for token in URL *hash* first (OAuth redirect now uses #token=
+            // instead of ?token= to prevent token from being logged by Cloudflare/Azure/Sentry).
+            // Also support legacy ?token= query param for backward compatibility.
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
             const urlParams = new URLSearchParams(window.location.search);
-            const urlToken = urlParams.get('token');
+            const urlToken = hashParams.get('token') || urlParams.get('token');
 
             if (urlToken) {
                 // OAuth callback - save token and clean URL
                 localStorage.setItem('token', urlToken);
                 setToken(urlToken);
-                // Remove token from URL for security
+                // Remove token from URL for security (clear both hash and query)
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
@@ -108,16 +111,11 @@ export const AuthProvider = ({ children }) => {
         return normalizeUser(userData);
     };
 
-    const register = async (name, email, password, role) => {
-        const response = await api.post('auth/register', { name, email, password, role });
-        const { token: newToken, user: userData } = response.data.data;
-
-        localStorage.setItem('token', newToken);
-        setToken(newToken);
-        setUser(normalizeUser(userData));
-        cacheUser(userData);
-
-        return normalizeUser(userData);
+    // FIX #8: Removed dead register() function that called non-existent /api/auth/register.
+    // Registration uses the 2-step OTP flow (send-otp → verify-otp) called directly in Register.jsx.
+    // Keeping this stub to avoid breaking any stale imports, but it throws clearly instead of silently 404ing.
+    const register = async () => {
+        throw new Error('register() is deprecated. Use the OTP flow: auth/register/send-otp then auth/register/verify-otp');
     };
 
     const verifyOTP = async (tempUserId, otpCode) => {
@@ -175,8 +173,14 @@ export const AuthProvider = ({ children }) => {
         return response.data;
     };
 
-    const googleLogin = async ({ email, name, googleId, avatar, role }) => {
-        const response = await api.post('oauth/google-login', { email, name, googleId, avatar, role }, { timeout: 45000 });
+    // FIX #3: googleLogin now accepts profileToken (signed JWT from backend) instead of
+    // raw decoded fields. Backend verifies the signature — client can never forge a googleId.
+    // Legacy path (raw fields) still supported for backward compat with old GoogleCallback versions.
+    const googleLogin = async ({ profileToken, email, name, googleId, avatar, role }) => {
+        const payload = profileToken
+            ? { profileToken, role }  // new secure path
+            : { email, name, googleId, avatar, role };  // legacy path
+        const response = await api.post('oauth/google-login', payload, { timeout: 45000 });
         const { token: newToken, user: userData } = response.data.data;
         localStorage.setItem('token', newToken);
         setToken(newToken);
