@@ -257,7 +257,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
 }
 
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'collabify-session-fallback-secret-change-in-prod',
     resave: false,
     saveUninitialized: false,
     cookie: {

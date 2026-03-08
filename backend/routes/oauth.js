@@ -73,14 +73,14 @@ router.get('/google/callback',
 
             // Existing user - generate JWT and pass in URL (AuthContext reads ?token=)
             const token = jwt.sign(
-                { userId: user.id, role: user.role },
+                { userId: user.id, role: user.activeRole },
                 process.env.JWT_SECRET,
                 { expiresIn: '7d' }
             );
 
-            const dashboardPath = user.role === 'CREATOR'
+            const dashboardPath = user.activeRole === 'CREATOR'
                 ? '/creator/dashboard'
-                : user.role === 'SELLER'
+                : user.activeRole === 'SELLER'
                     ? '/seller/dashboard'
                     : '/admin';
 
@@ -146,7 +146,6 @@ router.post('/complete-registration', [
             googleId: googleProfile.googleId,
             email: googleProfile.email,
             name: googleProfile.name,
-            role: role.toUpperCase(),
             activeRole: role.toUpperCase(),
             authProvider: 'GOOGLE',
             avatar: googleProfile.avatar,
@@ -174,7 +173,7 @@ router.post('/complete-registration', [
 
         // Generate JWT
         const token = jwt.sign(
-            { userId: user.id, role: user.role },
+            { userId: user.id, role: user.activeRole },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -200,7 +199,7 @@ router.post('/complete-registration', [
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role,
+                    role: user.activeRole ? user.activeRole.toLowerCase() : null,
                     avatar: user.avatar
                 }
             }
@@ -268,7 +267,6 @@ router.post('/google-login', [
                     googleId,
                     email,
                     name,
-                    role: roleUpper,
                     activeRole: roleUpper,
                     authProvider: 'GOOGLE',
                     avatar: avatar || '',
@@ -286,7 +284,7 @@ router.post('/google-login', [
         }
 
         const token = jwt.sign(
-            { userId: user.id, role: user.role },
+            { userId: user.id, role: user.activeRole },
             process.env.JWT_SECRET,
             { expiresIn: '7d' }
         );
@@ -301,7 +299,7 @@ router.post('/google-login', [
                     id: user.id,
                     email: user.email,
                     name: user.name,
-                    role: user.role ? user.role.toLowerCase() : null,
+                    role: user.activeRole ? user.activeRole.toLowerCase() : null,
                     activeRole: user.activeRole ? user.activeRole.toLowerCase() : null,
                     avatar: user.avatar
                 }
