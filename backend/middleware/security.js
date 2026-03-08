@@ -13,7 +13,27 @@ const securityHeaders = helmet({
         directives: {
             ...helmet.contentSecurityPolicy.getDefaultDirectives(),
             "img-src": ["'self'", "data:", "https:", "http:"],
-            "connect-src": ["'self'", "https://api.thecollabify.tech", "https://thecollabify.tech"]
+            "connect-src": [
+                "'self'",
+                "https://api.thecollabify.tech",
+                "https://thecollabify.tech",
+                "https://accounts.google.com",
+                "https://oauth2.googleapis.com",
+                "https://www.googleapis.com",
+            ],
+            "script-src": [
+                "'self'",
+                "'unsafe-inline'",
+                "https://www.googletagmanager.com",
+                "https://accounts.google.com",
+                "https://apis.google.com",
+                "https://ssl.gstatic.com",
+                "https://www.gstatic.com",
+            ],
+            "frame-src": [
+                "'self'",
+                "https://accounts.google.com",
+            ],
         }
     },
     crossOriginEmbedderPolicy: false, // For local dev/CORS flexibility
