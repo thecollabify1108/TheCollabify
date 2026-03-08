@@ -12,10 +12,10 @@ const CreatorShowcase = ({ requests, onAccept, onReject, onMessage }) => {
         const creators = [];
         requests.forEach(request => {
             request.matchedCreators?.forEach(creator => {
-                if (creator.status === 'Applied' && !processedCreators.has(`${request._id}-${creator.creatorId}`)) {
+                if (creator.status === 'Applied' && !processedCreators.has(`${request.id}-${creator.creatorId}`)) {
                     creators.push({
                         ...creator,
-                        requestId: request._id,
+                        requestId: request.id,
                         requestTitle: request.title,
                         budget: request.budget,
                         promotionType: request.promotionType
@@ -185,3 +185,7 @@ const CreatorShowcase = ({ requests, onAccept, onReject, onMessage }) => {
 };
 
 export default CreatorShowcase;
+
+
+
+

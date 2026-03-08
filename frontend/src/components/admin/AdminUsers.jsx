@@ -250,7 +250,7 @@ const AdminUsers = () => {
                                             <td colSpan="5" className="px-6 py-8 text-center text-dark-400">No users found.</td>
                                         </tr>
                                     ) : filteredUsers.map((user) => (
-                                        <tr key={user._id} className="hover:bg-dark-800/30 transition-colors">
+                                        <tr key={user.id} className="hover:bg-dark-800/30 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center text-primary-400 font-bold border border-primary-500/30">
@@ -292,7 +292,7 @@ const AdminUsers = () => {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <select
                                                         value={user.subscriptionTier || 'FREE'}
-                                                        onChange={(e) => handleSetSubscription(user._id, e.target.value)}
+                                                        onChange={(e) => handleSetSubscription(user.id, e.target.value)}
                                                         className="bg-dark-800 border border-dark-600 rounded-lg px-2 py-1.5 text-xs text-dark-200 focus:border-primary-500 outline-none cursor-pointer"
                                                         title="Set Subscription Tier"
                                                     >
@@ -301,14 +301,14 @@ const AdminUsers = () => {
                                                         <option value="BRAND_PRO">Brand Pro</option>
                                                     </select>
                                                     <button
-                                                        onClick={() => handleToggleStatus(user._id, user.isActive)}
+                                                        onClick={() => handleToggleStatus(user.id, user.isActive)}
                                                         className="p-2 text-dark-400 hover:text-emerald-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"
                                                         title={user.isActive ? "Deactivate" : "Activate"}
                                                     >
                                                         {user.isActive ? <FaToggleOn className="text-lg" /> : <FaToggleOff className="text-lg" />}
                                                     </button>
                                                     <button
-                                                        onClick={() => handleDelete(user._id)}
+                                                        onClick={() => handleDelete(user.id)}
                                                         className="p-2 text-dark-400 hover:text-red-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"
                                                         title="Delete User"
                                                     >

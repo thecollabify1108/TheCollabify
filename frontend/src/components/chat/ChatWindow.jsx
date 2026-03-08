@@ -17,16 +17,16 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const messagesEndRef = useRef(null);
 
     const otherUser = conversation.otherUser;
-    const isOnline = onlineUsers.includes(otherUser._id);
+    const isOnline = onlineUsers.includes(otherUser.id);
 
-    const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversation._id, true);
+    const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversation.id, true);
 
     useEffect(() => {
-        if (conversation._id) {
+        if (conversation.id) {
             setupEncryption();
             fetchMessages();
         }
-    }, [conversation._id]);
+    }, [conversation.id]);
 
     const setupEncryption = async () => {
         try {
@@ -39,7 +39,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             }
 
             // 2. Try to fetch other user's public key
-            const res = await chatAPI.getPGPKey(otherUser._id);
+            const res = await chatAPI.getPGPKey(otherUser.id);
             if (res.data.success && res.data.data.publicKey) {
                 setOtherUserPublicKey(res.data.data.publicKey);
                 setIsSecure(true);
@@ -53,7 +53,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     // Real-time listener for THIS conversation
     useEffect(() => {
         const handleNewMessage = (data) => {
-            if (data.conversationId === conversation._id) {
+            if (data.conversationId === conversation.id) {
                 setMessages(prev => [...prev, data.message]);
                 scrollToBottom();
             }
@@ -61,11 +61,11 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
         socketService.onNewMessage(handleNewMessage);
         return () => socketService.off('new_message', handleNewMessage);
-    }, [conversation._id, socketService]);
+    }, [conversation.id, socketService]);
 
     const fetchMessages = async () => {
         try {
-            const res = await chatAPI.getMessages(conversation._id);
+            const res = await chatAPI.getMessages(conversation.id);
             const rawMessages = res.data.data.messages;
 
             // Decrypt messages if they are encrypted
@@ -111,7 +111,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             }
 
             // Save via REST API
-            const res = await chatAPI.sendMessage(conversation._id, {
+            const res = await chatAPI.sendMessage(conversation.id, {
                 content: contentToSend,
                 isEncrypted,
                 encryptionVersion: '1.0'
@@ -126,7 +126,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             scrollToBottom();
 
             // Broadcast via Socket
-            socketService.sendMessage(conversation._id, displayMsg, otherUser._id);
+            socketService.sendMessage(conversation.id, displayMsg, otherUser.id);
 
         } catch (error) {
             console.error('Failed to send', error);
@@ -188,13 +188,13 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
                 {messages.map((msg, i) => {
                     // Check if previous message was from same sender to group them (hide avatar)
-                    const isOwn = msg.senderId._id === currentUser.id || msg.senderId === currentUser.id;
+                    const isOwn = msg.senderId === currentUser.id;
                     const prevMsg = messages[i - 1];
-                    const showAvatar = !prevMsg || prevMsg.senderId._id !== msg.senderId._id && prevMsg.senderId !== msg.senderId;
+                    const showAvatar = !prevMsg || prevMsg.senderId !== msg.senderId;
 
                     return (
                         <MessageBubble
-                            key={msg._id || i}
+                            key={msg.id || i}
                             message={msg}
                             isOwn={isOwn}
                             showAvatar={showAvatar}
@@ -236,3 +236,5 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 };
 
 export default ChatWindow;
+
+

@@ -29,7 +29,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversationId, isConnected);
 
     // Get other user ID for online status
-    const otherUserId = conversation?.participants?.find(p => p._id !== user?.id)?._id;
+    const otherUserId = conversation?.participants?.find(p => p.id !== user?.id)?).id;
 
     // Check if conversation is pending
     useEffect(() => {
@@ -116,7 +116,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         try {
             await chatAPI.editMessage(messageId, editContent.trim());
             setMessages(prev => prev.map(m =>
-                m._id === messageId
+                m.id === messageId
                     ? { ...m, content: editContent.trim(), isEdited: true }
                     : m
             ));
@@ -134,7 +134,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         try {
             await chatAPI.deleteMessage(messageId);
             setMessages(prev => prev.map(m =>
-                m._id === messageId
+                m.id === messageId
                     ? { ...m, content: 'This message was deleted', isDeleted: true }
                     : m
             ));
@@ -157,7 +157,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     };
 
     const startEdit = (message) => {
-        setEditingMessageId(message._id);
+        setEditingMessageId(message.id);
         setEditContent(message.content);
         setActiveMessageMenu(null);
     };
@@ -204,7 +204,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const messageGroups = groupMessagesByDate(messages);
 
     // Staged Communication Logic
-    const myMessageCount = messages.filter(m => m.senderId._id === user?.id || m.senderId === user?.id).length;
+    const myMessageCount = messages.filter(m => m.senderId === user?.id).length;
     const canSendMessage = !isPending || myMessageCount === 0;
 
     return (
@@ -309,17 +309,17 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
                             {/* Messages for this date */}
                             {msgs.map((message, index) => {
-                                const isOwn = message.senderId._id === user?.id || message.senderId === user?.id;
+                                const isOwn = message.senderId === user?.id;
 
                                 return (
                                     <motion.div
-                                        key={message._id || index}
+                                        key={message.id || index}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-2 group relative`}
                                     >
                                         {/* Edit mode */}
-                                        {editingMessageId === message._id ? (
+                                        {editingMessageId === message.id ? (
                                             <div className="flex gap-2 items-center w-full">
                                                 <input
                                                     type="text"
@@ -328,7 +328,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                     className="flex-1 bg-dark-700 border border-primary-500 rounded-lg px-3 py-1 text-sm text-dark-100"
                                                     autoFocus
                                                 />
-                                                <button onClick={() => handleEditMessage(message._id)} className="text-primary-400 text-sm">Save</button>
+                                                <button onClick={() => handleEditMessage(message.id)} className="text-primary-400 text-sm">Save</button>
                                                 <button onClick={() => setEditingMessageId(null)} className="text-dark-400 text-sm">Cancel</button>
                                             </div>
                                         ) : (
@@ -344,7 +344,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                             <FaEdit size={12} />
                                                         </button>
                                                         <button
-                                                            onClick={(e) => { e.stopPropagation(); handleDeleteMessage(message._id); }}
+                                                            onClick={(e) => { e.stopPropagation(); handleDeleteMessage(message.id); }}
                                                             className="p-1 text-dark-400 hover:text-red-400 transition"
                                                             title="Delete"
                                                         >
@@ -409,3 +409,4 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 };
 
 export default ChatBox;
+

@@ -43,7 +43,7 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
             <div className="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory md:grid md:grid-cols-1 md:gap-6 md:pb-0 md:overflow-visible scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
                 {promotions.map((promotion, index) => (
                     <motion.div
-                        key={promotion._id}
+                        key={promotion.id}
                         className="min-w-[85vw] md:min-w-0 snap-center glass-card p-6 h-full"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -123,14 +123,14 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
                             <div className="mt-4 md:mt-0 md:ml-6 flex flex-col gap-2">
                                 <button
                                     onClick={() => {
-                                        const isExpanding = expandedId !== promotion._id;
-                                        setExpandedId(isExpanding ? promotion._id : null);
+                                        const isExpanding = expandedId !== promotion.id;
+                                        setExpandedId(isExpanding ? promotion.id : null);
                                         if (isExpanding) {
                                             trackMatchFeedback({
-                                                targetUserId: promotion.sellerId?._id || promotion.sellerId,
+                                                targetUserId: promotion.sellerId?.id || promotion.sellerId,
                                                 action: 'CLICKED',
                                                 source: 'promotion_list',
-                                                matchId: promotion._id,
+                                                matchId: promotion.id,
                                                 meta: { type: 'ai_insights' }
                                             });
                                         }
@@ -138,7 +138,7 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
                                     className="btn-outline flex items-center justify-center text-sm"
                                 >
                                     <FaChartLine className="mr-2" />
-                                    {expandedId === promotion._id ? 'Hide Insights' : 'AI Insights'}
+                                    {expandedId === promotion.id ? 'Hide Insights' : 'AI Insights'}
                                 </button>
 
                                 {promotion.hasApplied ? (
@@ -151,7 +151,7 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={() => onApply(promotion._id)}
+                                        onClick={() => onApply(promotion.id)}
                                         className="btn-3d flex items-center justify-center"
                                     >
                                         Apply Now
@@ -162,7 +162,7 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
 
                         {/* AI Insights Expansion */}
                         <AnimatePresence>
-                            {expandedId === promotion._id && (
+                            {expandedId === promotion.id && (
                                 <motion.div
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: 'auto', opacity: 1 }}
@@ -194,3 +194,5 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
 };
 
 export default PromotionList;
+
+

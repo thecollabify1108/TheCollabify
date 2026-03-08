@@ -72,7 +72,7 @@ const Navbar = () => {
 
                     {/* Right side (Desktop) */}
                     <div className="hidden md:flex items-center space-x-4">
-                        <LiveNotificationBell userId={user?._id} />
+                        <LiveNotificationBell userId={user?.id} />
                         <ThemeToggle />
 
                         <div className="relative" ref={menuRef}>
@@ -138,7 +138,7 @@ const Navbar = () => {
 
                     {/* Right side (Mobile) */}
                     <div className="flex md:hidden items-center space-x-2">
-                        <LiveNotificationBell userId={user?._id} />
+                        <LiveNotificationBell userId={user?.id} />
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                             className="p-2 rounded-xl bg-dark-800 text-dark-200 hover:bg-dark-700 transition-colors"
@@ -201,3 +201,5 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+

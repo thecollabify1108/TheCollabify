@@ -98,7 +98,7 @@ const ContentCalendar = () => {
         try {
             if (selectedEvent) {
                 // Update existing
-                const response = await calendarAPI.updateEvent(selectedEvent.resource._id, newEvent);
+                const response = await calendarAPI.updateEvent(selectedEvent.resource.id, newEvent);
                 const updatedEvent = {
                     ...response.data,
                     start: new Date(response.data.start),
@@ -106,7 +106,7 @@ const ContentCalendar = () => {
                     resource: response.data
                 };
 
-                setEvents(events.map(ev => ev.resource._id === response.data._id ? updatedEvent : ev));
+                setEvents(events.map(ev => ev.resource.id === response.data.id ? updatedEvent : ev));
                 toast.success('Event updated!');
             } else {
                 // Create new
@@ -133,8 +133,8 @@ const ContentCalendar = () => {
 
         if (window.confirm('Are you sure you want to delete this event?')) {
             try {
-                await calendarAPI.deleteEvent(selectedEvent.resource._id);
-                setEvents(events.filter(ev => ev.resource._id !== selectedEvent.resource._id));
+                await calendarAPI.deleteEvent(selectedEvent.resource.id);
+                setEvents(events.filter(ev => ev.resource.id !== selectedEvent.resource.id));
                 toast.success('Event removed');
                 setShowModal(false);
             } catch (error) {
@@ -285,7 +285,7 @@ const MonthView = ({ events, onEditEvent, onDeleteEvent }) => {
                             <div className="space-y-1">
                                 {dayEvents.slice(0, 2).map((event) => (
                                     <EventCard
-                                        key={event._id}
+                                        key={event.id}
                                         event={event}
                                         compact
                                         onEdit={onEditEvent}
@@ -315,7 +315,7 @@ const WeekView = ({ events, onEditEvent, onDeleteEvent }) => {
             <div className="space-y-2">
                 {events.map((event) => (
                     <EventCard
-                        key={event._id}
+                        key={event.id}
                         event={event}
                         onEdit={onEditEvent}
                         onDelete={onDeleteEvent}
@@ -340,7 +340,7 @@ const DayView = ({ events, onEditEvent, onDeleteEvent }) => {
             <div className="space-y-3">
                 {events.map((event) => (
                     <EventCard
-                        key={event._id}
+                        key={event.id}
                         event={event}
                         detailed
                         onEdit={onEditEvent}
@@ -435,7 +435,7 @@ const EventCard = ({ event, compact, detailed, onEdit, onDelete }) => {
                         ✏️
                     </button>
                     <button
-                        onClick={() => onDelete(event._id)}
+                        onClick={() => onDelete(event.id)}
                         className="p-2 bg-dark-700 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
                     >
                         <FaTimes />
@@ -485,8 +485,8 @@ const EventModal = ({ event, onClose, onSave }) => {
                 tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean)
             };
 
-            if (event?._id) {
-                await calendarAPI.updateEvent(event._id, payload);
+            if (event?.id) {
+                await calendarAPI.updateEvent(event.id, payload);
                 toast.success('Event updated successfully');
             } else {
                 await calendarAPI.createEvent(payload);
@@ -710,3 +710,7 @@ const EventModal = ({ event, onClose, onSave }) => {
 };
 
 export default ContentCalendar;
+
+
+
+

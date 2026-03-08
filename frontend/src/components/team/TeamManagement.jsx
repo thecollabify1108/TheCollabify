@@ -206,7 +206,7 @@ const TeamManagement = () => {
 
                             return (
                                 <motion.div
-                                    key={member._id}
+                                    key={member.id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     className="bg-dark-700/30 border border-dark-600 rounded-lg p-4 hover:border-dark-500 transition-all"
@@ -246,7 +246,7 @@ const TeamManagement = () => {
                                                     <FaEdit />
                                                 </button>
                                                 <button
-                                                    onClick={() => handleRemoveMember(member._id)}
+                                                    onClick={() => handleRemoveMember(member.id)}
                                                     className="p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
                                                     title="Remove Member"
                                                 >
@@ -273,7 +273,7 @@ const TeamManagement = () => {
                     <div className="space-y-3">
                         {pendingMembers.map(member => (
                             <div
-                                key={member._id}
+                                key={member.id}
                                 className="bg-dark-700/30 border border-amber-500/20 rounded-lg p-4"
                             >
                                 <div className="flex items-center justify-between">
@@ -456,7 +456,7 @@ const EditRoleModal = ({ member, onClose, onUpdate }) => {
         e.preventDefault();
         setUpdating(true);
         try {
-            await onUpdate(member._id, role);
+            await onUpdate(member.id, role);
             onClose();
         } finally {
             setUpdating(false);

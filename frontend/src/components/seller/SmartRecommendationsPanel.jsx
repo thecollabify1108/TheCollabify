@@ -81,7 +81,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
             return;
         }
 
-        const selectedRecs = recommendations.filter(r => selectedCreators.includes(r._id));
+        const selectedRecs = recommendations.filter(r => selectedCreators.includes(r.id));
         onInvite?.(selectedRecs);
         toast.success(`Invited ${selectedCreators.length} creators!`);
         setSelectedCreators([]);
@@ -140,12 +140,12 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                             </h4>
                             {group.items.map((creator, index) => (
                                 <motion.div
-                                    key={creator._id}
+                                    key={creator.id}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.05 }}
-                                    onClick={() => toggleCreator(creator._id)}
-                                    className={`bg-dark-900 border-2 ${selectedCreators.includes(creator._id)
+                                    onClick={() => toggleCreator(creator.id)}
+                                    className={`bg-dark-900 border-2 ${selectedCreators.includes(creator.id)
                                         ? 'border-purple-500 bg-purple-500/5'
                                         : 'border-dark-800 hover:border-dark-700'
                                         } rounded-xl p-4 cursor-pointer transition-all`}
@@ -156,7 +156,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                             <div className="w-16 h-16 rounded-full bg-indigo-700 flex items-center justify-center text-white text-xl font-bold">
                                                 {creator.name?.charAt(0) || 'C'}
                                             </div>
-                                            {selectedCreators.includes(creator._id) && (
+                                            {selectedCreators.includes(creator.id) && (
                                                 <div className="absolute -top-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center">
                                                     <FaCheckCircle className="text-white text-sm" />
                                                 </div>
@@ -233,7 +233,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setShowExplanation(showExplanation === creator._id ? null : creator._id);
+                                                                    setShowExplanation(showExplanation === creator.id ? null : creator.id);
                                                                 }}
                                                                 className="text-xs text-purple-400 hover:text-purple-300 underline underline-offset-2 flex items-center gap-1 transition-colors relative z-10"
                                                             >
@@ -256,7 +256,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
 
                                             {/* Explainability Panel */}
                                             <AnimatePresence>
-                                                {showExplanation === creator._id && (
+                                                {showExplanation === creator.id && (
                                                     <motion.div
                                                         initial={{ opacity: 0, height: 0, marginTop: 0 }}
                                                         animate={{ opacity: 1, height: 'auto', marginTop: 12 }}
@@ -306,3 +306,7 @@ const SmartRecommendationsPanel = ({ campaign, onInvite }) => {
 };
 
 export default SmartRecommendationsPanel;
+
+
+
+

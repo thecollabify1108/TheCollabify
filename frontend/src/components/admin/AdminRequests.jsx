@@ -74,7 +74,7 @@ const AdminRequests = () => {
                             {loading ? (
                                 <tr><td colSpan="5" className="px-6 py-8 text-center text-dark-400">Loading...</td></tr>
                             ) : filteredRequests.map(req => (
-                                <tr key={req._id} className="hover:bg-dark-800/30 transition-colors">
+                                <tr key={req.id} className="hover:bg-dark-800/30 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="font-medium text-dark-100">{req.title}</div>
                                         <div className="text-xs text-dark-400">{req.promotionType}</div>
@@ -95,7 +95,7 @@ const AdminRequests = () => {
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button
-                                            onClick={() => handleDelete(req._id)}
+                                            onClick={() => handleDelete(req.id)}
                                             className="p-2 text-dark-400 hover:text-red-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"
                                         >
                                             <FaTrash />

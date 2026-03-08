@@ -35,13 +35,13 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) =>
                     </div>
                 ) : (
                     filteredConversations.map(convo => {
-                        const isOnline = onlineUsers.includes(convo.otherUser._id);
-                        const isActive = activeId === convo._id;
+                        const isOnline = onlineUsers.includes(convo.otherUser.id);
+                        const isActive = activeId === convo.id;
 
                         return (
                             <button
-                                key={convo._id}
-                                onClick={() => onSelect(convo._id)}
+                                key={convo.id}
+                                onClick={() => onSelect(convo.id)}
                                 className={`w-full p-4 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-dark-800/50 transition-colors border-b border-gray-100 dark:border-dark-800/50 ${isActive ? 'bg-gray-100 dark:bg-dark-800 border-l-4 border-l-primary-500' : 'border-l-4 border-l-transparent'
                                     }`}
                             >

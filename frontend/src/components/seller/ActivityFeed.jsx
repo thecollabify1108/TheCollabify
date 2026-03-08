@@ -11,7 +11,7 @@ const ActivityFeed = ({ requests }) => {
         requests.forEach(request => {
             // Add creation activity
             activities.push({
-                id: `${request._id}-created`,
+                id: `${request.id}-created`,
                 type: 'created',
                 title: 'Campaign launched',
                 subtitle: request.title,
@@ -25,7 +25,7 @@ const ActivityFeed = ({ requests }) => {
             request.matchedCreators?.forEach(creator => {
                 if (creator.status === 'Applied') {
                     activities.push({
-                        id: `${request._id}-${creator.creatorId}-applied`,
+                        id: `${request.id}-${creator.creatorId}-applied`,
                         type: 'applied',
                         title: 'New application',
                         subtitle: `${creator.creatorName} applied`,
@@ -37,7 +37,7 @@ const ActivityFeed = ({ requests }) => {
                 }
                 if (creator.status === 'Accepted') {
                     activities.push({
-                        id: `${request._id}-${creator.creatorId}-accepted`,
+                        id: `${request.id}-${creator.creatorId}-accepted`,
                         type: 'accepted',
                         title: 'Creator accepted',
                         subtitle: `${creator.creatorName} is working`,
@@ -51,7 +51,7 @@ const ActivityFeed = ({ requests }) => {
 
             if (request.status === 'Completed') {
                 activities.push({
-                    id: `${request._id}-completed`,
+                    id: `${request.id}-completed`,
                     type: 'completed',
                     title: 'Campaign completed',
                     subtitle: request.title,
@@ -145,3 +145,5 @@ const ActivityFeed = ({ requests }) => {
 };
 
 export default ActivityFeed;
+
+

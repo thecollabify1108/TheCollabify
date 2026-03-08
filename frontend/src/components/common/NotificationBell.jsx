@@ -63,12 +63,12 @@ const NotificationBell = () => {
 
     const handleNotificationClick = async (notification) => {
         if (!notification.isRead) {
-            await markAsRead(notification._id);
+            await markAsRead(notification.id);
         }
         setIsOpen(false);
 
         // Navigate based on notification type and user role
-        const requestId = notification.relatedRequest?._id || notification.relatedRequest;
+        const requestId = notification.relatedRequest?.id || notification.relatedRequest;
 
         switch (notification.type) {
             case 'CREATOR_APPLIED':
@@ -163,7 +163,7 @@ const NotificationBell = () => {
                             ) : (
                                 notifications.slice(0, 10).map((notification) => (
                                     <motion.div
-                                        key={notification._id}
+                                        key={notification.id}
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         className={`px-4 py-3 border-b border-dark-700/50 hover:bg-dark-800/50 transition cursor-pointer ${!notification.isRead ? 'bg-primary-500/5' : ''

@@ -22,7 +22,7 @@ const SocialActivityFeed = ({ requests, onViewCampaign }) => {
         requests.forEach(request => {
             // Campaign created
             activities.push({
-                id: `${request._id}-created`,
+                id: `${request.id}-created`,
                 type: 'campaign_created',
                 icon: <FaRocket />,
                 iconBg: 'from-violet-500 to-purple-500',
@@ -31,14 +31,14 @@ const SocialActivityFeed = ({ requests, onViewCampaign }) => {
                 budget: request.budget,
                 time: new Date(request.createdAt),
                 likes: Math.floor(Math.random() * 50) + 10,
-                requestId: request._id
+                requestId: request.id
             });
 
             // Applied creators
             request.matchedCreators?.forEach(creator => {
                 if (creator.status === 'Applied') {
                     activities.push({
-                        id: `${request._id}-${creator.creatorId}-applied`,
+                        id: `${request.id}-${creator.creatorId}-applied`,
                         type: 'creator_applied',
                         icon: <FaFire />,
                         iconBg: 'from-amber-500 to-orange-500',
@@ -48,12 +48,12 @@ const SocialActivityFeed = ({ requests, onViewCampaign }) => {
                         followerCount: creator.followerCount,
                         time: new Date(creator.appliedAt || request.createdAt),
                         likes: Math.floor(Math.random() * 30) + 5,
-                        requestId: request._id
+                        requestId: request.id
                     });
                 }
                 if (creator.status === 'Accepted') {
                     activities.push({
-                        id: `${request._id}-${creator.creatorId}-accepted`,
+                        id: `${request.id}-${creator.creatorId}-accepted`,
                         type: 'creator_accepted',
                         icon: <FaHandshake />,
                         iconBg: 'from-emerald-500 to-teal-500',
@@ -61,7 +61,7 @@ const SocialActivityFeed = ({ requests, onViewCampaign }) => {
                         subtitle: `For "${request.title}"`,
                         time: new Date(creator.acceptedAt || request.createdAt),
                         likes: Math.floor(Math.random() * 100) + 20,
-                        requestId: request._id
+                        requestId: request.id
                     });
                 }
             });
@@ -69,7 +69,7 @@ const SocialActivityFeed = ({ requests, onViewCampaign }) => {
             // Completed campaigns
             if (request.status === 'Completed') {
                 activities.push({
-                    id: `${request._id}-completed`,
+                    id: `${request.id}-completed`,
                     type: 'campaign_completed',
                     icon: <FaTrophy />,
                     iconBg: 'from-amber-400 to-yellow-500',
@@ -77,7 +77,7 @@ const SocialActivityFeed = ({ requests, onViewCampaign }) => {
                     subtitle: request.title,
                     time: new Date(request.updatedAt),
                     likes: Math.floor(Math.random() * 200) + 50,
-                    requestId: request._id
+                    requestId: request.id
                 });
             }
         });
@@ -172,3 +172,7 @@ const SocialActivityFeed = ({ requests, onViewCampaign }) => {
 };
 
 export default SocialActivityFeed;
+
+
+
+

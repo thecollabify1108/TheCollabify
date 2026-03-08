@@ -51,7 +51,7 @@ const CampaignStories = ({ campaigns, onCreateNew, onSelectCampaign }) => {
                     {/* Campaign Stories */}
                     {campaigns.map((campaign, index) => (
                         <motion.button
-                            key={campaign._id}
+                            key={campaign.id}
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: index * 0.05 }}
@@ -192,3 +192,7 @@ const CampaignStories = ({ campaigns, onCreateNew, onSelectCampaign }) => {
 };
 
 export default CampaignStories;
+
+
+
+

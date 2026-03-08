@@ -32,7 +32,7 @@ const ConversationList = ({ onSelectConversation }) => {
 
         try {
             await chatAPI.deleteConversation(conversationId);
-            setConversations(prev => prev.filter(c => c._id !== conversationId));
+            setConversations(prev => prev.filter(c => c.id !== conversationId));
             toast.success('Conversation deleted');
         } catch (error) {
             toast.error('Failed to delete conversation');
@@ -96,7 +96,7 @@ const ConversationList = ({ onSelectConversation }) => {
 
                     return (
                         <motion.div
-                            key={conversation._id}
+                            key={conversation.id}
                             whileHover={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
                             className="px-4 py-3 cursor-pointer transition group"
                             onClick={() => onSelectConversation(conversation)}
@@ -127,7 +127,7 @@ const ConversationList = ({ onSelectConversation }) => {
                                         {formatTime(conversation.lastMessage?.createdAt || conversation.createdAt)}
                                     </span>
                                     <button
-                                        onClick={(e) => handleDeleteConversation(conversation._id, e)}
+                                        onClick={(e) => handleDeleteConversation(conversation.id, e)}
                                         className="p-1.5 text-dark-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition opacity-0 group-hover:opacity-100"
                                         title="Delete conversation"
                                     >
@@ -144,3 +144,5 @@ const ConversationList = ({ onSelectConversation }) => {
 };
 
 export default ConversationList;
+
+

@@ -65,7 +65,7 @@ export const NotificationProvider = ({ children }) => {
         try {
             await api.put(`notifications/${notificationId}/read`);
             setNotifications(prev =>
-                prev.map(n => n._id === notificationId ? { ...n, isRead: true } : n)
+                prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
             );
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (error) {
@@ -88,8 +88,8 @@ export const NotificationProvider = ({ children }) => {
     const deleteNotification = async (notificationId) => {
         try {
             await api.delete(`notifications/${notificationId}`);
-            const notification = notifications.find(n => n._id === notificationId);
-            setNotifications(prev => prev.filter(n => n._id !== notificationId));
+            const notification = notifications.find(n => n.id === notificationId);
+            setNotifications(prev => prev.filter(n => n.id !== notificationId));
             if (!notification?.isRead) {
                 setUnreadCount(prev => Math.max(0, prev - 1));
             }

@@ -188,7 +188,7 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                             ) : (
                                 messages.map((msg, index) => (
                                     <motion.div
-                                        key={msg._id || index}
+                                        key={msg.id || index}
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         className={`flex ${msg.senderRole === 'seller' ? 'justify-end' : 'justify-start'}`}

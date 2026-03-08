@@ -88,14 +88,14 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         {request.status === 'Accepted' && (
                             <button
                                 onClick={() => {
-                                    onUpdateStatus(request._id, 'Completed');
+                                    onUpdateStatus(request.id, 'Completed');
                                     // Track Outcome: COMPLETED
                                     // Note: We need a matchId. Since 'Completed' is campaign-level, 
                                     // we might need to iterate matchedCreators or just track the campaign ID as proxy if backend handles it.
                                     // For now, let's track it for all accepted creators
                                     request.matchedCreators.filter(mc => mc.status === 'Accepted').forEach(mc => {
                                         trackMatchOutcome({
-                                            matchId: mc._id,
+                                            matchId: mc.id,
                                             status: 'completed'
                                         });
                                     });
@@ -110,11 +110,11 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                             <button
                                 onClick={() => {
                                     if (window.confirm('Are you sure you want to cancel this campaign? This action cannot be undone.')) {
-                                        onUpdateStatus(request._id, 'Cancelled');
+                                        onUpdateStatus(request.id, 'Cancelled');
                                         // Track Outcome: ABANDONED
                                         request.matchedCreators.forEach(mc => {
                                             trackMatchOutcome({
-                                                matchId: mc._id,
+                                                matchId: mc.id,
                                                 status: 'abandoned'
                                             });
                                         });
@@ -216,19 +216,19 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                 Broadway
                 {activeSection === 'applicants' && applicants.map((mc, index) => (
                     <CreatorCard
-                        key={mc._id || index}
+                        key={mc.id || index}
                         creator={mc}
                         matchScore={mc.matchScore}
                         matchReason={mc.matchReason}
                         status={mc.status}
-                        onAccept={() => onAccept(request._id, mc.creatorId._id || mc.creatorId)}
-                        onReject={() => onReject(request._id, mc.creatorId._id || mc.creatorId)}
+                        onAccept={() => onAccept(request.id, mc.creatorId)}
+                        onReject={() => onReject(request.id, mc.creatorId)}
                     />
                 ))}
 
                 {activeSection === 'matched' && matched.map((mc, index) => (
                     <CreatorCard
-                        key={mc._id || index}
+                        key={mc.id || index}
                         creator={mc}
                         matchScore={mc.matchScore}
                         matchReason={mc.matchReason}
@@ -238,12 +238,12 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
 
                 {activeSection === 'accepted' && accepted.map((mc, index) => (
                     <CreatorCard
-                        key={mc._id || index}
+                        key={mc.id || index}
                         creator={mc}
                         matchScore={mc.matchScore}
                         matchReason={mc.matchReason}
                         status={mc.status}
-                        onMessage={() => onMessage && onMessage(request._id, mc.creatorId._id || mc.creatorId, mc.creatorId?.userId?.name || 'Creator')}
+                        onMessage={() => onMessage && onMessage(request.id, mc.creatorId, mc.creatorId?.userId?.name || 'Creator')}
                     >
                         <div className="mt-s4 pt-s4 border-t border-dark-700/50 flex flex-col gap-s3">
                             {/* Quick Progress Tracker */}
@@ -279,3 +279,5 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
 };
 
 export default CampaignTracker;
+
+

@@ -113,7 +113,7 @@ const CampaignPipeline = ({ requests, onSelectRequest }) => {
                                         <AnimatePresence>
                                             {stageRequests.slice(0, 2).map((request) => (
                                                 <motion.div
-                                                    key={request._id}
+                                                    key={request.id}
                                                     initial={{ opacity: 0, x: -10 }}
                                                     animate={{ opacity: 1, x: 0 }}
                                                     exit={{ opacity: 0, x: 10 }}
@@ -142,3 +142,7 @@ const CampaignPipeline = ({ requests, onSelectRequest }) => {
 };
 
 export default CampaignPipeline;
+
+
+
+

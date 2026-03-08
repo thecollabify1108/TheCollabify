@@ -15,7 +15,7 @@ const useWebSocket = (user) => {
 
         // Connect to WebSocket
         const token = localStorage.getItem('token');
-        webSocketService.connect(user._id, token);
+        webSocketService.connect(user.id, token);
         hasConnected.current = true;
 
         // Update connection status

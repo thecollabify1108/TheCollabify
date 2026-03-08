@@ -209,14 +209,14 @@ const CreatorDashboard = () => {
         // Optimistic Update
         const previousPromotions = [...promotions];
         setPromotions(promotions.map(p =>
-            p._id === promotionId ? { ...p, hasApplied: true, status: 'Applied' } : p
+            p.id === promotionId ? { ...p, hasApplied: true, status: 'Applied' } : p
         ));
 
         // Get promotion details for feedback
-        const promotion = promotions.find(p => p._id === promotionId);
+        const promotion = promotions.find(p => p.id === promotionId);
         if (promotion) {
             trackMatchFeedback({
-                targetUserId: promotion.sellerId?._id || promotion.sellerId, // The brand/seller
+                targetUserId: promotion.sellerId, // The brand/seller
                 action: 'APPLIED',
                 source: 'creator_dashboard',
                 matchId: promotionId, // Promotion ID as context
@@ -485,9 +485,9 @@ const CreatorDashboard = () => {
                                                     ) : (
                                                         applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').map(app => (
                                                             <motion.div
-                                                                key={app._id}
+                                                                key={app.id}
                                                                 whileHover={{ y: -4 }}
-                                                                onClick={() => setActiveCollab({ id: app._id, promotion: app.promotion, seller: app.sellerId || app.seller })}
+                                                                onClick={() => setActiveCollab({ id: app.id, promotion: app.promotion, seller: app.sellerId || app.seller })}
                                                                 className="p-s4 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm cursor-pointer hover:border-primary-500/30 transition-all group"
                                                             >
                                                                 <div className="flex items-center gap-s3 mb-s4">
@@ -527,7 +527,7 @@ const CreatorDashboard = () => {
                                             <div className="lg:col-span-1 h-full">
                                                 <ActivityFeed
                                                     activities={applications.slice(0, 5).map(app => ({
-                                                        id: app._id,
+                                                        id: app.id,
                                                         title: `Applied to ${app.promotion?.title || 'Campaign'}`,
                                                         description: app.status === 'Accepted' ? 'Application accepted!' : 'Application pending review',
                                                         icon: <FaBriefcase />,
@@ -796,7 +796,7 @@ const CreatorDashboard = () => {
             <AnimatePresence>
                 {selectedConversation && (
                     <ChatBox
-                        conversationId={selectedConversation._id}
+                        conversationId={selectedConversation.id}
                         otherUserName={selectedConversation.sellerId?.name || 'Seller'}
                         promotionTitle={selectedConversation.promotionId?.title || 'Promotion'}
                         conversation={selectedConversation}

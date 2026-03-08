@@ -204,7 +204,7 @@ const Leaderboard = () => {
                             >
                                 {others.map((creator, index) => (
                                     <div
-                                        key={creator._id}
+                                        key={creator.id}
                                         className="flex items-center p-4 hover:bg-dark-800/50 transition duration-200"
                                     >
                                         <div className="w-12 flex-shrink-0 text-center font-bold text-dark-400 text-lg">
@@ -239,3 +239,5 @@ const Leaderboard = () => {
 };
 
 export default Leaderboard;
+
+

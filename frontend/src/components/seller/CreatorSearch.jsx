@@ -120,7 +120,7 @@ const CreatorSearch = () => {
             const toast = (await import('react-hot-toast')).default;
 
             // Send message request to creator
-            const response = await chatAPI.sendMessageRequest(creator._id || creator.creatorId._id);
+            const response = await chatAPI.sendMessageRequest(creator.id || creator.creatorId);
 
             if (response.data.success) {
                 toast.success('Message request sent! Waiting for creator approval.');
@@ -366,7 +366,7 @@ const CreatorSearch = () => {
                     <div className="grid grid-cols-1 gap-4">
                         {creators.map(creator => (
                             <CreatorCard
-                                key={creator._id}
+                                key={creator.id}
                                 creator={creator}
                                 matchScore={creator.insights?.score || 50}
                                 viewMode="discovery"
@@ -428,3 +428,7 @@ const CreatorSearch = () => {
 };
 
 export default CreatorSearch;
+
+
+
+

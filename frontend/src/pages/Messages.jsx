@@ -61,7 +61,7 @@ const Messages = () => {
         }
     };
 
-    const activeConversation = conversations.find(c => c._id === activeConversationId);
+    const activeConversation = conversations.find(c => c.id === activeConversationId);
 
     return (
         <ChatLayout>
@@ -98,3 +98,7 @@ const Messages = () => {
 };
 
 export default Messages;
+
+
+
+
