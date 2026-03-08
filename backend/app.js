@@ -289,24 +289,22 @@ const initializeModules = async () => {
             console.error('❌ Database connection failed:', e.message);
         }
 
-        // 2a. Run pending migrations on startup (safe: only applies unapplied migrations)
-        // FIX #1: Use async exec — execSync was blocking the event loop for up to 30s, causing all
-        // incoming requests (including register/send-otp) to time out during cold start.
+        // 2a. Run pending migrations on startup (non-blocking background task)
+        // FIX #1_v2: Run migrations in the background so the server can start responding
+        // to health checks and early requests immediately.
         try {
             const { exec } = require('child_process');
-            console.log('🔄 [Startup] Running prisma migrate deploy (async)...');
-            await new Promise((resolve) => {
-                exec('npx prisma migrate deploy', { cwd: __dirname, timeout: 30000 }, (migErr, stdout, stderr) => {
-                    if (migErr) {
-                        console.warn('⚠️  [Startup] Migration warning (non-fatal):', migErr.message?.substring(0, 200));
-                    } else {
-                        console.log('✅ [Startup] Migrations applied');
-                    }
-                    resolve(); // always resolve — don't block startup on migration errors
-                });
+            console.log('🔄 [Startup] Starting prisma migrate deploy in background...');
+            // No await here - let it fire and forget
+            exec('npx prisma migrate deploy', { cwd: __dirname, timeout: 60000 }, (migErr, stdout, stderr) => {
+                if (migErr) {
+                    console.warn('⚠️  [Startup] Background migration warning:', migErr.message?.substring(0, 200));
+                } else {
+                    console.log('✅ [Startup] Background migrations applied successfully');
+                }
             });
         } catch (migErr) {
-            console.warn('⚠️  [Startup] Migration outer error (non-fatal):', migErr.message?.substring(0, 200));
+            console.warn('⚠️  [Startup] Background migration trigger error:', migErr.message?.substring(0, 200));
         }
 
         // 2b. Keep-alive: ping DB every 2 minutes to prevent Azure cold-start

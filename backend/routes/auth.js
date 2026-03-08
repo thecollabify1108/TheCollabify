@@ -112,12 +112,16 @@ router.post('/register/verify-otp', [
 
         const { email, name, password, role, isAddingRole } = userData;
 
-        const otpResult = await verifyOTP(email, otp, 'registration');
+        // FIX #20: Pass shouldDelete: false. We only delete the OTP after successful DB op.
+        // This ensures the OTP remains valid for a retry if this request times out or fails during hashing.
+        const otpResult = await verifyOTP(email, otp, 'registration', false);
         if (!otpResult.success) {
             return res.status(400).json({ success: false, message: otpResult.message });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 12);
+        // FIX #21: Reduce bcrypt cost from 12 to 10.
+        // Cost 10 takes ~100ms vs ~400ms for cost 12. Much faster for registration flow.
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         let user;
 
@@ -144,6 +148,12 @@ router.post('/register/verify-otp', [
                 include: { roles: true }
             });
         }
+
+        // FIX #20: Delete OTP only AFTER successful user creation/update
+        try {
+            const prisma2 = require('../config/prisma');
+            await prisma2.oTP.delete({ where: { id: otpResult.otpId } }).catch(() => { });
+        } catch (e) { }
 
         const token = generateToken(user.id);
         setCookieToken(res, token);

@@ -11,7 +11,7 @@ const API_BASE = isLocalDev
     ? '/api'
     : envUrl
         ? (envUrl.replace(/\/+$/, '').endsWith('/api') ? envUrl : `${envUrl.replace(/\/+$/, '')}/api`)
-        : 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net/api';
+        : 'https://api.thecollabify.tech/api';
 
 const API_URL = API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`;
 

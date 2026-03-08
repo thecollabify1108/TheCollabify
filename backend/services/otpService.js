@@ -78,7 +78,10 @@ const createAndSendOTP = async (email, name, purpose = 'registration') => {
 };
 
 // Verify OTP
-const verifyOTP = async (email, otpCode, purpose = 'registration') => {
+// FIX #20: Added shouldDelete parameter. If false, the calling function is responsible for
+// deleting the OTP record after a successful transaction (e.g. user creation).
+// This prevents the OTP from being 'lost' if the subsequent user creation/update fails or times out.
+const verifyOTP = async (email, otpCode, purpose = 'registration', shouldDelete = true) => {
     try {
         // Find valid OTP
         const otpDoc = await prisma.oTP.findFirst({
@@ -107,14 +110,17 @@ const verifyOTP = async (email, otpCode, purpose = 'registration') => {
             };
         }
 
-        // OTP is valid - delete it
-        await prisma.oTP.delete({
-            where: { id: otpDoc.id }
-        });
+        // OTP is valid - delete it if requested
+        if (shouldDelete) {
+            await prisma.oTP.delete({
+                where: { id: otpDoc.id }
+            });
+        }
 
         return {
             success: true,
-            message: 'OTP verified successfully'
+            message: 'OTP verified successfully',
+            otpId: otpDoc.id // Return ID for manual deletion if shouldDelete was false
         };
     } catch (error) {
         console.error('Error verifying OTP:', error);
