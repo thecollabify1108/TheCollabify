@@ -29,6 +29,13 @@ const GoogleCallback = () => {
                 const roleParam = searchParams.get('role') || undefined;
 
                 if (oauthProfile) {
+                    // If no role provided, redirect to role-selection page
+                    // (OAuthCompleteRegistration handles both old-session and new-JWT flows)
+                    if (!roleParam) {
+                        navigate(`/oauth/complete-registration?oauthProfile=${encodeURIComponent(oauthProfile)}`, { replace: true });
+                        return;
+                    }
+
                     setStatus('Setting up your account...');
                     // Decode JWT payload (backend will validate on POST)
                     const [, payloadB64] = oauthProfile.split('.');
@@ -37,7 +44,6 @@ const GoogleCallback = () => {
                     );
 
                     let user;
-                    let lastErr;
                     for (let attempt = 0; attempt < 2; attempt++) {
                         try {
                             user = await googleLogin({
@@ -49,7 +55,6 @@ const GoogleCallback = () => {
                             });
                             break;
                         } catch (retryErr) {
-                            lastErr = retryErr;
                             const isTimeout = retryErr.code === 'ECONNABORTED' || retryErr.message?.includes('timeout');
                             if (!isTimeout || attempt === 1) throw retryErr;
                             setStatus('Server is waking up, retrying...');
