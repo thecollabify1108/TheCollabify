@@ -83,16 +83,13 @@ const Register = () => {
     };
 
     const handleGoogleSignup = () => {
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-        if (!clientId) {
-            toast.error('Google sign-in is not configured.');
-            return;
-        }
-        const redirectUri = `${window.location.origin}/auth/callback`;
-        const scope = 'openid email profile';
-        const state = formData.role ? `role:${formData.role}` : '';
-        const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}${state ? `&state=${encodeURIComponent(state)}` : ''}`;
-        window.location.href = url;
+        // Use backend passport OAuth flow — avoids redirect_uri_mismatch issues
+        const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+        const backendBase = apiUrl
+            ? `${apiUrl}/oauth/google`
+            : 'https://api.thecollabify.tech/api/oauth/google';
+        const role = formData.role || '';
+        window.location.href = role ? `${backendBase}?role=${encodeURIComponent(role)}` : backendBase;
     };
 
     const doSendOtp = (timeout) => api.post('auth/register/send-otp', {

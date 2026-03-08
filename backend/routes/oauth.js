@@ -51,39 +51,40 @@ router.get('/google/callback',
         try {
             const user = req.user;
 
-            // New user - redirect to complete registration
+            // New user — pass profile via a short-lived signed token so frontend
+            // can call POST /oauth/google-login after the user selects their role
             if (user.isNewUser) {
-                // Store Google profile data in session
-                req.session.googleProfile = {
-                    googleId: user.googleId,
-                    email: user.email,
-                    name: user.name,
-                    avatar: user.avatar
-                };
-
-                // Redirect to registration completion page with role if specified
+                const profileToken = jwt.sign(
+                    {
+                        googleId: user.googleId,
+                        email: user.email,
+                        name: user.name,
+                        avatar: user.avatar,
+                        isGoogleProfile: true
+                    },
+                    process.env.JWT_SECRET,
+                    { expiresIn: '10m' }
+                );
                 const role = req.session.pendingRole || '';
-                return res.redirect(`${FRONTEND_URL}/oauth/complete-registration?role=${role}`);
+                return res.redirect(
+                    `${FRONTEND_URL}/auth/callback?oauthProfile=${encodeURIComponent(profileToken)}&role=${encodeURIComponent(role)}`
+                );
             }
 
-            // Existing user - generate JWT and redirect to dashboard
+            // Existing user - generate JWT and pass in URL (AuthContext reads ?token=)
             const token = jwt.sign(
                 { userId: user.id, role: user.role },
                 process.env.JWT_SECRET,
                 { expiresIn: '7d' }
             );
 
-            // Set secure HTTPOnly cookie (NO token in URL)
-            setCookieToken(res, token);
-
-            // Redirect to appropriate dashboard (token in cookie, NOT URL)
             const dashboardPath = user.role === 'CREATOR'
                 ? '/creator/dashboard'
                 : user.role === 'SELLER'
                     ? '/seller/dashboard'
                     : '/admin';
 
-            res.redirect(`${FRONTEND_URL}${dashboardPath}`);
+            res.redirect(`${FRONTEND_URL}${dashboardPath}?token=${encodeURIComponent(token)}`);
 
         } catch (error) {
             console.error('OAuth callback error:', error);

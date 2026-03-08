@@ -56,15 +56,14 @@ const Login = () => {
     };
 
     const handleGoogleLogin = () => {
-        const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-        if (!clientId) {
-            toast.error('Google sign-in is not configured.');
-            return;
-        }
-        const redirectUri = `${window.location.origin}/auth/callback`;
-        const scope = 'openid email profile';
-        const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=token&scope=${encodeURIComponent(scope)}`;
-        window.location.href = url;
+        // Use backend passport OAuth flow — avoids redirect_uri_mismatch issues
+        // backend callback URL (https://api.thecollabify.tech/api/oauth/google/callback)
+        // is the registered URI in Google Cloud Console
+        const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
+        const backendOAuthUrl = apiUrl
+            ? `${apiUrl}/oauth/google`
+            : 'https://api.thecollabify.tech/api/oauth/google';
+        window.location.href = backendOAuthUrl;
     };
 
     const handleSubmit = async (e) => {

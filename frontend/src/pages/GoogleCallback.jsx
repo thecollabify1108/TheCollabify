@@ -22,6 +22,48 @@ const GoogleCallback = () => {
     useEffect(() => {
         const processCallback = async () => {
             try {
+                // ── Backend passport flow (new user) ──────────────────────────
+                // Backend redirects here with ?oauthProfile=<signed-jwt>&role=<r>
+                const searchParams = new URLSearchParams(window.location.search);
+                const oauthProfile = searchParams.get('oauthProfile');
+                const roleParam = searchParams.get('role') || undefined;
+
+                if (oauthProfile) {
+                    setStatus('Setting up your account...');
+                    // Decode JWT payload (backend will validate on POST)
+                    const [, payloadB64] = oauthProfile.split('.');
+                    const profile = JSON.parse(
+                        atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))
+                    );
+
+                    let user;
+                    let lastErr;
+                    for (let attempt = 0; attempt < 2; attempt++) {
+                        try {
+                            user = await googleLogin({
+                                email: profile.email,
+                                name: profile.name,
+                                googleId: profile.googleId,
+                                avatar: profile.avatar,
+                                role: roleParam
+                            });
+                            break;
+                        } catch (retryErr) {
+                            lastErr = retryErr;
+                            const isTimeout = retryErr.code === 'ECONNABORTED' || retryErr.message?.includes('timeout');
+                            if (!isTimeout || attempt === 1) throw retryErr;
+                            setStatus('Server is waking up, retrying...');
+                        }
+                    }
+
+                    toast.success('Welcome to TheCollabify!');
+                    if (user.role === 'creator') navigate('/creator/dashboard', { replace: true });
+                    else if (user.role === 'seller') navigate('/seller/dashboard', { replace: true });
+                    else navigate('/register', { replace: true });
+                    return;
+                }
+
+                // ── Frontend implicit flow (legacy / access_token in hash) ────
                 // Parse the URL fragment (hash after #)
                 const hash = window.location.hash.substring(1);
                 const params = new URLSearchParams(hash);
