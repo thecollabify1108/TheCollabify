@@ -29,7 +29,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversationId, isConnected);
 
     // Get other user ID for online status
-    const otherUserId = conversation?.participants?.find(p => p.id !== user?.id)?).id;
+    const otherUserId = conversation?.participants?.find(p => p.id !== user?.id)?.id;
 
     // Check if conversation is pending
     useEffect(() => {
