@@ -15,6 +15,7 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
+const stripeService = require('../services/stripeService');
 
 const PLATFORM_FEE_RATE = parseFloat(process.env.PLATFORM_FEE_RATE || '0.10'); // 10% default
 
@@ -117,6 +118,50 @@ router.post('/initiate', auth, [
     } catch (err) {
         console.error('Initiate escrow error:', err);
         res.status(500).json({ success: false, message: 'Failed to initiate escrow' });
+    }
+});
+
+/**
+ * @route   POST /api/escrow/:escrowId/create-checkout
+ * @desc    Create a Stripe Checkout Session for an existing PENDING_DEPOSIT escrow.
+ *          The escrowId is embedded in Stripe metadata so the webhook can auto-confirm.
+ * @access  Private (Seller/Brand)
+ */
+router.post('/:escrowId/create-checkout', auth, async (req, res) => {
+    try {
+        const escrow = await prisma.escrowPayment.findUnique({
+            where: { id: req.params.escrowId },
+            include: {
+                collaboration: {
+                    include: {
+                        matchedCreator: {
+                            include: { promotion: { select: { title: true } }, creator: { select: { stripeAccountId: true } } }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!escrow) return res.status(404).json({ success: false, message: 'Escrow not found.' });
+        if (escrow.brandUserId !== req.userId) return res.status(403).json({ success: false, message: 'Not authorized.' });
+        if (escrow.status !== 'PENDING_DEPOSIT') {
+            return res.status(400).json({ success: false, message: `Cannot create checkout for escrow at status: ${escrow.status}` });
+        }
+
+        const creatorAccountId = escrow.collaboration?.matchedCreator?.creator?.stripeAccountId;
+        const campaignTitle = escrow.collaboration?.matchedCreator?.promotion?.title || 'Campaign Collaboration';
+
+        const session = await stripeService.createEscrowSession(
+            escrow.totalDeposited,
+            req.userId,
+            creatorAccountId,
+            { escrowId: escrow.id, campaignTitle }
+        );
+
+        res.json({ success: true, data: { checkoutUrl: session.url, sessionId: session.id } });
+    } catch (err) {
+        console.error('Create escrow checkout error:', err);
+        res.status(500).json({ success: false, message: 'Failed to create payment session' });
     }
 });
 

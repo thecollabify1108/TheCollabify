@@ -239,6 +239,15 @@ app.use(globalLimiter);
 
 // 6. Standard Middleware
 app.use(cookieParser());
+
+// Stripe Webhook — MUST be registered before express.json() to receive raw body for signature verification
+try {
+    app.use('/api/stripe/webhook', require('./routes/stripeWebhook'));
+    console.log('✅ Stripe webhook route registered');
+} catch (e) {
+    console.warn('⚠️  Stripe webhook route failed to load (non-fatal):', e.message);
+}
+
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
