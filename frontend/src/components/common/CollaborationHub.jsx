@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaCheckCircle, FaRegCircle, FaCalendarAlt,
-    FaClipboardList, FaHandshake, FaStar, FaSave, FaTimes,
+    FaClipboardList, FaHandshake, FaSave, FaTimes,
     FaArrowRight, FaBan, FaComments, FaFileContract, FaRocket
 } from 'react-icons/fa';
 import { format } from 'date-fns';
@@ -11,6 +11,8 @@ import { toast } from 'react-hot-toast';
 import { collaborationAPI } from '../../services/api';
 import { trackEvent } from '../../utils/analytics';
 import CollaborationStepper from './CollaborationStepper';
+import EarlyBirdModal from './EarlyBirdModal';
+import FeedbackForm from './FeedbackForm';
 
 const STAGE_ORDER = ['REQUESTED', 'ACCEPTED', 'IN_DISCUSSION', 'AGREED', 'IN_PROGRESS', 'COMPLETED'];
 
@@ -38,14 +40,16 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
 
-    // Feedback State
+    // Early Bird & Feedback State
+    const [earlyBirdMode, setEarlyBirdMode] = useState(false);
+    const [showEarlyBirdModal, setShowEarlyBirdModal] = useState(false);
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-    const [feedback, setFeedback] = useState({
-        metExpectations: null,
-        wouldCollaborateAgain: '',
-        rating: 0,
-        comment: ''
-    });
+
+    useEffect(() => {
+        collaborationAPI.getPlatformMode()
+            .then(res => setEarlyBirdMode(res.data?.earlyBirdMode === true))
+            .catch(() => {});
+    }, []);
 
     useEffect(() => { fetchCollaboration(); }, [match]);
 
@@ -59,7 +63,7 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
             const { _meta, ...data } = res.data.data;
             setCollaboration(data);
             setMeta(_meta || {});
-            setDeliverables(data.deliverables || []);
+            setDeliverables(data.deliverableItems || data.deliverables || []);
             setMilestones(data.milestones || []);
             setStartDate(data.startDate ? data.startDate.split('T')[0] : '');
             setEndDate(data.endDate ? data.endDate.split('T')[0] : '');
@@ -76,6 +80,17 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
         if (newStatus === 'CANCELLED' && !window.confirm('Are you sure you want to cancel this collaboration? This cannot be undone.')) return;
         if (newStatus === 'COMPLETED' && !window.confirm('Mark this collaboration as completed?')) return;
 
+        // In early bird mode, show the early bird modal when moving to IN_DISCUSSION
+        if (newStatus === 'IN_DISCUSSION' && earlyBirdMode) {
+            setShowEarlyBirdModal(true);
+            return;
+        }
+
+        await doTransition(newStatus);
+    };
+
+    const doTransition = async (newStatus) => {
+        const label = ACTION_LABELS[newStatus] || newStatus;
         try {
             setTransitioning(true);
             const res = await collaborationAPI.transitionStatus(collaboration.id, newStatus);
@@ -101,7 +116,7 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
         try {
             setSaving(true);
             const res = await collaborationAPI.updateCollaboration(collaboration.id, {
-                deliverables, milestones,
+                deliverableItems: deliverables, milestones,
                 startDate: startDate || null,
                 endDate: endDate || null
             });
@@ -135,17 +150,8 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
     };
 
     const submitFeedback = async () => {
-        try {
-            await collaborationAPI.submitFeedback(collaboration.id, {
-                role: isOwner ? 'SELLER' : 'CREATOR',
-                feedback
-            });
-            setShowFeedbackModal(false);
-            toast.success('Feedback submitted. Thank you!');
-            onClose();
-        } catch (error) {
-            toast.error('Failed to submit feedback');
-        }
+        setShowFeedbackModal(false);
+        onClose?.();
     };
 
     if (loading) return (
@@ -332,58 +338,29 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
                 )}
             </div>
 
+            {/* Early Bird Modal */}
+            {showEarlyBirdModal && (
+                <EarlyBirdModal
+                    collaborationId={collaboration.id}
+                    onProceed={async () => {
+                        setShowEarlyBirdModal(false);
+                        await doTransition('IN_DISCUSSION');
+                    }}
+                    onClose={() => setShowEarlyBirdModal(false)}
+                />
+            )}
+
             {/* Feedback Modal */}
             <AnimatePresence>
                 {showFeedbackModal && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-                        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
-                            className="bg-dark-800 rounded-2xl max-w-md w-full p-8 border border-dark-600">
-                            <h3 className="text-2xl font-bold text-white mb-2">Collaboration Feedback</h3>
-                            <p className="text-dark-400 mb-6">Your honest feedback helps improve the platform.</p>
-                            <div className="space-y-6">
-                                <div>
-                                    <label className="block text-sm text-dark-300 mb-3">Did this collaboration meet your expectations?</label>
-                                    <div className="flex gap-4">
-                                        <button onClick={() => setFeedback({ ...feedback, metExpectations: true })}
-                                            className={`flex-1 py-3 rounded-xl border border-dark-600 ${feedback.metExpectations === true ? 'bg-emerald-500 text-white border-emerald-500' : 'bg-dark-900 text-dark-300'}`}>
-                                            Yes
-                                        </button>
-                                        <button onClick={() => setFeedback({ ...feedback, metExpectations: false })}
-                                            className={`flex-1 py-3 rounded-xl border border-dark-600 ${feedback.metExpectations === false ? 'bg-rose-500 text-white border-rose-500' : 'bg-dark-900 text-dark-300'}`}>
-                                            No
-                                        </button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-dark-300 mb-3">Would you collaborate again?</label>
-                                    <select value={feedback.wouldCollaborateAgain}
-                                        onChange={(e) => setFeedback({ ...feedback, wouldCollaborateAgain: e.target.value })}
-                                        className="w-full bg-dark-900 border border-dark-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary-500">
-                                        <option value="">Select option...</option>
-                                        <option value="YES">Yes, definitely</option>
-                                        <option value="MAYBE">Maybe</option>
-                                        <option value="NO">No</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm text-dark-300 mb-3">Rating</label>
-                                    <div className="flex gap-2">
-                                        {[1, 2, 3, 4, 5].map(star => (
-                                            <button key={star} onClick={() => setFeedback({ ...feedback, rating: star })}
-                                                className={`text-2xl ${feedback.rating >= star ? 'text-amber-400' : 'text-dark-600'}`}>
-                                                <FaStar />
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <button onClick={submitFeedback}
-                                    disabled={!feedback.wouldCollaborateAgain || feedback.metExpectations === null}
-                                    className="w-full btn-primary py-4 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed">
-                                    Submit Feedback
-                                </button>
-                            </div>
-                        </motion.div>
+                        <FeedbackForm
+                            collaborationId={collaboration.id}
+                            userRole={isOwner ? 'SELLER' : 'CREATOR'}
+                            onSubmitted={submitFeedback}
+                            onClose={submitFeedback}
+                        />
                     </motion.div>
                 )}
             </AnimatePresence>

@@ -39,6 +39,7 @@ import DashboardHero from '../components/dashboard/DashboardHero';
 import LoadingButton from '../components/common/LoadingButton';
 import EmptyState from '../components/common/EmptyState';
 import BottomSheet from '../components/common/BottomSheet';
+import EarlyBirdBanner from '../components/common/EarlyBirdBanner';
 
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
@@ -588,6 +589,7 @@ const SellerDashboard = () => {
             setShowGuide={setShowGuide}
         >
             {/* Campaign Stories */}
+            <EarlyBirdBanner />
             <CampaignStories
                 campaigns={requests}
                 onCreateNew={() => setShowRequestWizard(true)}

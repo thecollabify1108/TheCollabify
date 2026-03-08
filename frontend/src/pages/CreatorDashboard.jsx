@@ -37,6 +37,7 @@ import DashboardHero from '../components/dashboard/DashboardHero';
 // Enhanced UI Components
 import LoadingButton from '../components/common/LoadingButton';
 import EmptyState from '../components/common/EmptyState';
+import EarlyBirdBanner from '../components/common/EarlyBirdBanner';
 
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonList } from '../components/common/Skeleton';
@@ -389,6 +390,7 @@ const CreatorDashboard = () => {
             showGuide={showGuide}
             setShowGuide={setShowGuide}
         >
+            <EarlyBirdBanner />
             <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
                 <AnimatePresence mode="wait">
                     {/* Guided AI Mode Overlay */}

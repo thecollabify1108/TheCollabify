@@ -171,6 +171,8 @@ export const chatAPI = {
 // Admin API
 export const adminAPI = {
     getStats: () => api.get('admin/stats'),
+    getSettings: () => api.get('admin/settings'),
+    toggleEarlyBirdMode: (enabled) => api.put('admin/settings/early-bird', { enabled }),
     getUsers: (params) => api.get('admin/users', { params }),
     getUser: (id) => api.get(`admin/users/${id}`),
     updateUserStatus: (id, isActive) => api.put(`admin/users/${id}/status`, { isActive }),
@@ -254,7 +256,8 @@ export const collaborationAPI = {
     getCollaboration: (matchId) => api.get(`collaboration/${matchId}`),
     updateCollaboration: (id, data) => api.patch(`collaboration/${id}`, data),
     transitionStatus: (id, newStatus) => api.post(`collaboration/${id}/transition`, { newStatus }),
-    submitFeedback: (id, data) => api.post(`collaboration/${id}/feedback`, data)
+    submitFeedback: (id, data) => api.post(`collaboration/${id}/feedback`, data),
+    getPlatformMode: () => api.get('collaboration/platform-mode')
 };
 
 export default api;

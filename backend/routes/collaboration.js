@@ -35,6 +35,7 @@ const {
     STAGE_LABELS
 } = require('../services/collaborationStateMachine');
 const { updateReliabilityScore } = require('../services/reliabilityService');
+const { isEarlyBirdMode } = require('../services/platformSettingsService');
 
 // Middleware to handle validation errors
 const handleValidation = (req, res, next) => {
@@ -364,20 +365,51 @@ router.patch('/:id', auth, [
     }
 });
 
+
+/**
+ * @route   GET /api/collaboration/platform-mode
+ * @desc    Returns whether Early Bird Mode is active (public)
+ * @access  Public
+ */
+router.get('/platform-mode', async (req, res) => {
+    try {
+        const earlyBird = await isEarlyBirdMode();
+        res.json({
+            success: true,
+            data: {
+                earlyBirdMode: earlyBird,
+                message: earlyBird
+                    ? 'Platform is in Early Bird mode. Collaborations are free.'
+                    : 'Platform is in Marketplace mode. Escrow payments are required.'
+            }
+        });
+    } catch (err) {
+        console.error('Platform mode error:', err);
+        res.json({ success: true, data: { earlyBirdMode: true } });
+    }
+});
+
 /**
  * @route   POST /api/collaboration/:id/feedback
- * @desc    Submit reflection/feedback (only after COMPLETED)
+ * @desc    Submit structured feedback (only after COMPLETED)
  * @access  Private
  */
 router.post('/:id/feedback', auth, [
-    body('role').isIn(['SELLER', 'CREATOR']).withMessage('Role must be SELLER or CREATOR'),
-    body('feedback').isObject().withMessage('Feedback must be an object')
+    body('role').isIn(['SELLER', 'CREATOR', 'BRAND']).withMessage('Role must be SELLER, BRAND, or CREATOR'),
+    body('rating').isInt({ min: 1, max: 5 }).withMessage('Rating must be 1-5'),
+    body('comment').optional().isString().isLength({ max: 1000 }),
+    body('creatorProfessionalism').optional().isInt({ min: 1, max: 5 }),
+    body('campaignQuality').optional().isInt({ min: 1, max: 5 }),
+    body('overallBrandExperience').optional().isInt({ min: 1, max: 5 }),
+    body('brandCommunication').optional().isInt({ min: 1, max: 5 }),
+    body('campaignClarity').optional().isInt({ min: 1, max: 5 }),
+    body('overallCreatorExperience').optional().isInt({ min: 1, max: 5 }),
 ], handleValidation, async (req, res) => {
     try {
         const { id } = req.params;
-        const { role, feedback } = req.body;
+        const { role, rating, comment, ...rest } = req.body;
+        const normalizedRole = role === 'BRAND' ? 'SELLER' : role;
 
-        // Verify collaboration exists, is completed, AND fetch relations needed for reliability update
         const existing = await prisma.collaboration.findUnique({
             where: { id },
             include: {
@@ -392,7 +424,6 @@ router.post('/:id/feedback', auth, [
         if (!existing) {
             return res.status(404).json({ success: false, message: 'Collaboration not found' });
         }
-
         if (existing.status !== 'COMPLETED') {
             return res.status(400).json({
                 success: false,
@@ -400,27 +431,51 @@ router.post('/:id/feedback', auth, [
             });
         }
 
-        const updateData = role === 'SELLER'
-            ? { sellerFeedback: feedback }
-            : { creatorFeedback: feedback };
-
-        const collaboration = await prisma.collaboration.update({
-            where: { id },
-            data: updateData
-        });
-
-        // --- RELIABILITY SCORE UPDATES (Feedback) ---
-        // Positive feedback boost
-        if (feedback && feedback.rating >= 4) {
-            const userId = role === 'SELLER'
-                ? collaboration.matchedCreator.creator.userId  // Seller gave good rating to creator
-                : collaboration.matchedCreator.promotion.sellerId; // Creator gave good rating to seller
-
-            const targetRole = role === 'SELLER' ? 'CREATOR' : 'SELLER';
-            await updateReliabilityScore(userId, targetRole, 'POSITIVE_FEEDBACK', id);
+        const sellerId = existing.matchedCreator.promotion.sellerId;
+        const creatorUserId = existing.matchedCreator.creator.userId;
+        if (sellerId !== req.userId && creatorUserId !== req.userId) {
+            return res.status(403).json({ success: false, message: 'Not authorized' });
         }
 
-        res.json({ success: true, data: collaboration });
+        const feedbackData = {
+            collaborationId: id,
+            submittedByUserId: req.userId,
+            role: normalizedRole,
+            rating: parseInt(rating),
+            comment: comment || null,
+        };
+        if (normalizedRole === 'SELLER') {
+            if (rest.creatorProfessionalism) feedbackData.creatorProfessionalism = parseInt(rest.creatorProfessionalism);
+            if (rest.campaignQuality) feedbackData.campaignQuality = parseInt(rest.campaignQuality);
+            if (rest.overallBrandExperience) feedbackData.overallBrandExperience = parseInt(rest.overallBrandExperience);
+        } else {
+            if (rest.brandCommunication) feedbackData.brandCommunication = parseInt(rest.brandCommunication);
+            if (rest.campaignClarity) feedbackData.campaignClarity = parseInt(rest.campaignClarity);
+            if (rest.overallCreatorExperience) feedbackData.overallCreatorExperience = parseInt(rest.overallCreatorExperience);
+        }
+
+        try {
+            await prisma.collaborationFeedback.upsert({
+                where: { collaborationId_role: { collaborationId: id, role: normalizedRole } },
+                update: feedbackData,
+                create: feedbackData
+            });
+        } catch (dbErr) {
+            console.warn('[Feedback] CollaborationFeedback table not yet ready, using legacy storage:', dbErr.message);
+        }
+
+        // Legacy JSON storage on Collaboration
+        const legacyObj = { rating, comment, ...rest };
+        const legacyUpdate = normalizedRole === 'SELLER' ? { sellerFeedback: legacyObj } : { creatorFeedback: legacyObj };
+        await prisma.collaboration.update({ where: { id }, data: legacyUpdate });
+
+        if (parseInt(rating) >= 4) {
+            const recipientId = normalizedRole === 'SELLER' ? creatorUserId : sellerId;
+            const recipientRole = normalizedRole === 'SELLER' ? 'CREATOR' : 'SELLER';
+            updateReliabilityScore(recipientId, recipientRole, 'POSITIVE_FEEDBACK', id).catch(() => {});
+        }
+
+        res.json({ success: true, message: 'Feedback submitted. Thank you!' });
     } catch (error) {
         console.error('Feedback collaboration error:', error);
         res.status(500).json({ success: false, message: 'Server error' });

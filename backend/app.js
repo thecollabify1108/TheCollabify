@@ -289,6 +289,16 @@ const initializeModules = async () => {
             console.error('❌ Database connection failed:', e.message);
         }
 
+        // 2a. Run pending migrations on startup (safe: only applies unapplied migrations)
+        try {
+            const { execSync } = require('child_process');
+            console.log('🔄 [Startup] Running prisma migrate deploy...');
+            execSync('npx prisma migrate deploy', { cwd: __dirname, stdio: 'pipe', timeout: 30000 });
+            console.log('✅ [Startup] Migrations applied');
+        } catch (migErr) {
+            console.warn('⚠️  [Startup] Migration warning (non-fatal):', migErr.message?.substring(0, 200));
+        }
+
         // 2b. Keep-alive: ping DB every 2 minutes to prevent Azure cold-start
         setInterval(async () => {
             try {

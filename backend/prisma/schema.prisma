@@ -711,6 +711,7 @@ model Collaboration {
   escrowPayment    EscrowPayment?
   deliverables     CollaborationDeliverable[]
   disputes         CollaborationDispute[]
+  feedbacks        CollaborationFeedback[]
   
   @@index([status])
 }
@@ -1173,3 +1174,42 @@ model CollaborationDispute {
   @@index([status])
 }
 
+
+// ─── Platform Settings ────────────────────────────────────────
+model PlatformSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+// ─── Collaboration Feedback ───────────────────────────────────
+model CollaborationFeedback {
+  id              String        @id @default(uuid())
+  collaborationId String
+  collaboration   Collaboration @relation(fields: [collaborationId], references: [id])
+
+  submittedByUserId String
+  role              String      // BRAND or CREATOR
+
+  rating            Int         // 1–5 overall
+  comment           String?     @db.Text
+
+  // Brand-specific fields
+  creatorProfessionalism Int?
+  campaignQuality        Int?
+  overallBrandExperience Int?
+
+  // Creator-specific fields
+  brandCommunication Int?
+  campaignClarity    Int?
+  overallCreatorExperience Int?
+
+  createdAt DateTime @default(now())
+
+  @@unique([collaborationId, role])
+  @@index([collaborationId])
+}

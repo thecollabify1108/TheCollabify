@@ -5,6 +5,7 @@ const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { isAdmin } = require('../middleware/roleCheck');
 const { updateRiskScore } = require('../services/riskScoreService');
+const { getSetting, setSetting, isEarlyBirdMode } = require('../services/platformSettingsService');
 
 /**
  * Validation middleware
@@ -1129,4 +1130,50 @@ router.post('/escrow/:id/refund', auth, isAdmin, [
     }
 });
 
+
+/**
+ * @route   GET /api/admin/settings
+ * @desc    Get all platform settings
+ * @access  Private (Admin)
+ */
+router.get('/settings', auth, isAdmin, async (req, res) => {
+    try {
+        const settings = await prisma.platformSetting.findMany({
+            orderBy: { key: 'asc' }
+        });
+        const earlyBird = await isEarlyBirdMode();
+        res.json({
+            success: true,
+            data: {
+                settings,
+                earlyBirdMode: earlyBird
+            }
+        });
+    } catch (err) {
+        console.error('Get settings error:', err);
+        res.status(500).json({ success: false, message: 'Failed to get settings' });
+    }
+});
+
+/**
+ * @route   PUT /api/admin/settings/early-bird
+ * @desc    Toggle Early Bird Mode on/off
+ * @access  Private (Admin)
+ */
+router.put('/settings/early-bird', auth, isAdmin, [
+    body('enabled').isBoolean().withMessage('enabled must be a boolean')
+], handleValidation, async (req, res) => {
+    try {
+        const { enabled } = req.body;
+        await setSetting('EARLY_BIRD_MODE', String(enabled), req.userId);
+        res.json({
+            success: true,
+            message: `Early Bird Mode ${enabled ? 'enabled' : 'disabled'} successfully.`,
+            data: { earlyBirdMode: enabled }
+        });
+    } catch (err) {
+        console.error('Toggle early bird error:', err);
+        res.status(500).json({ success: false, message: 'Failed to update setting' });
+    }
+});
 module.exports = router;
