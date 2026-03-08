@@ -36,7 +36,7 @@ const SwipeableConversationItem = ({ conversation, isSelected, onClick, onDelete
 
     const handleDragEnd = (_, info) => {
         if (info.offset.x < -100) {
-            onDelete(conversation._id);
+            onDelete(conversation.id);
         }
     };
 
@@ -67,20 +67,20 @@ const SwipeableConversationItem = ({ conversation, isSelected, onClick, onDelete
                 <div className="flex items-center gap-s3 pointer-events-none"> {/* Disable pointer events on children to prevent drag interference */}
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center flex-shrink-0 shadow-glow">
                         <span className="text-white font-black">
-                            {conversation.creatorUserId?.name?.charAt(0) || 'C'}
+                            {conversation.creatorUser?.name?.charAt(0) || 'C'}
                         </span>
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                             <p className="text-body font-bold text-dark-100 truncate">
-                                {conversation.creatorUserId?.name || 'Creator'}
+                                {conversation.creatorUser?.name || 'Creator'}
                             </p>
                             <span className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">
                                 {formatTime(conversation.updatedAt)}
                             </span>
                         </div>
                         <p className="text-small text-dark-400 truncate font-medium">
-                            {conversation.promotionRequestId?.title || 'Campaign'}
+                            {conversation.promotion?.title || 'Campaign'}
                         </p>
                     </div>
                 </div>

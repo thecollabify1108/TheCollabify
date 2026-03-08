@@ -261,11 +261,11 @@ const SellerDashboard = () => {
         // Optimistic Update
         const updateState = (status) => {
             const updater = (r) => {
-                if (r._id === requestId) {
+                if (r.id === requestId) {
                     return {
                         ...r,
                         matchedCreators: r.matchedCreators?.map(mc =>
-                            (mc.creatorId?._id === creatorId || mc.creatorId === creatorId)
+                            mc.creatorId === creatorId
                                 ? { ...mc, status }
                                 : mc
                         )
@@ -274,7 +274,7 @@ const SellerDashboard = () => {
                 return r;
             };
             setRequests(prev => prev.map(updater));
-            if (selectedRequest && selectedRequest._id === requestId) {
+            if (selectedRequest && selectedRequest.id === requestId) {
                 setSelectedRequest(prev => updater(prev));
             }
         };
@@ -293,24 +293,19 @@ const SellerDashboard = () => {
         // Track Outcome: ACCEPTED
         // We need the specific matchedCreator ID. 
         // We can find it in the local state.
-        const match = selectedRequest?.matchedCreators?.find(mc => mc.creatorId._id === creatorId || mc.creatorId === creatorId);
+        const match = selectedRequest?.matchedCreators?.find(mc => mc.creatorId === creatorId);
         if (match) {
             trackMatchOutcome({
-                matchId: match._id,
+                matchId: match.id,
                 status: 'accepted'
             });
-
-            // NEW: Auto-open collaboration hub
-            // We need the full match object with promotion and creator populated for the hub
-            // For now, we'll let them click the button, or fetch it.
-            // But let's show a toast action maybe?
         }
 
         try {
             await sellerAPI.acceptCreator(requestId, creatorId);
             // Initialize collaboration in background
             if (match) {
-                await collaborationAPI.initializeCollaboration(match._id).catch(err => console.error("Auto-init failed", err));
+                await collaborationAPI.initializeCollaboration(match.id).catch(err => console.error("Auto-init failed", err));
             }
             trackEvent('collaboration_accepted');
             toast.success('Creator accepted. Collaboration initiated.');
@@ -327,11 +322,11 @@ const SellerDashboard = () => {
         // Optimistic Update
         const updateState = (status) => {
             const updater = (r) => {
-                if (r._id === requestId) {
+                if (r.id === requestId) {
                     return {
                         ...r,
                         matchedCreators: r.matchedCreators?.map(mc =>
-                            (mc.creatorId?._id === creatorId || mc.creatorId === creatorId)
+                            mc.creatorId === creatorId
                                 ? { ...mc, status }
                                 : mc
                         )
@@ -340,7 +335,7 @@ const SellerDashboard = () => {
                 return r;
             };
             setRequests(prev => prev.map(updater));
-            if (selectedRequest && selectedRequest._id === requestId) {
+            if (selectedRequest && selectedRequest.id === requestId) {
                 setSelectedRequest(prev => updater(prev));
             }
         };
@@ -377,10 +372,10 @@ const SellerDashboard = () => {
         });
 
         // Track Outcome: CONTACTED
-        const match = selectedRequest?.matchedCreators?.find(mc => mc.creatorId._id === creatorId || mc.creatorId === creatorId);
+        const match = selectedRequest?.matchedCreators?.find(mc => mc.creatorId === creatorId);
         if (match) {
             trackMatchOutcome({
-                matchId: match._id,
+                matchId: match.id,
                 status: 'contacted'
             });
         }
@@ -428,8 +423,8 @@ const SellerDashboard = () => {
 
         // Optimistic Update
         const previousConversations = [...conversations];
-        setConversations(conversations.filter(c => c._id !== conversationId));
-        if (selectedConversation?._id === conversationId) {
+        setConversations(conversations.filter(c => c.id !== conversationId));
+        if (selectedConversation?.id === conversationId) {
             setSelectedConversation(null);
         }
 
@@ -450,10 +445,10 @@ const SellerDashboard = () => {
         const creators = [];
         requests.forEach(request => {
             request.matchedCreators?.forEach(creator => {
-                if (creator.status === 'Applied' && !processedCreators.has(`${request._id}-${creator.creatorId}`)) {
+                if (creator.status === 'Applied' && !processedCreators.has(`${request.id}-${creator.creatorId}`)) {
                     creators.push({
                         ...creator,
-                        requestId: request._id,
+                        requestId: request.id,
                         requestTitle: request.title,
                         budget: request.budget,
                         promotionType: request.promotionType,
@@ -512,7 +507,7 @@ const SellerDashboard = () => {
             id: 'messages',
             label: 'Chat',
             iconName: 'chat',
-            badge: conversations.filter(c => c.unreadCount > 0).length,
+            badge: conversations.filter(c => c.unreadCountSeller > 0).length,
             description: 'Messages'
         }
     ];
@@ -789,7 +784,7 @@ const SellerDashboard = () => {
                                 <ActivityFeed
                                     activities={pendingCreators.slice(0, 5).map(c => ({
                                         id: c.creatorId,
-                                        title: c.name,
+                                        title: c.creator?.user?.name || 'Creator',
                                         description: `Applied to ${c.requestTitle}`,
                                         time: 'Just now',
                                         icon: <HiUserGroup />,
@@ -827,7 +822,7 @@ const SellerDashboard = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-s4">
                                         {requests.slice(0, 6).map((request, index) => (
                                             <motion.div
-                                                key={request._id}
+                                                key={request.id}
                                                 initial={{ opacity: 0, y: 20 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: index * 0.05 }}
@@ -927,11 +922,11 @@ const SellerDashboard = () => {
                     <CampaignTracker
                         request={selectedRequest}
                         onClose={() => setSelectedRequest(null)}
-                        onAccept={(creatorId) => handleAcceptCreator(selectedRequest._id, creatorId)}
-                        onReject={(creatorId) => handleRejectCreator(selectedRequest._id, creatorId)}
-                        onMessage={(creatorId, creatorName) => handleMessageCreator(selectedRequest._id, creatorId, creatorName)}
-                        onUpdateStatus={(status) => handleUpdateStatus(selectedRequest._id, status)}
-                        onDelete={() => handleDeleteRequest(selectedRequest._id)}
+                        onAccept={(creatorId) => handleAcceptCreator(selectedRequest.id, creatorId)}
+                        onReject={(creatorId) => handleRejectCreator(selectedRequest.id, creatorId)}
+                        onMessage={(creatorId, creatorName) => handleMessageCreator(selectedRequest.id, creatorId, creatorName)}
+                        onUpdateStatus={(status) => handleUpdateStatus(selectedRequest.id, status)}
+                        onDelete={() => handleDeleteRequest(selectedRequest.id)}
                     />
                 )}
             </BottomSheet>

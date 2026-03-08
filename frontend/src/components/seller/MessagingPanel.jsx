@@ -54,10 +54,10 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
     }, [messages]);
 
     const fetchMessages = async () => {
-        if (!selectedConversation?._id) return;
+        if (!selectedConversation?.id) return;
         try {
             setLoading(true);
-            const res = await chatAPI.getMessages(selectedConversation._id);
+            const res = await chatAPI.getMessages(selectedConversation.id);
             setMessages(res.data.data.messages || []);
         } catch (error) {
             console.error('Failed to fetch messages', error);
@@ -68,10 +68,10 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
 
     const sendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedConversation?._id) return;
+        if (!newMessage.trim() || !selectedConversation?.id) return;
 
         try {
-            const res = await chatAPI.sendMessage(selectedConversation._id, newMessage);
+            const res = await chatAPI.sendMessage(selectedConversation.id, newMessage);
             setMessages([...messages, res.data.data.message]);
             setNewMessage('');
         } catch (error) {
@@ -98,8 +98,8 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
     const canSendMessage = !isPending || myMessageCount === 0;
 
     const filteredConversations = conversations?.filter(conv =>
-        conv.creatorUserId?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        conv.promotionRequestId?.title?.toLowerCase().includes(searchQuery.toLowerCase())
+        conv.creatorUser?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        conv.promotion?.title?.toLowerCase().includes(searchQuery.toLowerCase())
     ) || [];
 
     return (
@@ -134,9 +134,9 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                     ) : (
                         filteredConversations.map((conv, index) => (
                             <SwipeableConversationItem
-                                key={conv._id}
+                                key={conv.id}
                                 conversation={conv}
-                                isSelected={selectedConversation?._id === conv._id}
+                                isSelected={selectedConversation?.id === conv.id}
                                 onClick={onSelectConversation}
                                 onDelete={onDeleteConversation}
                                 formatTime={formatMessageTime}
@@ -161,15 +161,15 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                             </button>
                             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center shadow-glow">
                                 <span className="text-white font-black">
-                                    {selectedConversation.creatorUserId?.name?.charAt(0) || 'C'}
+                                    {selectedConversation.creatorUser?.name?.charAt(0) || 'C'}
                                 </span>
                             </div>
                             <div className="flex-1">
                                 <p className="text-body font-bold text-dark-100">
-                                    {selectedConversation.creatorUserId?.name || 'Creator'}
+                                    {selectedConversation.creatorUser?.name || 'Creator'}
                                 </p>
                                 <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-wider">
-                                    {selectedConversation.promotionRequestId?.title || 'Campaign'}
+                                    {selectedConversation.promotion?.title || 'Campaign'}
                                 </p>
                             </div>
                             <button className="p-2 hover:bg-dark-800 rounded-lg text-dark-400">
