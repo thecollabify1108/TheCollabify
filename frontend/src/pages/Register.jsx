@@ -3,9 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import api from '../services/api';
 import Confetti from '../components/common/Confetti';
-import OTPInput from '../components/common/OTPInput';
 import PasswordStrengthIndicator from '../components/common/PasswordStrengthIndicator';
 import AuthLayout from '../components/auth/AuthLayout';
 import Icon from '../components/common/Icon';
@@ -14,9 +12,9 @@ import { isValidForRegister } from '../utils/passwordValidator';
 const Register = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { register, verifyOTP } = useAuth();
+    const { register } = useAuth();
 
-    // Steps: 1=Role, 2=Details, 3=OTP
+    // Steps: 1=Role, 2=Details
     const [step, setStep] = useState(1);
 
     // Form State
@@ -33,53 +31,12 @@ const Register = () => {
     const [loading, setLoading] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
 
-    // OTP State
-    const [tempUserId, setTempUserId] = useState(null);
-    const [otp, setOtp] = useState(['', '', '', '', '', '']);
-    const [otpTimer, setOtpTimer] = useState(600);
-    const [canResend, setCanResend] = useState(false);
-    const [otpLoading, setOtpLoading] = useState(false);
-
     useEffect(() => {
         const roleFromUrl = searchParams.get('role');
         if (roleFromUrl && ['creator', 'seller'].includes(roleFromUrl)) {
             setFormData(prev => ({ ...prev, role: roleFromUrl }));
         }
     }, [searchParams]);
-
-    // OTP Timer Logic — allow resend after 60 seconds
-    // FIX #11: Track a separate small countdown (0-60s) so the displayed "Resend in Xs" is
-    // clear and accurate. The main otpTimer tracks full OTP expiry (600s).
-    const [resendCountdown, setResendCountdown] = useState(60);
-
-    useEffect(() => {
-        if (step !== 3) return;
-        setResendCountdown(60);
-        setCanResend(false);
-        const interval = setInterval(() => {
-            setResendCountdown(prev => {
-                if (prev <= 1) {
-                    clearInterval(interval);
-                    setCanResend(true);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [step]); // only re-run when step changes
-
-    useEffect(() => {
-        if (step !== 3 || otpTimer <= 0) return;
-        const timer = setInterval(() => {
-            setOtpTimer(prev => {
-                const next = prev - 1;
-                if (next <= 0) { clearInterval(timer); return 0; }
-                return next;
-            });
-        }, 1000);
-        return () => clearInterval(timer);
-    }, [step]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -97,25 +54,7 @@ const Register = () => {
         setFormData(prev => ({ ...prev, role }));
     };
 
-    const handleGoogleSignup = () => {
-        // Use backend passport OAuth flow — avoids redirect_uri_mismatch issues
-        // Role is NOT passed here; OAuthCompleteRegistration handles role selection
-        // reliably for new users (session-based role passing is unreliable on Azure)
-        const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
-        const backendBase = apiUrl
-            ? `${apiUrl}/oauth/google`
-            : 'https://api.thecollabify.tech/api/oauth/google';
-        window.location.href = backendBase;
-    };
-
-    const doSendOtp = (timeout) => api.post('auth/register/send-otp', {
-        email: formData.email,
-        name: formData.name,
-        password: formData.password,
-        role: formData.role
-    }, { timeout });
-
-    const handleSubmitDetails = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (formData.password !== formData.confirmPassword) {
@@ -123,7 +62,6 @@ const Register = () => {
             return;
         }
 
-        // Client-side validation matching backend exactly
         if (!isValidForRegister(formData.password)) {
             toast.error('Password must be 8+ characters with at least 1 uppercase letter, 1 lowercase letter, and 1 number.');
             return;
@@ -131,56 +69,8 @@ const Register = () => {
 
         setLoading(true);
 
-        const handleSuccess = (data) => {
-            setTempUserId(data.tempUserId);
-            setOtpTimer(data.expiresIn);
-            setStep(3);
-            setCanResend(false);
-            if (data.emailSent === false) {
-                toast('Code generated! Email delivery may be delayed — tap Resend if needed.', { icon: '⚠️', duration: 6000 });
-            } else {
-                toast.success('Code sent! Check your email.');
-            }
-        };
-
         try {
-            // First attempt — 60s timeout
-            const response = await doSendOtp(60000);
-            if (response.data.success) handleSuccess(response.data.data);
-        } catch (firstError) {
-            const isTimeout = firstError.code === 'ECONNABORTED' || firstError.message?.includes('timeout');
-            if (!isTimeout) {
-                toast.error(firstError.response?.data?.message || 'Registration failed. Please try again.');
-                setLoading(false);
-                return;
-            }
-
-            // Auto-retry after 8s — Azure server was cold-starting
-            const toastId = toast.loading('Server is starting up, retrying in 8 seconds…');
-            await new Promise(r => setTimeout(r, 8000));
-            toast.dismiss(toastId);
-
-            try {
-                const retryResponse = await doSendOtp(90000);
-                if (retryResponse.data.success) handleSuccess(retryResponse.data.data);
-            } catch (retryError) {
-                toast.error('Server is taking too long to respond. Please try again in 30 seconds.');
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleVerifyOTP = async () => {
-        const otpCode = otp.join('');
-        if (otpCode.length !== 6) {
-            toast.error('Enter complete code');
-            return;
-        }
-
-        setOtpLoading(true);
-        try {
-            const userData = await verifyOTP(tempUserId, otpCode);
+            const userData = await register(formData.email, formData.name, formData.password, formData.role);
 
             setShowConfetti(true);
             toast.success('Welcome to TheCollabify!');
@@ -189,26 +79,12 @@ const Register = () => {
                 navigate(userData.role === 'creator' ? '/creator/dashboard' : '/seller/dashboard');
             }, 1000);
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Invalid code');
-            setOtp(['', '', '', '', '', '']);
+            const message = !error.response && error.message?.includes('Network')
+                ? 'Unable to reach the server. Please try again later.'
+                : error.response?.data?.message || 'Registration failed. Please try again.';
+            toast.error(message);
         } finally {
-            setOtpLoading(false);
-        }
-    };
-
-    const handleResendOTP = async () => {
-        if (!tempUserId) return;
-        try {
-            setCanResend(false);
-            const response = await api.post('auth/register/resend-otp', { tempUserId }, { timeout: 45000 });
-            if (response.data.success) {
-                setOtpTimer(response.data.data.expiresIn || 600);
-                setOtp(['', '', '', '', '', '']);
-                toast.success('New code sent! Check your email.');
-            }
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to resend code. Please try again.');
-            setCanResend(true);
+            setLoading(false);
         }
     };
 
@@ -216,14 +92,12 @@ const Register = () => {
     const getStepTitle = () => {
         if (step === 1) return "Choose your path";
         if (step === 2) return "Create your account";
-        if (step === 3) return "Verify your email";
         return "Register";
     };
 
     const getStepSubtitle = () => {
         if (step === 1) return "How do you want to use TheCollabify?";
         if (step === 2) return "Fill in your details to get started.";
-        if (step === 3) return `We sent a code to ${formData.email}`;
         return "";
     };
 
@@ -231,7 +105,7 @@ const Register = () => {
         <AuthLayout title={getStepTitle()} subtitle={getStepSubtitle()}>
             <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
 
-            {/* Back Button for Steps 2 & 3 */}
+            {/* Back Button for Step 2 */}
             {step > 1 && (
                 <button
                     onClick={() => setStep(prev => prev - 1)}
@@ -252,22 +126,6 @@ const Register = () => {
                         transition={{ duration: 0.3 }}
                         className="space-y-6"
                     >
-                        {/* Google Signup — always visible at top of step 1 */}
-                        <div className="space-y-4 mb-2">
-                            <button
-                                onClick={handleGoogleSignup}
-                                className="w-full py-3 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-dark-700 hover:border-dark-500 rounded-xl text-dark-200 text-sm font-medium transition-all"
-                            >
-                                <Icon name="google" size={18} />
-                                Sign up with Google
-                            </button>
-                            <div className="flex items-center gap-3">
-                                <div className="flex-1 h-px bg-dark-700" />
-                                <span className="text-xs text-dark-500">or sign up with email</span>
-                                <div className="flex-1 h-px bg-dark-700" />
-                            </div>
-                        </div>
-
                         <div className="grid gap-4">
                             {/* Seller Option */}
                             <button
@@ -360,7 +218,7 @@ const Register = () => {
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
                     >
-                        <form onSubmit={handleSubmitDetails} className="space-y-8">
+                        <form onSubmit={handleSubmit} className="space-y-8">
                             {/* Name */}
                             <div className="space-y-1 group">
                                 <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Full Name <span className="text-red-400">*</span></label>
@@ -434,42 +292,9 @@ const Register = () => {
                                 disabled={loading}
                                 className="w-full py-4 mt-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 font-bold uppercase tracking-wider text-sm hover:bg-white/20 dark:hover:bg-black/20 transition-all disabled:opacity-50 shadow-lg"
                             >
-                                {loading ? 'Sending Code...' : `Join as a ${formData.role === 'seller' ? 'Brand' : 'Creator'} `}
+                                {loading ? 'Creating Account...' : `Join as a ${formData.role === 'seller' ? 'Brand' : 'Creator'}`}
                             </button>
                         </form>
-                    </motion.div>
-                )}
-
-                {/* STEP 3: OTP */}
-                {step === 3 && (
-                    <motion.div
-                        key="step3"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-8"
-                    >
-                        <div className="text-center">
-                            <OTPInput value={otp} onChange={setOtp} disabled={otpLoading} />
-                        </div>
-
-                        <div className="text-center">
-                            {canResend ? (
-                                <button onClick={handleResendOTP} className="text-primary-500 hover:text-primary-600 text-sm font-medium">Resend Code</button>
-                            ) : (
-                                // FIX #11: Show clear "Resend in Xs" countdown — resendCountdown ticks 60→0
-                                <p className="text-dark-400 text-sm">Resend available in <span className="font-mono text-primary-500">{resendCountdown}s</span></p>
-                            )}
-                        </div>
-
-                        <button
-                            onClick={handleVerifyOTP}
-                            disabled={otpLoading || otp.some(d => !d)}
-                            className="w-full py-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-emerald-500/50 text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider text-sm hover:bg-emerald-500/10 transition-all disabled:opacity-50 shadow-lg"
-                        >
-                            {otpLoading ? 'Verifying...' : 'Verify Email'}
-                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>

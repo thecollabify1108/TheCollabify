@@ -9,6 +9,14 @@ import { NotificationProvider } from './context/NotificationContext.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import './index.css'
 
+// Force HTTPS in production (redirect HTTP to HTTPS)
+if (typeof window !== 'undefined' &&
+    window.location.protocol === 'http:' &&
+    window.location.hostname !== 'localhost' &&
+    window.location.hostname !== '127.0.0.1') {
+    window.location.replace('https://' + window.location.host + window.location.pathname + window.location.search + window.location.hash);
+}
+
 // Initialize Sentry for error monitoring — only when a DSN is configured
 const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
 if (SENTRY_DSN) {
@@ -49,9 +57,6 @@ if (SENTRY_DSN) {
         console.warn('Sentry initialization failed:', e.message);
     }
 }
-
-// Google OAuth Client ID — used for manual redirect flow in Register.jsx
-// (GoogleOAuthProvider removed; we use pure redirect, no GSI library loaded)
 
 ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
