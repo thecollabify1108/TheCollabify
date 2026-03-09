@@ -4,4 +4,3 @@ pages_build_output_dir = "dist"
 [vars]
 VITE_API_URL = "https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net/api"
 VITE_SOCKET_URL = "wss://api.thecollabify.tech"
-VITE_GOOGLE_CLIENT_ID = "223460533138-nkmmomsvj3nvjd8geg77gdp2rqho3o22.apps.googleusercontent.com"

@@ -45,6 +45,91 @@ const handleValidation = (req, res, next) => {
 };
 
 // ============================================================
+// 0. REGISTRATION - Direct (email + password, no OTP)
+// ============================================================
+router.post('/register', [
+    body('email').isEmail().normalizeEmail(),
+    body('name').trim().escape().isLength({ min: 2, max: 50 }),
+    body('password').isStrongPassword({ minLength: 8, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 0 })
+        .withMessage('Password must be at least 8 chars with 1 uppercase, 1 lowercase, and 1 number'),
+    body('role').isIn(['creator', 'seller']),
+    handleValidation
+], async (req, res) => {
+    try {
+        const { email, name, password, role } = req.body;
+
+        const existingUser = await prisma.user.findUnique({
+            where: { email },
+            include: { roles: true }
+        });
+
+        let isAddingRole = false;
+
+        if (existingUser) {
+            const hasRole = existingUser.roles && existingUser.roles.some(r => r.type === role.toUpperCase());
+            if (hasRole || (!existingUser.roles.length && existingUser.activeRole === role.toUpperCase())) {
+                return res.status(400).json({ success: false, message: 'You already have a ' + role + ' account with this email' });
+            }
+            isAddingRole = true;
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        let user;
+
+        if (isAddingRole) {
+            user = await prisma.user.update({
+                where: { email },
+                data: {
+                    activeRole: role.toUpperCase(),
+                    emailVerified: true,
+                    roles: { create: { type: role.toUpperCase(), password: hashedPassword } }
+                },
+                include: { roles: true }
+            });
+        } else {
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    name,
+                    activeRole: role.toUpperCase(),
+                    emailVerified: true,
+                    authProvider: 'LOCAL',
+                    roles: { create: { type: role.toUpperCase(), password: hashedPassword } }
+                },
+                include: { roles: true }
+            });
+        }
+
+        const token = generateToken(user.id);
+        setCookieToken(res, token);
+
+        const tpl = role === 'creator' ? 'welcomeCreator' : 'welcomeSeller';
+        sendEmail(user.email, tpl, user.name).catch(function (emailErr) {
+            console.error('[Email] Welcome email failed (non-fatal):', emailErr.message);
+        });
+
+        try {
+            const notifSvc = require('../services/notificationService');
+            notifSvc.notifyWelcome(user.id, role).catch(function (notifErr) {
+                console.error('[Notif] Welcome notif failed (non-fatal):', notifErr.message);
+            });
+        } catch (e2) {
+            console.error('[Notif] Welcome notif module error:', e2.message);
+        }
+
+        res.status(201).json({
+            success: true,
+            message: 'Registration successful!',
+            data: { token, user: sanitizeUser({ ...user, activeRole: role.toUpperCase() }) }
+        });
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({ success: false, message: 'Registration failed. Please try again.' });
+    }
+});
+
+// ============================================================
 // 1. REGISTRATION - Step 1: send OTP
 // ============================================================
 router.post('/register/send-otp', [

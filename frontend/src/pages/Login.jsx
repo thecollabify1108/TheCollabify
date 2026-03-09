@@ -55,17 +55,6 @@ const Login = () => {
         setStep(1);
     };
 
-    const handleGoogleLogin = () => {
-        // Use backend passport OAuth flow — avoids redirect_uri_mismatch issues
-        // backend callback URL (https://api.thecollabify.tech/api/oauth/google/callback)
-        // is the registered URI in Google Cloud Console
-        const apiUrl = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '');
-        const backendOAuthUrl = apiUrl
-            ? `${apiUrl}/oauth/google`
-            : 'https://api.thecollabify.tech/api/oauth/google';
-        window.location.href = backendOAuthUrl;
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -259,22 +248,6 @@ const Login = () => {
                     )}
                 </motion.button>
             </form>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3 mt-6">
-                <div className="flex-1 h-px bg-dark-700" />
-                <span className="text-xs text-dark-500">or</span>
-                <div className="flex-1 h-px bg-dark-700" />
-            </div>
-
-            {/* Google Login Button */}
-            <button
-                onClick={handleGoogleLogin}
-                className="mt-4 w-full py-3 flex items-center justify-center gap-3 bg-white/5 hover:bg-white/10 border border-dark-700 hover:border-dark-500 rounded-xl text-dark-200 text-sm font-medium transition-all"
-            >
-                <Icon name="google" size={18} />
-                Continue with Google
-            </button>
 
             <div className="mt-6 text-center text-sm text-dark-400">
                 Don't have an account?{' '}

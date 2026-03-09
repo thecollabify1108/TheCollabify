@@ -22,8 +22,6 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import GoogleCallback from './pages/GoogleCallback';
-import OAuthCompleteRegistration from './pages/OAuthCompleteRegistration';
 
 // Pages - Errors (load immediately for better UX)
 import NotFound from './pages/NotFound';
@@ -163,8 +161,6 @@ function App() {
                     />
                     <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
                     <Route path="/reset-password/:token" element={<PageTransition><ResetPassword /></PageTransition>} />
-                    <Route path="/auth/callback" element={<GoogleCallback />} />
-                    <Route path="/oauth/complete-registration" element={<OAuthCompleteRegistration />} />
                     <Route path="/for-brands" element={<PageTransition><ForBrands /></PageTransition>} />
                     <Route path="/for-creators" element={<PageTransition><ForCreators /></PageTransition>} />
                     <Route path="/terms" element={<PageTransition><TermsConditions /></PageTransition>} />
