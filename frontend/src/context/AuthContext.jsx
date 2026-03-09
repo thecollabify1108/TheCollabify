@@ -111,19 +111,9 @@ export const AuthProvider = ({ children }) => {
         return normalizeUser(userData);
     };
 
-    // FIX #8: Removed dead register() function that called non-existent /api/auth/register.
-    // Registration uses the 2-step OTP flow (send-otp → verify-otp) called directly in Register.jsx.
-    // Keeping this stub to avoid breaking any stale imports, but it throws clearly instead of silently 404ing.
-    const register = async () => {
-        throw new Error('register() is deprecated. Use the OTP flow: auth/register/send-otp then auth/register/verify-otp');
-    };
-
-    const verifyOTP = async (tempUserId, otpCode) => {
-        const response = await api.post('auth/register/verify-otp', {
-            tempUserId,
-            otp: otpCode
-        });
-
+    // Direct email + password registration (no OTP required)
+    const register = async (email, name, password, role) => {
+        const response = await api.post('auth/register', { email, name, password, role });
         const { token: newToken, user: userData } = response.data.data;
 
         localStorage.setItem('token', newToken);
@@ -173,22 +163,6 @@ export const AuthProvider = ({ children }) => {
         return response.data;
     };
 
-    // FIX #3: googleLogin now accepts profileToken (signed JWT from backend) instead of
-    // raw decoded fields. Backend verifies the signature — client can never forge a googleId.
-    // Legacy path (raw fields) still supported for backward compat with old GoogleCallback versions.
-    const googleLogin = async ({ profileToken, email, name, googleId, avatar, role }) => {
-        const payload = profileToken
-            ? { profileToken, role }  // new secure path
-            : { email, name, googleId, avatar, role };  // legacy path
-        const response = await api.post('oauth/google-login', payload, { timeout: 45000 });
-        const { token: newToken, user: userData } = response.data.data;
-        localStorage.setItem('token', newToken);
-        setToken(newToken);
-        setUser(normalizeUser(userData));
-        cacheUser(userData);
-        return normalizeUser(userData);
-    };
-
     const value = {
         user,
         token,
@@ -196,8 +170,6 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         login,
         register,
-        verifyOTP,
-        googleLogin,
         logout,
         updateProfile,
         forgotPassword,

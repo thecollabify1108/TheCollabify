@@ -91,6 +91,20 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 console.log(`🔍 [Startup] Port configured: ${PORT}`);
 
+// HTTPS redirect — Azure/Cloudflare forward the original protocol via x-forwarded-proto
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'production') {
+        const proto = req.headers['x-forwarded-proto'];
+        if (proto && proto !== 'https') {
+            // Use a configured canonical host to avoid Host header injection attacks.
+            // Falls back to the request host only as a last resort.
+            const canonicalHost = process.env.CANONICAL_HOST || req.headers.host;
+            return res.redirect(301, `https://${canonicalHost}${req.url}`);
+        }
+    }
+    next();
+});
+
 app.use((req, res, next) => {
     const origin = req.headers.origin;
     const requestedHeaders = req.headers['access-control-request-headers'];
