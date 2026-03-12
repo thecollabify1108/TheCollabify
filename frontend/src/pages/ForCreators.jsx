@@ -34,6 +34,8 @@ const ForCreators = () => {
     };
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [openFeature, setOpenFeature] = useState(null);
+    const [openStep, setOpenStep] = useState(null);
 
     const benefits = [
         'Your Creator Quality Index builds your reputation automatically',
@@ -212,20 +214,25 @@ const ForCreators = () => {
                             </motion.button>
                         </motion.div>
 
-                        {/* Right Side - Hero Image */}
+                        {/* Right Side - Stats Visual (no image) */}
                         <motion.div
                             className="relative"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
                         >
-                            <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-primary-500/10">
-                                <img
-                                    src="/creators-hero.png"
-                                    alt="Influencer creators grid"
-                                    className="w-full h-auto rounded-3xl"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-dark-950/60 to-transparent rounded-3xl" />
+                            <div className="grid grid-cols-2 gap-4">
+                                {[
+                                    { value: 'CQI', label: 'Quality Score', color: 'text-secondary-400', bg: 'bg-secondary-500/10' },
+                                    { value: '✓', label: 'Verified Creators Only', color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+                                    { value: 'AI', label: 'Smart Brand Matching', color: 'text-primary-400', bg: 'bg-primary-500/10' },
+                                    { value: '0%', label: 'Fake Follower Tolerance', color: 'text-amber-400', bg: 'bg-amber-500/10' }
+                                ].map((stat, i) => (
+                                    <div key={i} className={`${stat.bg} border border-dark-800 rounded-2xl p-5 text-center`}>
+                                        <p className={`text-2xl font-extrabold ${stat.color} mb-1`}>{stat.value}</p>
+                                        <p className="text-xs text-dark-400">{stat.label}</p>
+                                    </div>
+                                ))}
                             </div>
                         </motion.div>
                     </div>
@@ -233,85 +240,65 @@ const ForCreators = () => {
             </section>
 
             {/* Benefits Section */}
-            <section className="py-16 px-4 bg-dark-900/30">
-                <div className="max-w-7xl mx-auto">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-dark-100">
+            <section className="py-10 px-4 bg-dark-900/30">
+                <div className="max-w-2xl mx-auto">
+                    <h2 className="text-2xl font-bold text-center mb-5 text-dark-100">
                         Why Creators Love <span className="gradient-text">TheCollabify</span>
                     </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="glass-card p-6 hover:border-secondary-500/50 transition"
-                        >
-                            <div className="w-12 h-12 rounded-full bg-secondary-500/20 flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-secondary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                    <div className="space-y-2">
+                        {[
+                            { title: 'Merit-Based Discovery', desc: 'Your CQI score rewards quality and consistency. Better work = better visibility = better partnerships.' },
+                            { title: 'Authenticity Protected', desc: 'Fraud detection ensures fake accounts do not compete with real creators. Your genuine engagement matters.' },
+                            { title: 'Adaptive Scoring', desc: 'The system learns from every collaboration. Deliver great results and your match priority increases automatically.' }
+                        ].map((item, idx) => (
+                            <div key={idx} className="glass-card overflow-hidden">
+                                <button
+                                    className="w-full flex items-center justify-between p-4 text-left"
+                                    onClick={() => setOpenFeature(openFeature === idx ? null : idx)}
+                                >
+                                    <span className="text-sm font-semibold text-dark-100">{item.title}</span>
+                                    <span className={`text-xl text-dark-400 transition-transform duration-200 leading-none ${openFeature === idx ? 'rotate-45' : ''}`}>+</span>
+                                </button>
+                                {openFeature === idx && (
+                                    <div className="px-4 pb-4 text-sm text-dark-400 border-t border-dark-800 pt-3">
+                                        {item.desc}
+                                    </div>
+                                )}
                             </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Merit-Based Discovery</h3>
-                            <p className="text-dark-400">Your CQI score rewards quality and consistency. Better work = better visibility = better partnerships.</p>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="glass-card p-6 hover:border-secondary-500/50 transition"
-                        >
-                            <div className="w-12 h-12 rounded-full bg-primary-500/20 flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Authenticity Protected</h3>
-                            <p className="text-dark-400">Fraud detection ensures fake accounts don't compete with real creators. Your genuine engagement matters.</p>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                            className="glass-card p-6 hover:border-secondary-500/50 transition"
-                        >
-                            <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
-                                <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <h3 className="text-xl font-semibold text-dark-100 mb-2">Adaptive Scoring</h3>
-                            <p className="text-dark-400">The system learns from every collaboration. Deliver great results and your match priority increases automatically.</p>
-                        </motion.div>
+                        ))}
                     </div>
                 </div>
             </section>
 
             {/* How It Works */}
-            <section className="py-16 px-4">
-                <div className="max-w-4xl mx-auto">
-                    <h2 className="text-3xl md:text-4xl font-bold text-center mb-12 text-dark-100">
+            <section className="py-10 px-4">
+                <div className="max-w-2xl mx-auto">
+                    <h2 className="text-2xl font-bold text-center mb-5 text-dark-100">
                         Start Earning in <span className="gradient-text">3 Simple Steps</span>
                     </h2>
-                    <div className="space-y-8">
+                    <div className="space-y-2">
                         {[
                             { step: '01', title: 'Build Your Profile', desc: 'Connect your Instagram. Our AI generates your CQI score and audience intelligence automatically.' },
                             { step: '02', title: 'Get Matched by AI', desc: 'Brands find you through intelligence-ranked results — scored on quality, not just follower count.' },
                             { step: '03', title: 'Deliver & Grow', desc: 'Complete collaborations, earn feedback, and watch your quality score compound.' }
                         ].map((item, idx) => (
-                            <motion.div
-                                key={idx}
-                                initial={{ opacity: 0, x: -20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="flex items-start gap-6"
-                            >
-                                <div className="text-5xl font-bold gradient-text opacity-30">{item.step}</div>
-                                <div className="flex-1">
-                                    <h3 className="text-xl font-semibold text-dark-100 mb-2">{item.title}</h3>
-                                    <p className="text-dark-400">{item.desc}</p>
-                                </div>
-                            </motion.div>
+                            <div key={idx} className="glass-card overflow-hidden">
+                                <button
+                                    className="w-full flex items-center justify-between p-4 text-left"
+                                    onClick={() => setOpenStep(openStep === idx ? null : idx)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm font-bold gradient-text opacity-60">{item.step}</span>
+                                        <span className="text-sm font-semibold text-dark-100">{item.title}</span>
+                                    </div>
+                                    <span className={`text-xl text-dark-400 transition-transform duration-200 leading-none ${openStep === idx ? 'rotate-45' : ''}`}>+</span>
+                                </button>
+                                {openStep === idx && (
+                                    <div className="px-4 pb-4 text-sm text-dark-400 border-t border-dark-800 pt-3">
+                                        {item.desc}
+                                    </div>
+                                )}
+                            </div>
                         ))}
                     </div>
                 </div>

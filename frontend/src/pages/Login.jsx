@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+﻿import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
@@ -64,9 +64,14 @@ const Login = () => {
         }
 
         setLoading(true);
+        // Show warm-up message after 5s if server is cold-starting
+        const warmupTimer = setTimeout(() => {
+            toast('Server is starting up, please wait...', { icon: '⏳', duration: 10000 });
+        }, 5000);
 
         try {
             const user = await login(formData.email, formData.password);
+            clearTimeout(warmupTimer);
             setShowConfetti(true);
             toast.success('Login successful!');
 
@@ -80,6 +85,7 @@ const Login = () => {
                 }
             }, 1000);
         } catch (error) {
+            clearTimeout(warmupTimer);
             const message = !error.response && error.message?.includes('Network')
                 ? 'Unable to reach the server. Please try again later.'
                 : error.response?.data?.message || 'Login failed. Please check your credentials.';

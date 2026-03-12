@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion';
-import { HiSparkles, HiLightningBolt, HiChartBar, HiShieldCheck, HiUserGroup, HiGlobe } from 'react-icons/hi';
-import { FaBrain, FaRocket, FaDatabase, FaLock } from 'react-icons/fa';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HiSparkles, HiChevronDown } from 'react-icons/hi';
 import Navbar from '../components/common/Navbar';
 import Footer from '../components/common/Footer';
 import SEO from '../components/common/SEO';
@@ -41,7 +41,7 @@ const Roadmap = () => {
             phase: 'Phase 3',
             status: 'planned',
             title: 'Predictive Commerce',
-            subtitle: 'Q3 2025',
+            subtitle: 'Q3 2026',
             color: 'secondary',
             items: [
                 { label: 'Revenue attribution modeling', done: false },
@@ -55,7 +55,7 @@ const Roadmap = () => {
             phase: 'Phase 4',
             status: 'planned',
             title: 'Enterprise Infrastructure',
-            subtitle: 'Q4 2025',
+            subtitle: 'Q4 2026',
             color: 'amber',
             items: [
                 { label: 'Multi-user brand accounts', done: false },
@@ -67,12 +67,7 @@ const Roadmap = () => {
         }
     ];
 
-    const techStack = [
-        { icon: FaBrain, label: '7 AI Models', desc: 'CQI, fraud, prediction, embeddings, audience, weights, retraining' },
-        { icon: FaDatabase, label: '42 Data Signals', desc: 'Per-match scoring across engagement, content, reliability, audience' },
-        { icon: HiShieldCheck, label: 'Multi-Signal Fraud', desc: 'Follower velocity, engagement ratio, growth pattern anomaly detection' },
-        { icon: HiLightningBolt, label: 'Self-Improving', desc: 'Every collaboration outcome feeds back into model refinement' }
-    ];
+    const [openPhase, setOpenPhase] = useState(null);
 
     const getStatusBadge = (status) => {
         if (status === 'live') return { bg: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400', text: 'LIVE' };
@@ -104,60 +99,61 @@ const Roadmap = () => {
                     </div>
                 </section>
 
-                {/* Tech Stack Summary */}
-                <section className="pb-16 px-4">
-                    <div className="max-w-5xl mx-auto">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {techStack.map((item, i) => (
-                                <motion.div
-                                    key={i}
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: i * 0.1 }}
-                                    className="glass-card p-5 text-center hover:border-primary-500/30 transition"
-                                >
-                                    <item.icon className="mx-auto text-primary-400 text-2xl mb-3" />
-                                    <p className="text-sm font-bold text-dark-100 mb-1">{item.label}</p>
-                                    <p className="text-xs text-dark-500">{item.desc}</p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
                 {/* Phases */}
                 <section className="pb-24 px-4">
-                    <div className="max-w-5xl mx-auto space-y-8">
+                    <div className="max-w-2xl mx-auto space-y-3">
                         {phases.map((phase, idx) => {
                             const badge = getStatusBadge(phase.status);
+                            const isOpen = openPhase === idx;
                             return (
                                 <motion.div
                                     key={idx}
-                                    initial={{ opacity: 0, y: 20 }}
+                                    initial={{ opacity: 0, y: 16 }}
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
-                                    transition={{ delay: idx * 0.1 }}
-                                    className="glass-card p-8 hover:border-primary-500/20 transition"
+                                    transition={{ delay: idx * 0.08 }}
+                                    className="glass-card overflow-hidden"
                                 >
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div>
-                                            <span className="text-xs font-bold text-dark-500 uppercase tracking-widest">{phase.phase}</span>
-                                            <h3 className="text-xl font-bold text-dark-100">{phase.title}</h3>
-                                        </div>
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${badge.bg}`}>
-                                            {badge.text}
-                                        </span>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {phase.items.map((item, i) => (
-                                            <div key={i} className="flex items-center gap-3">
-                                                <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${item.done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-dark-700/50 text-dark-600'}`}>
-                                                    {item.done ? '✓' : '○'}
-                                                </div>
-                                                <span className={`text-sm ${item.done ? 'text-dark-200' : 'text-dark-500'}`}>{item.label}</span>
+                                    <button
+                                        className="w-full flex items-center justify-between p-4 text-left"
+                                        onClick={() => setOpenPhase(isOpen ? null : idx)}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest border ${badge.bg}`}>
+                                                {badge.text}
+                                            </span>
+                                            <div>
+                                                <span className="text-xs text-dark-500 uppercase tracking-widest">{phase.phase}</span>
+                                                <p className="text-sm font-semibold text-dark-100">{phase.title}</p>
                                             </div>
-                                        ))}
-                                    </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <span className="text-xs text-dark-500">{phase.subtitle}</span>
+                                            <HiChevronDown className={`text-dark-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                                        </div>
+                                    </button>
+                                    <AnimatePresence>
+                                        {isOpen && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.22 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="px-4 pb-4 grid grid-cols-1 sm:grid-cols-2 gap-2 border-t border-dark-800 pt-3">
+                                                    {phase.items.map((item, i) => (
+                                                        <div key={i} className="flex items-center gap-2">
+                                                            <div className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 text-xs ${item.done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-dark-700/50 text-dark-600'}`}>
+                                                                {item.done ? '✓' : '○'}
+                                                            </div>
+                                                            <span className={`text-xs ${item.done ? 'text-dark-200' : 'text-dark-500'}`}>{item.label}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </motion.div>
                             );
                         })}

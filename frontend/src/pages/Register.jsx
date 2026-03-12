@@ -126,29 +126,28 @@ const Register = () => {
                         transition={{ duration: 0.3 }}
                         className="space-y-6"
                     >
-                        <div className="grid gap-4">
+                        <div className="grid grid-cols-2 gap-3">
                             {/* Seller Option */}
                             <button
                                 onClick={() => handleRoleSelect('seller')}
-                                className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'seller'
-                                    ? 'border-primary-500 bg-primary-500/10 shadow-lg shadow-primary-500/10'
-                                    : 'border-dark-700 bg-dark-900/40 dark:bg-dark-800/40 hover:border-dark-500 hover:shadow-lg'
+                                className={`relative p-4 rounded-xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'seller'
+                                    ? 'border-primary-500 bg-primary-500/10 shadow-md shadow-primary-500/10'
+                                    : 'border-dark-700 bg-dark-900/40 dark:bg-dark-800/40 hover:border-dark-500'
                                     }`}
                             >
-                                <div className={`p-3 rounded-xl w-fit mb-4 transition-all duration-300 ${formData.role === 'seller' ? 'bg-primary-500/20 shadow-lg scale-110' : 'bg-dark-800/60 group-hover:bg-dark-700'}`}>
+                                <div className={`p-2 rounded-lg w-fit mb-2 transition-all duration-300 ${formData.role === 'seller' ? 'bg-primary-500/20' : 'bg-dark-800/60 group-hover:bg-dark-700'}`}>
                                     <img
                                         src="https://img.icons8.com/fluency/96/shopping-bag.png"
                                         alt="Brand / Seller"
-                                        className="w-10 h-10 object-contain"
-                                        onError={(e) => { e.target.outerHTML = '<span style="font-size:2rem">🛍️</span>'; }}
+                                        className="w-7 h-7 object-contain"
+                                        onError={(e) => { e.target.outerHTML = '<span style="font-size:1.5rem">🛍️</span>'; }}
                                     />
                                 </div>
-                                <h3 className={`text-lg font-bold mb-1 ${formData.role === 'seller' ? 'text-primary-400' : 'text-dark-100'}`}>Brand / Seller</h3>
-                                <p className="text-sm text-dark-400">hire creators to promote your products.</p>
-
+                                <h3 className={`text-sm font-bold mb-0.5 ${formData.role === 'seller' ? 'text-primary-400' : 'text-dark-100'}`}>Brand / Seller</h3>
+                                <p className="text-xs text-dark-400 leading-snug">Hire creators to promote your products.</p>
                                 {formData.role === 'seller' && (
-                                    <div className="absolute top-6 right-6 text-primary-500">
-                                        <Icon name="check" size={20} />
+                                    <div className="absolute top-3 right-3 text-primary-500">
+                                        <Icon name="check" size={14} />
                                     </div>
                                 )}
                             </button>
@@ -156,25 +155,24 @@ const Register = () => {
                             {/* Creator Option */}
                             <button
                                 onClick={() => handleRoleSelect('creator')}
-                                className={`relative p-6 rounded-2xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'creator'
-                                    ? 'border-secondary-500 bg-secondary-500/10 shadow-lg shadow-secondary-500/10'
-                                    : 'border-dark-700 bg-dark-900/40 dark:bg-dark-800/40 hover:border-dark-500 hover:shadow-lg'
+                                className={`relative p-4 rounded-xl border-2 text-left transition-all duration-300 group backdrop-blur-md ${formData.role === 'creator'
+                                    ? 'border-secondary-500 bg-secondary-500/10 shadow-md shadow-secondary-500/10'
+                                    : 'border-dark-700 bg-dark-900/40 dark:bg-dark-800/40 hover:border-dark-500'
                                     }`}
                             >
-                                <div className={`p-3 rounded-xl w-fit mb-4 transition-all duration-300 ${formData.role === 'creator' ? 'bg-secondary-500/20 shadow-lg scale-110' : 'bg-dark-800/60 group-hover:bg-dark-700'}`}>
+                                <div className={`p-2 rounded-lg w-fit mb-2 transition-all duration-300 ${formData.role === 'creator' ? 'bg-secondary-500/20' : 'bg-dark-800/60 group-hover:bg-dark-700'}`}>
                                     <img
                                         src="https://img.icons8.com/fluency/96/camera.png"
                                         alt="Content Creator"
-                                        className="w-10 h-10 object-contain"
-                                        onError={(e) => { e.target.outerHTML = '<span style="font-size:2rem">📷</span>'; }}
+                                        className="w-7 h-7 object-contain"
+                                        onError={(e) => { e.target.outerHTML = '<span style="font-size:1.5rem">📷</span>'; }}
                                     />
                                 </div>
-                                <h3 className={`text-lg font-bold mb-1 ${formData.role === 'creator' ? 'text-secondary-400' : 'text-dark-100'}`}>Content Creator</h3>
-                                <p className="text-sm text-dark-400">Find sponsorships and monetize content.</p>
-
+                                <h3 className={`text-sm font-bold mb-0.5 ${formData.role === 'creator' ? 'text-secondary-400' : 'text-dark-100'}`}>Content Creator</h3>
+                                <p className="text-xs text-dark-400 leading-snug">Find sponsorships and monetize content.</p>
                                 {formData.role === 'creator' && (
-                                    <div className="absolute top-6 right-6 text-secondary-500">
-                                        <Icon name="check" size={20} />
+                                    <div className="absolute top-3 right-3 text-secondary-500">
+                                        <Icon name="check" size={14} />
                                     </div>
                                 )}
                             </button>

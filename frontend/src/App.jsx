@@ -16,6 +16,8 @@ const WhyCollabify = lazy(() => import('./pages/WhyCollabify'));
 const Insights = lazy(() => import('./pages/Insights'));
 const TermsConditions = lazy(() => import('./pages/TermsConditions'));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'));
+const AboutUs = lazy(() => import('./pages/AboutUs'));
+const Contact = lazy(() => import('./pages/Contact'));
 
 // Pages - Auth (lightweight, load immediately)
 import Login from './pages/Login';
@@ -170,6 +172,8 @@ function App() {
                     <Route path="/roadmap" element={<PageTransition><Roadmap /></PageTransition>} />
                     <Route path="/why-collabify" element={<PageTransition><WhyCollabify /></PageTransition>} />
                     <Route path="/insights" element={<PageTransition><Insights /></PageTransition>} />
+                    <Route path="/about-us" element={<PageTransition><AboutUs /></PageTransition>} />
+                    <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
 
                     {/* Chat Route (New) */}
                     <Route
