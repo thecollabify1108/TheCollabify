@@ -468,9 +468,32 @@ initializeModules().catch(err => {
     console.error('💥 Background initialization failed:', err);
 });
 
+// In-memory admin bootstrap status for operational visibility
+const adminBootstrapStatus = {
+    enabled: true,
+    state: 'idle',
+    attempts: 0,
+    maxAttempts: 0,
+    intervalMs: 0,
+    startedAt: null,
+    lastAttemptAt: null,
+    completedAt: null,
+    lastError: null,
+};
+
+app.get('/api/admin/bootstrap-status', (req, res) => {
+    res.json({
+        ok: true,
+        status: adminBootstrapStatus,
+        timestamp: new Date().toISOString(),
+    });
+});
+
 // Auto-seed admin account on startup (runs inside the Azure process where DB is reachable)
 async function ensureAdminExists() {
     try {
+        adminBootstrapStatus.state = 'running';
+        adminBootstrapStatus.lastAttemptAt = new Date().toISOString();
         const bcrypt = require('bcryptjs');
         const adminEmail = 'admin@thecollabify.tech';
         const adminPass = 'Admin@Collabify2026';
@@ -486,6 +509,9 @@ async function ensureAdminExists() {
             } else {
                 console.log('✅ [AdminSeed] Admin account already exists — skipping');
             }
+            adminBootstrapStatus.state = 'complete';
+            adminBootstrapStatus.completedAt = new Date().toISOString();
+            adminBootstrapStatus.lastError = null;
             return true;
         }
 
@@ -503,9 +529,14 @@ async function ensureAdminExists() {
         });
         await prisma.userRole.create({ data: { userId: user.id, type: 'ADMIN', password: hashed } });
         console.log('✅ [AdminSeed] Admin account created successfully');
+        adminBootstrapStatus.state = 'complete';
+        adminBootstrapStatus.completedAt = new Date().toISOString();
+        adminBootstrapStatus.lastError = null;
         return true;
     } catch (e) {
         console.warn('⚠️  [AdminSeed] Failed (non-fatal):', e.message);
+        adminBootstrapStatus.state = 'retrying';
+        adminBootstrapStatus.lastError = e.message;
         return false;
     }
 }
@@ -516,8 +547,14 @@ function scheduleAdminBootstrap() {
     const maxAttempts = Number(process.env.ADMIN_BOOTSTRAP_MAX_ATTEMPTS || 40); // ~40 minutes at 60s interval
     const intervalMs = Number(process.env.ADMIN_BOOTSTRAP_INTERVAL_MS || 60000);
 
+    adminBootstrapStatus.state = 'retrying';
+    adminBootstrapStatus.startedAt = new Date().toISOString();
+    adminBootstrapStatus.maxAttempts = maxAttempts;
+    adminBootstrapStatus.intervalMs = intervalMs;
+
     const timer = setInterval(async () => {
         attempts += 1;
+        adminBootstrapStatus.attempts = attempts;
         const ok = await ensureAdminExists();
         if (ok) {
             console.log(`✅ [AdminSeed] Bootstrap complete on attempt ${attempts}`);
@@ -527,6 +564,7 @@ function scheduleAdminBootstrap() {
 
         if (attempts >= maxAttempts) {
             console.warn(`⚠️  [AdminSeed] Gave up after ${attempts} attempts`);
+            adminBootstrapStatus.state = 'failed';
             clearInterval(timer);
         }
     }, intervalMs);
@@ -539,6 +577,11 @@ const server = http.createServer(app);
 if (process.env.NODE_ENV !== 'test') {
     server.listen(PORT, '0.0.0.0', async () => {
         console.log(`✅ Server listening on port ${PORT}`);
+
+        adminBootstrapStatus.startedAt = new Date().toISOString();
+        adminBootstrapStatus.maxAttempts = 1;
+        adminBootstrapStatus.intervalMs = 0;
+        adminBootstrapStatus.attempts = 1;
 
         // Ensure admin account exists (safe to run on every cold start)
         const seeded = await ensureAdminExists();
