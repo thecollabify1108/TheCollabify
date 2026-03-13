@@ -105,7 +105,7 @@ app.use((req, res, next) => {
         // Cloudflare Pages project URL (thecollabify-frontend.pages.dev and preview branches)
         if (/^https:\/\/([\w-]+\.)*thecollabify-frontend\.pages\.dev$/.test(o)) return true;
         // Raw Azure hostname (needed when Cloudflare proxy is bypassed)
-        if (o === 'https://thecollabify-api-hhc2huheexeqaqff.centralindia-01.azurewebsites.net') return true;
+        if (/^https:\/\/[\w-]+\.[\w-]+\.azurewebsites\.net$/.test(o)) return true;
         return false;
     };
 
