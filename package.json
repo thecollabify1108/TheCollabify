@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "postinstall": "npm --prefix backend install",
+    "start": "npm --prefix backend start"
+  },
   "dependencies": {
     "@sentry/react": "^10.38.0"
   }
