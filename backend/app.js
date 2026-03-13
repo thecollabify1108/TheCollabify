@@ -307,6 +307,46 @@ const initializeModules = async () => {
             console.warn('⚠️  [Startup] Background migration trigger error:', migErr.message?.substring(0, 200));
         }
 
+        // 2aa. Auto-seed admin account if it doesn't exist (runs once after migrations)
+        setTimeout(async () => {
+            try {
+                const bcrypt = require('bcryptjs');
+                const adminEmail = process.env.ADMIN_EMAIL || 'admin@thecollabify.tech';
+                const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@Collabify2026';
+                const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+                if (!existing) {
+                    const hashed = await bcrypt.hash(adminPassword, 12);
+                    const user = await prisma.user.create({
+                        data: {
+                            email: adminEmail,
+                            name: 'Admin',
+                            password: hashed,
+                            activeRole: 'ADMIN',
+                            authProvider: 'LOCAL',
+                            isActive: true,
+                            roles: { create: { type: 'ADMIN', password: hashed } }
+                        }
+                    });
+                    console.log('✅ [Startup] Admin account created:', adminEmail);
+                } else {
+                    // Ensure UserRole entry exists with current password
+                    const bcrypt = require('bcryptjs');
+                    const hashed = await bcrypt.hash(adminPassword, 12);
+                    const hasAdminRole = await prisma.userRole.findFirst({ where: { userId: existing.id, type: 'ADMIN' } });
+                    if (!hasAdminRole) {
+                        await prisma.userRole.create({ data: { userId: existing.id, type: 'ADMIN', password: hashed } });
+                        console.log('✅ [Startup] Admin UserRole entry created');
+                    } else {
+                        await prisma.userRole.updateMany({ where: { userId: existing.id, type: 'ADMIN' }, data: { password: hashed } });
+                        await prisma.user.update({ where: { id: existing.id }, data: { password: hashed, activeRole: 'ADMIN', isActive: true } });
+                        console.log('✅ [Startup] Admin account password synced');
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️  [Startup] Admin seed failed (non-fatal):', e.message);
+            }
+        }, 5000); // 5 seconds after startup — after migrations settle
+
         // 2b. Keep-alive: ping DB every 2 minutes to prevent Azure cold-start
         setInterval(async () => {
             try {
@@ -428,6 +468,46 @@ initializeModules().catch(err => {
     console.error('💥 Background initialization failed:', err);
 });
 
+// Auto-seed admin account on startup (runs inside the Azure process where DB is reachable)
+async function ensureAdminExists() {
+    try {
+        const bcrypt = require('bcryptjs');
+        const adminEmail = 'admin@thecollabify.tech';
+        const adminPass = 'Admin@Collabify2026';
+
+        const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
+        if (existing) {
+            // Make sure the UserRole entry also exists with a synced password
+            const hasAdminRole = await prisma.userRole.findFirst({ where: { userId: existing.id, type: 'ADMIN' } });
+            if (!hasAdminRole) {
+                const hashed = await bcrypt.hash(adminPass, 12);
+                await prisma.userRole.create({ data: { userId: existing.id, type: 'ADMIN', password: hashed } });
+                console.log('✅ [AdminSeed] ADMIN role entry created for existing user');
+            } else {
+                console.log('✅ [AdminSeed] Admin account already exists — skipping');
+            }
+            return;
+        }
+
+        const hashed = await bcrypt.hash(adminPass, 12);
+        const user = await prisma.user.create({
+            data: {
+                email: adminEmail,
+                name: 'Admin',
+                password: hashed,
+                activeRole: 'ADMIN',
+                authProvider: 'LOCAL',
+                emailVerified: true,
+                isActive: true,
+            }
+        });
+        await prisma.userRole.create({ data: { userId: user.id, type: 'ADMIN', password: hashed } });
+        console.log('✅ [AdminSeed] Admin account created successfully');
+    } catch (e) {
+        console.warn('⚠️  [AdminSeed] Failed (non-fatal):', e.message);
+    }
+}
+
 // Start Server
 const server = http.createServer(app);
 
@@ -435,6 +515,9 @@ const server = http.createServer(app);
 if (process.env.NODE_ENV !== 'test') {
     server.listen(PORT, '0.0.0.0', async () => {
         console.log(`✅ Server listening on port ${PORT}`);
+
+        // Ensure admin account exists (safe to run on every cold start)
+        await ensureAdminExists();
 
         // Start background tasks ONLY after a delay to ensure DB pool is ready
         setTimeout(() => {
