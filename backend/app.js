@@ -486,7 +486,7 @@ async function ensureAdminExists() {
             } else {
                 console.log('✅ [AdminSeed] Admin account already exists — skipping');
             }
-            return;
+            return true;
         }
 
         const hashed = await bcrypt.hash(adminPass, 12);
@@ -503,9 +503,33 @@ async function ensureAdminExists() {
         });
         await prisma.userRole.create({ data: { userId: user.id, type: 'ADMIN', password: hashed } });
         console.log('✅ [AdminSeed] Admin account created successfully');
+        return true;
     } catch (e) {
         console.warn('⚠️  [AdminSeed] Failed (non-fatal):', e.message);
+        return false;
     }
+}
+
+// Retry admin bootstrap for cases where DB/network is not immediately available after deploy
+function scheduleAdminBootstrap() {
+    let attempts = 0;
+    const maxAttempts = Number(process.env.ADMIN_BOOTSTRAP_MAX_ATTEMPTS || 40); // ~40 minutes at 60s interval
+    const intervalMs = Number(process.env.ADMIN_BOOTSTRAP_INTERVAL_MS || 60000);
+
+    const timer = setInterval(async () => {
+        attempts += 1;
+        const ok = await ensureAdminExists();
+        if (ok) {
+            console.log(`✅ [AdminSeed] Bootstrap complete on attempt ${attempts}`);
+            clearInterval(timer);
+            return;
+        }
+
+        if (attempts >= maxAttempts) {
+            console.warn(`⚠️  [AdminSeed] Gave up after ${attempts} attempts`);
+            clearInterval(timer);
+        }
+    }, intervalMs);
 }
 
 // Start Server
@@ -517,7 +541,11 @@ if (process.env.NODE_ENV !== 'test') {
         console.log(`✅ Server listening on port ${PORT}`);
 
         // Ensure admin account exists (safe to run on every cold start)
-        await ensureAdminExists();
+        const seeded = await ensureAdminExists();
+        if (!seeded) {
+            console.log('⏳ [AdminSeed] Initial attempt failed; scheduling retries...');
+            scheduleAdminBootstrap();
+        }
 
         // Start background tasks ONLY after a delay to ensure DB pool is ready
         setTimeout(() => {
