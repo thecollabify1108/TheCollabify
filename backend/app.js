@@ -407,7 +407,11 @@ app.get('/api/health', async (req, res) => {
                 port: PORT
             });
         }
-        await prisma.$queryRaw`SELECT 1`;
+        const dbProbe = prisma.$queryRaw`SELECT 1`;
+        const timeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('DB health probe timeout')), 5000);
+        });
+        await Promise.race([dbProbe, timeout]);
         res.json({ status: 'ok', database: 'postgresql', timestamp: new Date().toISOString() });
     } catch (error) {
         res.status(500).json({ status: 'error', message: 'DB connection failed', error: error.message });
