@@ -12,8 +12,10 @@ const useWebSocket = (userId) => {
     const [onlineUsers, setOnlineUsers] = useState(new Set());
 
     useEffect(() => {
-        // token may be stored in localStorage (JWT) or sent via HTTPOnly cookie
-        // We connect either way - the server uses cookie auth as fallback
+        // WebSocket temporarily disabled for launch stability.
+        // Core features (campaigns, messaging) use REST API and are unaffected.
+        // Re-enable by uncommenting the block below when the WS server is ready.
+        /*
         const token = localStorage.getItem('token');
         if (!userId) {
             webSocketService.disconnect();
@@ -22,8 +24,10 @@ const useWebSocket = (userId) => {
             setOnlineUsers(new Set());
             return;
         }
-
         webSocketService.connect(userId, token || undefined);
+        */
+
+        return () => {}; // No-op cleanup
 
         // Update local state when connection status changes
         setIsConnected(webSocketService.isConnected);

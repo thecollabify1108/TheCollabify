@@ -60,7 +60,7 @@ const CampaignHealthCard = ({ campaign, onClick }) => {
             {/* Header */}
             <div className="flex items-start justify-between mb-s3 pl-s1">
                 <div className="flex-1">
-                    <h3 className="text-body font-black text-dark-100 mb-s1 line-clamp-1 uppercase tracking-tight">{campaign.title}</h3>
+                    <h3 className="text-body font-black text-dark-100 mb-s1 line-clamp-1 uppercase tracking-tight">{campaign.title || 'Untitled Campaign'}</h3>
                     <div className="flex items-center gap-s2 text-xs">
                         <span className={`px-s2 py-0.5 rounded-premium-full bg-${category.color}-500/10 text-${category.color}-400 flex items-center gap-s1 border border-${category.color}-500/20 text-[10px] font-black uppercase tracking-wider`}>
                             {category.icon}

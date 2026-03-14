@@ -66,7 +66,7 @@ const CampaignStories = ({ campaigns, onCreateNew, onSelectCampaign }) => {
                                     <div className="w-full h-full rounded-full bg-dark-900 p-1">
                                         <div className="w-full h-full rounded-full bg-gradient-to-br from-dark-700 to-dark-800 flex items-center justify-center">
                                             <span className="text-2xl font-bold text-dark-200">
-                                                {campaign.title?.charAt(0).toUpperCase()}
+                                                {campaign.title ? campaign.title.charAt(0).toUpperCase() : '?'}
                                             </span>
                                         </div>
                                     </div>
@@ -77,7 +77,7 @@ const CampaignStories = ({ campaigns, onCreateNew, onSelectCampaign }) => {
                                 </div>
                             </div>
                             <span className="text-xs-pure text-dark-300 font-bold max-w-[80px] truncate uppercase tracking-tight">
-                                {campaign.title}
+                                {campaign.title || 'Untitled'}
                             </span>
                         </motion.button>
                     ))}
@@ -132,7 +132,7 @@ const CampaignStories = ({ campaigns, onCreateNew, onSelectCampaign }) => {
                                         </div>
                                         <div>
                                             <span className="text-white/80 text-xs-pure font-bold uppercase tracking-wider">{selectedStory.status}</span>
-                                            <h3 className="text-h2 font-bold text-white shadow-sm">{selectedStory.title}</h3>
+                                            <h3 className="text-h2 font-bold text-white shadow-sm">{selectedStory.title || 'Untitled Campaign'}</h3>
                                         </div>
                                     </div>
                                 </div>
