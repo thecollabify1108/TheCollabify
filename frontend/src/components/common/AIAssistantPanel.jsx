@@ -125,8 +125,8 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
     const dailyRemaining = featureManifest?.dailyAIRemaining ?? null;
 
     const [params, setParams] = useState({
-        topic: campaign.title || '',
-        niche: campaign.category || 'Lifestyle',
+        topic: campaign?.title || '',
+        niche: campaign?.category || 'Lifestyle',
         platform: 'Instagram',
         tone: 'professional'
     });
