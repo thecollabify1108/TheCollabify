@@ -5,10 +5,7 @@ import {
 } from 'react-icons/fa';
 import { HiSparkles, HiUserGroup, HiViewGrid } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
-import { sellerAPI, chatAPI, collaborationAPI } from '../services/api';
-import { trackMatchFeedback, trackMatchOutcome } from '../services/feedback';
-import { trackEvent } from '../utils/analytics';
-import { getCached, setCache } from '../utils/dashboardCache';
+import { sellerAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 // New Components
@@ -19,19 +16,10 @@ import QuickStatsBar from '../components/seller/QuickStatsBar';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import CollaborationHub from '../components/common/CollaborationHub';
 
-import QuickActionsFAB from '../components/common/QuickActionsFAB';
-import { haptic } from '../utils/haptic';
-import { getReliabilityLevel } from '../utils/reliability';
-
-// NEW: Enhanced Components
-import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
-import AIAssistantPanel from '../components/common/AIAssistantPanel';
-
 // Lazy-loaded: defers InsightCards API call until dashboard scrolls into view
 const BrandInsightCards = lazy(() => import('../components/analytics/InsightCards').then(m => ({ default: m.BrandInsightCards })));
 
 // Modern Dashboard Widgets
-import StatCard from '../components/dashboard/StatCard';
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import DashboardHero from '../components/dashboard/DashboardHero';
 
@@ -43,48 +31,51 @@ import EarlyBirdBanner from '../components/common/EarlyBirdBanner';
 
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
-
-import GuidedAIMode from '../components/dashboard/GuidedAIMode';
+import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
+import SmartRecommendationsPanel from '../components/seller/SmartRecommendationsPanel';
+import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
+import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
+import TeamManagement from '../components/team/TeamManagement';
+import { getReliabilityLevel } from '../utils/reliability';
+import StatCard from '../components/dashboard/StatCard';
+import PerformanceChart from '../components/dashboard/PerformanceChart';
 import FocusWrapper from '../components/dashboard/FocusWrapper';
-
-// Lazy-loaded tab content (only fetched when the user navigates to that tab)
-const PerformanceChart = lazy(() => import('../components/dashboard/PerformanceChart'));
-const EnhancedCreatorSearch = lazy(() => import('../components/seller/EnhancedCreatorSearch'));
-const SmartRecommendationsPanel = lazy(() => import('../components/seller/SmartRecommendationsPanel'));
-const AnalyticsDashboard = lazy(() => import('../components/analytics/AnalyticsDashboard'));
-const TeamManagement = lazy(() => import('../components/team/TeamManagement'));
-const MessagingPanel = lazy(() => import('../components/seller/MessagingPanel'));
-const SwipeableCreatorCard = lazy(() => import('../components/seller/SwipeableCreatorCard'));
+import QuickActionsFAB from '../components/common/QuickActionsFAB';
+import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
+import AIAssistantPanel from '../components/common/AIAssistantPanel';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
-    const _mountTime = performance.now();
     const [activeTab, setActiveTab] = useState('dashboard');
-    const [requests, setRequests] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [requests] = useState([]);
+    const [loading] = useState(true);
     const [showRequestWizard, setShowRequestWizard] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
-    const [activeCollabMatch, setActiveCollabMatch] = useState(null); // New state for modal
-    const [conversations, setConversations] = useState([]);
-    const [selectedConversation, setSelectedConversation] = useState(null);
-    const [processedCreators, setProcessedCreators] = useState(new Set());
-    const [aiSuggestionData, setAiSuggestionData] = useState(null);
-
-    // NEW: Enhanced features state
+    const [activeCollabMatch, setActiveCollabMatch] = useState(null);
     const [showAIRecommendations, setShowAIRecommendations] = useState(false);
     const [allCreators, setAllCreators] = useState([]);
-    const [selectedPlan, setSelectedPlan] = useState(null);
-    const [focusMode, setFocusMode] = useState(null);
     const [showGuide, setShowGuide] = useState(true);
+    const [pendingCreators, setPendingCreators] = useState([]);
+
+    useEffect(() => {
+        async function fetchPendingCreators() {
+            try {
+                const res = await sellerAPI.getPendingVerification();
+                setPendingCreators(res.data || []);
+            } catch (err) {
+                setPendingCreators([]);
+            }
+        }
+        fetchPendingCreators();
+    }, []);
+
     const stats = {
         total: requests.length,
         active: requests.filter(r => ['Open', 'Creator Interested', 'Accepted'].includes(r.status)).length,
         completed: requests.filter(r => r.status === 'Completed').length,
-        pending: getPendingCreators().length,
+        pending: pendingCreators.length,
         totalMatches: requests.reduce((sum, r) => sum + (r.matchedCreators?.length || 0), 0)
     };
-
-    const pendingCreators = getPendingCreators();
 
     // Bottom navigation - 6 tabs with Analytics & Team
     const tabs = [
@@ -123,15 +114,9 @@ const SellerDashboard = () => {
             id: 'messages',
             label: 'Chat',
             iconName: 'chat',
-            badge: conversations.filter(c => c.unreadCountSeller > 0).length,
             description: 'Messages'
         }
     ];
-
-    // Helper to open collab hub
-    const handleOpenCollab = (match) => {
-        setActiveCollabMatch(match);
-    };
 
     if (loading) {
         return (
@@ -188,7 +173,7 @@ const SellerDashboard = () => {
             activeTab={activeTab}
             setActiveTab={(tab) => {
                 setActiveTab(tab);
-                haptic.light();
+                // haptic.light();
             }}
             tabs={tabs}
             showGuide={showGuide}
@@ -216,7 +201,6 @@ const SellerDashboard = () => {
                                 match={activeCollabMatch}
                                 isOwner={true}
                                 onClose={() => setActiveCollabMatch(null)}
-                                onComplete={() => fetchRequests(true)}
                             />
                         </motion.div>
                     </div>
@@ -228,15 +212,6 @@ const SellerDashboard = () => {
 
             <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
             <AnimatePresence mode="wait">
-                {/* Guided AI Mode Overlay */}
-                {showGuide && (
-                    <GuidedAIMode
-                        role="seller"
-                        onAction={handleGuideAction}
-                        onClose={() => setShowGuide(false)}
-                    />
-                )}
-
                 {/* Search Tab - Creator Discovery with AI */}
                 {activeTab === 'search' && (
                     <motion.div
@@ -285,9 +260,6 @@ const SellerDashboard = () => {
                         <div className="w-full max-w-md">
                             <SwipeableCreatorCard
                                 creators={pendingCreators}
-                                onAccept={handleAcceptCreator}
-                                onReject={handleRejectCreator}
-                                onMessage={handleMessageCreator}
                             />
                         </div>
                     </motion.div>
@@ -407,7 +379,7 @@ const SellerDashboard = () => {
                         </div>
 
                         {/* 4. Active Campaigns List (Modernized) */}
-                        <FocusWrapper sectionId="campaigns" currentFocus={focusMode}>
+                        <FocusWrapper sectionId="campaigns">
                             <div className="space-y-s6">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-sm font-semibold text-dark-100 flex items-center gap-2 uppercase tracking-wider">
@@ -484,24 +456,7 @@ const SellerDashboard = () => {
                     </motion.div>
                 )}
 
-                {/* Messages Tab */}
-                {activeTab === 'messages' && (
-                    <motion.div
-                        key="messages"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="p-s4"
-                    >
-                        <MessagingPanel
-                            conversations={conversations}
-                            selectedConversation={selectedConversation}
-                            onSelectConversation={(conv) => setSelectedConversation(conv)}
-                            onDeleteConversation={handleDeleteConversation}
-                            onBack={() => setSelectedConversation(null)}
-                        />
-                    </motion.div>
-                )}
+            
             </AnimatePresence>
             </Suspense>
 
@@ -518,10 +473,7 @@ const SellerDashboard = () => {
                 isOpen={showRequestWizard}
                 onClose={() => {
                     setShowRequestWizard(false);
-                    setAiSuggestionData(null);
                 }}
-                onSubmit={handleCreateRequest}
-                initialData={aiSuggestionData}
             />
 
             {/* Enhanced Campaign Tracker in Bottom Sheet */}
@@ -534,12 +486,6 @@ const SellerDashboard = () => {
                 {selectedRequest && (
                     <CampaignTracker
                         request={selectedRequest}
-                        onClose={() => setSelectedRequest(null)}
-                        onAccept={(creatorId) => handleAcceptCreator(selectedRequest.id, creatorId)}
-                        onReject={(creatorId) => handleRejectCreator(selectedRequest.id, creatorId)}
-                        onMessage={(creatorId, creatorName) => handleMessageCreator(selectedRequest.id, creatorId, creatorName)}
-                        onUpdateStatus={(status) => handleUpdateStatus(selectedRequest.id, status)}
-                        onDelete={() => handleDeleteRequest(selectedRequest.id)}
                     />
                 )}
             </BottomSheet>
