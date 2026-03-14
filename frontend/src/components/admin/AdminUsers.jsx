@@ -137,6 +137,40 @@ const AdminUsers = () => {
         user.email.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
+    // Bulk selection logic
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedUsers(filteredUsers.map(u => u.id));
+        } else {
+            setSelectedUsers([]);
+        }
+    };
+
+    const handleSelectUser = (userId) => {
+        if (selectedUsers.includes(userId)) {
+            setSelectedUsers(selectedUsers.filter(id => id !== userId));
+        } else {
+            setSelectedUsers([...selectedUsers, userId]);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedUsers.length === 0) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedUsers.length} user(s)? This cannot be undone.`)) return;
+
+        try {
+            setLoading(true);
+            await adminAPI.bulkDeleteUsers(selectedUsers);
+            toast.success(`Successfully deleted ${selectedUsers.length} user(s)`);
+            setSelectedUsers([]);
+            fetchUsers();
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Bulk delete failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const formatFollowers = (count) => {
         if (!count) return '0';
         if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
@@ -191,6 +225,14 @@ const AdminUsers = () => {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <h2 className="text-2xl font-bold text-dark-100">User Management</h2>
                         <div className="flex gap-3 w-full md:w-auto">
+                            {selectedUsers.length > 0 && (
+                                <button 
+                                    onClick={handleBulkDelete}
+                                    className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-colors flex items-center gap-2"
+                                >
+                                    <FaTrash className="text-sm" /> Delete Selected ({selectedUsers.length})
+                                </button>
+                            )}
                             <button className="btn-primary flex items-center gap-2 px-4 py-2 rounded-xl bg-primary-600 text-white hover:bg-primary-500 transition-colors">
                                 <span className="text-xl">+</span> Add User
                             </button>
@@ -233,6 +275,14 @@ const AdminUsers = () => {
                             <table className="w-full">
                                 <thead className="bg-dark-900/50 border-b border-dark-800">
                                     <tr>
+                                        <th className="px-6 py-4 text-left w-12">
+                                            <input 
+                                                type="checkbox" 
+                                                className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-900"
+                                                checked={filteredUsers.length > 0 && selectedUsers.length === filteredUsers.length}
+                                                onChange={handleSelectAll}
+                                            />
+                                        </th>
                                         <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">User</th>
                                         <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">Role</th>
                                         <th className="px-6 py-4 text-left text-xs font-semibold text-dark-400 uppercase tracking-wider">Status</th>
@@ -243,14 +293,22 @@ const AdminUsers = () => {
                                 <tbody className="divide-y divide-dark-800">
                                     {loading ? (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-8 text-center text-dark-400">Loading users...</td>
+                                            <td colspan="6" className="px-6 py-8 text-center text-dark-400">Loading users...</td>
                                         </tr>
                                     ) : filteredUsers.length === 0 ? (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-8 text-center text-dark-400">No users found.</td>
+                                            <td colspan="6" className="px-6 py-8 text-center text-dark-400">No users found.</td>
                                         </tr>
                                     ) : filteredUsers.map((user) => (
                                         <tr key={user.id} className="hover:bg-dark-800/30 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-900"
+                                                    checked={selectedUsers.includes(user.id)}
+                                                    onChange={() => handleSelectUser(user.id)}
+                                                />
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center text-primary-400 font-bold border border-primary-500/30">
