@@ -94,8 +94,22 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                                             cursor: 'pointer',
                                             fontSize: '1rem'
                                         }}
-                                    >
                                         Try Again
+                                    </button>
+                                    <button
+                                        onClick={() => window.location.href = '/'}
+                                        style={{
+                                            padding: '0.75rem 2rem',
+                                            background: '#334155',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '0.5rem',
+                                            cursor: 'pointer',
+                                            fontSize: '1rem',
+                                            marginTop: '1rem'
+                                        }}
+                                    >
+                                        Go Home
                                     </button>
                                 </div>
                             )}

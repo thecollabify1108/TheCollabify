@@ -835,7 +835,7 @@ const SellerDashboard = () => {
                                                             request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
                                                                 'bg-blue-500/20 text-blue-400'
                                                             }`}>
-                                                            {(request.title && typeof request.title === 'string') ? request.title.charAt(0).toUpperCase() : '?'}
+                                                            {request.title ? request.title.charAt(0).toUpperCase() : '?'}
                                                         </div>
                                                         <span className={`px-s2.5 py-1 rounded-premium-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-dark-700/50 text-dark-400 border-dark-600/30'
                                                             }`}>
