@@ -170,25 +170,25 @@ export const chatAPI = {
 
 // Admin API
 export const adminAPI = {
-    getStats: () => api.get('admin/stats'),
-    getSettings: () => api.get('admin/settings'),
-    toggleEarlyBirdMode: (enabled) => api.put('admin/settings/early-bird', { enabled }),
-    getUsers: (params) => api.get('admin/users', { params }),
-    getUser: (id) => api.get(`admin/users/${id}`),
-    updateUserStatus: (id, isActive) => api.put(`admin/users/${id}/status`, { isActive }),
-    deleteUser: (id) => api.delete(`admin/users/${id}`),
-    bulkDeleteUsers: (userIds) => api.post('admin/bulk-delete', { userIds }),
-    getRequests: (params) => api.get('admin/requests', { params }),
-    deleteRequest: (id) => api.delete(`admin/requests/${id}`),
-    getInsights: () => api.get('admin/insights'),
+    getStats: () => api.get('management/stats'),
+    getSettings: () => api.get('management/settings'),
+    toggleEarlyBirdMode: (enabled) => api.put('management/settings/early-bird', { enabled }),
+    getUsers: (params) => api.get('management/users', { params }),
+    getUser: (id) => api.get(`management/users/${id}`),
+    updateUserStatus: (id, isActive) => api.put(`management/users/${id}/status`, { isActive }),
+    deleteUser: (id) => api.delete(`management/users/${id}`),
+    bulkDeleteUsers: (userIds) => api.post('management/bulk-delete', { userIds }),
+    getRequests: (params) => api.get('management/requests', { params }),
+    deleteRequest: (id) => api.delete(`management/requests/${id}`),
+    getInsights: () => api.get('management/insights'),
     // Verification system
-    getPendingVerification: (params) => api.get('admin/creators/pending-verification', { params }),
-    verifyCreator: (id, data) => api.post(`admin/creators/${id}/verify`, data),
+    getPendingVerification: (params) => api.get('management/creators/pending-verification', { params }),
+    verifyCreator: (id, data) => api.post(`management/creators/${id}/verify`, data),
     // Risk score
-    getCreatorRisk: (id) => api.get(`admin/creators/${id}/risk`),
-    recalculateRisk: (id) => api.post(`admin/creators/${id}/recalculate-risk`),
+    getCreatorRisk: (id) => api.get(`management/creators/${id}/risk`),
+    recalculateRisk: (id) => api.post(`management/creators/${id}/recalculate-risk`),
     // Subscription / Pro Access
-    updateSubscription: (id, tier) => api.put(`admin/users/${id}/subscription`, { tier })
+    updateSubscription: (id, tier) => api.put(`management/users/${id}/subscription`, { tier })
 };
 
 // Public API
