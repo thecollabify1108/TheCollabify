@@ -16,7 +16,7 @@ const CreatorShowcase = ({ requests, onAccept, onReject, onMessage }) => {
                     creators.push({
                         ...creator,
                         requestId: request.id,
-                        requestTitle: request.title,
+                        requestTitle: request.title || 'Untitled Campaign',
                         budget: request.budget,
                         promotionType: request.promotionType
                     });
