@@ -821,48 +821,50 @@ const SellerDashboard = () => {
                                 ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-s4">
                                         {requests.slice(0, 6).map((request, index) => (
-                                            <motion.div
-                                                key={request.id}
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: index * 0.05 }}
-                                                onClick={() => setSelectedRequest(request)}
-                                                className="p-s5 rounded-premium-2xl bg-dark-800/40 backdrop-blur-md border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800/60 shadow-md hover:shadow-premium"
-                                            >
-                                                <div className="flex items-start justify-between mb-s4">
-                                                    <div className={`w-12 h-12 rounded-premium-xl flex items-center justify-center shadow-glow border border-white/10 text-lg font-black ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                        request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
-                                                            'bg-blue-500/20 text-blue-400'
-                                                        }`}>
-                                                        {request.title?.charAt(0).toUpperCase()}
+                                            request ? (
+                                                <motion.div
+                                                    key={request.id}
+                                                    initial={{ opacity: 0, y: 20 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    transition={{ delay: index * 0.05 }}
+                                                    onClick={() => setSelectedRequest(request)}
+                                                    className="p-s5 rounded-premium-2xl bg-dark-800/40 backdrop-blur-md border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800/60 shadow-md hover:shadow-premium"
+                                                >
+                                                    <div className="flex items-start justify-between mb-s4">
+                                                        <div className={`w-12 h-12 rounded-premium-xl flex items-center justify-center shadow-glow border border-white/10 text-lg font-black ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                            request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
+                                                                'bg-blue-500/20 text-blue-400'
+                                                            }`}>
+                                                            {(request.title && typeof request.title === 'string') ? request.title.charAt(0).toUpperCase() : '?'}
+                                                        </div>
+                                                        <span className={`px-s2.5 py-1 rounded-premium-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-dark-700/50 text-dark-400 border-dark-600/30'
+                                                            }`}>
+                                                            {request.status}
+                                                        </span>
                                                     </div>
-                                                    <span className={`px-s2.5 py-1 rounded-premium-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-dark-700/50 text-dark-400 border-dark-600/30'
-                                                        }`}>
-                                                        {request.status}
-                                                    </span>
-                                                </div>
 
-                                                <h3 className="text-body font-black text-dark-100 mb-s2 group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-tight">{request.title}</h3>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Budget</span>
-                                                        <span className="text-xs-pure font-black text-dark-100">₹{request.budget?.toLocaleString()}</span>
+                                                    <h3 className="text-body font-black text-dark-100 mb-s2 group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-tight">{request.title || 'Untitled Campaign'}</h3>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Budget</span>
+                                                            <span className="text-xs-pure font-black text-dark-100">₹{request.budget?.toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Matches</span>
+                                                            <span className="text-xs-pure font-black text-primary-400">{request.matchedCreators?.length || 0}</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Matches</span>
-                                                        <span className="text-xs-pure font-black text-primary-400">{request.matchedCreators?.length || 0}</span>
-                                                    </div>
-                                                </div>
 
-                                                {/* Progress Bar Simulation */}
-                                                <div className="w-full bg-dark-950/50 rounded-free h-1 mt-s5 overflow-hidden border border-dark-800/50">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
-                                                        className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-free"
-                                                    />
-                                                </div>
-                                            </motion.div>
+                                                    {/* Progress Bar Simulation */}
+                                                    <div className="w-full bg-dark-950/50 rounded-free h-1 mt-s5 overflow-hidden border border-dark-800/50">
+                                                        <motion.div
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
+                                                            className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-free"
+                                                        />
+                                                    </div>
+                                                </motion.div>
+                                            ) : null
                                         ))}
                                     </div>
                                 )}
@@ -915,7 +917,7 @@ const SellerDashboard = () => {
             <BottomSheet
                 isOpen={!!selectedRequest}
                 onClose={() => setSelectedRequest(null)}
-                title={selectedRequest?.title || 'Campaign Details'}
+                title={(selectedRequest && typeof selectedRequest.title === 'string') ? selectedRequest.title : 'Campaign Details'}
                 className="p-0" // Remove default padding as CampaignTracker has its own
             >
                 {selectedRequest && (

@@ -12,7 +12,8 @@ const useWebSocket = (userId) => {
     const [onlineUsers, setOnlineUsers] = useState(new Set());
 
     useEffect(() => {
-        if (!userId) {
+        const token = localStorage.getItem('token');
+        if (!userId || !token) {
             webSocketService.disconnect();
             setIsConnected(false);
             setNotifications([]);
@@ -20,7 +21,6 @@ const useWebSocket = (userId) => {
             return;
         }
 
-        const token = localStorage.getItem('token');
         webSocketService.connect(userId, token);
 
         // Update local state when connection status changes
