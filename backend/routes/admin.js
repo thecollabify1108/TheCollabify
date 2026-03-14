@@ -298,7 +298,12 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
                 where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] }
             });
 
-            // 3. Delete user account
+            // 3. Delete user account and lingering isolated tables
+            await tx.userRole.deleteMany({ where: { userId: user.id } });
+            await tx.analytics.deleteMany({ where: { userId: user.id } });
+            await tx.userIntent.deleteMany({ where: { userId: user.id } });
+            await tx.apiKey.deleteMany({ where: { userId: user.id } });
+            
             await tx.user.delete({ where: { id: user.id } });
         });
 
@@ -399,6 +404,12 @@ router.post('/bulk-delete', auth, isAdmin, [
                 await tx.message.deleteMany({ where: { senderId: user.id } });
 
                 await tx.conversation.deleteMany({ where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] } });
+                
+                await tx.userRole.deleteMany({ where: { userId: user.id } });
+                await tx.analytics.deleteMany({ where: { userId: user.id } });
+                await tx.userIntent.deleteMany({ where: { userId: user.id } });
+                await tx.apiKey.deleteMany({ where: { userId: user.id } });
+
                 await tx.user.delete({ where: { id: user.id } });
                 count++;
             }
