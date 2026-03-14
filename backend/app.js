@@ -190,7 +190,6 @@ app.get('/health', (req, res) => {
 
 // Track initialization status
 let prisma = null;
-let passport = null;
 let initializeSocketServer = null;
 let isFullyInitialized = false;
 let initError = null;
@@ -267,6 +266,16 @@ app.use(session({
     }
 }));
 
+// 7. Initialize Passport (MUST be synchronous before routes are registered)
+try {
+    const passport = require('./config/passport');
+    app.use(passport.initialize());
+    app.use(passport.session());
+    console.log('✅ Passport initialized');
+} catch (e) {
+    console.error('❌ Passport initialization failed:', e.message);
+}
+
 // Initialize complex modules asynchronously
 const initializeModules = async () => {
     try {
@@ -326,16 +335,6 @@ const initializeModules = async () => {
                 // success — Azure stays warm
             }).on('error', () => { /* ignore self-ping errors */ });
         }, 4 * 60 * 1000); // every 4 minutes
-
-        // 3. Load Passport
-        try {
-            passport = require('./config/passport');
-            app.use(passport.initialize());
-            app.use(passport.session());
-            console.log('✅ Passport initialized');
-        } catch (e) {
-            console.error('❌ Passport initialization failed:', e.message);
-        }
 
         // 4. Load Socket.io
         try {
