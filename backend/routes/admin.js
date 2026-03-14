@@ -282,9 +282,18 @@ router.delete('/users/:id', auth, isAdmin, async (req, res) => {
 
             // 2. Generic cleanup
             await tx.notification.deleteMany({ where: { userId: user.id } });
-            await tx.message.deleteMany({
-                where: { OR: [{ senderId: user.id }, { receiverId: user.id }] }
+            
+            const userConvos = await tx.conversation.findMany({
+                where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] },
+                select: { id: true }
             });
+            const userConvoIds = userConvos.map(c => c.id);
+            if (userConvoIds.length > 0) {
+                await tx.message.deleteMany({ where: { conversationId: { in: userConvoIds } } });
+                await tx.conversationDeletion.deleteMany({ where: { conversationId: { in: userConvoIds } } });
+            }
+            await tx.message.deleteMany({ where: { senderId: user.id } });
+
             await tx.conversation.deleteMany({
                 where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] }
             });
@@ -377,7 +386,18 @@ router.post('/bulk-delete', auth, isAdmin, [
                 }
 
                 await tx.notification.deleteMany({ where: { userId: user.id } });
-                await tx.message.deleteMany({ where: { OR: [{ senderId: user.id }, { receiverId: user.id }] } });
+                
+                const userConvos = await tx.conversation.findMany({
+                    where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] },
+                    select: { id: true }
+                });
+                const userConvoIds = userConvos.map(c => c.id);
+                if (userConvoIds.length > 0) {
+                    await tx.message.deleteMany({ where: { conversationId: { in: userConvoIds } } });
+                    await tx.conversationDeletion.deleteMany({ where: { conversationId: { in: userConvoIds } } });
+                }
+                await tx.message.deleteMany({ where: { senderId: user.id } });
+
                 await tx.conversation.deleteMany({ where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] } });
                 await tx.user.delete({ where: { id: user.id } });
                 count++;
