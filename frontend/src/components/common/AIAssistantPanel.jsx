@@ -137,7 +137,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
         );
     };
 
-    return (
+    // function return only, not top-level return
         <>
             {/* Floating FAB — only shown in stand-alone mode (no onClose prop) */}
             {!onClose && (
@@ -337,5 +337,5 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
                 )}
             </AnimatePresence>
         </>
-    );
+    // Remove extra closing parenthesis
 export default AIAssistantPanel;
