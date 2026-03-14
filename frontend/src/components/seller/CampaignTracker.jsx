@@ -213,7 +213,6 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         <p className="text-body text-dark-500 uppercase tracking-tighter font-medium">Accept an applicant to start your campaign.</p>
                     </div>
                 )}
-                Broadway
                 {activeSection === 'applicants' && applicants.map((mc, index) => (
                     <CreatorCard
                         key={mc.id || index}

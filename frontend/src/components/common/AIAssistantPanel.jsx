@@ -92,6 +92,65 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
                 .catch(() => { }); // fail silently, use client-side canAccessMode as fallback
         }
     }, [isOpen]);
+    // Daily limit checks
+    const dailyRemaining = featureManifest?.dailyAILimit !== undefined ? 
+        Math.max(0, featureManifest.dailyAILimit - (featureManifest.dailyAICount || 0)) : null;
+
+    const isModeLocked = (modeId) => {
+        if (!featureManifest) return !canAccessMode(userTier, modeId);
+        return !featureManifest.modes?.[modeId]?.accessible;
+    };
+
+    const isModeSummary = (modeId) => {
+        if (!featureManifest) return false;
+        return featureManifest.modes?.[modeId]?.summaryOnly;
+    };
+
+    const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        toast.success('Copied to clipboard');
+    };
+
+    const copyFullReport = () => {
+        if (!modeResult) return;
+        const keys = OUTPUT_KEYS[modeResult.mode] || [];
+        const text = keys.map(k => `${OUTPUT_LABELS[k] || k}: ${modeResult.data[k]}`).join('\n');
+        copyToClipboard(text);
+    };
+
+    const useContent = () => {
+        if (generatedContent && onUse) {
+            onUse(generatedContent.content);
+            handleClose();
+        }
+    };
+
+    const handleRunMode = async () => {
+        if (!selectedMode || isGenerating) return;
+        setIsGenerating(true);
+        try {
+            const res = await aiAPI.analyze(selectedMode, { campaign });
+            if (res.data.success) {
+                setModeResult({ mode: selectedMode, data: res.data.data });
+                // Update feature manifest to reflect new count
+                setFeatureManifest(prev => ({
+                    ...prev,
+                    dailyAICount: (prev?.dailyAICount || 0) + 1
+                }));
+            }
+        } catch (err) {
+            toast.error('Analysis failed. Please try again.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleGenerateCaption = async () => { /* ... */ };
+    const handleGenerateHashtags = async () => { /* ... */ };
+
+    const renderModeForm = () => { /* ... */ };
+
+    const renderModeResult = () => {
         if (!modeResult) return null;
         const keys = OUTPUT_KEYS[modeResult.mode] || [];
         return (
@@ -137,7 +196,12 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
         );
     };
 
-    // function return only, not top-level return
+    const labelCls = "block text-[10px] font-bold text-dark-500 uppercase tracking-wider mb-1.5";
+    const inputCls = "w-full bg-dark-950 border border-dark-700 rounded-lg px-3 py-2 text-sm text-dark-100 focus:outline-none focus:border-purple-500/50";
+    const selectCls = "w-full bg-dark-950 border border-dark-700 rounded-lg px-3 py-2 text-sm text-dark-100 focus:outline-none focus:border-purple-500/50";
+    const [params, setParams] = useState({ topic: '', platform: 'Instagram', tone: 'casual', niche: 'Fashion' });
+
+    return (
         <>
             {/* Floating FAB — only shown in stand-alone mode (no onClose prop) */}
             {!onClose && (
@@ -337,5 +401,7 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
                 )}
             </AnimatePresence>
         </>
-    // Remove extra closing parenthesis
+    );
+};
+
 export default AIAssistantPanel;
