@@ -148,14 +148,31 @@ const CreatorDashboard = () => {
         }
 
         try {
+            let profilePromise, promotionsPromise, applicationsPromise;
+            if (user?.role === 'seller' || user?.role === 'brand') {
+                // Sellers/brands should fetch their own profile
+                profilePromise = import('../services/api').then(m => m.sellerAPI.getRequests());
+                promotionsPromise = Promise.resolve({ status: 'fulfilled', value: { data: { data: { promotions: [] } } } });
+                applicationsPromise = Promise.resolve({ status: 'fulfilled', value: { data: { data: { applications: [] } } } });
+            } else {
+                profilePromise = creatorAPI.getProfile();
+                promotionsPromise = creatorAPI.getPromotions();
+                applicationsPromise = creatorAPI.getApplications();
+            }
             const [profileRes, promotionsRes, applicationsRes] = await Promise.allSettled([
-                creatorAPI.getProfile(),
-                creatorAPI.getPromotions(),
-                creatorAPI.getApplications()
+                profilePromise,
+                promotionsPromise,
+                applicationsPromise
             ]);
 
             if (profileRes.status === 'fulfilled') {
-                const freshProfile = normalizeProfile(profileRes.value.data.data.profile);
+                let freshProfile;
+                if (user?.role === 'seller' || user?.role === 'brand') {
+                    // Seller/brand profile shape
+                    freshProfile = profileRes.value.data.data.requests?.[0] || {};
+                } else {
+                    freshProfile = normalizeProfile(profileRes.value.data.data.profile);
+                }
                 setProfile(freshProfile);
                 setCache('creator_profile', freshProfile);
             } else if (profileRes.reason?.response?.status === 404) {
