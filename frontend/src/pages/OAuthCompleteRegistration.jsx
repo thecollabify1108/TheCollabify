@@ -50,7 +50,7 @@ const OAuthCompleteRegistration = () => {
                 const res = await api.get('oauth/session-data');
                 if (res.data?.success) {
                     setHasSession(true);
-                    setProfileInfo(res.data.profile);
+                    setProfileInfo(res.data.data);
                 } else {
                     setHasSession(false);
                 }
@@ -82,15 +82,9 @@ const OAuthCompleteRegistration = () => {
 
             if (oauthProfile) {
                 // ── New backend (JWT-based) ────────────────────────────────────
-                const [, payloadB64] = oauthProfile.split('.');
-                const profile = JSON.parse(
-                    atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/'))
-                );
+                // Send the signed token to backend verification; do not trust decoded payload on client.
                 user = await googleLogin({
-                    email: profile.email,
-                    name: profile.name,
-                    googleId: profile.googleId,
-                    avatar: profile.avatar,
+                    profileToken: oauthProfile,
                     role
                 });
                 // googleLogin sets token internally via AuthContext

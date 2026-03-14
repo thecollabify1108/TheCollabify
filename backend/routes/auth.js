@@ -20,6 +20,18 @@ const setCookieToken = (res, token) => {
     });
 };
 
+// Safely compare bcrypt hashes; returns false instead of throwing on malformed hashes.
+const safeBcryptCompare = async (plain, maybeHash) => {
+    if (!maybeHash || typeof maybeHash !== 'string') return false;
+    // bcrypt hashes start with $2a$, $2b$, or $2y$
+    if (!/^\$2[aby]\$/.test(maybeHash)) return false;
+    try {
+        return await bcrypt.compare(plain, maybeHash);
+    } catch {
+        return false;
+    }
+};
+
 const sanitizeUser = (user) => {
     const out = {
         id: user.id,
@@ -334,13 +346,13 @@ router.post('/login', [
             if (role) {
                 const roleObj = user.roles.find(r => r.type === role.toUpperCase());
                 if (roleObj) {
-                    isMatch = await bcrypt.compare(password, roleObj.password);
+                    isMatch = await safeBcryptCompare(password, roleObj.password);
                     matchedRole = role.toUpperCase();
                 }
             } else {
                 // FIX #17: use const/let — var hoists out of for-block causing subtle bugs
                 for (let i = 0; i < user.roles.length; i++) {
-                    const match = await bcrypt.compare(password, user.roles[i].password);
+                    const match = await safeBcryptCompare(password, user.roles[i].password);
                     if (match) {
                         isMatch = true;
                         matchedRole = user.roles[i].type;
@@ -352,7 +364,7 @@ router.post('/login', [
 
         // --- Fallback: check User.password directly (covers admin + legacy accounts) ---
         if (!isMatch && user.password) {
-            const directMatch = await bcrypt.compare(password, user.password);
+            const directMatch = await safeBcryptCompare(password, user.password);
             if (directMatch) {
                 isMatch = true;
                 matchedRole = role ? role.toUpperCase() : (user.activeRole || 'CREATOR');
@@ -461,7 +473,7 @@ router.post('/change-password', auth, [
         const roleObj = user.roles.find(r => r.type === (user.activeRole || 'CREATOR'));
         if (!roleObj) return res.status(400).json({ success: false, message: 'User role not found' });
 
-        const isMatch = await bcrypt.compare(currentPassword, roleObj.password);
+        const isMatch = await safeBcryptCompare(currentPassword, roleObj.password);
         if (!isMatch) return res.status(400).json({ success: false, message: 'Current password is incorrect' });
 
         const hashed = await bcrypt.hash(newPassword, 12);

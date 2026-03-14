@@ -289,63 +289,23 @@ const initializeModules = async () => {
             console.error('❌ Database connection failed:', e.message);
         }
 
-        // 2a. Run pending migrations on startup (non-blocking background task)
-        // FIX #1_v2: Run migrations in the background so the server can start responding
-        // to health checks and early requests immediately.
-        try {
-            const { exec } = require('child_process');
-            console.log('🔄 [Startup] Starting prisma migrate deploy in background...');
-            // No await here - let it fire and forget
-            exec('npx prisma migrate deploy', { cwd: __dirname, timeout: 60000 }, (migErr, stdout, stderr) => {
-                if (migErr) {
-                    console.warn('⚠️  [Startup] Background migration warning:', migErr.message?.substring(0, 200));
-                } else {
-                    console.log('✅ [Startup] Background migrations applied successfully');
-                }
-            });
-        } catch (migErr) {
-            console.warn('⚠️  [Startup] Background migration trigger error:', migErr.message?.substring(0, 200));
-        }
-
-        // 2aa. Auto-seed admin account if it doesn't exist (runs once after migrations)
-        setTimeout(async () => {
+        // 2a. Optional startup migrations (disabled by default in production)
+        // Use CI/CD for migrations; enable only when explicitly configured.
+        if (process.env.RUN_MIGRATIONS_ON_STARTUP === 'true') {
             try {
-                const bcrypt = require('bcryptjs');
-                const adminEmail = process.env.ADMIN_EMAIL || 'admin@thecollabify.tech';
-                const adminPassword = process.env.ADMIN_PASSWORD || 'Admin@Collabify2026';
-                const existing = await prisma.user.findUnique({ where: { email: adminEmail } });
-                if (!existing) {
-                    const hashed = await bcrypt.hash(adminPassword, 12);
-                    const user = await prisma.user.create({
-                        data: {
-                            email: adminEmail,
-                            name: 'Admin',
-                            password: hashed,
-                            activeRole: 'ADMIN',
-                            authProvider: 'LOCAL',
-                            isActive: true,
-                            roles: { create: { type: 'ADMIN', password: hashed } }
-                        }
-                    });
-                    console.log('✅ [Startup] Admin account created:', adminEmail);
-                } else {
-                    // Ensure UserRole entry exists with current password
-                    const bcrypt = require('bcryptjs');
-                    const hashed = await bcrypt.hash(adminPassword, 12);
-                    const hasAdminRole = await prisma.userRole.findFirst({ where: { userId: existing.id, type: 'ADMIN' } });
-                    if (!hasAdminRole) {
-                        await prisma.userRole.create({ data: { userId: existing.id, type: 'ADMIN', password: hashed } });
-                        console.log('✅ [Startup] Admin UserRole entry created');
+                const { exec } = require('child_process');
+                console.log('🔄 [Startup] RUN_MIGRATIONS_ON_STARTUP=true, running prisma migrate deploy...');
+                exec('npx prisma migrate deploy', { cwd: __dirname, timeout: 60000 }, (migErr) => {
+                    if (migErr) {
+                        console.warn('⚠️  [Startup] Migration warning:', migErr.message?.substring(0, 200));
                     } else {
-                        await prisma.userRole.updateMany({ where: { userId: existing.id, type: 'ADMIN' }, data: { password: hashed } });
-                        await prisma.user.update({ where: { id: existing.id }, data: { password: hashed, activeRole: 'ADMIN', isActive: true } });
-                        console.log('✅ [Startup] Admin account password synced');
+                        console.log('✅ [Startup] Migrations applied successfully');
                     }
-                }
-            } catch (e) {
-                console.warn('⚠️  [Startup] Admin seed failed (non-fatal):', e.message);
+                });
+            } catch (migErr) {
+                console.warn('⚠️  [Startup] Migration trigger error:', migErr.message?.substring(0, 200));
             }
-        }, 5000); // 5 seconds after startup — after migrations settle
+        }
 
         // 2b. Keep-alive: ping DB every 2 minutes to prevent Azure cold-start
         setInterval(async () => {
@@ -428,9 +388,9 @@ const safeRoute = (path, ...handlers) => {
 };
 
 // FIX #12: Apply authTimeoutMiddleware to auth routes (shorter timeout for auth endpoints)
-try { safeRoute('/api/auth', authTimeoutMiddleware, require('./routes/auth')); } catch (e) { console.error('auth route failed:', e.message); }
+try { safeRoute('/api/auth', authLimiter, authTimeoutMiddleware, require('./routes/auth')); } catch (e) { console.error('auth route failed:', e.message); }
 try { safeRoute('/api/auth/password-reset', authTimeoutMiddleware, strictLimiter, require('./routes/passwordReset')); } catch (e) { console.error('passwordReset route failed:', e.message); }
-try { safeRoute('/api/oauth', authTimeoutMiddleware, require('./routes/oauth')); } catch (e) { console.error('oauth route failed:', e.message); }
+try { safeRoute('/api/oauth', authLimiter, authTimeoutMiddleware, require('./routes/oauth')); } catch (e) { console.error('oauth route failed:', e.message); }
 try { safeRoute('/api/search', cacheMiddleware(300), require('./routes/search')); } catch (e) { console.error('search route failed:', e.message); }
 try { safeRoute('/api/leaderboard', cacheMiddleware(300), require('./routes/leaderboard')); } catch (e) { console.error('leaderboard route failed:', e.message); }
 try { safeRoute('/api/achievements', cacheMiddleware(300), require('./routes/achievements')); } catch (e) { console.error('achievements route failed:', e.message); }
@@ -588,15 +548,16 @@ if (process.env.NODE_ENV !== 'test') {
             scheduleAdminBootstrap();
         }
 
-        // Start background tasks ONLY after a delay to ensure DB pool is ready
-        setTimeout(() => {
-            console.log('🔄 Starting background schedulers...');
-            // Start friction detection scheduler (runs every 24h automatically)
-            startFrictionScheduler();
-
-            // Start AI engine scheduler (weekly + monthly jobs)
-            startAIScheduler();
-        }, 60 * 1000); // 1 minute delay after process start
+        // Start heavy background tasks only when explicitly enabled.
+        if (process.env.ENABLE_BACKGROUND_JOBS === 'true') {
+            setTimeout(() => {
+                console.log('🔄 Starting background schedulers...');
+                startFrictionScheduler();
+                startAIScheduler();
+            }, 60 * 1000);
+        } else {
+            console.log('ℹ️  Background schedulers disabled (set ENABLE_BACKGROUND_JOBS=true to enable)');
+        }
 
         if (initializeSocketServer) {
             try {

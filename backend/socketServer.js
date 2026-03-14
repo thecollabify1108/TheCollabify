@@ -17,9 +17,26 @@ const onlineUsers = new Map();
 const userSockets = new Map();
 
 function initializeSocketServer(httpServer) {
+    const envOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+    const isAllowedOrigin = (origin) => {
+        if (!origin) return true;
+        if (origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) return true;
+        if (/^https:\/\/([\w-]+\.)*thecollabify\.(tech|pages\.dev)$/.test(origin)) return true;
+        if (/^https:\/\/([\w-]+\.)*thecollabify-frontend\.pages\.dev$/.test(origin)) return true;
+        if (/^https:\/\/[\w-]+\.[\w-]+\.azurewebsites\.net$/.test(origin)) return true;
+        return envOrigins.includes(origin);
+    };
+
     const io = new Server(httpServer, {
         cors: {
-            origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+            origin: (origin, callback) => {
+                if (isAllowedOrigin(origin)) return callback(null, true);
+                return callback(new Error('CORS not allowed for Socket.IO origin'));
+            },
             methods: ['GET', 'POST'],
             credentials: true
         },

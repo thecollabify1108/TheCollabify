@@ -121,6 +121,18 @@ export const AuthProvider = ({ children }) => {
         return normalizeUser(userData);
     };
 
+    const googleLogin = async (payload) => {
+        const response = await api.post('oauth/google-login', payload);
+        const { token: newToken, user: userData } = response.data.data;
+
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+        setUser(normalizeUser(userData));
+        cacheUser(userData);
+
+        return normalizeUser(userData);
+    };
+
     const logout = async () => {
         try {
             // Call backend to clear HTTPOnly cookie
@@ -167,6 +179,7 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         login,
         register,
+        googleLogin,
         logout,
         updateProfile,
         forgotPassword,

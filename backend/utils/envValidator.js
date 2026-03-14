@@ -30,10 +30,13 @@ const optionalEnvVars = {
     PORT: '5000',
     NODE_ENV: 'development',
     FRONTEND_URL: 'http://localhost:5173',
+    FRONTEND_URLS: 'http://localhost:5173',
     JWT_EXPIRE: '7d',
     SENTRY_DSN: undefined,
     ADMIN_ALLOWED_IPS: '127.0.0.1,::1',
     REDIS_URL: undefined,
+    RUN_MIGRATIONS_ON_STARTUP: 'false',
+    ENABLE_BACKGROUND_JOBS: 'false',
 };
 
 /**

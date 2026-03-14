@@ -28,9 +28,10 @@ function appendPoolParams(url) {
     if (!url) return url;
     const sep = url.includes('?') ? '&' : '?';
     const extras = [];
-    if (!url.includes('connection_limit')) extras.push('connection_limit=20');
-    if (!url.includes('pool_timeout')) extras.push('pool_timeout=60');
-    if (!url.includes('connect_timeout')) extras.push('connect_timeout=60');
+    // Conservative defaults for small Azure tiers to avoid pool saturation.
+    if (!url.includes('connection_limit')) extras.push('connection_limit=5');
+    if (!url.includes('pool_timeout')) extras.push('pool_timeout=15');
+    if (!url.includes('connect_timeout')) extras.push('connect_timeout=10');
     return extras.length ? `${url}${sep}${extras.join('&')}` : url;
 }
 
