@@ -79,8 +79,8 @@ const PlatformSettingsPanel = () => {
                         } disabled:opacity-50`}
                         aria-label="Toggle Early Bird Mode"
                     >
-                        <span className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform duration-200 ${
-                            earlyBirdEnabled ? 'translate-x-7' : 'translate-x-0.5'
+                        <span className={`absolute left-0 top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform duration-200 ${
+                            earlyBirdEnabled ? 'translate-x-[26px]' : 'translate-x-[2px]'
                         }`} />
                     </button>
                 </div>

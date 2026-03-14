@@ -51,7 +51,7 @@ const AdminDashboard = ({ stats, loading }) => {
         { name: 'Brands', value: stats.users?.sellers || 0 },
     ].filter(d => d.value > 0);
 
-    const COLORS = ['#6366f1', '#818cf8']; // Primary, Secondary
+    const COLORS = ['#6366f1', '#10b981']; // Primary (Indigo), Success (Emerald)
 
     const StatCard = ({ title, value, subtext, icon: Icon, color, trend }) => (
         <motion.div

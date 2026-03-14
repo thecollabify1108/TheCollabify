@@ -297,8 +297,8 @@ const AdminUsers = () => {
                                                         title="Set Subscription Tier"
                                                     >
                                                         <option value="FREE">Free</option>
-                                                        <option value="CREATOR_PRO">Creator Pro</option>
-                                                        <option value="BRAND_PRO">Brand Pro</option>
+                                                        {user.activeRole === 'CREATOR' && <option value="CREATOR_PRO">Creator Pro</option>}
+                                                        {user.activeRole === 'SELLER' && <option value="BRAND_PRO">Brand Pro</option>}
                                                     </select>
                                                     <button
                                                         onClick={() => handleToggleStatus(user.id, user.isActive)}

@@ -751,8 +751,22 @@ router.put('/users/:id/subscription', auth, isAdmin, [
         const updated = await prisma.user.update({
             where: { id: req.params.id },
             data: { subscriptionTier: req.body.tier },
-            select: { id: true, name: true, email: true, subscriptionTier: true }
+            select: { id: true, name: true, email: true, subscriptionTier: true, activeRole: true }
         });
+
+        // Notify user of Pro upgrade
+        if (req.body.tier !== 'FREE' && user.subscriptionTier !== req.body.tier) {
+            const tierName = req.body.tier === 'CREATOR_PRO' ? 'Creator Pro' : 'Brand Pro';
+            await prisma.notification.create({
+                data: {
+                    userId: user.id,
+                    type: 'SYSTEM',
+                    title: 'Subscription Upgraded! 🎉',
+                    message: `An admin has upgraded your account to ${tierName}. Enjoy your new premium features!`,
+                    isRead: false
+                }
+            });
+        }
 
         res.json({
             success: true,

@@ -13,6 +13,7 @@ import {
     FaTimes
 } from 'react-icons/fa';
 import ThemeToggle from '../common/ThemeToggle';
+import NotificationBell from '../common/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminLayout = ({ children, activeTab, setActiveTab }) => {
@@ -154,10 +155,7 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-4">
-                        <button className="relative p-2 text-dark-400 hover:text-primary-400 transition-colors rounded-full hover:bg-dark-800">
-                            <FaBell className="text-lg" />
-                            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-dark-900"></span>
-                        </button>
+                        <NotificationBell />
                         <ThemeToggle />
                     </div>
                 </header>
