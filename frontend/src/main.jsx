@@ -94,6 +94,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
                                             cursor: 'pointer',
                                             fontSize: '1rem'
                                         }}
+                                    >
                                         Try Again
                                     </button>
                                     <button

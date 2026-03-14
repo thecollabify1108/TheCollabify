@@ -121,6 +121,26 @@ export const AuthProvider = ({ children }) => {
         return normalizeUser(userData);
     };
 
+    const registerSendOtp = async (email, name, password, role) => {
+        const response = await api.post('auth/register/send-otp', { email, name, password, role });
+        return response.data;
+    };
+
+    const registerVerifyOtp = async (tempUserId, otp) => {
+        const response = await api.post('auth/register/verify-otp', { tempUserId, otp });
+        const { token: newToken, user: userData } = response.data.data;
+        localStorage.setItem('token', newToken);
+        setToken(newToken);
+        setUser(normalizeUser(userData));
+        cacheUser(userData);
+        return normalizeUser(userData);
+    };
+
+    const registerResendOtp = async (tempUserId) => {
+        const response = await api.post('auth/register/resend-otp', { tempUserId });
+        return response.data;
+    };
+
     const googleLogin = async (payload) => {
         const response = await api.post('oauth/google-login', payload);
         const { token: newToken, user: userData } = response.data.data;
@@ -179,6 +199,9 @@ export const AuthProvider = ({ children }) => {
         isAuthenticated: !!user,
         login,
         register,
+        registerSendOtp,
+        registerVerifyOtp,
+        registerResendOtp,
         googleLogin,
         logout,
         updateProfile,

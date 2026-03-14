@@ -7,12 +7,13 @@ import Confetti from '../components/common/Confetti';
 import PasswordStrengthIndicator from '../components/common/PasswordStrengthIndicator';
 import AuthLayout from '../components/auth/AuthLayout';
 import Icon from '../components/common/Icon';
+import OTPInput from '../components/common/OTPInput';
 import { isValidForRegister } from '../utils/passwordValidator';
 
 const Register = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const { register } = useAuth();
+    const { registerSendOtp, registerVerifyOtp, registerResendOtp } = useAuth();
 
     // Steps: 1=Role, 2=Details
     const [step, setStep] = useState(1);
@@ -26,9 +27,15 @@ const Register = () => {
         role: searchParams.get('role') || ''
     });
 
+    const [tempUserId, setTempUserId] = useState(null);
+    const [otp, setOtp] = useState(['', '', '', '', '', '']);
+    const [otpTimer, setOtpTimer] = useState(600);
+    const [canResend, setCanResend] = useState(false);
+
     // UI State
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [otpLoading, setOtpLoading] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
 
     useEffect(() => {
@@ -37,6 +44,28 @@ const Register = () => {
             setFormData(prev => ({ ...prev, role: roleFromUrl }));
         }
     }, [searchParams]);
+
+    // OTP Timer
+    useEffect(() => {
+        if (step === 3 && otpTimer > 0) {
+            const timer = setInterval(() => {
+                setOtpTimer(prev => {
+                    if (prev <= 1) {
+                        clearInterval(timer);
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+
+            // Enable resend after 60 seconds
+            if (otpTimer === 540) {
+                setCanResend(true);
+            }
+
+            return () => clearInterval(timer);
+        }
+    }, [step, otpTimer]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -54,7 +83,8 @@ const Register = () => {
         setFormData(prev => ({ ...prev, role }));
     };
 
-    const handleSubmit = async (e) => {
+    // Submitting Details Form (Step 2) -> sends OTP
+    const handleSubmitDetails = async (e) => {
         e.preventDefault();
 
         if (formData.password !== formData.confirmPassword) {
@@ -70,7 +100,36 @@ const Register = () => {
         setLoading(true);
 
         try {
-            const userData = await register(formData.email, formData.name, formData.password, formData.role);
+            const response = await registerSendOtp(formData.email, formData.name, formData.password, formData.role);
+            
+            setTempUserId(response.data.tempUserId);
+            setOtpTimer(response.data.expiresIn || 600);
+            setCanResend(false);
+            setStep(3);
+            toast.success(response.message || 'OTP sent to your email.');
+
+        } catch (error) {
+            const message = !error.response && error.message?.includes('Network')
+                ? 'Unable to reach the server. Please try again later.'
+                : error.response?.data?.message || 'Failed to send verification code. Please try again.';
+            toast.error(message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Submitting OTP Form (Step 3) -> verifies and logs in
+    const handleVerifyOtp = async () => {
+        const otpCode = otp.join('');
+        if (otpCode.length !== 6) {
+            toast.error('Please enter complete OTP');
+            return;
+        }
+
+        setOtpLoading(true);
+
+        try {
+            const userData = await registerVerifyOtp(tempUserId, otpCode);
 
             setShowConfetti(true);
             toast.success('Welcome to TheCollabify!');
@@ -79,12 +138,24 @@ const Register = () => {
                 navigate(userData.role === 'creator' ? '/creator/dashboard' : '/seller/dashboard');
             }, 1000);
         } catch (error) {
-            const message = !error.response && error.message?.includes('Network')
-                ? 'Unable to reach the server. Please try again later.'
-                : error.response?.data?.message || 'Registration failed. Please try again.';
-            toast.error(message);
+            toast.error(error.response?.data?.message || 'Invalid or expired OTP');
+            setOtp(['', '', '', '', '', '']); // Clear OTP
         } finally {
-            setLoading(false);
+            setOtpLoading(false);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (!canResend) return;
+
+        try {
+            const response = await registerResendOtp(tempUserId);
+            setOtpTimer(response.data?.expiresIn || 600);
+            setCanResend(false);
+            setOtp(['', '', '', '', '', '']);
+            toast.success('New code sent.');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to resend code');
         }
     };
 
@@ -92,12 +163,14 @@ const Register = () => {
     const getStepTitle = () => {
         if (step === 1) return "Choose your path";
         if (step === 2) return "Create your account";
+        if (step === 3) return "Verify your email";
         return "Register";
     };
 
     const getStepSubtitle = () => {
         if (step === 1) return "How do you want to use TheCollabify?";
         if (step === 2) return "Fill in your details to get started.";
+        if (step === 3) return `We sent a 6-digit code to ${formData.email}`;
         return "";
     };
 
@@ -105,7 +178,7 @@ const Register = () => {
         <AuthLayout title={getStepTitle()} subtitle={getStepSubtitle()}>
             <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
 
-            {/* Back Button for Step 2 */}
+            {/* Back Button for Steps 2 and 3 */}
             {step > 1 && (
                 <button
                     onClick={() => setStep(prev => prev - 1)}
@@ -216,7 +289,7 @@ const Register = () => {
                         exit={{ opacity: 0, x: -20 }}
                         transition={{ duration: 0.3 }}
                     >
-                        <form onSubmit={handleSubmit} className="space-y-8">
+                        <form onSubmit={handleSubmitDetails} className="space-y-8">
                             {/* Name */}
                             <div className="space-y-1 group">
                                 <label className="text-sm font-medium text-dark-500 group-focus-within:text-primary-500 transition-colors">Full Name <span className="text-red-400">*</span></label>
@@ -290,9 +363,65 @@ const Register = () => {
                                 disabled={loading}
                                 className="w-full py-4 mt-4 bg-white/10 dark:bg-black/10 backdrop-blur-md border border-dark-200 dark:border-dark-700 text-dark-900 dark:text-dark-100 font-bold uppercase tracking-wider text-sm hover:bg-white/20 dark:hover:bg-black/20 transition-all disabled:opacity-50 shadow-lg"
                             >
-                                {loading ? 'Creating Account...' : `Join as a ${formData.role === 'seller' ? 'Brand' : 'Creator'}`}
+                                {loading ? 'Sending Code...' : `Continue to Verification`}
                             </button>
                         </form>
+                    </motion.div>
+                )}
+
+                {/* STEP 3: OTP VERIFICATION */}
+                {step === 3 && (
+                    <motion.div
+                        key="step3"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <div className="space-y-6">
+                            <div className="mb-8">
+                                <OTPInput
+                                    value={otp}
+                                    onChange={setOtp}
+                                    disabled={otpLoading || otpTimer === 0}
+                                />
+                            </div>
+
+                            <div className="text-center mb-6">
+                                {otpTimer > 0 ? (
+                                    <p className="text-dark-300">
+                                        ⏱️ Code expires in:{' '}
+                                        <span className="text-primary-400 font-mono font-medium">
+                                            {Math.floor(otpTimer / 60)}:{(otpTimer % 60).toString().padStart(2, '0')}
+                                        </span>
+                                    </p>
+                                ) : (
+                                    <p className="text-red-400">Code expired. Please request a new one.</p>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={handleVerifyOtp}
+                                disabled={otpLoading || otpTimer === 0 || otp.some(digit => !digit)}
+                                className="btn-3d w-full py-4 disabled:opacity-50 disabled:cursor-not-allowed mb-4"
+                            >
+                                {otpLoading ? 'Verifying...' : '✓ Verify & Create Account'}
+                            </button>
+
+                            <div className="text-center">
+                                <p className="text-sm text-dark-400 mb-2">Didn't receive the code?</p>
+                                <button
+                                    onClick={handleResendOtp}
+                                    disabled={!canResend}
+                                    className={`text-sm ${canResend
+                                        ? 'text-primary-400 hover:text-primary-300 cursor-pointer'
+                                        : 'text-dark-600 cursor-not-allowed'
+                                        } transition-colors`}
+                                >
+                                    Resend Code {!canResend && '(wait 60s)'}
+                                </button>
+                            </div>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
