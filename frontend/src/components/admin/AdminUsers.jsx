@@ -140,7 +140,8 @@ const AdminUsers = () => {
     // Bulk selection logic
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            setSelectedUsers(filteredUsers.map(u => u.id));
+            // Do not allow selecting ADMIN users
+            setSelectedUsers(filteredUsers.filter(u => u.activeRole !== 'ADMIN').map(u => u.id));
         } else {
             setSelectedUsers([]);
         }
@@ -279,7 +280,7 @@ const AdminUsers = () => {
                                             <input 
                                                 type="checkbox" 
                                                 className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-900"
-                                                checked={filteredUsers.length > 0 && selectedUsers.length === filteredUsers.length}
+                                                checked={filteredUsers.filter(u => u.activeRole !== 'ADMIN').length > 0 && selectedUsers.length === filteredUsers.filter(u => u.activeRole !== 'ADMIN').length}
                                                 onChange={handleSelectAll}
                                             />
                                         </th>
@@ -304,9 +305,10 @@ const AdminUsers = () => {
                                             <td className="px-6 py-4">
                                                 <input 
                                                     type="checkbox" 
-                                                    className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-900"
+                                                    className="w-4 h-4 rounded border-dark-600 bg-dark-800 text-primary-500 focus:ring-primary-500 focus:ring-offset-dark-900 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     checked={selectedUsers.includes(user.id)}
                                                     onChange={() => handleSelectUser(user.id)}
+                                                    disabled={user.activeRole === 'ADMIN'}
                                                 />
                                             </td>
                                             <td className="px-6 py-4">
@@ -367,8 +369,9 @@ const AdminUsers = () => {
                                                     </button>
                                                     <button
                                                         onClick={() => handleDelete(user.id)}
-                                                        className="p-2 text-dark-400 hover:text-red-400 transition-colors bg-dark-800 hover:bg-dark-700 rounded-lg"
-                                                        title="Delete User"
+                                                        className={`p-2 rounded-lg transition-colors ${user.activeRole === 'ADMIN' ? 'text-dark-600 bg-dark-800/50 cursor-not-allowed' : 'text-dark-400 hover:text-red-400 bg-dark-800 hover:bg-dark-700'}`}
+                                                        title={user.activeRole === 'ADMIN' ? "Admins cannot be deleted" : "Delete User"}
+                                                        disabled={user.activeRole === 'ADMIN'}
                                                     >
                                                         <FaTrash />
                                                     </button>

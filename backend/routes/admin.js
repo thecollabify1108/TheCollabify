@@ -359,7 +359,18 @@ router.post('/bulk-delete', auth, isAdmin, [
                         select: { id: true }
                     })).map(p => p.id);
 
-                    await tx.message.deleteMany({ where: { conversation: { promotionId: { in: promptIds } } } });
+                    // First get conversation IDs related to these promotion requests
+                    const conversationIds = (await tx.conversation.findMany({
+                        where: { promotionId: { in: promptIds } },
+                        select: { id: true }
+                    })).map(c => c.id);
+
+                    // Then delete messages within those conversations
+                    if (conversationIds.length > 0) {
+                        await tx.message.deleteMany({
+                            where: { conversationId: { in: conversationIds } }
+                        });
+                    }
                     await tx.conversation.deleteMany({ where: { promotionId: { in: promptIds } } });
                     await tx.matchedCreator.deleteMany({ where: { promotionId: { in: promptIds } } });
                     await tx.promotionRequest.deleteMany({ where: { sellerId: user.id } });
