@@ -12,8 +12,10 @@ const useWebSocket = (userId) => {
     const [onlineUsers, setOnlineUsers] = useState(new Set());
 
     useEffect(() => {
+        // token may be stored in localStorage (JWT) or sent via HTTPOnly cookie
+        // We connect either way - the server uses cookie auth as fallback
         const token = localStorage.getItem('token');
-        if (!userId || !token) {
+        if (!userId) {
             webSocketService.disconnect();
             setIsConnected(false);
             setNotifications([]);
@@ -21,7 +23,7 @@ const useWebSocket = (userId) => {
             return;
         }
 
-        webSocketService.connect(userId, token);
+        webSocketService.connect(userId, token || undefined);
 
         // Update local state when connection status changes
         setIsConnected(webSocketService.isConnected);

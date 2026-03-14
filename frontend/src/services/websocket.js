@@ -51,7 +51,10 @@ class WebSocketService {
         });
 
         this.socket.on('connect_error', (error) => {
-            console.error('❌ WebSocket connection error:', error);
+            // Only log in dev, suppress auth errors in production
+            if (import.meta.env.DEV || !error.message?.toLowerCase().includes('auth')) {
+                console.error('❌ WebSocket connection error:', error);
+            }
         });
 
         return this.socket;

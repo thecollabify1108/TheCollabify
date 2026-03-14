@@ -45,7 +45,7 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between">
                     <div className="flex-1">
                         <div className="flex items-center flex-wrap gap-s3 mb-s2">
-                            <h2 className="text-h1 font-black text-dark-100 uppercase tracking-tight">{request.title}</h2>
+                            <h2 className="text-h1 font-black text-dark-100 uppercase tracking-tight">{request.title || 'Untitled Campaign'}</h2>
                             <span className={`px-s3 py-1 rounded-full text-xs-pure font-black uppercase tracking-widest border shadow-sm ${getStatusColor(request.status)}`}>
                                 {request.status}
                             </span>
