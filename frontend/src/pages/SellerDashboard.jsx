@@ -784,8 +784,8 @@ const SellerDashboard = () => {
                                 <ActivityFeed
                                     activities={pendingCreators.slice(0, 5).map(c => ({
                                         id: c.creatorId,
-                                        title: c.creator?.user?.name || 'Creator',
-                                        description: `Applied to ${c.requestTitle}`,
+                                        title: c.creator?.user?.name || 'Unknown Creator',
+                                        description: `Applied to ${c.requestTitle || 'a campaign'}`,
                                         time: 'Just now',
                                         icon: <HiUserGroup />,
                                         iconColor: 'bg-purple-500/20 text-purple-400'
