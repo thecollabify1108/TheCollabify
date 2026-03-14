@@ -120,7 +120,7 @@ const CampaignPipeline = ({ requests, onSelectRequest }) => {
                                                     className="p-s2 bg-dark-800/60 backdrop-blur rounded-premium-lg cursor-pointer hover:bg-dark-700/60 transition-all border border-dark-700/30"
                                                     onClick={() => onSelectRequest(request)}
                                                 >
-                                                    <p className="text-[10px] font-bold text-dark-200 truncate uppercase tracking-tight">{request.title}</p>
+                                                    <p className="text-[10px] font-bold text-dark-200 truncate uppercase tracking-tight">{request.title || 'Untitled Campaign'}</p>
                                                     <p className="text-[10px] font-black text-primary-400 mt-0.5">₹{request.budget?.toLocaleString()}</p>
                                                 </motion.div>
                                             ))}
