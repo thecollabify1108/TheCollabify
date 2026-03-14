@@ -404,8 +404,11 @@ router.post('/bulk-delete', auth, isAdmin, [
                 await tx.message.deleteMany({ where: { senderId: user.id } });
 
                 await tx.conversation.deleteMany({ where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] } });
-                
+
+                // Delete UserRole first to avoid FK constraint
                 await tx.userRole.deleteMany({ where: { userId: user.id } });
+
+                // Defensive: delete other restrict relations before user
                 await tx.analytics.deleteMany({ where: { userId: user.id } });
                 await tx.userIntent.deleteMany({ where: { userId: user.id } });
                 await tx.apiKey.deleteMany({ where: { userId: user.id } });
