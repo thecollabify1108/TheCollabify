@@ -330,8 +330,8 @@ class AnalyticsService {
             collabsByStatus,
             allCollabs
         ] = await Promise.all([
-            prisma.user.count({ where: { role: 'SELLER', isActive: true } }),
-            prisma.user.count({ where: { role: 'CREATOR', isActive: true } }),
+            prisma.user.count({ where: { activeRole: 'SELLER', isActive: true } }),
+            prisma.user.count({ where: { activeRole: 'CREATOR', isActive: true } }),
             prisma.collaboration.groupBy({
                 by: ['status'],
                 _count: { id: true }
