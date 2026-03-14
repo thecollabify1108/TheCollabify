@@ -461,12 +461,6 @@ app.get('/', (req, res) => {
     });
 });
 
-// ===== ERROR HANDLING (MUST BE LAST) =====
-app.use(notFoundHandler);
-app.use(timeoutErrorHandler);
-app.use(sentryErrorHandler);
-app.use(errorHandler);
-
 // Start background initialization
 initializeModules().catch(err => {
     console.error('💥 Background initialization failed:', err);
@@ -621,6 +615,12 @@ if (process.env.NODE_ENV !== 'test') {
     process.on('SIGTERM', () => { stopFrictionScheduler(); stopAIScheduler(); gracefulShutdown(server, prisma); });
     process.on('SIGINT', () => { stopFrictionScheduler(); stopAIScheduler(); gracefulShutdown(server, prisma); });
 }
+
+// ===== ERROR HANDLING (MUST BE LAST) =====
+app.use(notFoundHandler);
+app.use(timeoutErrorHandler);
+app.use(sentryErrorHandler);
+app.use(errorHandler);
 
 // Export for testing
 module.exports = app;
