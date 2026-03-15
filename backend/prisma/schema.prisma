@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,832 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String             @id @default(uuid())
+  email                String             @unique
+  password             String?
+  name                 String
+  avatar               String?            @default("")
+  googleId             String?            @unique
+  authProvider         AuthProvider       @default(LOCAL)
+  emailVerified        Boolean            @default(false)
+  isActive             Boolean            @default(true)
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
+  lastLogin            DateTime?
+  activeRole           Role?
+  pgpPublicKey         String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  reliabilityScore     Float              @default(1.0)
+  dailyAIQueryCount    Int                @default(0)
+  lastAIQueryDate      DateTime?
+  subscriptionTier     SubscriptionTier   @default(FREE)
+  analytics            Analytics[]
+  apiKeys              ApiKey[]
+  brandProfile         BrandProfile?
+  calendarEvents       CalendarEvent[]
+  contentCalendars     ContentCalendar[]
+  conversationsCreator Conversation[]     @relation("CreatorUser")
+  conversationsSeller  Conversation[]     @relation("Seller")
+  creatorProfile       CreatorProfile?
+  sentMessages         Message[]          @relation("Sender")
+  notifications        Notification[]
+  sellerCampaigns      PromotionRequest[] @relation("SellerCampaigns")
+  organizations        TeamMember[]       @relation("OrgUser")
+  teamMemberships      TeamMember[]       @relation("MemberUser")
+  userIntent           UserIntent?
+  roles                UserRole[]
+
+  @@index([activeRole])
+  @@index([isActive])
+  @@index([createdAt])
+}
+
+model UserRole {
+  id       String   @id @default(uuid())
+  userId   String
+  type     Role
+  password String
+  addedAt  DateTime @default(now())
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type])
+}
+
+model CreatorProfile {
+  id                          String                 @id @default(uuid())
+  userId                      String                 @unique
+  instagramUsername           String?                @default("")
+  instagramProfileUrl         String?                @default("")
+  instagramVerified           Boolean                @default(false)
+  lastVerifiedAt              DateTime?
+  followerCount               Int                    @default(0)
+  engagementRate              Float                  @default(0)
+  category                    Category
+  promotionTypes              PromotionType[]
+  minPrice                    Float
+  maxPrice                    Float
+  bio                         String?
+  isAvailable                 Boolean                @default(true)
+  availabilityStatus          AvailabilityStatus     @default(AVAILABLE_NOW)
+  availabilityUpdatedAt       DateTime               @default(now())
+  engagementQuality           String?                @default("Medium")
+  audienceAuthenticity        String?                @default("Medium")
+  strengths                   String[]
+  profileSummary              String?
+  aiScore                     Int                    @default(50)
+  lastAnalyzed                DateTime?              @default(now())
+  location                    Json?
+  willingToTravel             String?                @default("NO")
+  collaborationTypes          String[]
+  totalEarnings               Float                  @default(0)
+  profileViews                Int                    @default(0)
+  totalPromotions             Int                    @default(0)
+  successfulPromotions        Int                    @default(0)
+  averageRating               Float                  @default(0)
+  leaderboardScore            Float                  @default(0)
+  lastScoreUpdate             DateTime?              @default(now())
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
+  onboardingCompleted         Boolean                @default(false)
+  pastExperience              String?
+  portfolioLinks              String[]
+  profileCompletionPercentage Int                    @default(0)
+  reliabilityScore            Float                  @default(1.0)
+  followerMismatchPercentage  Float?
+  followerRiskScore           String?
+  selfReportedFollowers       Int                    @default(0)
+  verificationLastUpdated     DateTime?
+  verificationStatus          String                 @default("pending")
+  verifiedBy                  String?
+  verifiedFollowerRangeMax    Int?
+  verifiedFollowerRangeMin    Int?
+  compositeRiskScore          Float                  @default(0)
+  riskContentInactivity       Float                  @default(0)
+  riskEngagementAnomaly       Float                  @default(0)
+  riskFollowerMismatch        Float                  @default(0)
+  riskGrowthInstability       Float                  @default(0)
+  riskLastCalculated          DateTime?
+  riskLevel                   String                 @default("low")
+  engagementRateWarning       Boolean                @default(true)
+  followerRange               FollowerRange?
+  followerRangeChangedAt      DateTime?
+  profileLastEditedAt         DateTime?
+  achievements                Achievement[]
+  audienceProfile             AudienceProfile?
+  availabilityCampaigns       AvailabilityCampaign[]
+  conversations               Conversation[]
+  user                        User                   @relation(fields: [userId], references: [id])
+  qualityIndex                CreatorQualityIndex?
+  matchedCampaigns            MatchedCreator[]
+  acceptedCampaigns           PromotionRequest[]
+
+  @@index([category])
+  @@index([isAvailable])
+  @@index([aiScore])
+  @@index([totalEarnings])
+  @@index([profileCompletionPercentage])
+  @@index([location], type: Gin)
+}
+
+model Achievement {
+  id               String         @id @default(uuid())
+  creatorProfileId String
+  badgeId          String
+  earnedAt         DateTime       @default(now())
+  creatorProfile   CreatorProfile @relation(fields: [creatorProfileId], references: [id])
+}
+
+model PromotionRequest {
+  id                    String                   @id @default(uuid())
+  sellerId              String
+  title                 String
+  description           String
+  minBudget             Float
+  maxBudget             Float
+  promotionType         PromotionType[]
+  targetCategory        Category[]
+  minFollowers          Int
+  maxFollowers          Int
+  campaignGoal          CampaignGoal
+  location              Json?
+  locationType          String?                  @default("REMOTE")
+  status                CampaignStatus           @default(OPEN)
+  deadline              DateTime?
+  completedAt           DateTime?
+  acceptedCreatorId     String?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+  calendarEvents        CalendarEvent[]
+  feedbackRecords       CampaignFeedbackRecord[]
+  predictions           CampaignPrediction[]
+  contentCalendarEvents ContentCalendar[]
+  conversations         Conversation[]
+  matchedCreators       MatchedCreator[]
+  acceptedCreator       CreatorProfile?          @relation(fields: [acceptedCreatorId], references: [id])
+  seller                User                     @relation("SellerCampaigns", fields: [sellerId], references: [id])
+
+  @@index([status])
+  @@index([targetCategory])
+  @@index([promotionType])
+  @@index([createdAt])
+  @@index([location], type: Gin)
+}
+
+model MatchedCreator {
+  id            String           @id @default(uuid())
+  promotionId   String
+  creatorId     String
+  matchScore    Int
+  matchReason   String
+  status        MatchStatus      @default(MATCHED)
+  agreedAmount  Float?
+  appliedAt     DateTime?
+  respondedAt   DateTime?
+  collaboration Collaboration?
+  outcome       MatchOutcome?
+  creator       CreatorProfile   @relation(fields: [creatorId], references: [id])
+  promotion     PromotionRequest @relation(fields: [promotionId], references: [id])
+
+  @@unique([promotionId, creatorId])
+  @@index([status])
+  @@index([promotionId, status])
+}
+
+model Conversation {
+  id                   String                 @id @default(uuid())
+  promotionId          String
+  sellerId             String
+  creatorUserId        String
+  creatorProfileId     String?
+  status               ConversationStatus     @default(ACTIVE)
+  creatorAccepted      String                 @default("pending")
+  sellerAccepted       String                 @default("accepted")
+  lastMessageContent   String?
+  lastMessageSenderId  String?
+  lastMessageCreatedAt DateTime?
+  unreadCountSeller    Int                    @default(0)
+  unreadCountCreator   Int                    @default(0)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  creatorMsgCount      Int                    @default(0)
+  isEscrowUnlocked     Boolean                @default(false)
+  sellerMsgCount       Int                    @default(0)
+  creatorProfile       CreatorProfile?        @relation(fields: [creatorProfileId], references: [id])
+  creatorUser          User                   @relation("CreatorUser", fields: [creatorUserId], references: [id])
+  promotion            PromotionRequest       @relation(fields: [promotionId], references: [id])
+  seller               User                   @relation("Seller", fields: [sellerId], references: [id])
+  deletions            ConversationDeletion[]
+  messages             Message[]
+
+  @@unique([promotionId, creatorUserId])
+  @@index([sellerId, updatedAt])
+  @@index([creatorUserId, updatedAt])
+  @@index([status])
+}
+
+model ConversationDeletion {
+  id             String       @id @default(uuid())
+  conversationId String
+  userId         String
+  deletedAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id                String       @id @default(uuid())
+  conversationId    String
+  senderId          String
+  content           String
+  isRead            Boolean      @default(false)
+  readAt            DateTime?
+  isEdited          Boolean      @default(false)
+  editedAt          DateTime?
+  isDeleted         Boolean      @default(false)
+  deletedAt         DateTime?
+  isEncrypted       Boolean      @default(false)
+  encryptionVersion String?      @default("1.0")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  conversation      Conversation @relation(fields: [conversationId], references: [id])
+  sender            User         @relation("Sender", fields: [senderId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([isRead])
+}
+
+model Analytics {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  period    String
+  date      DateTime
+  metrics   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, date])
+  @@index([metrics], type: Gin)
+}
+
+model TeamMember {
+  id                String     @id @default(uuid())
+  organizationId    String
+  userId            String
+  role              TeamRole   @default(CONTRIBUTOR)
+  status            TeamStatus @default(PENDING)
+  permissions       Json
+  invitedByUserId   String?
+  invitedAt         DateTime?
+  acceptedAt        DateTime?
+  lastActive        DateTime?
+  loginCount        Int        @default(0)
+  notificationPrefs Json
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  organization      User       @relation("OrgUser", fields: [organizationId], references: [id])
+  user              User       @relation("MemberUser", fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([permissions], type: Gin)
+}
+
+model OTP {
+  id        String   @id @default(uuid())
+  email     String
+  otp       String
+  purpose   String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([userId, isRead])
+}
+
+model CalendarEvent {
+  id          String            @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  startDate   DateTime          @map("start")
+  endDate     DateTime          @map("end")
+  type        String?
+  platform    String?
+  status      String?
+  campaignId  String?
+  url         String?
+  meta        Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  campaign    PromotionRequest? @relation(fields: [campaignId], references: [id])
+  user        User              @relation(fields: [userId], references: [id])
+
+  @@index([userId, startDate])
+}
+
+model ContentCalendar {
+  id            String            @id @default(uuid())
+  creatorId     String
+  campaignId    String?
+  title         String
+  description   String?
+  platform      String
+  contentType   String
+  scheduledDate DateTime
+  scheduledTime String?
+  status        String            @default("scheduled")
+  caption       String?
+  hashtags      String[]
+  mediaUrls     String[]
+  tags          String[]
+  notes         String?
+  reminders     Json?
+  performance   Json?
+  postedAt      DateTime?
+  postUrl       String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  campaign      PromotionRequest? @relation(fields: [campaignId], references: [id])
+  creator       User              @relation(fields: [creatorId], references: [id])
+
+  @@index([creatorId, scheduledDate])
+}
+
+model Subscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  key         String    @unique
+  userId      String?
+  serviceName String
+  description String?
+  isActive    Boolean   @default(true)
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+  rotatedFrom String?
+  user        User?     @relation(fields: [userId], references: [id])
+
+  @@index([key, isActive])
+  @@index([expiresAt])
+}
+
+model DailyTraffic {
+  id        String   @id @default(uuid())
+  date      DateTime @db.Date
+  path      String
+  views     Int      @default(0)
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, path])
+  @@index([date])
+}
+
+model MatchFeedback {
+  id           String   @id @default(uuid())
+  matchId      String?
+  userId       String
+  targetUserId String
+  action       String
+  source       String
+  meta         Json?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, action])
+  @@index([targetUserId])
+  @@index([createdAt])
+}
+
+model MatchOutcome {
+  id             String         @id @default(uuid())
+  matchId        String         @unique
+  status         String
+  timeline       Json
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  matchedCreator MatchedCreator @relation(fields: [matchId], references: [id])
+
+  @@index([status])
+}
+
+model Collaboration {
+  id               String                     @id @default(uuid())
+  matchId          String                     @unique
+  startDate        DateTime?
+  endDate          DateTime?
+  milestones       Json?
+  termsAccepted    Boolean                    @default(true)
+  sellerFeedback   Json?
+  creatorFeedback  Json?
+  completedAt      DateTime?
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+  statusHistory    Json?
+  statusUpdatedAt  DateTime                   @default(now())
+  status           CollaborationStatus        @default(REQUESTED)
+  deliverableItems String[]
+  matchedCreator   MatchedCreator             @relation(fields: [matchId], references: [id])
+  deliverables     CollaborationDeliverable[]
+  disputes         CollaborationDispute[]
+  feedbacks        CollaborationFeedback[]
+  escrowPayment    EscrowPayment?
+
+  @@index([status])
+}
+
+model UserIntent {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  recentCategories String[]
+  recentTags       String[]
+  lastActive       DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model FrictionEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  type      String
+  severity  String   @default("MEDIUM")
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model Embedding {
+  id         String   @id @default(uuid())
+  entityType String
+  entityId   String
+  text       String
+  vector     Json
+  model      String   @default("text-embedding-004")
+  dimensions Int      @default(768)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([entityType, entityId])
+  @@index([entityType])
+  @@index([entityId])
+}
+
+model CreatorQualityIndex {
+  id                      String         @id @default(uuid())
+  creatorId               String         @unique
+  score                   Float          @default(50)
+  engagementConsistency   Float          @default(50)
+  followerGrowthStability Float          @default(50)
+  commentAuthenticity     Float          @default(50)
+  postingFrequency        Float          @default(50)
+  nicheAuthority          Float          @default(50)
+  audienceRetention       Float          @default(50)
+  fraudRiskScore          Float          @default(0)
+  dataPoints              Int            @default(0)
+  confidence              Float          @default(0.5)
+  version                 Int            @default(1)
+  computedAt              DateTime       @default(now())
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  history                 CQISnapshot[]
+  creator                 CreatorProfile @relation(fields: [creatorId], references: [id])
+
+  @@index([score])
+  @@index([fraudRiskScore])
+}
+
+model CQISnapshot {
+  id        String              @id @default(uuid())
+  cqiId     String
+  score     Float
+  subscores Json
+  metrics   Json
+  createdAt DateTime            @default(now())
+  cqi       CreatorQualityIndex @relation(fields: [cqiId], references: [id])
+
+  @@index([cqiId, createdAt])
+}
+
+model CampaignPrediction {
+  id                  String           @id @default(uuid())
+  campaignId          String
+  creatorId           String
+  predictedEngagement Float
+  predictedReach      Int
+  predictedROI        Float
+  confidenceInterval  Json
+  riskScore           Float
+  featureSnapshot     Json
+  modelVersion        String           @default("v1.0")
+  modelType           String           @default("gradient_boost")
+  createdAt           DateTime         @default(now())
+  campaign            PromotionRequest @relation(fields: [campaignId], references: [id])
+
+  @@unique([campaignId, creatorId])
+  @@index([campaignId])
+  @@index([creatorId])
+  @@index([modelVersion])
+}
+
+model CampaignFeedbackRecord {
+  id                  String           @id @default(uuid())
+  campaignId          String
+  creatorId           String
+  predictedEngagement Float?
+  predictedROI        Float?
+  predictedReach      Int?
+  actualEngagement    Float?
+  actualROI           Float?
+  actualReach         Int?
+  actualConversions   Int?
+  creatorMetrics      Json
+  brandCategory       Category
+  contentFormat       PromotionType
+  campaignDuration    Int?
+  agreedAmount        Float?
+  engagementError     Float?
+  roiError            Float?
+  modelVersion        String           @default("v1.0")
+  status              String           @default("PENDING")
+  completedAt         DateTime?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  campaign            PromotionRequest @relation(fields: [campaignId], references: [id])
+
+  @@unique([campaignId, creatorId])
+  @@index([brandCategory])
+  @@index([status])
+  @@index([modelVersion])
+  @@index([createdAt])
+}
+
+model FraudSignal {
+  id         String    @id @default(uuid())
+  creatorId  String
+  signalType String
+  severity   String    @default("MEDIUM")
+  confidence Float
+  evidence   Json
+  resolved   Boolean   @default(false)
+  resolvedAt DateTime?
+  resolvedBy String?
+  createdAt  DateTime  @default(now())
+
+  @@index([creatorId])
+  @@index([signalType])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model AudienceProfile {
+  id             String         @id @default(uuid())
+  creatorId      String         @unique
+  demographics   Json
+  interests      Json
+  brandFitScores Json
+  authenticity   Float          @default(0.5)
+  activeRatio    Float          @default(0.5)
+  dataSource     String         @default("inferred")
+  confidence     Float          @default(0.5)
+  computedAt     DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  creator        CreatorProfile @relation(fields: [creatorId], references: [id])
+
+  @@index([authenticity])
+}
+
+model ScoringWeightConfig {
+  id              String   @id @default(uuid())
+  name            String   @unique
+  weights         Json
+  campaignsUsed   Int      @default(0)
+  avgSuccessRate  Float?
+  optimizedFrom   String?
+  optimizationLog Json?
+  isActive        Boolean  @default(true)
+  isDefault       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model MLModelVersion {
+  id               String    @id @default(uuid())
+  modelName        String
+  version          String
+  parameters       Json
+  hyperparameters  Json?
+  metrics          Json
+  trainingDataSize Int       @default(0)
+  trainingDuration Float?
+  trainedAt        DateTime  @default(now())
+  isProduction     Boolean   @default(false)
+  deployedAt       DateTime?
+  previousVersion  String?
+  createdAt        DateTime  @default(now())
+
+  @@unique([modelName, version])
+  @@index([modelName, isProduction])
+}
+
+model WeightOptimizationRun {
+  id               String    @id @default(uuid())
+  previousWeights  Json
+  newWeights       Json
+  trigger          String
+  beforeMetrics    Json
+  afterMetrics     Json?
+  campaignsSampled Int
+  improvement      Float?
+  applied          Boolean   @default(false)
+  appliedAt        DateTime?
+  rolledBack       Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+
+  @@index([createdAt])
+}
+
+model AIUsageLog {
+  id               String   @id @default(uuid())
+  userId           String
+  mode             String
+  model            String   @default("gemini-1.5-flash")
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  totalTokens      Int      @default(0)
+  latencyMs        Int      @default(0)
+  success          Boolean  @default(true)
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([mode])
+  @@index([userId, createdAt])
+}
+
+model BrandProfile {
+  id                   String   @id @default(uuid())
+  userId               String   @unique
+  brandName            String
+  category             Category
+  website              String?
+  instagramBusinessUrl String?
+  description          String?
+  locationCity         String?
+  locationState        String?
+  locationCountry      String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id])
+
+  @@index([category])
+}
+
+model AvailabilityCampaign {
+  id                     String         @id @default(uuid())
+  creatorProfileId       String
+  creatorUserId          String
+  niche                  Category
+  locationCity           String?
+  locationState          String?
+  locationCountry        String?
+  deliverablesOffered    String[]
+  collaborationBudgetMin Float
+  collaborationBudgetMax Float
+  description            String?
+  durationDays           Int
+  expiresAt              DateTime
+  isActive               Boolean        @default(true)
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+  creatorProfile         CreatorProfile @relation(fields: [creatorProfileId], references: [id])
+
+  @@index([niche])
+  @@index([isActive, expiresAt])
+  @@index([locationCity])
+}
+
+model EscrowPayment {
+  id                    String        @id @default(uuid())
+  collaborationId       String        @unique
+  brandUserId           String
+  creatorUserId         String
+  collaborationAmount   Float
+  platformFee           Float
+  totalDeposited        Float
+  status                EscrowStatus  @default(PENDING_DEPOSIT)
+  stripePaymentIntentId String?
+  stripeTransferId      String?
+  depositedAt           DateTime?
+  releasedAt            DateTime?
+  refundedAt            DateTime?
+  notes                 String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  collaboration         Collaboration @relation(fields: [collaborationId], references: [id])
+
+  @@index([brandUserId])
+  @@index([creatorUserId])
+  @@index([status])
+}
+
+model CollaborationDeliverable {
+  id                String            @id @default(uuid())
+  collaborationId   String
+  submittedByUserId String
+  revisionCount     Int               @default(0)
+  maxRevisions      Int               @default(3)
+  contentLinks      String[]
+  screenshotUrls    String[]
+  fileUrls          String[]
+  description       String?
+  status            DeliverableStatus @default(PENDING)
+  revisionNotes     String?
+  submittedAt       DateTime?
+  reviewedAt        DateTime?
+  approvedAt        DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  collaboration     Collaboration     @relation(fields: [collaborationId], references: [id])
+
+  @@index([collaborationId, status])
+}
+
+model CollaborationDispute {
+  id                String        @id @default(uuid())
+  collaborationId   String
+  raisedByUserId    String
+  reason            String
+  evidence          String[]
+  status            DisputeStatus @default(OPEN)
+  resolvedByAdminId String?
+  resolutionNotes   String?
+  resolvedAt        DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  collaboration     Collaboration @relation(fields: [collaborationId], references: [id])
+
+  @@index([collaborationId])
+  @@index([status])
+}
+
+model PlatformSetting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+model CollaborationFeedback {
+  id                       String        @id @default(uuid())
+  collaborationId          String
+  submittedByUserId        String
+  role                     String
+  rating                   Int
+  comment                  String?
+  creatorProfessionalism   Int?
+  campaignQuality          Int?
+  overallBrandExperience   Int?
+  brandCommunication       Int?
+  campaignClarity          Int?
+  overallCreatorExperience Int?
+  createdAt                DateTime      @default(now())
+  collaboration            Collaboration @relation(fields: [collaborationId], references: [id])
+
+  @@unique([collaborationId, role])
+  @@index([collaborationId])
 }
 
 enum Role {
@@ -103,16 +926,14 @@ enum SubscriptionTier {
   BRAND_PRO
 }
 
-// ─── Marketplace: Follower Range Enum ────────────────────────────
 enum FollowerRange {
-  RANGE_1K_5K       // 1,000 – 5,000
-  RANGE_5K_10K      // 5,000 – 10,000
-  RANGE_10K_50K     // 10,000 – 50,000
-  RANGE_50K_100K    // 50,000 – 100,000
-  RANGE_100K_PLUS   // 100,000+
+  RANGE_1K_5K
+  RANGE_5K_10K
+  RANGE_10K_50K
+  RANGE_50K_100K
+  RANGE_100K_PLUS
 }
 
-// ─── Marketplace: Escrow Status ───────────────────────────────────
 enum EscrowStatus {
   PENDING_DEPOSIT
   DEPOSITED
@@ -122,7 +943,6 @@ enum EscrowStatus {
   DISPUTED
 }
 
-// ─── Marketplace: Deliverable Status ─────────────────────────────
 enum DeliverableStatus {
   PENDING
   SUBMITTED
@@ -131,544 +951,12 @@ enum DeliverableStatus {
   REJECTED
 }
 
-// ─── Marketplace: Dispute Status ─────────────────────────────────
 enum DisputeStatus {
   OPEN
   UNDER_REVIEW
   RESOLVED_CREATOR
   RESOLVED_BRAND
   CLOSED
-}
-
-model User {
-  id                    String         @id @default(uuid())
-  email                 String         @unique
-  password              String?        // Null for Google OAuth
-  name                  String
-  avatar                String?        @default("")
-  googleId              String?        @unique
-  authProvider          AuthProvider   @default(LOCAL)
-  emailVerified         Boolean        @default(false)
-  isActive              Boolean        @default(true)
-  resetPasswordToken    String?
-  resetPasswordExpires  DateTime?
-  lastLogin             DateTime?
-  activeRole            Role?
-  
-  // Subscription & Feature Gating
-  subscriptionTier      SubscriptionTier @default(FREE)
-  dailyAIQueryCount     Int              @default(0)
-  lastAIQueryDate       DateTime?
-  
-  // Relations
-  roles                 UserRole[]
-  creatorProfile        CreatorProfile?
-  brandProfile          BrandProfile?
-  sellerCampaigns       PromotionRequest[] @relation("SellerCampaigns")
-  analytics             Analytics[]
-  notifications         Notification[]
-  sentMessages          Message[]          @relation("Sender")
-  conversationsSeller   Conversation[]     @relation("Seller")
-  conversationsCreator  Conversation[]     @relation("CreatorUser")
-  teamMemberships       TeamMember[]       @relation("MemberUser")
-  organizations         TeamMember[]       @relation("OrgUser")
-  calendarEvents        CalendarEvent[]
-  contentCalendars      ContentCalendar[]
-  // E2EE Messaging
-  pgpPublicKey          String?        @db.Text
-  
-  // API Keys for rotation system
-  apiKeys               ApiKey[]
-  
-  userIntent            UserIntent?
-
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
-  reliabilityScore      Float          @default(1.0)
-
-  @@index([activeRole])
-  @@index([isActive])
-  @@index([createdAt])
-}
-
-model UserRole {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  type      Role
-  password  String   // Specific password for this role
-  addedAt   DateTime @default(now())
-
-  @@unique([userId, type])
-}
-
-model CreatorProfile {
-  id                    String           @id @default(uuid())
-  userId                String           @unique
-  user                  User             @relation(fields: [userId], references: [id])
-  
-  instagramUsername     String?          @default("")
-  instagramProfileUrl   String?          @default("")
-  instagramVerified     Boolean          @default(false)
-  lastVerifiedAt        DateTime?
-
-  // Follower range (structured enum — prevents fake inflation)
-  followerRange         FollowerRange?
-  followerRangeChangedAt DateTime?       // Throttle: once per month
-
-  followerCount         Int              @default(0)
-  engagementRate        Float            @default(0)
-  engagementRateWarning Boolean          @default(true) // Show approximate warning
-  category              Category
-  promotionTypes        PromotionType[]
-  
-  minPrice              Float
-  maxPrice              Float
-  bio                   String?          @db.Text
-  isAvailable           Boolean          @default(true) // Deprecated
-  availabilityStatus    AvailabilityStatus @default(AVAILABLE_NOW)
-  availabilityUpdatedAt DateTime         @default(now())
-
-  // Profile edit throttle
-  profileLastEditedAt   DateTime?        // Throttle: once per week
-  
-  // AI Insights
-  engagementQuality     String?          @default("Medium") // Low, Medium, High
-  audienceAuthenticity  String?          @default("Medium")
-  strengths             String[]
-  profileSummary        String?          @db.Text
-  aiScore               Int              @default(50)
-  lastAnalyzed          DateTime?        @default(now())
-
-  // Location & Travel
-  location              Json?            // { district, city, state, country }
-  willingToTravel       String?          @default("NO") // YES, LIMITED, NO
-  collaborationTypes    String[]         // [REMOTE, ONSITE, HYBRID, EVENT]
-  
-  // Onboarding & Completion
-  profileCompletionPercentage Int        @default(0)
-  onboardingCompleted   Boolean          @default(false)
-  portfolioLinks        String[]
-  pastExperience        String?          @db.Text
-
-  // Stats
-  totalEarnings        Float            @default(0)
-  profileViews         Int              @default(0)
-  totalPromotions      Int              @default(0)
-  successfulPromotions Int              @default(0)
-  averageRating        Float            @default(0)
-  leaderboardScore     Float            @default(0)
-  lastScoreUpdate       DateTime?        @default(now())
-
-  // Manual Verification System
-  verificationStatus          String    @default("pending") // pending | verified | mismatch_flagged
-  selfReportedFollowers       Int       @default(0)
-  verifiedFollowerRangeMin    Int?
-  verifiedFollowerRangeMax    Int?
-  verificationLastUpdated     DateTime?
-  followerMismatchPercentage  Float?
-  followerRiskScore           String?   // none | medium | high
-  verifiedBy                  String?   // admin userId who verified
-
-  // Composite Risk Score System
-  compositeRiskScore          Float     @default(0)   // 0–100
-  riskLevel                   String    @default("low") // low | medium | high
-  riskFollowerMismatch        Float     @default(0)   // 0–100 component
-  riskEngagementAnomaly       Float     @default(0)   // 0–100 component
-  riskGrowthInstability       Float     @default(0)   // 0–100 component
-  riskContentInactivity       Float     @default(0)   // 0–100 component
-  riskLastCalculated          DateTime?
-  
-  // Relations
-  achievements         Achievement[]
-  matchedCampaigns     MatchedCreator[]
-  acceptedCampaigns    PromotionRequest[]
-  conversations        Conversation[]
-  availabilityCampaigns AvailabilityCampaign[]
-  
-  // AI Engine relations
-  qualityIndex         CreatorQualityIndex?
-  audienceProfile      AudienceProfile?
-
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-  reliabilityScore      Float            @default(1.0)
-
-  @@index([category])
-  @@index([isAvailable])
-  @@index([aiScore])
-  @@index([totalEarnings])
-  @@index([profileCompletionPercentage])
-  @@index([location], type: Gin) // Optimized for location-based search
-}
-
-
-model Achievement {
-  id               String         @id @default(uuid())
-  creatorProfileId String
-  creatorProfile   CreatorProfile @relation(fields: [creatorProfileId], references: [id])
-  badgeId          String
-  earnedAt         DateTime       @default(now())
-}
-
-model PromotionRequest {
-  id                String           @id @default(uuid())
-  sellerId          String
-  seller            User             @relation("SellerCampaigns", fields: [sellerId], references: [id])
-  
-  title             String
-  description       String           @db.Text
-  minBudget         Float
-  maxBudget         Float
-  promotionType     PromotionType[]
-  targetCategory    Category[]
-  minFollowers      Int
-  maxFollowers      Int
-  campaignGoal      CampaignGoal
-  
-  // Location Requirements
-  location          Json?            // { district, city, state, country }
-  locationType      String?          @default("REMOTE") // ONSITE, REMOTE, HYBRID, EVENT
-
-  status            CampaignStatus   @default(OPEN)
-  
-  deadline          DateTime?
-  completedAt       DateTime?
-  
-  // Relations
-  matchedCreators   MatchedCreator[]
-  acceptedCreatorId String?
-  acceptedCreator   CreatorProfile?  @relation(fields: [acceptedCreatorId], references: [id])
-  conversations     Conversation[]
-  calendarEvents    CalendarEvent[]
-  contentCalendarEvents ContentCalendar[]
-  
-  // AI Engine relations
-  predictions       CampaignPrediction[]
-  feedbackRecords   CampaignFeedbackRecord[]
-
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-
-  @@index([status])
-  @@index([targetCategory])
-  @@index([promotionType])
-  @@index([createdAt])
-  @@index([location], type: Gin) // Optimized for location-based search
-}
-
-model MatchedCreator {
-  id                 String           @id @default(uuid())
-  promotionId        String
-  promotion          PromotionRequest @relation(fields: [promotionId], references: [id])
-  creatorId          String
-  creator            CreatorProfile   @relation(fields: [creatorId], references: [id])
-  
-  matchScore         Int
-  matchReason        String           @db.Text
-  status             MatchStatus      @default(MATCHED)
-  agreedAmount       Float?
-  
-  appliedAt          DateTime?
-  respondedAt        DateTime?
-  outcome            MatchOutcome?
-  collaboration      Collaboration?
-
-  @@unique([promotionId, creatorId])
-  @@index([status])
-  @@index([promotionId, status])
-}
-
-model Conversation {
-  id                String             @id @default(uuid())
-  promotionId       String
-  promotion         PromotionRequest   @relation(fields: [promotionId], references: [id])
-  sellerId          String
-  seller            User               @relation("Seller", fields: [sellerId], references: [id])
-  creatorUserId     String
-  creatorUser       User               @relation("CreatorUser", fields: [creatorUserId], references: [id])
-  creatorProfileId  String?
-  creatorProfile    CreatorProfile?    @relation(fields: [creatorProfileId], references: [id])
-  
-  status            ConversationStatus @default(ACTIVE)
-  
-  // Acceptance Status
-  creatorAccepted   String             @default("pending") // pending, accepted, rejected
-  sellerAccepted    String             @default("accepted")
-
-  // Anti-bypass / negotiation gate
-  isEscrowUnlocked  Boolean            @default(false)  // true after escrow deposited
-  sellerMsgCount    Int                @default(0)      // pre-escrow message counter
-  creatorMsgCount   Int                @default(0)      // pre-escrow message counter
-  
-  lastMessageContent String?
-  lastMessageSenderId String?
-  lastMessageCreatedAt DateTime?
-  
-  unreadCountSeller  Int                @default(0)
-  unreadCountCreator Int                @default(0)
-  
-  // Relations
-  messages           Message[]
-  deletions          ConversationDeletion[]
-
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
-
-  @@unique([promotionId, creatorUserId])
-  @@index([sellerId, updatedAt])
-  @@index([creatorUserId, updatedAt])
-  @@index([status])
-}
-
-model ConversationDeletion {
-  id             String       @id @default(uuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
-  userId         String
-  deletedAt      DateTime     @default(now())
-
-  @@unique([conversationId, userId])
-}
-
-model Message {
-  id             String       @id @default(uuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
-  senderId       String
-  sender         User         @relation("Sender", fields: [senderId], references: [id])
-  content        String       @db.Text
-  
-  isRead         Boolean      @default(false)
-  readAt         DateTime?
-  
-  isEdited       Boolean      @default(false)
-  editedAt       DateTime?
-  isDeleted      Boolean      @default(false)
-  deletedAt      DateTime?
-
-  // E2EE fields
-  isEncrypted      Boolean     @default(false)
-  encryptionVersion String?     @default("1.0")
-
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-
-  @@index([conversationId, createdAt])
-  @@index([isRead])
-}
-
-model Analytics {
-  id                    String   @id @default(uuid())
-  userId                String
-  user                  User     @relation(fields: [userId], references: [id])
-  type                  String   // creator, seller
-  period                String   // daily, weekly, monthly, yearly
-  date                  DateTime
-  
-  // We'll store metrics as JSON for flexibility in analytics snapshots
-  metrics               Json
-  
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  @@index([userId, date])
-  @@index([metrics], type: Gin) // Optimized for analytics aggregation
-}
-
-
-
-model TeamMember {
-  id               String       @id @default(uuid())
-  organizationId   String
-  organization     User         @relation("OrgUser", fields: [organizationId], references: [id])
-  userId           String
-  user             User         @relation("MemberUser", fields: [userId], references: [id])
-  
-  role             TeamRole     @default(CONTRIBUTOR)
-  status           TeamStatus   @default(PENDING)
-  
-  // Permissions stored as JSON
-  permissions      Json
-  
-  invitedByUserId  String?
-  invitedAt        DateTime?
-  acceptedAt       DateTime?
-  
-  lastActive       DateTime?
-  loginCount       Int          @default(0)
-  
-  // Notification Preferences as JSON
-  notificationPrefs Json
-
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-
-  @@index([organizationId])
-  @@index([userId])
-  @@index([permissions], type: Gin)
-}
-
-model OTP {
-  id        String   @id @default(uuid())
-  email     String
-  otp       String
-  purpose   String   // registration, reset-password, email-verification
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  @@index([email])
-}
-
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  
-  title     String
-  message   String
-  type      String   // info, success, warning, error, message, campaign
-  link      String?
-  isRead    Boolean  @default(false)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-
-  @@index([userId, isRead])
-}
-
-model CalendarEvent {
-  id          String   @id @default(uuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  
-  title       String
-  description String?
-  startDate   DateTime @map("start")
-  endDate     DateTime @map("end")
-  
-  type        String?  // post, story, reel, video, other
-  platform    String?  // instagram, youtube, tiktok, other
-  status      String?  // planned, created, scheduled, published
-  
-  campaignId  String?
-  campaign    PromotionRequest? @relation(fields: [campaignId], references: [id])
-  
-  url         String?
-  meta        Json?
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([userId, startDate])
-}
-
-model ContentCalendar {
-  id               String           @id @default(uuid())
-  creatorId        String
-  creator          User             @relation(fields: [creatorId], references: [id])
-  campaignId       String?
-  campaign         PromotionRequest? @relation(fields: [campaignId], references: [id])
-  
-  title            String
-  description      String?          @db.Text
-  platform         String           // instagram, youtube, tiktok, twitter, linkedin
-  contentType      String           // Post, Story, Reel, Video, Short, etc.
-  
-  scheduledDate    DateTime
-  scheduledTime    String?
-  
-  status           String           @default("scheduled") // scheduled, posted, cancelled, failed
-  
-  caption          String?          @db.Text
-  hashtags         String[]
-  mediaUrls        String[]
-  
-  tags             String[]
-  notes            String?          @db.Text
-  
-  reminders        Json?            // Array of reminder objects
-  performance      Json?            // Snapshot of metrics after posting
-  
-  postedAt         DateTime?
-  postUrl          String?
-  
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-
-  @@index([creatorId, scheduledDate])
-}
-
-model Subscriber {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-}
-
-// API Key Rotation System
-model ApiKey {
-  id            String    @id @default(uuid())
-  key           String    @unique
-  userId        String?
-  serviceName   String    // Name of service/admin using this key
-  description   String?   // Optional description
-  isActive      Boolean   @default(true)
-  expiresAt     DateTime  // Expiration date (90 days from creation)
-  createdAt     DateTime  @default(now())
-  lastUsedAt    DateTime?
-  rotatedFrom   String?   // Previous key ID (for grace period tracking)
-  
-  user          User?     @relation(fields: [userId], references: [id])
-  
-  @@index([key, isActive])
-  @@index([expiresAt])
-}
-
-model DailyTraffic {
-  id        String   @id @default(uuid())
-  date      DateTime @db.Date
-  path      String
-  views     Int      @default(0)
-  
-  // Optional: Store device type aggregates if needed, but keeping it simple for now
-  
-  updatedAt DateTime @updatedAt
-
-  @@unique([date, path])
-  @@index([date])
-}
-
-model MatchFeedback {
-  id           String   @id @default(uuid())
-  matchId      String?  // Optional link to MatchedCreator
-  userId       String   // User who performed the action
-  targetUserId String   // User who was acted upon
-  action       String   // VIEWED, CLICKED, SAVED, IGNORED, ACCEPTED, REJECTED
-  source       String   // e.g., "campaign_suggestions", "search_results"
-  meta         Json?    // Context: search query, filters, ranking score
-  
-  createdAt    DateTime @default(now())
-
-  @@index([userId, action])
-  @@index([targetUserId])
-  @@index([createdAt])
-}
-
-model MatchOutcome {
-  id              String         @id @default(uuid())
-  matchId         String         @unique // One outcome record per match
-  matchedCreator  MatchedCreator @relation(fields: [matchId], references: [id])
-  
-  status          String         // contacted, accepted, started, completed, abandoned
-  timeline        Json           // { contacted: Date, accepted: Date, ... }
-  
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  
-  @@index([status])
 }
 
 enum CollaborationStatus {
@@ -679,537 +967,4 @@ enum CollaborationStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
-}
-
-model Collaboration {
-  id               String              @id @default(uuid())
-  matchId          String              @unique
-  matchedCreator   MatchedCreator      @relation(fields: [matchId], references: [id])
-  
-  status           CollaborationStatus @default(REQUESTED)
-  statusUpdatedAt  DateTime            @default(now())
-  statusHistory    Json?               // [{ from, to, at, userId }]
-  
-  deliverableItems String[]           // Free-text deliverable descriptions
-  
-  startDate        DateTime?
-  endDate          DateTime?
-  
-  milestones       Json?               // [{ id, title, status: 'pending'|'done', dueDate? }]
-  termsAccepted    Boolean             @default(true)
-  
-  // Reflections / Outcome Tracking
-  sellerFeedback   Json?
-  creatorFeedback  Json?
-  
-  completedAt      DateTime?
-  
-  createdAt        DateTime            @default(now())
-  updatedAt        DateTime            @updatedAt
-
-  // Marketplace relations
-  escrowPayment    EscrowPayment?
-  deliverables     CollaborationDeliverable[]
-  disputes         CollaborationDispute[]
-  feedbacks        CollaborationFeedback[]
-  
-  @@index([status])
-}
-
-model UserIntent {
-  id              String         @id @default(uuid())
-  userId          String         @unique
-  user            User           @relation(fields: [userId], references: [id])
-  
-  recentCategories String[]      // e.g. ["Tech", "Gaming"] (Limited to last 5)
-  recentTags       String[]      // e.g. ["review", "tutorial"]
-  lastActive       DateTime      @default(now())
-  
-  updatedAt       DateTime       @updatedAt
-}
-
-
-
-model FrictionEvent {
-  id           String   @id @default(uuid())
-  userId       String?
-  type         String   // ONBOARDING_DROP_OFF, CAMPAIGN_ABANDONMENT, COLLABORATION_STALL, CREATOR_NON_RESPONSE
-  severity     String   @default("MEDIUM") // LOW, MEDIUM, HIGH
-  
-  // Specific context
-  meta         Json?    // { campaignId, collaborationId, lastStatus, timeElapsed }
-  
-  createdAt    DateTime @default(now())
-  
-  @@index([type])
-  @@index([createdAt])
-  @@index([userId])
-}
-
-// ─── AI Engine: Embeddings & Vector Search ───────────────────────
-model Embedding {
-  id            String   @id @default(uuid())
-  entityType    String   // CREATOR_BIO, CREATOR_CONTENT, BRAND_CAMPAIGN, BRAND_REQUIREMENTS
-  entityId      String   // CreatorProfile.id or PromotionRequest.id
-  text          String   @db.Text  // Original text that was embedded
-  vector        Json     // Float[] stored as JSON (or use pgvector extension)
-  model         String   @default("text-embedding-004") // Embedding model used
-  dimensions    Int      @default(768)
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@unique([entityType, entityId])
-  @@index([entityType])
-  @@index([entityId])
-}
-
-// ─── AI Engine: Creator Quality Index (CQI) ─────────────────────
-model CreatorQualityIndex {
-  id                      String   @id @default(uuid())
-  creatorId               String
-  creator                 CreatorProfile @relation(fields: [creatorId], references: [id])
-  
-  // Overall CQI score (0–100)
-  score                   Float    @default(50)
-  
-  // Sub-scores (0–100 each)
-  engagementConsistency   Float    @default(50)
-  followerGrowthStability Float    @default(50)
-  commentAuthenticity     Float    @default(50)
-  postingFrequency        Float    @default(50)
-  nicheAuthority          Float    @default(50)
-  audienceRetention       Float    @default(50)
-  fraudRiskScore          Float    @default(0)   // 0–1 scale
-  
-  // Metadata
-  dataPoints              Int      @default(0) // Number of data snapshots used
-  confidence              Float    @default(0.5) // How reliable the score is
-  version                 Int      @default(1) // CQI algorithm version
-  
-  computedAt              DateTime @default(now())
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
-  
-  // History snapshots
-  history                 CQISnapshot[]
-  
-  @@unique([creatorId])
-  @@index([score])
-  @@index([fraudRiskScore])
-}
-
-model CQISnapshot {
-  id            String              @id @default(uuid())
-  cqiId         String
-  cqi           CreatorQualityIndex @relation(fields: [cqiId], references: [id])
-  
-  score         Float
-  subscores     Json    // { engagementConsistency, followerGrowthStability, ... }
-  metrics       Json    // Raw metrics used for computation
-  
-  createdAt     DateTime @default(now())
-  
-  @@index([cqiId, createdAt])
-}
-
-// ─── AI Engine: Campaign Performance Predictions ─────────────────
-model CampaignPrediction {
-  id                    String   @id @default(uuid())
-  campaignId            String
-  campaign              PromotionRequest @relation(fields: [campaignId], references: [id])
-  creatorId             String
-  
-  // Predictions
-  predictedEngagement   Float    // Expected engagement rate %
-  predictedReach        Int      // Expected reach
-  predictedROI          Float    // Expected ROI %
-  confidenceInterval    Json     // { lower: Float, upper: Float }
-  riskScore             Float    // 0–1 scale
-  
-  // Feature snapshot at prediction time
-  featureSnapshot       Json     // All input features frozen at prediction time
-  
-  // Model metadata
-  modelVersion          String   @default("v1.0")
-  modelType             String   @default("gradient_boost") // Algorithm family
-  
-  createdAt             DateTime @default(now())
-  
-  @@unique([campaignId, creatorId])
-  @@index([campaignId])
-  @@index([creatorId])
-  @@index([modelVersion])
-}
-
-// ─── AI Engine: Campaign Feedback Loop ───────────────────────────
-model CampaignFeedbackRecord {
-  id                    String   @id @default(uuid())
-  campaignId            String
-  campaign              PromotionRequest @relation(fields: [campaignId], references: [id])
-  creatorId             String
-  
-  // Predicted metrics (snapshot from CampaignPrediction)
-  predictedEngagement   Float?
-  predictedROI          Float?
-  predictedReach        Int?
-  
-  // Actual metrics (filled post-campaign)
-  actualEngagement      Float?
-  actualROI             Float?
-  actualReach           Int?
-  actualConversions     Int?
-  
-  // Context at time of campaign
-  creatorMetrics        Json     // Creator metrics snapshot
-  brandCategory         Category
-  contentFormat         PromotionType
-  campaignDuration      Int?     // days
-  agreedAmount          Float?
-  
-  // Accuracy tracking
-  engagementError       Float?   // |predicted - actual| / actual
-  roiError              Float?
-  
-  // Model version used for prediction
-  modelVersion          String   @default("v1.0")
-  
-  status                String   @default("PENDING") // PENDING, COMPLETED, INVALID
-  completedAt           DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  
-  @@unique([campaignId, creatorId])
-  @@index([brandCategory])
-  @@index([status])
-  @@index([modelVersion])
-  @@index([createdAt])
-}
-
-// ─── AI Engine: Fraud / Anomaly Detection ────────────────────────
-model FraudSignal {
-  id            String   @id @default(uuid())
-  creatorId     String
-  
-  signalType    String   // FOLLOWER_SPIKE, ENGAGEMENT_MANIPULATION, BOT_ACTIVITY, FAKE_COMMENTS
-  severity      String   @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
-  confidence    Float    // 0–1 how confident we are this is fraud
-  
-  evidence      Json     // { metric, expected, actual, deviation, window }
-  
-  resolved      Boolean  @default(false)
-  resolvedAt    DateTime?
-  resolvedBy    String?  // admin userId
-  
-  createdAt     DateTime @default(now())
-  
-  @@index([creatorId])
-  @@index([signalType])
-  @@index([severity])
-  @@index([createdAt])
-}
-
-// ─── AI Engine: Audience Intelligence ────────────────────────────
-model AudienceProfile {
-  id            String   @id @default(uuid())
-  creatorId     String   @unique
-  creator       CreatorProfile @relation(fields: [creatorId], references: [id])
-  
-  // Demographics
-  demographics  Json     // { ageDistribution, genderSplit, topLocations }
-  
-  // Interest clusters
-  interests     Json     // [{ cluster: "fitness", weight: 0.8 }, ...]
-  
-  // Brand fit scores (precomputed for common categories)
-  brandFitScores Json    // { Fashion: 0.9, Tech: 0.3, ... }
-  
-  // Quality metrics
-  authenticity  Float    @default(0.5) // 0–1
-  activeRatio   Float    @default(0.5) // % of audience that engages
-  
-  dataSource    String   @default("inferred") // inferred, instagram_api, manual
-  confidence    Float    @default(0.5)
-  
-  computedAt    DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  @@index([authenticity])
-}
-
-// ─── AI Engine: Dynamic Score Weights ────────────────────────────
-model ScoringWeightConfig {
-  id              String   @id @default(uuid())
-  name            String   @unique // e.g., "default", "fashion_optimized", "tech_optimized"
-  
-  weights         Json     // { engagementRate: 0.11, nicheSimilarity: 0.11, ... }
-  
-  // Performance tracking
-  campaignsUsed   Int      @default(0)
-  avgSuccessRate  Float?
-  
-  // Optimization metadata
-  optimizedFrom   String?  // Parent config ID
-  optimizationLog Json?    // { iterations, improvements, ... }
-  
-  isActive        Boolean  @default(true)
-  isDefault       Boolean  @default(false)
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// ─── AI Engine: Model Registry ───────────────────────────────────
-model MLModelVersion {
-  id              String   @id @default(uuid())
-  modelName       String   // e.g., "campaign_predictor", "cqi_calculator", "fraud_detector"
-  version         String   // e.g., "v1.0", "v1.1"
-  
-  // Model configuration & parameters
-  parameters      Json     // Trained model parameters/weights
-  hyperparameters Json?    // Training hyperparameters
-  
-  // Performance metrics
-  metrics         Json     // { mae, rmse, r2, accuracy, f1, ... }
-  
-  // Training metadata
-  trainingDataSize Int     @default(0)
-  trainingDuration Float?  // seconds
-  trainedAt       DateTime @default(now())
-  
-  // Deployment
-  isProduction    Boolean  @default(false)
-  deployedAt      DateTime?
-  
-  // Rollback
-  previousVersion String?  // ID of previous production version
-  
-  createdAt       DateTime @default(now())
-  
-  @@unique([modelName, version])
-  @@index([modelName, isProduction])
-}
-
-// ─── AI Engine: Weight Optimization History ──────────────────────
-model WeightOptimizationRun {
-  id              String   @id @default(uuid())
-  
-  previousWeights Json
-  newWeights      Json
-  
-  // What triggered this optimization
-  trigger         String   // SCHEDULED, MANUAL, THRESHOLD_BREACH
-  
-  // Performance comparison
-  beforeMetrics   Json     // { avgMatchSuccess, avgROI, ... }
-  afterMetrics    Json?    // Filled after evaluation period
-  
-  campaignsSampled Int
-  improvement     Float?   // % improvement in target metric
-  
-  applied         Boolean  @default(false)
-  appliedAt       DateTime?
-  rolledBack      Boolean  @default(false)
-  
-  createdAt       DateTime @default(now())
-  
-  @@index([createdAt])
-}
-
-// ─── AI Usage Logging ────────────────────────────────────────────
-model AIUsageLog {
-  id               String   @id @default(uuid())
-  userId           String
-  mode             String   // e.g. "match-intelligence", "creator-audit", "generate-caption"
-  model            String   @default("gemini-1.5-flash") // Gemini model used
-  promptTokens     Int      @default(0)
-  completionTokens Int      @default(0)
-  totalTokens      Int      @default(0)
-  latencyMs        Int      @default(0)
-  success          Boolean  @default(true)
-  errorMessage     String?
-
-  createdAt        DateTime @default(now())
-
-  @@index([userId])
-  @@index([createdAt])
-  @@index([mode])
-  @@index([userId, createdAt])
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// MARKETPLACE MODELS
-// ═══════════════════════════════════════════════════════════════════
-
-// ─── Brand Profile ──────────────────────────────────────────────
-model BrandProfile {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id])
-
-  brandName   String
-  category    Category
-  website     String?
-  instagramBusinessUrl String?
-  description String?  @db.Text
-
-  // Location — private, never shown to creators
-  locationCity  String?
-  locationState String?
-  locationCountry String?
-
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([category])
-}
-
-// ─── Creator Availability Campaigns ─────────────────────────────
-model AvailabilityCampaign {
-  id                String         @id @default(uuid())
-  creatorProfileId  String
-  creatorProfile    CreatorProfile @relation(fields: [creatorProfileId], references: [id])
-  creatorUserId     String
-
-  niche             Category
-  locationCity      String?
-  locationState     String?
-  locationCountry   String?
-  deliverablesOffered String[]     // [REELS, POSTS, STORIES]
-  collaborationBudgetMin Float
-  collaborationBudgetMax Float
-  description       String?        @db.Text
-
-  durationDays      Int            // 3–5 FREE, 3–10 PREMIUM
-  expiresAt         DateTime
-  isActive          Boolean        @default(true)
-
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-
-  @@index([niche])
-  @@index([isActive, expiresAt])
-  @@index([locationCity])
-}
-
-// ─── Escrow Payment ──────────────────────────────────────────────
-model EscrowPayment {
-  id                String       @id @default(uuid())
-  collaborationId   String       @unique
-  collaboration     Collaboration @relation(fields: [collaborationId], references: [id])
-
-  brandUserId       String       // who deposited
-  creatorUserId     String       // who receives on release
-
-  collaborationAmount Float      // Agreed amount
-  platformFee       Float        // Commission retained
-  totalDeposited    Float        // collaborationAmount + platformFee
-
-  status            EscrowStatus @default(PENDING_DEPOSIT)
-
-  stripePaymentIntentId String?
-  stripeTransferId      String?
-
-  depositedAt       DateTime?
-  releasedAt        DateTime?
-  refundedAt        DateTime?
-
-  notes             String?
-
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-
-  @@index([brandUserId])
-  @@index([creatorUserId])
-  @@index([status])
-}
-
-// ─── Collaboration Deliverables ──────────────────────────────────
-model CollaborationDeliverable {
-  id                String             @id @default(uuid())
-  collaborationId   String
-  collaboration     Collaboration      @relation(fields: [collaborationId], references: [id])
-
-  submittedByUserId String
-  revisionCount     Int                @default(0)
-  maxRevisions      Int                @default(3)
-
-  contentLinks      String[]
-  screenshotUrls    String[]
-  fileUrls          String[]
-  description       String?            @db.Text
-
-  status            DeliverableStatus  @default(PENDING)
-  revisionNotes     String?            @db.Text
-
-  submittedAt       DateTime?
-  reviewedAt        DateTime?
-  approvedAt        DateTime?
-
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-
-  @@index([collaborationId, status])
-}
-
-// ─── Collaboration Disputes ──────────────────────────────────────
-model CollaborationDispute {
-  id                String         @id @default(uuid())
-  collaborationId   String
-  collaboration     Collaboration  @relation(fields: [collaborationId], references: [id])
-
-  raisedByUserId    String
-  reason            String         @db.Text
-  evidence          String[]       // file/link URLs
-
-  status            DisputeStatus  @default(OPEN)
-  resolvedByAdminId String?
-  resolutionNotes   String?        @db.Text
-  resolvedAt        DateTime?
-
-  createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-
-  @@index([collaborationId])
-  @@index([status])
-}
-
-
-// ─── Platform Settings ────────────────────────────────────────
-model PlatformSetting {
-  id        String   @id @default(uuid())
-  key       String   @unique
-  value     String
-  updatedBy String?
-  updatedAt DateTime @updatedAt
-
-  @@index([key])
-}
-
-// ─── Collaboration Feedback ───────────────────────────────────
-model CollaborationFeedback {
-  id              String        @id @default(uuid())
-  collaborationId String
-  collaboration   Collaboration @relation(fields: [collaborationId], references: [id])
-
-  submittedByUserId String
-  role              String      // BRAND or CREATOR
-
-  rating            Int         // 1–5 overall
-  comment           String?     @db.Text
-
-  // Brand-specific fields
-  creatorProfessionalism Int?
-  campaignQuality        Int?
-  overallBrandExperience Int?
-
-  // Creator-specific fields
-  brandCommunication Int?
-  campaignClarity    Int?
-  overallCreatorExperience Int?
-
-  createdAt DateTime @default(now())
-
-  @@unique([collaborationId, role])
-  @@index([collaborationId])
 }
