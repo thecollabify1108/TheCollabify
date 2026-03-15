@@ -55,7 +55,9 @@ const SellerDashboard = () => {
     const [activeCollabMatch, setActiveCollabMatch] = useState(null);
     const [showAIRecommendations, setShowAIRecommendations] = useState(false);
     const [allCreators, setAllCreators] = useState([]);
-    const [showGuide, setShowGuide] = useState(true);
+    const [showGuide, setShowGuide] = useState(() =>
+        !localStorage.getItem('sellerGuideSeen')
+    );
     const [pendingCreators, setPendingCreators] = useState([]);
 
     const fetchData = async () => {
@@ -240,10 +242,15 @@ const SellerDashboard = () => {
                 {showGuide && (
                     <GuidedAIMode
                         role="seller"
-                        onClose={() => setShowGuide(false)}
+                        onClose={() => {
+                            setShowGuide(false);
+                            localStorage.setItem('sellerGuideSeen', 'true');
+                        }}
                         onAction={(type, target) => {
                             if (type === 'click') {
                                 setActiveTab(target);
+                                setShowGuide(false);
+                                localStorage.setItem('sellerGuideSeen', 'true');
                             }
                         }}
                     />
