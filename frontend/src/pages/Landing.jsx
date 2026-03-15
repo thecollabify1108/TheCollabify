@@ -274,64 +274,100 @@ const Landing = () => {
                         </div>
                     </div>
 
-                    {/* Mobile Menu Dropdown */}
-                    {mobileMenuOpen && (
-                        <div className="lg:hidden bg-dark-900/95 backdrop-blur-xl border-t border-dark-800">
-                            <div className="px-4 py-4 space-y-3">
-                                {/* Top Actions - Better centered for mobile */}
-                                <div className="flex flex-col sm:flex-row gap-3 px-4 pb-4 border-b border-dark-700">
+                    {/* Mobile Menu Overlay */}
+                    <AnimatePresence>
+                        {mobileMenuOpen && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="fixed inset-0 z-[100] bg-dark-950 flex flex-col pt-24 px-8"
+                            >
+                                {/* Decorative Background Elements */}
+                                <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary-500/10 blur-[120px] rounded-full pointer-events-none" />
+                                <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary-500/10 blur-[120px] rounded-full pointer-events-none" />
+                                
+                                {/* Menu Header (Logo + Close) */}
+                                <div className="absolute top-0 left-0 right-0 h-20 px-6 flex items-center justify-between border-b border-white/5 bg-dark-950/50 backdrop-blur-md">
+                                    <Logo className="h-8 w-8" />
+                                    <motion.button
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="w-12 h-12 rounded-full flex items-center justify-center bg-white/5 border border-white/10"
+                                    >
+                                        <Icon name="close" size={24} className="text-white" />
+                                    </motion.button>
+                                </div>
+
+                                {/* Navigation Links */}
+                                <div className="flex flex-col space-y-6 mt-8">
+                                    {[
+                                        { label: 'For Brands', to: '/for-brands' },
+                                        { label: 'For Influencers', to: '/for-creators' },
+                                        { label: 'How It Works', to: '#how-it-works' },
+                                        { label: 'Features', to: '#features' },
+                                        { label: 'About Us', to: '#about' }
+                                    ].map((item, i) => (
+                                        <motion.div
+                                            key={item.label}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.1 + i * 0.1, type: "spring", stiffness: 100 }}
+                                        >
+                                            {item.to.startsWith('#') ? (
+                                                <a
+                                                    href={item.to}
+                                                    className="text-4xl font-black text-white hover:text-primary-400 transition-colors tracking-tighter"
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    {item.label}
+                                                </a>
+                                            ) : (
+                                                <Link
+                                                    to={item.to}
+                                                    className="text-4xl font-black text-white hover:text-primary-400 transition-colors tracking-tighter"
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                >
+                                                    {item.label}
+                                                </Link>
+                                            )}
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                {/* Action Buttons */}
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.6 }}
+                                    className="mt-auto mb-12 flex flex-col gap-4"
+                                >
                                     <button
                                         onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
-                                        className="w-full py-3 rounded-xl btn-secondary text-sm font-medium"
+                                        className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-sm hover:bg-white/10 transition-all"
                                     >
-                                        Login
+                                        Log In
                                     </button>
                                     <button
                                         onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}
-                                        className="w-full py-3 rounded-xl btn-3d text-sm font-medium"
+                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-black uppercase tracking-widest text-sm shadow-lg shadow-primary-500/20 active:scale-95 transition-all"
                                     >
                                         Get Started
                                     </button>
+                                </motion.div>
+
+                                {/* Footer Info */}
+                                <div className="mb-8 border-t border-white/5 pt-6 flex justify-between items-center opacity-40">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-white">© 2026 TheCollabify</span>
+                                    <div className="flex gap-4">
+                                        <Icon name="twitter" size={16} />
+                                        <Icon name="instagram" size={16} />
+                                    </div>
                                 </div>
-                                {/* Navigation Links */}
-                                <Link
-                                    to="/for-brands"
-                                    className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    For Brands
-                                </Link>
-                                <Link
-                                    to="/for-creators"
-                                    className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    For Influencers
-                                </Link>
-                                <a
-                                    href="#how-it-works"
-                                    className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    How It Works
-                                </a>
-                                <a
-                                    href="#features"
-                                    className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    Features
-                                </a>
-                                <a
-                                    href="#about"
-                                    className="block py-3 px-4 rounded-xl text-dark-300 hover:bg-dark-800 hover:text-dark-100 transition"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                >
-                                    About Us
-                                </a>
-                            </div>
-                        </div>
-                    )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </nav>
 
                 {/* Hero Section - VRInfluence Style */}

@@ -13,6 +13,7 @@ import { trackEvent } from '../../utils/analytics';
 import CollaborationStepper from './CollaborationStepper';
 import EarlyBirdModal from './EarlyBirdModal';
 import FeedbackForm from './FeedbackForm';
+import ConfirmModal from './ConfirmModal';
 
 const STAGE_ORDER = ['REQUESTED', 'ACCEPTED', 'IN_DISCUSSION', 'AGREED', 'IN_PROGRESS', 'COMPLETED'];
 
@@ -44,6 +45,15 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
     const [earlyBirdMode, setEarlyBirdMode] = useState(false);
     const [showEarlyBirdModal, setShowEarlyBirdModal] = useState(false);
     const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+    
+    // Confirm Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        onConfirm: () => {},
+        title: '',
+        message: '',
+        variant: 'primary'
+    });
 
     useEffect(() => {
         collaborationAPI.getPlatformMode()
@@ -77,8 +87,28 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
 
     const handleTransition = async (newStatus) => {
         const label = ACTION_LABELS[newStatus] || newStatus;
-        if (newStatus === 'CANCELLED' && !window.confirm('Are you sure you want to cancel this collaboration? This cannot be undone.')) return;
-        if (newStatus === 'COMPLETED' && !window.confirm('Mark this collaboration as completed?')) return;
+        
+        if (newStatus === 'CANCELLED') {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Cancel Collaboration?',
+                message: 'Are you sure you want to cancel this collaboration? This action cannot be undone.',
+                variant: 'danger',
+                onConfirm: () => doTransition(newStatus)
+            });
+            return;
+        }
+
+        if (newStatus === 'COMPLETED') {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Mark Completed?',
+                message: 'Confirm that all deliverables have been met and you are ready to complete this collaboration.',
+                variant: 'primary',
+                onConfirm: () => doTransition(newStatus)
+            });
+            return;
+        }
 
         // In early bird mode, show the early bird modal when moving to IN_DISCUSSION
         if (newStatus === 'IN_DISCUSSION' && earlyBirdMode) {
@@ -166,6 +196,10 @@ const CollaborationHub = ({ match, isOwner, onClose, onComplete }) => {
 
     return (
         <div className="bg-dark-900 h-full flex flex-col">
+            <ConfirmModal 
+                {...confirmModal}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+            />
             {/* Header */}
             <div className="p-6 border-b border-dark-700 flex justify-between items-start">
                 <div>

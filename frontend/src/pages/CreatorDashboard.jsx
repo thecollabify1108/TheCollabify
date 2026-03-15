@@ -42,7 +42,6 @@ import EarlyBirdBanner from '../components/common/EarlyBirdBanner';
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonList } from '../components/common/Skeleton';
 
-import GuidedAIMode from '../components/dashboard/GuidedAIMode';
 import FocusWrapper from '../components/dashboard/FocusWrapper';
 
 // Lazy-loaded tab content — only fetched when user navigates to these tabs
@@ -73,7 +72,6 @@ const CreatorDashboard = () => {
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [focusMode, setFocusMode] = useState(null);
-    const [showGuide, setShowGuide] = useState(true);
     const [availabilityStatus, setAvailabilityStatus] = useState('idle');
     const [activeCollab, setActiveCollab] = useState(null);
 
@@ -296,7 +294,6 @@ const CreatorDashboard = () => {
                 setActiveTab('dashboard');
             }
             setFocusMode(target);
-            setShowGuide(false);
             setTimeout(() => setFocusMode(null), 3000);
         }
     };
@@ -404,20 +401,10 @@ const CreatorDashboard = () => {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             tabs={tabs}
-            showGuide={showGuide}
-            setShowGuide={setShowGuide}
         >
             <EarlyBirdBanner />
             <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
                 <AnimatePresence mode="wait">
-                    {/* Guided AI Mode Overlay */}
-                    {activeTab === 'dashboard' && showGuide && (
-                        <GuidedAIMode
-                            role="creator"
-                            onAction={handleGuideAction}
-                            onClose={() => setShowGuide(false)}
-                        />
-                    )}
 
                     {/* Dashboard Tab - Modernized */}
                     {activeTab === 'dashboard' && (
@@ -493,38 +480,50 @@ const CreatorDashboard = () => {
                                                     </span>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-s4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                                     {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length === 0 ? (
-                                                        <div className="md:col-span-2 p-s8 rounded-premium-2xl bg-dark-800/20 border border-dark-700/50 flex flex-col items-center justify-center text-center">
-                                                            <FaHandshake className="text-4xl text-dark-700 mb-s3" />
-                                                            <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">No active collaborations yet</p>
+                                                        <div className="md:col-span-2 p-12 rounded-[2rem] bg-dark-800/20 border border-white/5 flex flex-col items-center justify-center text-center backdrop-blur-md">
+                                                            <div className="w-16 h-16 rounded-full bg-dark-700/30 flex items-center justify-center mb-6 border border-white/5">
+                                                                <FaHandshake className="text-3xl text-dark-500" />
+                                                            </div>
+                                                            <p className="text-xs font-black text-dark-400 uppercase tracking-[0.2em]">No active collaborations yet</p>
                                                         </div>
                                                     ) : (
-                                                        applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').map(app => (
+                                                        applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').map((app, i) => (
                                                             <motion.div
                                                                 key={app.id}
-                                                                whileHover={{ y: -4 }}
+                                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                transition={{ delay: i * 0.1 }}
+                                                                whileHover={{ y: -8, scale: 1.02 }}
                                                                 onClick={() => setActiveCollab({ id: app.id, promotion: app.promotion, seller: app.sellerId || app.seller })}
-                                                                className="p-s4 rounded-premium-2xl bg-dark-800/40 border border-dark-700/50 backdrop-blur-sm cursor-pointer hover:border-primary-500/30 transition-all group"
+                                                                className="relative p-6 rounded-[2rem] bg-dark-900/40 border border-white/5 backdrop-blur-3xl cursor-pointer hover:border-primary-500/50 transition-all group overflow-hidden shadow-2xl hover:shadow-primary-500/10"
                                                             >
-                                                                <div className="flex items-center gap-s3 mb-s4">
-                                                                    <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-white font-black">
-                                                                        {(app.sellerId?.name || app.seller?.name || 'B').charAt(0)}
+                                                                {/* Animated background glow */}
+                                                                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-indigo-500/0 group-hover:from-primary-500/5 group-hover:to-indigo-500/10 transition-all duration-500" />
+                                                                
+                                                                <div className="relative z-10">
+                                                                    <div className="flex items-center gap-4 mb-6">
+                                                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-800 flex items-center justify-center text-white font-black text-xl shadow-xl border border-white/10">
+                                                                            {(app.sellerId?.name || app.seller?.name || 'B').charAt(0)}
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-lg font-black text-white truncate leading-tight">{app.promotion?.title}</p>
+                                                                            <p className="text-[10px] font-black text-primary-400 uppercase tracking-widest">{app.sellerId?.name || app.seller?.name || 'Brand'}</p>
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <p className="text-small font-bold text-dark-100 truncate">{app.promotion?.title}</p>
-                                                                        <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-tight">{app.sellerId?.name || app.seller?.name || 'Brand'}</p>
+ 
+                                                                    <div className="p-1 px-2 mb-6">
+                                                                        <CollaborationStepper
+                                                                            currentStatus={app.collaborationStatus || 'ACCEPTED'}
+                                                                            className="scale-90 origin-left"
+                                                                        />
                                                                     </div>
-                                                                </div>
-
-                                                                <CollaborationStepper
-                                                                    currentStatus={app.collaborationStatus || 'ACCEPTED'}
-                                                                    className="scale-90 origin-left mb-s2"
-                                                                />
-
-                                                                <div className="mt-s2 flex items-center justify-between">
-                                                                    <span className="text-[10px] font-black text-primary-400 uppercase tracking-widest group-hover:underline">Manage Collab →</span>
-                                                                    <span className="text-[10px] font-black text-dark-500 uppercase">{new Date(app.updatedAt).toLocaleDateString()}</span>
+ 
+                                                                    <div className="pt-6 border-t border-white/5 flex items-center justify-between">
+                                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] group-hover:text-primary-400 transition-colors">Manage Collab →</span>
+                                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-widest">{new Date(app.updatedAt).toLocaleDateString()}</span>
+                                                                    </div>
                                                                 </div>
                                                             </motion.div>
                                                         ))

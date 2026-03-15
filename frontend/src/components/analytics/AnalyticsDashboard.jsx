@@ -110,7 +110,7 @@ const AnalyticsDashboard = ({ userType = 'creator' }) => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-bold text-dark-100 flex items-center gap-3">
+                    <h1 className="text-xl md:text-2xl font-bold text-dark-100 flex items-center gap-3">
                         <HiSparkles className="text-purple-500" />
                         Analytics
                     </h1>
@@ -144,7 +144,7 @@ const AnalyticsDashboard = ({ userType = 'creator' }) => {
             )}
 
             {/* Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
                 {userType === 'creator' ? (
                     <>
                         <EarningsChart analytics={analytics} />
@@ -203,7 +203,7 @@ const CreatorSummaryCards = ({ summary }) => {
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {cards.map((card, index) => (
                 <SummaryCard key={index} {...card} />
             ))}
@@ -241,7 +241,7 @@ const SellerSummaryCards = ({ summary }) => {
         },
         {
             title: 'Average ROI',
-            value: <span className="text-base font-medium text-dark-400 flex items-center gap-2 mt-2"><FaLock className="text-sm" /> Soon</span>,
+            value: <span className="text-sm md:text-base font-medium text-dark-400 flex items-center gap-2 mt-1 md:mt-2"><FaLock className="text-xs md:text-sm" /> Soon</span>,
             icon: FaChartLine,
             color: 'emerald',
             showGrowth: false
@@ -249,7 +249,7 @@ const SellerSummaryCards = ({ summary }) => {
     ];
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             {cards.map((card, index) => (
                 <SummaryCard key={index} {...card} />
             ))}
@@ -281,14 +281,14 @@ const SummaryCard = ({ title, value, growth, icon: Icon, color, showGrowth = tru
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`bg-gradient-to-br ${colorClasses[color]} border rounded-2xl p-6`}
+            className={`bg-gradient-to-br ${colorClasses[color]} border rounded-xl p-4 md:p-5 flex flex-col justify-between`}
         >
-            <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 ${iconColorClasses[color]} rounded-xl flex items-center justify-center`}>
-                    <Icon className="text-2xl" />
+            <div className="flex items-start justify-between mb-3">
+                <div className={`w-10 h-10 ${iconColorClasses[color]} rounded-lg flex items-center justify-center shrink-0`}>
+                    <Icon className="text-xl" />
                 </div>
                 {showGrowth && growth !== undefined && (
-                    <div className={`flex items-center gap-1 text-sm font-semibold ${growth >= 0 ? 'text-emerald-400' : 'text-red-400'
+                    <div className={`flex items-center gap-1 text-xs md:text-sm font-semibold ${growth >= 0 ? 'text-emerald-400' : 'text-red-400'
                         }`}>
                         {growth >= 0 ? <FaArrowUp /> : <FaArrowDown />}
                         {Math.abs(growth).toFixed(1)}%
@@ -297,8 +297,8 @@ const SummaryCard = ({ title, value, growth, icon: Icon, color, showGrowth = tru
             </div>
 
             <div>
-                <p className="text-dark-400 text-sm mb-1">{title}</p>
-                <p className="text-3xl font-bold text-dark-100">{value}</p>
+                <p className="text-dark-400 text-xs md:text-sm mb-1 line-clamp-1">{title}</p>
+                <p className="text-xl md:text-2xl font-bold text-dark-100">{value}</p>
             </div>
         </motion.div>
     );
@@ -341,8 +341,8 @@ const EarningsChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
-            <div className="h-56 md:h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-xl p-3 md:p-5">
+            <div className="h-48 md:h-56">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -388,8 +388,8 @@ const CampaignsChart = ({ analytics, isSeller = false }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
-            <div className="h-56 md:h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-xl p-3 md:p-5">
+            <div className="h-48 md:h-56">
                 <Bar data={data} options={options} />
             </div>
         </div>
@@ -437,8 +437,8 @@ const EngagementChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
-            <div className="h-56 md:h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-xl p-3 md:p-5">
+            <div className="h-48 md:h-56">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -482,8 +482,8 @@ const FollowerGrowthChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
-            <div className="h-56 md:h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-xl p-3 md:p-5">
+            <div className="h-48 md:h-56">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -527,8 +527,8 @@ const SpendingChart = ({ analytics }) => {
     };
 
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
-            <div className="h-56 md:h-64">
+        <div className="bg-dark-900 border border-dark-800 rounded-xl p-3 md:p-5">
+            <div className="h-48 md:h-56">
                 <Line data={data} options={options} />
             </div>
         </div>
@@ -540,8 +540,8 @@ const SpendingChart = ({ analytics }) => {
  */
 const ROIChart = ({ analytics }) => {
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center text-center">
-            <div className="h-56 md:h-64 flex flex-col items-center justify-center">
+        <div className="bg-dark-900 border border-dark-800 rounded-xl p-3 md:p-5 flex flex-col items-center justify-center text-center">
+            <div className="h-48 md:h-56 flex flex-col items-center justify-center">
                 <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-500">
                     <FaLock className="text-xl" />
                 </div>
@@ -557,8 +557,8 @@ const ROIChart = ({ analytics }) => {
  */
 const ReachChart = ({ analytics }) => {
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center text-center">
-            <div className="h-56 md:h-64 flex flex-col items-center justify-center">
+        <div className="bg-dark-900 border border-dark-800 rounded-xl p-3 md:p-5 flex flex-col items-center justify-center text-center">
+            <div className="h-48 md:h-56 flex flex-col items-center justify-center">
                 <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 text-blue-500">
                     <FaLock className="text-xl" />
                 </div>

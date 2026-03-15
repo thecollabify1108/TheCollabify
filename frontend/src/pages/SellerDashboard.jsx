@@ -1,4 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaFire, FaLock, FaChevronDown, FaChevronUp
@@ -41,9 +42,11 @@ import PerformanceChart from '../components/dashboard/PerformanceChart';
 import FocusWrapper from '../components/dashboard/FocusWrapper';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
+import Icon from '../components/common/Icon';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -127,7 +130,7 @@ const SellerDashboard = () => {
 
     const handleMessageCreator = (requestId, creatorId, creatorName) => {
         // Navigate to messages
-        window.location.href = `/messages?user=${creatorId}&name=${creatorName}`;
+        navigate(`/messages?user=${creatorId}&name=${creatorName}`);
     };
 
     // Bottom navigation - 6 tabs with Analytics & Team
@@ -340,9 +343,15 @@ const SellerDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="h-[calc(100vh-160px)] lg:h-[calc(100vh-100px)] -mt-2 -mx-2 sm:-mx-4 lg:-mx-6 rounded-2xl overflow-hidden border border-dark-700/50"
+                        className="p-s4 flex flex-col h-[calc(100vh-160px)] lg:h-[calc(100vh-100px)]"
                     >
-                        <ChatBox />
+                        <div className="mb-s4 shrink-0">
+                            <h2 className="text-h2 font-bold text-dark-100 mb-s1">Messages</h2>
+                            <p className="text-body text-dark-400">Chat with applicants and creators</p>
+                        </div>
+                        <div className="flex-1 rounded-2xl overflow-hidden border border-dark-700/50">
+                            <ChatBox />
+                        </div>
                     </motion.div>
                 )}
 
@@ -362,7 +371,7 @@ const SellerDashboard = () => {
                         
                         <BrandInsightCards />
                         
-                        <div className="h-[250px] lg:h-[300px]">
+                        <div className="h-[200px] lg:h-[250px]">
                             <PerformanceChart
                                 title="Campaign Spend & ROI"
                                 color="#f59e0b"
@@ -433,7 +442,7 @@ const SellerDashboard = () => {
                             />
                         </div>
 
-                        <div className="h-[280px] sm:h-[350px]">
+                        <div className="h-[220px] sm:h-[300px]">
                             <ActivityFeed
                                     activities={pendingCreators.slice(0, 5).map(c => ({
                                         id: c.creatorId,
@@ -447,33 +456,28 @@ const SellerDashboard = () => {
                                 />
                         </div>
 
-                        {/* 4. Active Campaigns List (Modernized) */}
+                        {/* 4. Active Campaigns List (Aligned with Creator Opportunities) */}
                         <FocusWrapper sectionId="campaigns">
-                            <div className="space-y-s6 bg-dark-800/20 p-4 rounded-2xl border border-dark-700/50">
-                                <div 
-                                    className="flex items-center justify-between cursor-pointer"
-                                    onClick={() => setIsCampaignsExpanded(!isCampaignsExpanded)}
-                                >
-                                    <h2 className="text-sm font-semibold text-dark-100 flex items-center gap-2 uppercase tracking-wider">
-                                        Active Campaigns
-                                        {isCampaignsExpanded ? <FaChevronUp className="text-dark-500" /> : <FaChevronDown className="text-dark-500" />}
-                                    </h2>
+                            <div className="pt-2">
+                                <div className="flex items-center justify-between mb-4 px-1">
+                                    <div>
+                                        <h2 className="text-h2 font-bold text-dark-100 mb-1 leading-tight tracking-tight">Active Campaigns</h2>
+                                        <p className="text-body text-dark-400">{requests.length} campaigns running</p>
+                                    </div>
                                     <LoadingButton
                                         onClick={(e) => { e.stopPropagation(); setShowRequestWizard(true); }}
-                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-colors border-none"
+                                        className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-primary-600 text-white shadow-glow hover:shadow-premium rounded-xl text-xs font-bold transition-all border-none flex items-center gap-1.5"
                                     >
-                                        + New Campaign
+                                        <HiSparkles /> Launch
                                     </LoadingButton>
                                 </div>
 
-                                <AnimatePresence>
-                                    {isCampaignsExpanded && (
-                                        <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
-                                            className="overflow-hidden pt-2"
-                                        >
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="overflow-visible"
+                                >
                                             {requests.length === 0 ? (
                                                 <EmptyState
                                                     icon="box-empty"
@@ -483,7 +487,7 @@ const SellerDashboard = () => {
                                                     onAction={() => setShowRequestWizard(true)}
                                                 />
                                             ) : (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-s4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
                                                     {requests.slice(0, 6).map((request, index) => (
                                                         request ? (
                                                             <motion.div
@@ -491,41 +495,60 @@ const SellerDashboard = () => {
                                                                 initial={{ opacity: 0, y: 20 }}
                                                                 animate={{ opacity: 1, y: 0 }}
                                                                 transition={{ delay: index * 0.05 }}
+                                                                whileHover={{ y: -8 }}
                                                                 onClick={() => setSelectedRequest(request)}
-                                                                className="p-s5 rounded-premium-2xl bg-dark-800/40 backdrop-blur-md border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800/60 shadow-md hover:shadow-premium"
+                                                                className="relative p-7 rounded-[2rem] bg-dark-900/40 backdrop-blur-3xl border border-white/5 hover:border-primary-500/50 cursor-pointer transition-all group overflow-hidden shadow-2xl hover:shadow-primary-500/10"
                                                             >
-                                                                <div className="flex items-start justify-between mb-s4">
-                                                                    <div className={`w-12 h-12 rounded-premium-xl flex items-center justify-center shadow-glow border border-white/10 text-lg font-black ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                                        request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
-                                                                            'bg-blue-500/20 text-blue-400'
+                                                                {/* Animated background glow on hover */}
+                                                                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-indigo-500/0 group-hover:from-primary-500/5 group-hover:to-indigo-500/10 transition-all duration-500" />
+                                                                
+                                                                <div className="relative z-10">
+                                                                    <div className="flex items-start justify-between mb-6">
+                                                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl border border-white/10 text-xl font-black ${
+                                                                            request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400 shadow-emerald-500/10' :
+                                                                            request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400 shadow-purple-500/10' :
+                                                                            'bg-blue-500/20 text-blue-400 shadow-blue-500/10'
                                                                         }`}>
-                                                                        {request.title ? request.title.charAt(0).toUpperCase() : '?'}
-                                                                    </div>
-                                                                    <span className={`px-s2.5 py-1 rounded-premium-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-dark-700/50 text-dark-400 border-dark-600/30'
+                                                                            {request.title ? request.title.charAt(0).toUpperCase() : '?'}
+                                                                        </div>
+                                                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg border backdrop-blur-md ${
+                                                                            request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                                                                            'bg-dark-700/50 text-dark-300 border-dark-600/30'
                                                                         }`}>
-                                                                        {request.status}
-                                                                    </span>
-                                                                </div>
-
-                                                                <h3 className="text-body font-black text-dark-100 mb-s2 group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-tight">{request.title || 'Untitled Campaign'}</h3>
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex flex-col">
-                                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Budget</span>
-                                                                        <span className="text-xs-pure font-black text-dark-100">₹{request.budget?.toLocaleString()}</span>
+                                                                            {request.status}
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="flex flex-col items-end">
-                                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Matches</span>
-                                                                        <span className="text-xs-pure font-black text-primary-400">{request.matchedCreators?.length || 0}</span>
-                                                                    </div>
-                                                                </div>
 
-                                                                {/* Progress Bar Simulation */}
-                                                                <div className="w-full bg-dark-950/50 rounded-free h-1 mt-s5 overflow-hidden border border-dark-800/50">
-                                                                    <motion.div
-                                                                        initial={{ width: 0 }}
-                                                                        animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
-                                                                        className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-free"
-                                                                    />
+                                                                    <h3 className="text-xl font-black text-white mb-3 group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-none">
+                                                                        {request.title || 'Untitled Campaign'}
+                                                                    </h3>
+                                                                    
+                                                                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-[10px] font-black text-dark-500 uppercase tracking-widest mb-1">Budget</span>
+                                                                            <span className="text-lg font-black text-white flex items-center gap-1">
+                                                                                <span className="text-primary-500/50 text-xs">₹</span>
+                                                                                {request.budget?.toLocaleString()}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="flex flex-col items-end">
+                                                                            <span className="text-[10px] font-black text-dark-500 uppercase tracking-widest mb-1">Matches</span>
+                                                                            <span className="text-lg font-black text-primary-400 group-hover:scale-110 transition-transform">
+                                                                                {request.matchedCreators?.length || 0}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="mt-6 flex items-center gap-2">
+                                                                        <div className="flex-1 h-1.5 bg-dark-950 rounded-full overflow-hidden p-[1px] border border-white/5">
+                                                                            <motion.div
+                                                                                initial={{ width: 0 }}
+                                                                                animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
+                                                                                className="h-full bg-gradient-to-r from-primary-600 to-indigo-600 rounded-full shadow-glow"
+                                                                            />
+                                                                        </div>
+                                                                        <span className="text-[9px] font-black text-dark-500 uppercase">Growth</span>
+                                                                    </div>
                                                                 </div>
                                                             </motion.div>
                                                         ) : null
@@ -533,8 +556,6 @@ const SellerDashboard = () => {
                                                 </div>
                                             )}
                                         </motion.div>
-                                    )}
-                                </AnimatePresence>
                             </div>
                         </FocusWrapper>
                     </motion.div>

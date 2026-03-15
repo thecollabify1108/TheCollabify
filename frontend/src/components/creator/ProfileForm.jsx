@@ -4,6 +4,7 @@ import { FaHashtag, FaRupeeSign } from 'react-icons/fa';
 import { creatorAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 import { trackEvent } from '../../utils/analytics';
+import ConfirmModal from '../common/ConfirmModal';
 
 const CATEGORIES = [
     'Fashion', 'Tech', 'Fitness', 'Food', 'Travel', 'Lifestyle',
@@ -17,8 +18,8 @@ const ProfileForm = ({ profile, onSave }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         followerRange: {
-            min: profile?.verifiedFollowerRangeMin || profile?.followerCount || '',
-            max: profile?.verifiedFollowerRangeMax || (profile?.followerCount ? profile.followerCount + 500 : '') || ''
+            min: profile?.verifiedFollowerRangeMin || '',
+            max: profile?.verifiedFollowerRangeMax || ''
         },
         engagementRate: profile?.engagementRate || '',
         category: profile?.category || '',
@@ -38,6 +39,13 @@ const ProfileForm = ({ profile, onSave }) => {
         collaborationTypes: profile?.collaborationTypes || ['REMOTE'],
         isAvailable: profile?.isAvailable !== false,
         availabilityStatus: profile?.availabilityStatus || 'AVAILABLE_NOW'
+    });
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        onConfirm: () => {},
+        title: '',
+        message: '',
+        variant: 'primary'
     });
 
     const handleChange = (e) => {
@@ -89,8 +97,8 @@ const ProfileForm = ({ profile, onSave }) => {
             toast.error('Max followers must be \u2265 min followers');
             return;
         }
-        if (fMax - fMin > 500) {
-            toast.error(`Follower range must be within 500 (currently ${fMax - fMin})`);
+        if (fMax - fMin > 1000) {
+            toast.error(`Follower range must be within 1000 (currently ${fMax - fMin})`);
             return;
         }
 
@@ -126,15 +134,20 @@ const ProfileForm = ({ profile, onSave }) => {
 
         // Warn about match changes if updating existing profile
         if (profile) {
-            const confirmed = window.confirm(
-                'Updating your profile will change your matches.\n\n' +
-                'Sellers who previously matched with you may no longer see you, ' +
-                'and new sellers matching your updated profile will see you.\n\n' +
-                'Continue with update?'
-            );
-            if (!confirmed) return;
+            setConfirmModal({
+                isOpen: true,
+                title: 'Update Profile?',
+                message: 'Updating your profile will change your matches. Sellers who previously matched with you may no longer see you, and new sellers matching your updated profile will see you. Continue?',
+                variant: 'primary',
+                onConfirm: () => executeSubmit(fMin, fMax)
+            });
+            return;
         }
 
+        await executeSubmit(fMin, fMax);
+    };
+
+    const executeSubmit = async (fMin, fMax) => {
         setLoading(true);
         try {
             const data = {
@@ -147,14 +160,14 @@ const ProfileForm = ({ profile, onSave }) => {
                     max: parseFloat(formData.priceRange.max)
                 }
             };
-
+ 
             let res;
             if (profile) {
                 res = await creatorAPI.updateProfile(data);
             } else {
                 res = await creatorAPI.createProfile(data);
             }
-
+ 
             toast.success(profile ? 'Profile updated!' : 'Profile created!');
             trackEvent('profile_completed');
             onSave(res.data.data.profile);
@@ -162,6 +175,7 @@ const ProfileForm = ({ profile, onSave }) => {
             toast.error(error.response?.data?.message || 'Failed to save profile');
         } finally {
             setLoading(false);
+            setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
     };
 
@@ -171,6 +185,10 @@ const ProfileForm = ({ profile, onSave }) => {
             animate={{ opacity: 1, y: 0 }}
             className="glass-card p-6 md:p-8"
         >
+            <ConfirmModal 
+                {...confirmModal}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+            />
             <h2 className="text-2xl font-bold text-dark-100 mb-6">
                 {profile ? 'Edit Your Profile' : 'Create Your Creator Profile'}
             </h2>
@@ -181,8 +199,11 @@ const ProfileForm = ({ profile, onSave }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label className="input-label">Follower Range</label>
-                        <p className="text-xs text-dark-400 mb-2">Max 500 difference for verification</p>
-                        <div className="grid grid-cols-2 gap-2">
+                        <p className="text-[10px] text-emerald-400 mt-2 font-medium bg-emerald-400/5 p-2 rounded-lg border border-emerald-400/20">
+                            <span className="font-bold mr-1">💡 Tip:</span> 
+                            Try to insert the followers in format of a range. E.g. if you have 5200 followers, put range of 5000-5500. (Max 1000 gap)
+                        </p>
+                        <div className="grid grid-cols-2 gap-2 mt-3">
                             <input
                                 type="number"
                                 name="followerRange.min"
@@ -209,8 +230,8 @@ const ProfileForm = ({ profile, onSave }) => {
                             const max = parseInt(formData.followerRange?.max);
                             if (min > 0 && max > 0) {
                                 if (max < min) return <p className="text-xs text-rose-400 mt-1">Max must be \u2265 Min</p>;
-                                if (max - min > 500) return <p className="text-xs text-rose-400 mt-1">Range must be within 500 (currently {max - min})</p>;
-                                return <p className="text-xs text-emerald-400 mt-1">\u2713 Valid range</p>;
+                                if (max - min > 1000) return <p className="text-xs text-rose-400 mt-1">Range must be within 1000 (currently {max - min})</p>;
+                                return <p className="text-xs text-emerald-400 mt-1">\u2713 Valid round range</p>;
                             }
                             return null;
                         })()}
@@ -384,7 +405,7 @@ const ProfileForm = ({ profile, onSave }) => {
                         </div>
                     </div>
                     <p className="text-xs text-dark-500 mt-2">
-                        Set a realistic range. Wide ranges improve match chances but may attract lower offers.
+                        Try to insert your charges in format of a range. E.g. if you charge ₹5200, put range of 5000-5500. Wide ranges improve match chances but may attract lower offers.
                     </p>
                 </div>
 

@@ -77,7 +77,6 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
             return;
         }
 
-        // Transform data to match backend expectations
         const payload = {
             title: formData.title,
             description: formData.description,
@@ -93,7 +92,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                 min: Number(formData.minFollowers),
                 max: Number(formData.maxFollowers)
             },
-            campaignGoal: 'Reach', // Default goal
+            campaignGoal: 'Reach',
             requirements: formData.requirements || undefined,
             deadline: new Date(Date.now() + formData.duration * 24 * 60 * 60 * 1000).toISOString(),
             location: formData.locationType !== 'REMOTE' ? formData.location : undefined,
@@ -127,121 +126,115 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
     if (!isOpen) return null;
 
     return (
-        <>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
             {/* Backdrop */}
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={onClose}
-                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+                className="absolute inset-0 bg-dark-900/80 backdrop-blur-sm z-0"
             />
 
-            {/* Wizard */}
+            {/* Wizard Modal */}
             <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="fixed inset-4 md:inset-10 bg-dark-900/90 backdrop-blur-2xl rounded-premium-2xl shadow-premium z-50 overflow-hidden flex flex-col border border-dark-700/50"
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                className="relative z-10 w-full max-w-4xl bg-dark-950/98 backdrop-blur-2xl rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col border border-white/10 max-h-[92vh] sm:max-h-[90vh]"
             >
                 {/* Header */}
-                <div className="bg-gradient-to-r from-primary-600 to-secondary-600 p-s6 border-b border-white/10 relative">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-s4">
-                            <div className="p-s3 rounded-premium-xl bg-white/20 shadow-glow backdrop-blur-md border border-white/20">
-                                <HiSparkles className="text-3xl text-white" />
+                <div className="bg-gradient-to-r from-primary-700 to-indigo-800 p-5 border-b border-white/10 relative shrink-0">
+                    <div className="flex items-center justify-between pointer-events-auto">
+                        <div className="flex items-center gap-3">
+                            <div className="p-1.5 rounded-lg bg-white/10 shadow-lg backdrop-blur-md border border-white/20">
+                                <HiSparkles className="text-xl text-white" />
                             </div>
                             <div>
-                                <h2 className="text-h2 font-black text-white uppercase tracking-widest leading-tight">Create Campaign</h2>
-                                <p className="text-white/80 text-xs-pure font-bold uppercase tracking-widest">AI-Powered Campaign Builder</p>
+                                <h2 className="text-lg font-bold text-white tracking-tight">Create Campaign</h2>
+                                <p className="text-primary-100 text-[10px] font-bold tracking-widest uppercase opacity-80">AI-Powered Strategy</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-s3">
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowTemplates(true)}
-                                className="px-s4 py-s2 bg-white/10 hover:bg-white/20 text-white rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all border border-white/20 shadow-sm"
+                                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border border-white/20 shadow-sm flex items-center gap-1.5"
                             >
-                                Use Template
+                                Templates
                             </button>
                             <button
                                 onClick={onClose}
-                                className="p-s2 hover:bg-white/20 rounded-premium-lg transition-all"
+                                className="p-2 bg-dark-800/50 hover:bg-dark-700/80 rounded-lg transition-all text-white/80 hover:text-white border border-white/5"
                             >
-                                <FaTimes className="text-white text-xl" />
+                                <FaTimes className="text-sm" />
                             </button>
                         </div>
                     </div>
 
                     {/* Progress Steps */}
-                    <div className="flex items-center gap-2 mt-6">
+                    <div className="flex items-center gap-1.5 mt-4">
                         {steps.map((step, index) => (
-                            <div key={step.id} className="flex-1 flex items-center">
-                                <div className="flex-1">
-                                    <div className={`h-2 rounded-full ${index <= currentStep ? 'bg-white' : 'bg-white/30'
-                                        }`} />
-                                    <div className={`text-xs mt-1 ${index === currentStep ? 'text-white font-semibold' : 'text-white/60'
-                                        }`}>
-                                        {step.icon} {step.title}
-                                    </div>
+                            <div key={step.id} className="flex-1">
+                                <div className={`h-1 rounded-full transition-all duration-500 ${index <= currentStep ? 'bg-primary-400 shadow-[0_0_8px_rgba(var(--color-primary-400),0.6)]' : 'bg-white/10'}`} />
+                                <div className={`text-[9px] mt-1.5 font-bold tracking-widest uppercase truncate ${index === currentStep ? 'text-white' : 'text-white/40'}`}>
+                                    {step.title}
                                 </div>
-                                {index < steps.length - 1 && (
-                                    <FaChevronRight className="text-white/40 mx-2" />
-                                )}
                             </div>
                         ))}
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6">
+                {/* Content Area */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
                     <AnimatePresence mode="wait">
                         {/* Step 0: Basics */}
                         {currentStep === 0 && (
                             <motion.div
                                 key="basics"
-                                initial={{ opacity: 0, x: 20 }}
+                                initial={{ opacity: 0, x: 15 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                exit={{ opacity: 0, x: -15 }}
+                                className="space-y-6 max-w-2xl mx-auto"
                             >
                                 <div>
-                                    <label className="block text-xs-pure font-black text-dark-400 mb-s2 uppercase tracking-widest">
-                                        Campaign Title *
+                                    <label className="block text-xs font-bold text-dark-300 mb-2 uppercase tracking-wider">
+                                        Campaign Title <span className="text-red-400">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                        placeholder="e.g., Summer Fashion Collection Launch"
-                                        className="w-full px-s4 py-s3.5 bg-dark-800/40 border border-dark-700/50 rounded-premium-xl text-dark-100 placeholder-dark-500 focus:border-primary-500/50 focus:outline-none transition-all shadow-inner"
+                                        placeholder="e.g., Summer Fashion Collection"
+                                        className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500/80 focus:ring-1 focus:ring-primary-500/50 focus:outline-none transition-all shadow-inner text-sm"
+                                        autoFocus
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
+                                    <label className="block text-xs font-bold text-dark-300 mb-2 uppercase tracking-wider">
                                         Description
                                     </label>
                                     <textarea
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                        placeholder="Describe your campaign goals and vision..."
-                                        rows={4}
-                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none resize-none"
+                                        placeholder="Outline your vision and goals..."
+                                        rows={3}
+                                        className="w-full px-4 py-3 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500/80 focus:ring-1 focus:ring-primary-500/50 focus:outline-none transition-all resize-none shadow-inner text-sm"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
+                                    <label className="block text-[10px] font-bold text-dark-400 mb-2.5 uppercase tracking-widest">
                                         Content Type
                                     </label>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-s3">
+                                    <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                         {['Post', 'Story', 'Reel', 'Video', 'IGTV', 'Live'].map(type => (
                                             <button
                                                 key={type}
                                                 onClick={() => setFormData({ ...formData, promotionType: type })}
-                                                className={`py-s3 rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all border ${formData.promotionType === type
-                                                    ? 'bg-primary-600 text-white border-primary-500 shadow-glow'
-                                                    : 'bg-dark-800/40 text-dark-300 border-dark-700/50 hover:bg-dark-700'
+                                                className={`py-1.5 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${formData.promotionType === type
+                                                    ? 'bg-primary-600/20 text-primary-400 border-primary-500/50 shadow-sm'
+                                                    : 'bg-dark-800/40 text-dark-400 border-dark-700 hover:bg-dark-700/80 hover:border-dark-600'
                                                     }`}
                                             >
                                                 {type}
@@ -256,23 +249,23 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                         {currentStep === 1 && (
                             <motion.div
                                 key="targeting"
-                                initial={{ opacity: 0, x: 20 }}
+                                initial={{ opacity: 0, x: 15 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                exit={{ opacity: 0, x: -15 }}
+                                className="space-y-8 max-w-2xl mx-auto"
                             >
                                 <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-3">
+                                    <label className="block text-[10px] font-bold text-dark-400 mb-2.5 uppercase tracking-widest">
                                         Target Categories
                                     </label>
-                                    <div className="flex flex-wrap gap-s2">
+                                    <div className="flex flex-wrap gap-2">
                                         {categories.map(category => (
                                             <button
                                                 key={category}
                                                 onClick={() => toggleCategory(category)}
-                                                className={`px-s4 py-s2 rounded-premium-lg text-xs-pure font-black uppercase tracking-widest transition-all border ${formData.targetNiche.includes(category)
-                                                    ? 'bg-primary-600 text-white border-primary-500 shadow-glow'
-                                                    : 'bg-dark-800/40 text-dark-300 border-dark-700/50 hover:bg-dark-700'
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${formData.targetNiche.includes(category)
+                                                    ? 'bg-primary-600/20 text-primary-400 border-primary-500/50 shadow-sm'
+                                                    : 'bg-dark-800/40 text-dark-400 border-dark-700 hover:bg-dark-700/80 hover:border-dark-600'
                                                     }`}
                                             >
                                                 {category}
@@ -281,66 +274,69 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-3">
-                                        Follower Range: {formData.minFollowers.toLocaleString()} - {formData.maxFollowers.toLocaleString()}
-                                    </label>
-                                    <div className="space-y-4">
-                                        <div>
-                                            <span className="text-xs text-dark-500">Minimum</span>
-                                            <input
-                                                type="range"
-                                                min="1000"
-                                                max="1000000"
-                                                step="1000"
-                                                value={formData.minFollowers}
-                                                onChange={(e) => setFormData({ ...formData, minFollowers: parseInt(e.target.value) })}
-                                                className="w-full mt-2"
-                                            />
+                                <div className="p-5 bg-dark-800/30 border border-dark-700/50 rounded-xl space-y-6">
+                                    <div>
+                                        <div className="flex justify-between mb-2">
+                                            <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Follower Range</label>
+                                            <span className="text-xs font-mono text-primary-400">{formData.minFollowers.toLocaleString()} - {formData.maxFollowers.toLocaleString()}</span>
                                         </div>
-                                        <div>
-                                            <span className="text-xs text-dark-500">Maximum</span>
-                                            <input
-                                                type="range"
-                                                min="1000"
-                                                max="1000000"
-                                                step="1000"
-                                                value={formData.maxFollowers}
-                                                onChange={(e) => setFormData({ ...formData, maxFollowers: parseInt(e.target.value) })}
-                                                className="w-full mt-2"
-                                            />
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[10px] uppercase font-bold text-dark-500 w-8">Min</span>
+                                                <input
+                                                    type="range"
+                                                    min="1000"
+                                                    max="1000000"
+                                                    step="1000"
+                                                    value={formData.minFollowers}
+                                                    onChange={(e) => setFormData({ ...formData, minFollowers: parseInt(e.target.value) })}
+                                                    className="w-full accent-primary-500"
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[10px] uppercase font-bold text-dark-500 w-8">Max</span>
+                                                <input
+                                                    type="range"
+                                                    min="1000"
+                                                    max="1000000"
+                                                    step="1000"
+                                                    value={formData.maxFollowers}
+                                                    onChange={(e) => setFormData({ ...formData, maxFollowers: parseInt(e.target.value) })}
+                                                    className="w-full accent-primary-500"
+                                                />
+                                            </div>
                                         </div>
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between mb-2">
+                                            <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Min Engagement Rate</label>
+                                            <span className="text-xs font-mono text-primary-400">{formData.minEngagement}%</span>
+                                        </div>
+                                        <input
+                                            type="range"
+                                            min="0"
+                                            max="10"
+                                            step="0.5"
+                                            value={formData.minEngagement}
+                                            onChange={(e) => setFormData({ ...formData, minEngagement: parseFloat(e.target.value) })}
+                                            className="w-full accent-primary-500"
+                                        />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-3">
-                                        Minimum Engagement Rate: {formData.minEngagement}%
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="0"
-                                        max="10"
-                                        step="0.5"
-                                        value={formData.minEngagement}
-                                        onChange={(e) => setFormData({ ...formData, minEngagement: parseFloat(e.target.value) })}
-                                        className="w-full"
-                                    />
-                                </div>
-
-                                {/* Location Settings */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-3">
+                                    <label className="block text-xs font-bold text-dark-300 mb-3 uppercase tracking-wider">
                                         Location Requirements
                                     </label>
-                                    <div className="flex gap-4 mb-4">
+                                    <div className="flex gap-2 mb-4">
                                         {['REMOTE', 'HYBRID', 'ONSITE'].map(type => (
                                             <button
                                                 key={type}
                                                 onClick={() => setFormData({ ...formData, locationType: type })}
-                                                className={`flex-1 py-2 rounded-lg font-medium transition-colors ${formData.locationType === type
-                                                    ? 'bg-purple-600 text-white'
-                                                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold tracking-widest transition-all border ${formData.locationType === type
+                                                    ? 'bg-primary-600/20 text-primary-400 border-primary-500/50 shadow-sm'
+                                                    : 'bg-dark-800/40 text-dark-400 border-dark-700 hover:bg-dark-700'
                                                     }`}
                                             >
                                                 {type}
@@ -349,36 +345,27 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                     </div>
 
                                     {formData.locationType !== 'REMOTE' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-4">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-4">
                                             <input
                                                 type="text"
                                                 value={formData.location.city}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    location: { ...formData.location, city: e.target.value }
-                                                })}
+                                                onChange={(e) => setFormData({ ...formData, location: { ...formData.location, city: e.target.value } })}
                                                 placeholder="City"
-                                                className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
+                                                className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
                                             />
                                             <input
                                                 type="text"
                                                 value={formData.location.district}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    location: { ...formData.location, district: e.target.value }
-                                                })}
+                                                onChange={(e) => setFormData({ ...formData, location: { ...formData.location, district: e.target.value } })}
                                                 placeholder="District"
-                                                className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
+                                                className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
                                             />
                                             <input
                                                 type="text"
                                                 value={formData.location.state}
-                                                onChange={(e) => setFormData({
-                                                    ...formData,
-                                                    location: { ...formData.location, state: e.target.value }
-                                                })}
-                                                placeholder="State"
-                                                className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none md:col-span-2"
+                                                onChange={(e) => setFormData({ ...formData, location: { ...formData.location, state: e.target.value } })}
+                                                placeholder="State/Region"
+                                                className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm md:col-span-2"
                                             />
                                         </div>
                                     )}
@@ -390,22 +377,23 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                         {currentStep === 2 && (
                             <motion.div
                                 key="requirements"
-                                initial={{ opacity: 0, x: 20 }}
+                                initial={{ opacity: 0, x: 15 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                exit={{ opacity: 0, x: -15 }}
+                                className="space-y-6 max-w-2xl mx-auto"
                             >
                                 <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
-                                        Campaign Requirements
+                                    <label className="block text-xs font-bold text-dark-300 mb-3 uppercase tracking-wider">
+                                        Campaign Requirements & Deliverables
                                     </label>
                                     <textarea
                                         value={formData.requirements}
                                         onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                                        placeholder="List your requirements for creators..."
-                                        rows={8}
-                                        className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none resize-none"
+                                        placeholder="List specific brand guidelines, do's and don'ts, required tags, or deliverables..."
+                                        rows={6}
+                                        className="w-full px-4 py-3 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500/80 focus:ring-1 focus:ring-primary-500/50 focus:outline-none transition-all shadow-inner text-sm resize-none"
                                     />
+                                    <p className="text-[10px] text-dark-400 mt-2 ml-1">Example: "Must feature product within first 3 seconds, tag @brandname..."</p>
                                 </div>
                             </motion.div>
                         )}
@@ -414,68 +402,73 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                         {currentStep === 3 && (
                             <motion.div
                                 key="budget"
-                                initial={{ opacity: 0, x: 20 }}
+                                initial={{ opacity: 0, x: 15 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                exit={{ opacity: 0, x: -15 }}
+                                className="space-y-8 max-w-2xl mx-auto"
                             >
-                                <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
-                                        Budget Range (₹) *
-                                    </label>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <span className="text-xs text-dark-500 mb-1 block">Minimum</span>
-                                            <input
-                                                type="number"
-                                                value={formData.minBudget}
-                                                onChange={(e) => setFormData({ ...formData, minBudget: e.target.value })}
-                                                placeholder="Min"
-                                                className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
-                                            />
+                                <div className="p-5 bg-dark-800/30 border border-dark-700/50 rounded-xl space-y-6">
+                                    <div>
+                                        <label className="block text-xs font-bold text-dark-300 mb-3 uppercase tracking-wider">
+                                            Total Budget Range (₹) <span className="text-red-400">*</span>
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400 font-bold">₹</span>
+                                                <input
+                                                    type="number"
+                                                    value={formData.minBudget}
+                                                    onChange={(e) => setFormData({ ...formData, minBudget: e.target.value })}
+                                                    placeholder="Min Budget"
+                                                    className="w-full pl-8 pr-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
+                                                />
+                                            </div>
+                                            <div className="relative">
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400 font-bold">₹</span>
+                                                <input
+                                                    type="number"
+                                                    value={formData.maxBudget}
+                                                    onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value })}
+                                                    placeholder="Max Budget"
+                                                    className="w-full pl-8 pr-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
+                                                />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span className="text-xs text-dark-500 mb-1 block">Maximum</span>
-                                            <input
-                                                type="number"
-                                                value={formData.maxBudget}
-                                                onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value })}
-                                                placeholder="Max"
-                                                className="w-full px-4 py-3 bg-dark-800 border border-dark-700 rounded-xl text-dark-100 placeholder-dark-500 focus:border-purple-500 focus:outline-none"
-                                            />
+                                    </div>
+
+                                    <div>
+                                        <div className="flex justify-between mb-3">
+                                            <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Est. Duration</label>
+                                            <span className="text-xs font-mono text-primary-400">{formData.duration} days</span>
                                         </div>
+                                        <input
+                                            type="range"
+                                            min="3"
+                                            max="90"
+                                            value={formData.duration}
+                                            onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
+                                            className="w-full accent-primary-500"
+                                        />
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-dark-200 mb-2">
-                                        Duration: {formData.duration} days
-                                    </label>
-                                    <input
-                                        type="range"
-                                        min="3"
-                                        max="90"
-                                        value={formData.duration}
-                                        onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-                                        className="w-full"
-                                    />
-                                </div>
-
-                                {formData.budget && (
-                                    <PredictiveAnalyticsWidget
-                                        campaignData={{
-                                            budget: parseInt(formData.budget),
-                                            creatorFollowers: (formData.minFollowers + formData.maxFollowers) / 2,
-                                            creatorEngagementRate: formData.minEngagement,
-                                            promotionType: formData.promotionType,
-                                            category: formData.targetNiche[0] || 'Lifestyle',
-                                            duration: formData.duration
-                                        }}
-                                        creatorProfile={{
-                                            followers: (formData.minFollowers + formData.maxFollowers) / 2,
-                                            avgEngagementRate: formData.minEngagement
-                                        }}
-                                    />
+                                {formData.maxBudget && (
+                                    <div className="border border-indigo-500/20 rounded-xl overflow-hidden shadow-lg">
+                                        <PredictiveAnalyticsWidget
+                                            campaignData={{
+                                                budget: parseInt(formData.maxBudget),
+                                                creatorFollowers: (formData.minFollowers + formData.maxFollowers) / 2,
+                                                creatorEngagementRate: formData.minEngagement,
+                                                promotionType: formData.promotionType,
+                                                category: formData.targetNiche[0] || 'Lifestyle',
+                                                duration: formData.duration
+                                            }}
+                                            creatorProfile={{
+                                                followers: (formData.minFollowers + formData.maxFollowers) / 2,
+                                                avgEngagementRate: formData.minEngagement
+                                            }}
+                                        />
+                                    </div>
                                 )}
                             </motion.div>
                         )}
@@ -484,50 +477,55 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                         {currentStep === 4 && (
                             <motion.div
                                 key="review"
-                                initial={{ opacity: 0, x: 20 }}
+                                initial={{ opacity: 0, x: 15 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                exit={{ opacity: 0, x: -15 }}
+                                className="space-y-6 max-w-2xl mx-auto"
                             >
-                                <div className="bg-dark-800/40 backdrop-blur-md rounded-premium-2xl p-s6 space-y-s6 border border-dark-700/50 shadow-inner">
-                                    <h3 className="text-h3 font-black text-dark-100 uppercase tracking-widest">Campaign Summary</h3>
+                                <div className="bg-dark-800/40 backdrop-blur-md rounded-2xl p-6 border border-dark-700/50 shadow-inner">
+                                    <h3 className="text-lg font-black text-white uppercase tracking-wider mb-6 flex items-center gap-2">
+                                        <FaRocket className="text-primary-500" /> Confirm & Launch
+                                    </h3>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-s6">
-                                        <div className="space-y-s4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-5 text-sm">
                                             <div>
-                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Campaign Title</span>
-                                                <p className="text-body font-black text-dark-100 uppercase tracking-tight">{formData.title || 'Not set'}</p>
+                                                <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest block mb-0.5">Campaign Title</span>
+                                                <p className="font-semibold text-white">{formData.title || 'Untitled Campaign'}</p>
                                             </div>
                                             <div>
-                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Content Type</span>
-                                                <p className="text-body font-black text-primary-400 uppercase tracking-widest">{formData.promotionType}</p>
+                                                <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest block mb-0.5">Content Type</span>
+                                                <p className="font-semibold text-primary-400">{formData.promotionType}</p>
                                             </div>
                                             <div>
-                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Budget Allocation</span>
-                                                <p className="text-h3 font-black text-emerald-400">
+                                                <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest block mb-0.5">Budget Allocation</span>
+                                                <p className="font-bold text-emerald-400 text-base">
                                                     ₹{parseInt(formData.minBudget || 0).toLocaleString()} - ₹{parseInt(formData.maxBudget || 0).toLocaleString()}
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-s4">
+                                        <div className="space-y-5 text-sm">
                                             <div>
-                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Project Duration</span>
-                                                <p className="text-body font-black text-dark-100 uppercase tracking-widest">{formData.duration} DAYS</p>
+                                                <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest block mb-0.5">Project Duration</span>
+                                                <p className="font-semibold text-white">{formData.duration} Days</p>
                                             </div>
                                             <div>
-                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Target Niche</span>
-                                                <div className="flex flex-wrap gap-s2 mt-2">
-                                                    {formData.targetNiche.map(cat => (
-                                                        <span key={cat} className="px-s3 py-1 bg-primary-500/10 text-primary-400 border border-primary-500/20 rounded-premium-full text-[10px] font-black uppercase tracking-widest">
+                                                <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest block mb-1">Target Niche</span>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {formData.targetNiche.slice(0, 3).map(cat => (
+                                                        <span key={cat} className="px-2 py-0.5 bg-dark-700 text-dark-300 border border-dark-600 rounded-md text-[10px] font-bold uppercase tracking-wider">
                                                             {cat}
                                                         </span>
                                                     ))}
+                                                    {formData.targetNiche.length > 3 && (
+                                                        <span className="px-2 py-0.5 bg-dark-700 text-dark-400 border border-dark-600 rounded-md text-[10px] font-bold">+{formData.targetNiche.length - 3}</span>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div>
-                                                <span className="text-xs-pure font-black text-dark-500 uppercase tracking-widest block mb-1">Collaboration Type</span>
-                                                <p className="text-body font-black text-indigo-400 uppercase tracking-widest">
+                                                <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest block mb-0.5">Collaboration</span>
+                                                <p className="font-semibold text-indigo-400 text-xs tracking-wider">
                                                     {formData.locationType}
                                                     {formData.locationType !== 'REMOTE' && formData.location?.city && ` • ${formData.location.city.toUpperCase()}`}
                                                 </p>
@@ -540,37 +538,37 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                     </AnimatePresence>
                 </div>
 
-                {/* Footer */}
-                <div className="border-t border-dark-700/50 p-s6 flex items-center justify-between bg-dark-900/50">
+                {/* Footer Controls */}
+                <div className="border-t border-white/5 p-4 sm:p-5 flex items-center justify-between bg-dark-900/40 backdrop-blur-md shrink-0">
                     <button
                         onClick={handleBack}
                         disabled={currentStep === 0}
-                        className="px-s6 py-s3 bg-dark-800/40 hover:bg-dark-800 border border-dark-700/50 disabled:opacity-30 disabled:cursor-not-allowed text-dark-300 rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all shadow-md"
+                        className="px-5 py-2 bg-dark-800/60 hover:bg-dark-700/80 border border-dark-700 disabled:opacity-20 disabled:cursor-not-allowed text-dark-200 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all"
                     >
                         Back
                     </button>
-
+ 
                     {currentStep < steps.length - 1 ? (
                         <button
                             onClick={handleNext}
-                            className="px-s8 py-s3 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-500 hover:to-secondary-500 text-white rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all shadow-glow hover:shadow-glow-lg flex items-center gap-s2"
+                            className="px-6 py-2 bg-gradient-to-r from-primary-600/90 to-indigo-600/90 hover:from-primary-600 hover:to-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 border border-white/10"
                         >
-                            Next
-                            <FaChevronRight />
+                            Next Step
+                            <FaChevronRight className="text-[9px]" />
                         </button>
                     ) : (
                         <button
                             onClick={handleSubmit}
-                            className="px-s8 py-s3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-premium-xl text-xs-pure font-black uppercase tracking-widest transition-all shadow-glow hover:shadow-glow-lg flex items-center gap-s2"
+                            className="px-7 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-90 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all shadow-lg flex items-center gap-2 border border-white/10"
                         >
-                            <FaRocket />
+                            <FaRocket className="text-xs" />
                             Launch Campaign
                         </button>
                     )}
                 </div>
-            </motion.div >
+            </motion.div>
 
-            {/* Template Selector */}
+            {/* Template Selector - Embedded outside the inner modal wrapper */}
             {
                 showTemplates && (
                     <CampaignTemplateSelector
@@ -589,7 +587,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                     }
                 }}
             />
-        </>
+        </div>
     );
 };
 

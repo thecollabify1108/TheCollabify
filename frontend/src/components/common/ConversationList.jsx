@@ -1,15 +1,24 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FaComments, FaTrash } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 import EmptyState from './EmptyState';
+import ConfirmModal from './ConfirmModal';
+import Icon from './Icon';
 
 const ConversationList = ({ onSelectConversation }) => {
     const { user } = useAuth();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    // Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        onConfirm: () => {},
+        title: '',
+        message: ''
+    });
 
     useEffect(() => {
         fetchConversations();
@@ -26,16 +35,23 @@ const ConversationList = ({ onSelectConversation }) => {
         }
     };
 
-    const handleDeleteConversation = async (conversationId, e) => {
-        e.stopPropagation(); // Prevent opening the conversation
-        if (!window.confirm('Delete this conversation? This only removes it from your view.')) return;
+    const handleDeleteConversation = (conversationId, e) => {
+        e.stopPropagation();
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Conversation?',
+            message: 'This will remove the conversation from your inbox. This action is private and only affects your view.',
+            onConfirm: () => performDelete(conversationId)
+        });
+    };
 
+    const performDelete = async (conversationId) => {
         try {
             await chatAPI.deleteConversation(conversationId);
             setConversations(prev => prev.filter(c => c.id !== conversationId));
-            toast.success('Conversation deleted');
+            toast.success('Conversation removed');
         } catch (error) {
-            toast.error('Failed to delete conversation');
+            toast.error('Failed to remove conversation');
         }
     };
 
@@ -67,8 +83,9 @@ const ConversationList = ({ onSelectConversation }) => {
 
     if (loading) {
         return (
-            <div className="glass-card p-6 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-primary-500 rounded-full border-t-transparent animate-spin" />
+            <div className="glass-card p-12 flex flex-col items-center justify-center space-y-4 border border-white/5">
+                <div className="w-10 h-10 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin" />
+                <p className="text-xs font-black text-dark-500 uppercase tracking-widest">Loading Chats...</p>
             </div>
         );
     }
@@ -78,66 +95,95 @@ const ConversationList = ({ onSelectConversation }) => {
             <EmptyState
                 icon="mail-open"
                 title="Your Inbox is Empty"
-                description="Conversations with brands will appear here once you accept a promotion or start a collaboration."
+                description="Conversations will appear here once you start a collaboration."
                 className="mx-4 my-6"
             />
         );
     }
 
     return (
-        <div className="glass-card overflow-hidden">
-            <div className="px-4 py-3 border-b border-dark-700">
-                <h3 className="text-lg font-semibold text-dark-100">Messages</h3>
-            </div>
-            <div className="divide-y divide-dark-700">
-                {conversations.map((conversation) => {
-                    const otherUser = getOtherUser(conversation);
-                    const unreadCount = getUnreadCount(conversation);
+        <div className="glass-card overflow-hidden border border-white/5 rounded-premium-2xl">
+            <ConfirmModal 
+                {...confirmModal}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                variant="danger"
+                confirmText="Delete"
+            />
 
-                    return (
-                        <motion.div
-                            key={conversation.id}
-                            whileHover={{ backgroundColor: 'rgba(255,255,255,0.03)' }}
-                            className="px-4 py-3 cursor-pointer transition group"
-                            onClick={() => onSelectConversation(conversation)}
-                        >
-                            <div className="flex items-start justify-between">
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center">
-                                        <h4 className="text-dark-100 font-medium truncate">
-                                            {otherUser?.name || 'Unknown User'}
-                                        </h4>
+            <div className="px-s6 py-s5 border-b border-dark-700/50 bg-dark-800/20">
+                <div className="flex items-center gap-2">
+                    <Icon name="chat" className="text-primary-400" size={18} />
+                    <h3 className="text-body font-black text-dark-100 uppercase tracking-wider">Messages</h3>
+                </div>
+            </div>
+            
+            <div className="divide-y divide-dark-700/50 max-h-[600px] overflow-y-auto premium-scrollbar">
+                <AnimatePresence>
+                    {conversations.map((conversation, index) => {
+                        const otherUser = getOtherUser(conversation);
+                        const unreadCount = getUnreadCount(conversation);
+
+                        return (
+                            <motion.div
+                                key={conversation.id}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.05 }}
+                                whileHover={{ backgroundColor: 'rgba(255,255,255,0.02)' }}
+                                className="px-s5 py-s4 cursor-pointer transition-all group relative"
+                                onClick={() => onSelectConversation(conversation)}
+                            >
+                                <div className="flex items-center gap-s4">
+                                    {/* Avatar Placeholder */}
+                                    <div className="relative shrink-0">
+                                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600/20 to-primary-600/20 border border-white/10 flex items-center justify-center text-primary-400 font-black text-lg shadow-inner">
+                                            {(otherUser?.name || 'U').charAt(0)}
+                                        </div>
                                         {unreadCount > 0 && (
-                                            <span className="ml-2 px-2 py-0.5 bg-primary-500 text-white text-xs rounded-full">
+                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-dark-900">
                                                 {unreadCount}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-dark-400 text-sm truncate mt-1">
-                                        {conversation.promotionId?.title || 'Promotion'}
-                                    </p>
-                                    {conversation.lastMessage && (
-                                        <p className="text-dark-500 text-xs truncate mt-1">
-                                            {conversation.lastMessage.content}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-2 ml-2">
-                                    <span className="text-xs text-dark-500">
-                                        {formatTime(conversation.lastMessage?.createdAt || conversation.createdAt)}
-                                    </span>
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-0.5">
+                                            <h4 className={`text-small font-black truncate ${unreadCount > 0 ? 'text-white' : 'text-dark-100'}`}>
+                                                {otherUser?.name || 'Unknown User'}
+                                            </h4>
+                                            <span className="text-[10px] font-bold text-dark-500 uppercase whitespace-nowrap">
+                                                {formatTime(conversation.lastMessage?.createdAt || conversation.createdAt)}
+                                            </span>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-2">
+                                            <p className={`text-xs truncate flex-1 ${unreadCount > 0 ? 'text-dark-200 font-bold' : 'text-dark-400 font-medium'}`}>
+                                                {conversation.lastMessage?.content || `Started a chat about ${conversation.promotionId?.title || 'a promotion'}`}
+                                            </p>
+                                        </div>
+
+                                        {conversation.promotionId && (
+                                            <div className="mt-1 flex items-center gap-1.5 opacity-50">
+                                                <div className="w-1 h-1 rounded-full bg-dark-500" />
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-dark-400 truncate">
+                                                    {conversation.promotionId.title}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     <button
                                         onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                                        className="p-1.5 text-dark-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition opacity-0 group-hover:opacity-100"
+                                        className="p-2 text-dark-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 absolute right-3 top-1/2 -translate-y-1/2"
                                         title="Delete conversation"
                                     >
-                                        <FaTrash size={12} />
+                                        <Icon name="trash" size={14} />
                                     </button>
                                 </div>
-                            </div>
-                        </motion.div>
-                    );
-                })}
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
             </div>
         </div>
     );

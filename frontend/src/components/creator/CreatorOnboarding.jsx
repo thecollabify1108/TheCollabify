@@ -324,7 +324,10 @@ const Phase2 = ({ data, setData }) => {
                 <label className="block text-sm font-medium text-dark-200 mb-2">
                     <FaUsers className="inline mr-1 text-blue-400" /> Follower Range
                 </label>
-                <p className="text-xs text-dark-400 mb-2">Enter your approximate follower count range (max 500 difference)</p>
+                <p className="text-[10px] text-emerald-400 mb-3 font-medium bg-emerald-400/5 p-2 rounded-lg border border-emerald-400/20">
+                    <span className="font-bold mr-1">💡 Tip:</span> 
+                    Try to insert your followers in a range format (e.g., 5000-5500). (Max 1000 gap)
+                </p>
                 <div className="grid grid-cols-2 gap-3">
                     <div>
                         <span className="text-[10px] text-dark-500 block mb-1">Minimum</span>
@@ -350,7 +353,7 @@ const Phase2 = ({ data, setData }) => {
                     const fMax = parseInt(data.followerRange?.max);
                     if (fMin > 0 && fMax > 0) {
                         if (fMax < fMin) return <p className="text-xs text-rose-400 mt-1">Max must be ≥ Min</p>;
-                        if (fMax - fMin > 500) return <p className="text-xs text-rose-400 mt-1">Range must be within 500 (currently {fMax - fMin})</p>;
+                        if (fMax - fMin > 1000) return <p className="text-xs text-rose-400 mt-1">Range must be within 1000 (currently {fMax - fMin})</p>;
                         return <p className="text-xs text-emerald-400 mt-1">✓ Valid range ({fMin.toLocaleString()} – {fMax.toLocaleString()})</p>;
                     }
                     return null;
@@ -624,8 +627,8 @@ const CreatorOnboarding = ({ onComplete }) => {
             // Validate follower range difference on client
             if (payload.followerRange) {
                 const diff = payload.followerRange.max - payload.followerRange.min;
-                if (diff > 500) {
-                    throw new Error(`Follower range must be within 500 (currently ${diff})`);
+                if (diff > 1000) {
+                    throw new Error(`Follower range must be within 1000 (currently ${diff})`);
                 }
                 if (payload.followerRange.max < payload.followerRange.min) {
                     throw new Error('Max followers must be ≥ min followers');

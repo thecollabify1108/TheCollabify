@@ -13,10 +13,18 @@ import toast from 'react-hot-toast';
 import CreatorCard from './CreatorCard';
 import CollaborationStepper from '../common/CollaborationStepper';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
+import ConfirmModal from '../common/ConfirmModal';
 import { trackMatchOutcome } from '../../services/feedback';
 
 const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus, onMessage, onManageCollaboration }) => {
     const [activeSection, setActiveSection] = useState('applicants');
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        onConfirm: () => {},
+        title: '',
+        message: '',
+        variant: 'primary'
+    });
 
     const applicants = request.matchedCreators?.filter(mc => mc.status === 'Applied') || [];
     const matched = request.matchedCreators?.filter(mc => mc.status === 'Matched') || [];
@@ -36,6 +44,10 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
 
     return (
         <div className="space-y-6">
+            <ConfirmModal 
+                {...confirmModal}
+                onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+            />
             {/* Campaign Header */}
             <motion.div
                 className="p-s6 rounded-premium-2xl bg-dark-800/60 backdrop-blur-xl border border-dark-700/50 shadow-premium"
@@ -109,16 +121,21 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         {['Open', 'Creator Interested'].includes(request.status) && (
                             <button
                                 onClick={() => {
-                                    if (window.confirm('Are you sure you want to cancel this campaign? This action cannot be undone.')) {
-                                        onUpdateStatus(request.id, 'Cancelled');
-                                        // Track Outcome: ABANDONED
-                                        request.matchedCreators.forEach(mc => {
-                                            trackMatchOutcome({
-                                                matchId: mc.id,
-                                                status: 'abandoned'
+                                    setConfirmModal({
+                                        isOpen: true,
+                                        title: 'Cancel Campaign?',
+                                        message: 'Are you sure you want to cancel this campaign? This action cannot be undone and all pending matches will be closed.',
+                                        variant: 'danger',
+                                        onConfirm: () => {
+                                            onUpdateStatus(request.id, 'Cancelled');
+                                            request.matchedCreators.forEach(mc => {
+                                                trackMatchOutcome({
+                                                    matchId: mc.id,
+                                                    status: 'abandoned'
+                                                });
                                             });
-                                        });
-                                    }
+                                        }
+                                    });
                                 }}
                                 className="btn-outline text-sm flex items-center text-red-400 border-red-500/50 hover:bg-red-500/10"
                             >

@@ -4,6 +4,7 @@ import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
+import ConfirmModal from './ConfirmModal';
 import useTypingIndicator from '../../hooks/useTypingIndicator';
 import useWebSocket from '../../hooks/useWebSocket';
 import webSocketService from '../../services/websocket';
@@ -21,6 +22,15 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const [showMenu, setShowMenu] = useState(false);
     const [activeMessageMenu, setActiveMessageMenu] = useState(null);
     const [isPending, setIsPending] = useState(false);
+    
+    // Confirm Modal State
+    const [confirmModal, setConfirmModal] = useState({
+        isOpen: false,
+        onConfirm: () => {},
+        title: '',
+        message: '',
+        variant: 'primary'
+    });
     const messagesEndRef = useRef(null);
     const pollInterval = useRef(null);
 
@@ -132,27 +142,41 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     };
 
     const handleDeleteMessage = async (messageId) => {
-        if (!window.confirm('Delete this message?')) return;
-        try {
-            await chatAPI.deleteMessage(messageId);
-            setMessages(prev => prev.map(m =>
-                m.id === messageId ? { ...m, content: 'This message was deleted', isDeleted: true } : m
-            ));
-            toast.success('Message deleted');
-        } catch (error) {
-            toast.error('Failed to delete message');
-        }
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Message?',
+            message: 'Are you sure you want to delete this message? This cannot be undone.',
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    await chatAPI.deleteMessage(messageId);
+                    setMessages(prev => prev.map(m =>
+                        m.id === messageId ? { ...m, content: 'This message was deleted', isDeleted: true } : m
+                    ));
+                    toast.success('Message deleted');
+                } catch (error) {
+                    toast.error('Failed to delete message');
+                }
+            }
+        });
     };
 
     const handleDeleteConversation = async () => {
-        if (!window.confirm('Delete this entire conversation?')) return;
-        try {
-            await chatAPI.deleteConversation(conversationId);
-            toast.success('Conversation deleted');
-            onClose();
-        } catch (error) {
-            toast.error('Failed to delete conversation');
-        }
+        setConfirmModal({
+            isOpen: true,
+            title: 'Delete Conversation?',
+            message: 'Are you sure you want to delete this entire conversation? This action is private and cannot be undone.',
+            variant: 'danger',
+            onConfirm: async () => {
+                try {
+                    await chatAPI.deleteConversation(conversationId);
+                    toast.success('Conversation deleted');
+                    onClose();
+                } catch (error) {
+                    toast.error('Failed to delete conversation');
+                }
+            }
+        });
     };
 
     const startEdit = (message) => {
@@ -196,6 +220,10 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                 transition={{ type: "spring", stiffness: 200, damping: 20 }}
                 className="fixed inset-4 md:inset-auto md:bottom-4 md:right-4 md:w-96 md:h-[550px] bg-dark-900/40 backdrop-blur-2xl border border-white/10 shadow-[0_30px_60px_rgba(0,0,0,0.6)] rounded-[32px] flex flex-col overflow-hidden z-50 ring-1 ring-white/5"
             >
+                <ConfirmModal 
+                    {...confirmModal}
+                    onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                />
                 {/* Header Profile - Premium Gradient Shadow */}
                 <div className="px-5 py-4 bg-dark-900/60 backdrop-blur-md flex items-center justify-between border-b border-white/5 relative shadow-md">
                     <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary-500/50 to-transparent"></div>

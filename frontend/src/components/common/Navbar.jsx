@@ -153,45 +153,79 @@ const Navbar = () => {
             <AnimatePresence>
                 {isMobileMenuOpen && (
                     <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden border-t border-dark-800 bg-dark-950 overflow-hidden"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-dark-950 flex flex-col pt-24 px-8 md:hidden"
                     >
-                        <div className="px-4 pt-4 pb-6 space-y-4">
-                            <div className="flex items-center space-x-3 pb-4 border-b border-dark-900">
-                                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold">
-                                    {user?.name?.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="flex flex-col">
-                                    <span className="text-dark-100 font-bold">{user?.name}</span>
-                                    <span className="text-xs text-dark-400">{user?.email}</span>
-                                </div>
-                                <div className="ml-auto">
-                                    <ThemeToggle />
-                                </div>
-                            </div>
+                        {/* Decorative background */}
+                        <div className="absolute top-[-5%] right-[-5%] w-[40%] h-[40%] bg-primary-500/10 blur-[100px] rounded-full" />
+                        
+                        {/* Menu Header */}
+                        <div className="absolute top-0 left-0 right-0 h-20 px-6 flex items-center justify-between border-b border-white/5 bg-dark-950/50 backdrop-blur-md">
+                            <Logo className="h-8 w-8" />
+                            <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="w-12 h-12 rounded-full flex items-center justify-center bg-white/5 border border-white/10"
+                            >
+                                <Icon name="close" size={24} className="text-white" />
+                            </motion.button>
+                        </div>
 
-                            <div className="space-y-1">
-                                <Link
-                                    to={getDashboardLink()}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="flex items-center space-x-3 px-4 py-3 rounded-xl bg-dark-900 text-dark-200 font-medium hover:bg-dark-800 transition"
-                                >
-                                    <Icon name="user" size={16} className="text-primary-400" />
-                                    <span>Dashboard</span>
-                                </Link>
-                                <button
-                                    onClick={() => {
-                                        setIsMobileMenuOpen(false);
-                                        handleLogout();
-                                    }}
-                                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 font-medium hover:bg-red-500/10 transition"
-                                >
-                                    <Icon name="logout" size={16} />
-                                    <span>Sign Out</span>
-                                </button>
+                        {/* User Profile Hook */}
+                        <div className="mb-10 flex items-center gap-4 p-4 rounded-premium-2xl bg-white/5 border border-white/10">
+                            <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-glow">
+                                {user?.name?.charAt(0).toUpperCase()}
                             </div>
+                            <div className="flex flex-col">
+                                <span className="text-h3 font-black text-white">{user?.name}</span>
+                                <span className="text-xs font-bold text-dark-400 uppercase tracking-widest">{user?.role}</span>
+                            </div>
+                        </div>
+
+                        {/* Navigation Links */}
+                        <div className="flex flex-col space-y-4">
+                            <Link
+                                to={getDashboardLink()}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-4 py-4 px-6 rounded-2xl bg-white/5 border border-white/5 text-xl font-black text-white hover:bg-white/10 transition-all uppercase tracking-tighter"
+                            >
+                                <Icon name="user" size={24} className="text-primary-400" />
+                                <span>Dashboard</span>
+                            </Link>
+
+                            <Link
+                                to="/messages"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-4 py-4 px-6 rounded-2xl bg-white/5 border border-white/5 text-xl font-black text-white hover:bg-white/10 transition-all uppercase tracking-tighter"
+                            >
+                                <Icon name="chat" size={24} className="text-primary-400" />
+                                <span>Messages</span>
+                            </Link>
+
+                            <Link
+                                to="/settings"
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="flex items-center gap-4 py-4 px-6 rounded-2xl bg-white/5 border border-white/5 text-xl font-black text-white hover:bg-white/10 transition-all uppercase tracking-tighter"
+                            >
+                                <Icon name="settings" size={24} className="text-primary-400" />
+                                <span>Settings</span>
+                            </Link>
+                        </div>
+
+                        {/* Logout Section */}
+                        <div className="mt-auto mb-10">
+                            <button
+                                onClick={() => {
+                                    setIsMobileMenuOpen(false);
+                                    handleLogout();
+                                }}
+                                className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 font-black uppercase tracking-widest text-sm hover:bg-red-500/20 transition-all"
+                            >
+                                <Icon name="logout" size={18} />
+                                <span>Sign Out</span>
+                            </button>
                         </div>
                     </motion.div>
                 )}
