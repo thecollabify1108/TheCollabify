@@ -113,13 +113,24 @@ class WebSocketService {
      * Emit an event
      */
     emit(event, data) {
-        if (!this.socket || !this.isConnected) {
-            console.warn('WebSocket not connected. Cannot emit event:', event);
+        if (!this.socket) {
+            console.warn(`ΓÜá∩╕Å WebSocket singleton not initialized. Cannot emit: ${event}`);
             return false;
         }
 
-        this.socket.emit(event, data);
-        return true;
+        if (!this.isConnected || !this.socket.connected) {
+            console.warn(`ΓÜá∩╕Å WebSocket not connected (State: ${this.isConnected ? 'IDLE' : 'DISCONNECTED'}). Queueing/Ignoring emit: ${event}`);
+            // Optional: Implement a simple queue if needed, but for now just prevent the error
+            return false;
+        }
+
+        try {
+            this.socket.emit(event, data);
+            return true;
+        } catch (err) {
+            console.error(`Γ¥î Failed to emit ${event}:`, err);
+            return false;
+        }
     }
 
     // ===== TYPING INDICATORS =====

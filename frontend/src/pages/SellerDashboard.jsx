@@ -22,6 +22,7 @@ const BrandInsightCards = lazy(() => import('../components/analytics/InsightCard
 // Modern Dashboard Widgets
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import DashboardHero from '../components/dashboard/DashboardHero';
+import GuidedAIMode from '../components/dashboard/GuidedAIMode';
 
 // Enhanced UI Components
 import LoadingButton from '../components/common/LoadingButton';
@@ -47,8 +48,8 @@ import AIAssistantPanel from '../components/common/AIAssistantPanel';
 const SellerDashboard = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('dashboard');
-    const [requests] = useState([]);
-    const [loading] = useState(true);
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [showRequestWizard, setShowRequestWizard] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [activeCollabMatch, setActiveCollabMatch] = useState(null);
@@ -57,16 +58,32 @@ const SellerDashboard = () => {
     const [showGuide, setShowGuide] = useState(true);
     const [pendingCreators, setPendingCreators] = useState([]);
 
-    useEffect(() => {
-        async function fetchPendingCreators() {
-            try {
-                const res = await sellerAPI.getPendingVerification();
-                setPendingCreators(res.data || []);
-            } catch (err) {
-                setPendingCreators([]);
-            }
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const requestsRes = await sellerAPI.getRequests();
+            const requestsData = requestsRes.data?.data?.requests || requestsRes.data || [];
+            setRequests(requestsData);
+
+            // Derive pending applicants (APPLIED status) from the already-fetched requests
+            const pending = requestsData.flatMap(r =>
+                (r.matchedCreators || [])
+                    .filter(mc => mc.status === 'APPLIED')
+                    .map(mc => ({ ...mc, requestTitle: r.title }))
+            );
+            setPendingCreators(pending);
+        } catch (err) {
+            console.error('Error fetching dashboard data:', err);
+            toast.error('Failed to load dashboard data');
+            setRequests([]);
+            setPendingCreators([]);
+        } finally {
+            setLoading(false);
         }
-        fetchPendingCreators();
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
 
     const stats = {
@@ -75,6 +92,45 @@ const SellerDashboard = () => {
         completed: requests.filter(r => r.status === 'Completed').length,
         pending: pendingCreators.length,
         totalMatches: requests.reduce((sum, r) => sum + (r.matchedCreators?.length || 0), 0)
+    };
+
+    // Handlers
+    const handleAcceptCreator = async (requestId, creatorId) => {
+        try {
+            await sellerAPI.acceptCreator(requestId, creatorId);
+            toast.success('Creator accepted successfully!');
+            // Refresh data
+            fetchData();
+        } catch (err) {
+            toast.error('Failed to accept creator');
+        }
+    };
+
+    const handleRejectCreator = async (requestId, creatorId) => {
+        try {
+            await sellerAPI.rejectCreator(requestId, creatorId);
+            toast.success('Creator rejected');
+            // Refresh data
+            fetchData();
+        } catch (err) {
+            toast.error('Failed to reject creator');
+        }
+    };
+
+    const handleUpdateCampaignStatus = async (requestId, status) => {
+        try {
+            await sellerAPI.updateStatus(requestId, status);
+            toast.success(`Campaign status updated to ${status}`);
+            // Refresh data
+            fetchData();
+        } catch (err) {
+            toast.error('Failed to update status');
+        }
+    };
+
+    const handleMessageCreator = (requestId, creatorId, creatorName) => {
+        // Navigate to messages
+        window.location.href = `/messages?user=${creatorId}&name=${creatorName}`;
     };
 
     // Bottom navigation - 6 tabs with Analytics & Team
@@ -179,6 +235,21 @@ const SellerDashboard = () => {
             showGuide={showGuide}
             setShowGuide={setShowGuide}
         >
+            {/* Guided AI Mode */}
+            <AnimatePresence>
+                {showGuide && (
+                    <GuidedAIMode
+                        role="seller"
+                        onClose={() => setShowGuide(false)}
+                        onAction={(type, target) => {
+                            if (type === 'click') {
+                                setActiveTab(target);
+                            }
+                        }}
+                    />
+                )}
+            </AnimatePresence>
+
             {/* Campaign Stories */}
             <EarlyBirdBanner />
             <CampaignStories
@@ -486,6 +557,15 @@ const SellerDashboard = () => {
                 {selectedRequest && (
                     <CampaignTracker
                         request={selectedRequest}
+                        onClose={() => setSelectedRequest(null)}
+                        onAccept={handleAcceptCreator}
+                        onReject={handleRejectCreator}
+                        onUpdateStatus={handleUpdateCampaignStatus}
+                        onMessage={handleMessageCreator}
+                        onManageCollaboration={(mc) => {
+                            setActiveCollabMatch(mc);
+                            setSelectedRequest(null);
+                        }}
                     />
                 )}
             </BottomSheet>
