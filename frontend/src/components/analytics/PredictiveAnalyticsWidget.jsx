@@ -32,6 +32,8 @@ const PredictiveAnalyticsWidget = ({ campaignData, creatorProfile }) => {
                 } finally {
                     setLoading(false);
                 }
+            } else {
+                setLoading(false);
             }
         };
 

@@ -579,6 +579,16 @@ const SellerDashboard = () => {
                 onClose={() => {
                     setShowRequestWizard(false);
                 }}
+                onSubmit={async (payload) => {
+                    try {
+                        const loadingToast = toast.loading('Launching campaign...');
+                        await sellerAPI.createRequest(payload);
+                        toast.success('Campaign launched successfully!', { id: loadingToast });
+                        fetchData(); // Refresh dashboard data immediately
+                    } catch (err) {
+                        toast.error(err.response?.data?.message || 'Failed to launch campaign');
+                    }
+                }}
             />
 
             {/* Enhanced Campaign Tracker in Bottom Sheet */}

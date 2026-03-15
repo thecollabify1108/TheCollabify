@@ -18,7 +18,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
     const [formData, setFormData] = useState({
         title: initialData?.title || '',
         description: initialData?.description || '',
-        promotionType: initialData?.promotionType || 'Post',
+        promotionType: initialData?.promotionType || ['Post'], // Support multiple
         minBudget: initialData?.minBudget || '',
         maxBudget: initialData?.maxBudget || '',
         targetNiche: initialData?.targetNiche || [],
@@ -33,7 +33,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
             city: initialData?.location?.city || '',
             state: initialData?.location?.state || ''
         },
-        locationType: initialData?.locationType || 'REMOTE'
+        locationType: initialData?.locationType || 'ONLINE'
     });
 
     // Pre-populate form data when initialData changes
@@ -77,12 +77,14 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
             return;
         }
 
+        const promotionTypeString = Array.isArray(formData.promotionType) 
+            ? formData.promotionType.map(t => t === 'Story' ? 'Stories' : t === 'Reel' ? 'Reels' : t === 'Post' ? 'Posts' : t).join(', ')
+            : (formData.promotionType === 'Story' ? 'Stories' : formData.promotionType === 'Reel' ? 'Reels' : formData.promotionType === 'Post' ? 'Posts' : formData.promotionType);
+
         const payload = {
             title: formData.title,
             description: formData.description,
-            promotionType: formData.promotionType === 'Story' ? 'Stories' :
-                formData.promotionType === 'Reel' ? 'Reels' :
-                    formData.promotionType === 'Post' ? 'Posts' : formData.promotionType,
+            promotionType: promotionTypeString,
             targetCategory: formData.targetNiche.join(', ') || 'Lifestyle',
             budgetRange: {
                 min: Number(formData.minBudget),
@@ -95,7 +97,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
             campaignGoal: 'Reach',
             requirements: formData.requirements || undefined,
             deadline: new Date(Date.now() + formData.duration * 24 * 60 * 60 * 1000).toISOString(),
-            location: formData.locationType !== 'REMOTE' ? formData.location : undefined,
+            location: formData.locationType !== 'ONLINE' ? formData.location : undefined,
             locationType: formData.locationType
         };
 
@@ -115,12 +117,32 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
     };
 
     const toggleCategory = (category) => {
-        setFormData(prev => ({
-            ...prev,
-            targetNiche: prev.targetNiche.includes(category)
-                ? prev.targetNiche.filter(c => c !== category)
-                : [...prev.targetNiche, category]
-        }));
+        setFormData(prev => {
+            const isSelected = prev.targetNiche.includes(category);
+            if (!isSelected && prev.targetNiche.length >= 3) {
+                toast.error('Maximum 3 categories allowed');
+                return prev;
+            }
+            return {
+                ...prev,
+                targetNiche: isSelected
+                    ? prev.targetNiche.filter(c => c !== category)
+                    : [...prev.targetNiche, category]
+            };
+        });
+    };
+
+    const togglePromotionType = (type) => {
+        setFormData(prev => {
+            const current = Array.isArray(prev.promotionType) ? prev.promotionType : [prev.promotionType];
+            const isSelected = current.includes(type);
+            return {
+                ...prev,
+                promotionType: isSelected
+                    ? current.filter(t => t !== type)
+                    : [...current, type]
+            };
+        });
     };
 
     if (!isOpen) return null;
@@ -231,8 +253,8 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                         {['Post', 'Story', 'Reel', 'Video', 'IGTV', 'Live'].map(type => (
                                             <button
                                                 key={type}
-                                                onClick={() => setFormData({ ...formData, promotionType: type })}
-                                                className={`py-1.5 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${formData.promotionType === type
+                                                onClick={() => togglePromotionType(type)}
+                                                className={`py-1.5 px-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all border ${formData.promotionType.includes(type)
                                                     ? 'bg-primary-600/20 text-primary-400 border-primary-500/50 shadow-sm'
                                                     : 'bg-dark-800/40 text-dark-400 border-dark-700 hover:bg-dark-700/80 hover:border-dark-600'
                                                     }`}
@@ -255,9 +277,12 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                 className="space-y-8 max-w-2xl mx-auto"
                             >
                                 <div>
-                                    <label className="block text-[10px] font-bold text-dark-400 mb-2.5 uppercase tracking-widest">
-                                        Target Categories
-                                    </label>
+                                    <div className="flex items-center justify-between mb-2.5">
+                                        <label className="block text-[10px] font-bold text-dark-400 uppercase tracking-widest">
+                                            Target Categories
+                                        </label>
+                                        <span className="text-[9px] text-dark-500 font-bold uppercase tracking-widest bg-dark-800 px-2 py-0.5 rounded border border-white/5">Max 3</span>
+                                    </div>
                                     <div className="flex flex-wrap gap-2">
                                         {categories.map(category => (
                                             <button
@@ -275,53 +300,63 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                 </div>
 
                                 <div className="p-5 bg-dark-800/30 border border-dark-700/50 rounded-xl space-y-6">
-                                    <div>
-                                        <div className="flex justify-between mb-2">
-                                            <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Follower Range</label>
-                                            <span className="text-xs font-mono text-primary-400">{formData.minFollowers.toLocaleString()} - {formData.maxFollowers.toLocaleString()}</span>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-4">
-                                                <span className="text-[10px] uppercase font-bold text-dark-500 w-8">Min</span>
-                                                <input
-                                                    type="range"
-                                                    min="1000"
-                                                    max="1000000"
-                                                    step="1000"
-                                                    value={formData.minFollowers}
-                                                    onChange={(e) => setFormData({ ...formData, minFollowers: parseInt(e.target.value) })}
-                                                    className="w-full accent-primary-500"
-                                                />
+                                    <div className="flex flex-col gap-6">
+                                        <div>
+                                            <div className="flex justify-between mb-3">
+                                                <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Follower Range</label>
                                             </div>
-                                            <div className="flex items-center gap-4">
-                                                <span className="text-[10px] uppercase font-bold text-dark-500 w-8">Max</span>
-                                                <input
-                                                    type="range"
-                                                    min="1000"
-                                                    max="1000000"
-                                                    step="1000"
-                                                    value={formData.maxFollowers}
-                                                    onChange={(e) => setFormData({ ...formData, maxFollowers: parseInt(e.target.value) })}
-                                                    className="w-full accent-primary-500"
-                                                />
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-dark-500 uppercase">Min</span>
+                                                    <input
+                                                        type="number"
+                                                        value={formData.minFollowers}
+                                                        onChange={(e) => setFormData({ ...formData, minFollowers: parseInt(e.target.value) || 0 })}
+                                                        className="w-full pl-12 pr-3 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
+                                                    />
+                                                </div>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-dark-500 uppercase">Max</span>
+                                                    <input
+                                                        type="number"
+                                                        value={formData.maxFollowers}
+                                                        onChange={(e) => setFormData({ ...formData, maxFollowers: parseInt(e.target.value) || 0 })}
+                                                        className="w-full pl-12 pr-3 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <div>
-                                        <div className="flex justify-between mb-2">
-                                            <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Min Engagement Rate</label>
-                                            <span className="text-xs font-mono text-primary-400">{formData.minEngagement}%</span>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-xs font-bold text-dark-300 uppercase tracking-wider mb-3">Min Engagement %</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="number"
+                                                        step="0.1"
+                                                        value={formData.minEngagement}
+                                                        onChange={(e) => setFormData({ ...formData, minEngagement: parseFloat(e.target.value) || 0 })}
+                                                        className="w-full px-4 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
+                                                    />
+                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-400 font-bold">%</span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <div className="flex justify-between mb-3">
+                                                    <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Duration Days</label>
+                                                </div>
+                                                <div className="relative">
+                                                    <input
+                                                        type="number"
+                                                        value={formData.duration}
+                                                        onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
+                                                        className="w-full px-4 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
+                                                    />
+                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-400 font-bold italic">Days</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <input
-                                            type="range"
-                                            min="0"
-                                            max="10"
-                                            step="0.5"
-                                            value={formData.minEngagement}
-                                            onChange={(e) => setFormData({ ...formData, minEngagement: parseFloat(e.target.value) })}
-                                            className="w-full accent-primary-500"
-                                        />
                                     </div>
                                 </div>
 
@@ -329,8 +364,8 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                     <label className="block text-xs font-bold text-dark-300 mb-3 uppercase tracking-wider">
                                         Location Requirements
                                     </label>
-                                    <div className="flex gap-2 mb-4">
-                                        {['REMOTE', 'HYBRID', 'ONSITE'].map(type => (
+                                    <div className="flex gap-2 mb-2">
+                                        {['ONLINE', 'HYBRID', 'ONSITE'].map(type => (
                                             <button
                                                 key={type}
                                                 onClick={() => setFormData({ ...formData, locationType: type })}
@@ -343,32 +378,35 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                             </button>
                                         ))}
                                     </div>
+                                    <p className="text-[9px] text-dark-500 font-medium italic mb-4 leading-tight">
+                                        {formData.locationType === 'ONLINE' 
+                                            ? "💡 Online campaigns reach creators all over India. If you need nearby creators, select Hybrid/Onsite." 
+                                            : "💡 Setting a location helps us find creators nearby. Don't worry, this location stays private and won't be public."}
+                                    </p>
 
-                                    {formData.locationType !== 'REMOTE' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-4">
-                                            <input
-                                                type="text"
-                                                value={formData.location.city}
-                                                onChange={(e) => setFormData({ ...formData, location: { ...formData.location, city: e.target.value } })}
-                                                placeholder="City"
-                                                className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={formData.location.district}
-                                                onChange={(e) => setFormData({ ...formData, location: { ...formData.location, district: e.target.value } })}
-                                                placeholder="District"
-                                                className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
-                                            />
-                                            <input
-                                                type="text"
-                                                value={formData.location.state}
-                                                onChange={(e) => setFormData({ ...formData, location: { ...formData.location, state: e.target.value } })}
-                                                placeholder="State/Region"
-                                                className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm md:col-span-2"
-                                            />
-                                        </div>
-                                    )}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-4">
+                                        <input
+                                            type="text"
+                                            value={formData.location.city}
+                                            onChange={(e) => setFormData({ ...formData, location: { ...formData.location, city: e.target.value } })}
+                                            placeholder="City (Optional)"
+                                            className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={formData.location.district}
+                                            onChange={(e) => setFormData({ ...formData, location: { ...formData.location, district: e.target.value } })}
+                                            placeholder="District (Optional)"
+                                            className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={formData.location.state}
+                                            onChange={(e) => setFormData({ ...formData, location: { ...formData.location, state: e.target.value } })}
+                                            placeholder="State/Region (Optional)"
+                                            className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm md:col-span-2"
+                                        />
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
@@ -439,16 +477,18 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                     <div>
                                         <div className="flex justify-between mb-3">
                                             <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Est. Duration</label>
-                                            <span className="text-xs font-mono text-primary-400">{formData.duration} days</span>
                                         </div>
-                                        <input
-                                            type="range"
-                                            min="3"
-                                            max="90"
-                                            value={formData.duration}
-                                            onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-                                            className="w-full accent-primary-500"
-                                        />
+                                        <div className="relative">
+                                            <input
+                                                type="number"
+                                                min="3"
+                                                max="90"
+                                                value={formData.duration}
+                                                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
+                                                className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
+                                            />
+                                            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-400 font-bold italic">Days</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -495,7 +535,9 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                             </div>
                                             <div>
                                                 <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest block mb-0.5">Content Type</span>
-                                                <p className="font-semibold text-primary-400">{formData.promotionType}</p>
+                                                <p className="font-semibold text-primary-400">
+                                                    {Array.isArray(formData.promotionType) ? formData.promotionType.join(', ') : formData.promotionType}
+                                                </p>
                                             </div>
                                             <div>
                                                 <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest block mb-0.5">Budget Allocation</span>
