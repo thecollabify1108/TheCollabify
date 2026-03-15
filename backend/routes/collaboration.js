@@ -107,6 +107,29 @@ router.post('/initialize', auth, [
 });
 
 /**
+ * @route   GET /api/collaboration/platform-mode
+ * @desc    Returns whether Early Bird Mode is active (public)
+ * @access  Public
+ */
+router.get('/platform-mode', async (req, res) => {
+    try {
+        const earlyBird = await isEarlyBirdMode();
+        res.json({
+            success: true,
+            data: {
+                earlyBirdMode: earlyBird,
+                message: earlyBird
+                    ? 'Platform is in Early Bird mode. Collaborations are free.'
+                    : 'Platform is in Marketplace mode. Escrow payments are required.'
+            }
+        });
+    } catch (err) {
+        console.error('Platform mode error:', err);
+        res.json({ success: true, data: { earlyBirdMode: true } });
+    }
+});
+
+/**
  * @route   GET /api/collaboration/:matchId
  * @desc    Get collaboration details with valid next actions
  * @access  Private
@@ -365,29 +388,6 @@ router.patch('/:id', auth, [
     }
 });
 
-
-/**
- * @route   GET /api/collaboration/platform-mode
- * @desc    Returns whether Early Bird Mode is active (public)
- * @access  Public
- */
-router.get('/platform-mode', async (req, res) => {
-    try {
-        const earlyBird = await isEarlyBirdMode();
-        res.json({
-            success: true,
-            data: {
-                earlyBirdMode: earlyBird,
-                message: earlyBird
-                    ? 'Platform is in Early Bird mode. Collaborations are free.'
-                    : 'Platform is in Marketplace mode. Escrow payments are required.'
-            }
-        });
-    } catch (err) {
-        console.error('Platform mode error:', err);
-        res.json({ success: true, data: { earlyBirdMode: true } });
-    }
-});
 
 /**
  * @route   POST /api/collaboration/:id/feedback

@@ -11,7 +11,7 @@ const EarlyBirdBanner = () => {
 
     useEffect(() => {
         collaborationAPI.getPlatformMode()
-            .then(res => setIsEarlyBird(res.data?.earlyBirdMode === true))
+            .then(res => setIsEarlyBird(res.data?.data?.earlyBirdMode === true))
             .catch(() => {});
     }, []);
 

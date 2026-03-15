@@ -20,6 +20,11 @@ class WebSocketService {
             return this.socket;
         }
 
+        // If a socket already exists (connecting or reconnecting), don't create another one
+        if (this.socket) {
+            return this.socket;
+        }
+
         const wsUrl = import.meta.env.VITE_WS_URL;
 
         if (!wsUrl) {
