@@ -3,15 +3,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaChevronUp, FaChevronDown, FaRocket, FaFire, FaCheck, FaUsers } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
 
-const QuickStatsBar = ({ stats }) => {
+const QuickStatsBar = ({ stats, onStatClick }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const statItems = [
-        { label: 'Campaigns', value: stats.total, icon: <FaRocket />, color: 'text-violet-400' },
-        { label: 'Active', value: stats.active, icon: <HiLightningBolt />, color: 'text-amber-400' },
-        { label: 'Pending', value: stats.pending, icon: <FaFire />, color: 'text-pink-400' },
-        { label: 'Completed', value: stats.completed, icon: <FaCheck />, color: 'text-emerald-400' },
-        { label: 'Matches', value: stats.totalMatches, icon: <FaUsers />, color: 'text-blue-400' }
+        { label: 'Campaigns', id: 'campaigns', value: stats.total, icon: <FaRocket />, color: 'text-violet-400' },
+        { label: 'Active', id: 'active', value: stats.active, icon: <HiLightningBolt />, color: 'text-amber-400' },
+        { label: 'Pending', id: 'pending', value: stats.pending, icon: <FaFire />, color: 'text-pink-400' },
+        { label: 'Completed', id: 'completed', value: stats.completed, icon: <FaCheck />, color: 'text-emerald-400' },
+        { label: 'Matches', id: 'matches', value: stats.totalMatches, icon: <FaUsers />, color: 'text-blue-400' }
     ];
 
     return (
@@ -22,11 +22,17 @@ const QuickStatsBar = ({ stats }) => {
             {/* Collapsed View - Single Row */}
             <div
                 className="flex items-center justify-between px-s4 py-s3 cursor-pointer"
-                onClick={() => setIsExpanded(!isExpanded)}
             >
-                <div className="flex items-center gap-s6 overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-s6 overflow-x-auto scrollbar-hide flex-1" onClick={() => setIsExpanded(!isExpanded)}>
                     {statItems.slice(0, 3).map((stat) => (
-                        <div key={stat.label} className="flex items-center gap-s2 whitespace-nowrap">
+                        <div 
+                            key={stat.label} 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if(onStatClick) onStatClick(stat.id);
+                            }}
+                            className="flex items-center gap-s2 whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity"
+                        >
                             <span className={stat.color}>{stat.icon}</span>
                             <span className="text-body font-bold text-dark-100">{stat.value}</span>
                             <span className="text-xs-pure text-dark-400 font-bold uppercase tracking-wider">{stat.label}</span>

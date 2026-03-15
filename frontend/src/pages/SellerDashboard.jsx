@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    FaFire, FaLock
+    FaFire, FaLock, FaChevronDown, FaChevronUp
 } from 'react-icons/fa';
 import { HiSparkles, HiUserGroup, HiViewGrid } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -11,10 +11,10 @@ import toast from 'react-hot-toast';
 // New Components
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Navbar from '../components/common/Navbar';
-import CampaignStories from '../components/seller/CampaignStories';
 import QuickStatsBar from '../components/seller/QuickStatsBar';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import CollaborationHub from '../components/common/CollaborationHub';
+import ChatBox from '../components/common/ChatBox';
 
 // Lazy-loaded: defers InsightCards API call until dashboard scrolls into view
 const BrandInsightCards = lazy(() => import('../components/analytics/InsightCards').then(m => ({ default: m.BrandInsightCards })));
@@ -22,7 +22,6 @@ const BrandInsightCards = lazy(() => import('../components/analytics/InsightCard
 // Modern Dashboard Widgets
 import ActivityFeed from '../components/dashboard/ActivityFeed';
 import DashboardHero from '../components/dashboard/DashboardHero';
-import GuidedAIMode from '../components/dashboard/GuidedAIMode';
 
 // Enhanced UI Components
 import LoadingButton from '../components/common/LoadingButton';
@@ -53,9 +52,7 @@ const SellerDashboard = () => {
     const [activeCollabMatch, setActiveCollabMatch] = useState(null);
     const [showAIRecommendations, setShowAIRecommendations] = useState(false);
     const [allCreators, setAllCreators] = useState([]);
-    const [showGuide, setShowGuide] = useState(() =>
-        !localStorage.getItem('sellerGuideSeen')
-    );
+    const [isCampaignsExpanded, setIsCampaignsExpanded] = useState(false);
     const [pendingCreators, setPendingCreators] = useState([]);
 
     const fetchData = async () => {
@@ -233,35 +230,9 @@ const SellerDashboard = () => {
             }}
             tabs={tabs}
             showGuide={showGuide}
-            setShowGuide={setShowGuide}
         >
-            {/* Guided AI Mode */}
-            <AnimatePresence>
-                {showGuide && (
-                    <GuidedAIMode
-                        role="seller"
-                        onClose={() => {
-                            setShowGuide(false);
-                            localStorage.setItem('sellerGuideSeen', 'true');
-                        }}
-                        onAction={(type, target) => {
-                            if (type === 'click') {
-                                setActiveTab(target);
-                                setShowGuide(false);
-                                localStorage.setItem('sellerGuideSeen', 'true');
-                            }
-                        }}
-                    />
-                )}
-            </AnimatePresence>
-
-            {/* Campaign Stories */}
+            {/* Early Bird Banner */}
             <EarlyBirdBanner />
-            <CampaignStories
-                campaigns={requests}
-                onCreateNew={() => setShowRequestWizard(true)}
-                onSelectCampaign={(campaign) => setSelectedRequest(campaign)}
-            />
 
             {/* Collaboration Hub Modal */}
             <AnimatePresence>
@@ -284,7 +255,14 @@ const SellerDashboard = () => {
             </AnimatePresence>
 
             {/* Collapsible Stats Bar */}
-            <QuickStatsBar stats={stats} />
+            <QuickStatsBar 
+                stats={stats} 
+                onStatClick={(id) => {
+                    if (id === 'pending') setActiveTab('discover');
+                    else if (id === 'campaigns') setActiveTab('dashboard');
+                    else if (id === 'matches') setActiveTab('discover');
+                }}
+            />
 
             <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
             <AnimatePresence mode="wait">
@@ -341,22 +319,6 @@ const SellerDashboard = () => {
                     </motion.div>
                 )}
 
-                {/* Analytics Tab */}
-                {activeTab === 'analytics' && (
-                    <motion.div
-                        key="analytics"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                    >
-                        <div className="mb-3">
-                            <h2 className="text-sm font-semibold text-dark-100 uppercase tracking-wider">Analytics</h2>
-                            <p className="text-[10px] text-dark-500">Campaign performance metrics</p>
-                        </div>
-                        <AnalyticsDashboard userType="seller" requests={requests} />
-                    </motion.div>
-                )}
-
                 {/* Team Management Tab (locked — unfinished) */}
                 {activeTab === 'team' && (
                     <motion.div
@@ -367,8 +329,49 @@ const SellerDashboard = () => {
                     >
                         <div className="bg-dark-800/60 border border-dark-700/50 rounded-xl p-6 flex flex-col items-center justify-center min-h-[200px]">
                             <FaLock className="text-3xl text-dark-400 mb-2" />
-                            <span className="text-dark-300 text-sm font-medium">Team Management coming soon</span>
+                            <span className="text-dark-300 text-sm font-medium">Currently we have not this, so content all locked. We are working on this and will soon implement.</span>
                         </div>
+                    </motion.div>
+                )}
+
+                {/* Messages Tab */}
+                {activeTab === 'messages' && (
+                    <motion.div
+                        key="messages"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="h-[calc(100vh-160px)] lg:h-[calc(100vh-100px)] -mt-2 -mx-2 sm:-mx-4 lg:-mx-6 rounded-2xl overflow-hidden border border-dark-700/50"
+                    >
+                        <ChatBox />
+                    </motion.div>
+                )}
+
+                {/* Analytics / Stats Tab */}
+                {activeTab === 'analytics' && (
+                    <motion.div
+                        key="analytics"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-4"
+                    >
+                        <div className="mb-3">
+                            <h2 className="text-sm font-semibold text-dark-100 uppercase tracking-wider">Analytics</h2>
+                            <p className="text-[10px] text-dark-500">Campaign performance metrics</p>
+                        </div>
+                        
+                        <BrandInsightCards />
+                        
+                        <div className="h-[250px] lg:h-[300px]">
+                            <PerformanceChart
+                                title="Campaign Spend & ROI"
+                                color="#f59e0b"
+                                data={[]} // Empty data until analytics API is ready
+                            />
+                        </div>
+
+                        <AnalyticsDashboard userType="seller" requests={requests} />
                     </motion.div>
                 )}
 
@@ -431,22 +434,8 @@ const SellerDashboard = () => {
                             />
                         </div>
 
-                        {/* Brand Insights */}
-                        <div className="mt-4">
-                            <BrandInsightCards />
-                        </div>
-
-                        {/* 3. Charts & Applicant Feed */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:h-[350px]">
-                            <div className="lg:col-span-2 h-[200px] sm:h-[250px] lg:h-full">
-                                <PerformanceChart
-                                    title="Campaign Spend & ROI"
-                                    color="#f59e0b"
-                                    data={[]} // Empty data until analytics API is ready
-                                />
-                            </div>
-                            <div className="h-[280px] sm:h-[350px] lg:h-full">
-                                <ActivityFeed
+                        <div className="h-[280px] sm:h-[350px]">
+                            <ActivityFeed
                                     activities={pendingCreators.slice(0, 5).map(c => ({
                                         id: c.creatorId,
                                         title: c.creator?.user?.name || 'Unknown Creator',
@@ -457,82 +446,96 @@ const SellerDashboard = () => {
                                     }))}
                                     emptyMessage="No pending applicants"
                                 />
-                            </div>
                         </div>
 
                         {/* 4. Active Campaigns List (Modernized) */}
                         <FocusWrapper sectionId="campaigns">
-                            <div className="space-y-s6">
-                                <div className="flex items-center justify-between">
+                            <div className="space-y-s6 bg-dark-800/20 p-4 rounded-2xl border border-dark-700/50">
+                                <div 
+                                    className="flex items-center justify-between cursor-pointer"
+                                    onClick={() => setIsCampaignsExpanded(!isCampaignsExpanded)}
+                                >
                                     <h2 className="text-sm font-semibold text-dark-100 flex items-center gap-2 uppercase tracking-wider">
                                         Active Campaigns
+                                        {isCampaignsExpanded ? <FaChevronUp className="text-dark-500" /> : <FaChevronDown className="text-dark-500" />}
                                     </h2>
                                     <LoadingButton
-                                        onClick={() => setShowRequestWizard(true)}
+                                        onClick={(e) => { e.stopPropagation(); setShowRequestWizard(true); }}
                                         className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-medium transition-colors border-none"
                                     >
                                         + New Campaign
                                     </LoadingButton>
                                 </div>
 
-                                {requests.length === 0 ? (
-                                    <EmptyState
-                                        icon="box-empty"
-                                        title="No Campaigns Launched Yet"
-                                        description="Ready to scale your brand? Launch your first campaign and let our AI find the perfect creators for you."
-                                        actionLabel="Launch Campaign"
-                                        onAction={() => setShowRequestWizard(true)}
-                                    />
-                                ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-s4">
-                                        {requests.slice(0, 6).map((request, index) => (
-                                            request ? (
-                                                <motion.div
-                                                    key={request.id}
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: index * 0.05 }}
-                                                    onClick={() => setSelectedRequest(request)}
-                                                    className="p-s5 rounded-premium-2xl bg-dark-800/40 backdrop-blur-md border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800/60 shadow-md hover:shadow-premium"
-                                                >
-                                                    <div className="flex items-start justify-between mb-s4">
-                                                        <div className={`w-12 h-12 rounded-premium-xl flex items-center justify-center shadow-glow border border-white/10 text-lg font-black ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                            request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
-                                                                'bg-blue-500/20 text-blue-400'
-                                                            }`}>
-                                                            {request.title ? request.title.charAt(0).toUpperCase() : '?'}
-                                                        </div>
-                                                        <span className={`px-s2.5 py-1 rounded-premium-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-dark-700/50 text-dark-400 border-dark-600/30'
-                                                            }`}>
-                                                            {request.status}
-                                                        </span>
-                                                    </div>
+                                <AnimatePresence>
+                                    {isCampaignsExpanded && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden pt-2"
+                                        >
+                                            {requests.length === 0 ? (
+                                                <EmptyState
+                                                    icon="box-empty"
+                                                    title="No Campaigns Launched Yet"
+                                                    description="Ready to scale your brand? Launch your first campaign and let our AI find the perfect creators for you."
+                                                    actionLabel="Launch Campaign"
+                                                    onAction={() => setShowRequestWizard(true)}
+                                                />
+                                            ) : (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-s4">
+                                                    {requests.slice(0, 6).map((request, index) => (
+                                                        request ? (
+                                                            <motion.div
+                                                                key={request.id}
+                                                                initial={{ opacity: 0, y: 20 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                transition={{ delay: index * 0.05 }}
+                                                                onClick={() => setSelectedRequest(request)}
+                                                                className="p-s5 rounded-premium-2xl bg-dark-800/40 backdrop-blur-md border border-dark-700/50 hover:border-primary-500/30 cursor-pointer transition-all group hover:bg-dark-800/60 shadow-md hover:shadow-premium"
+                                                            >
+                                                                <div className="flex items-start justify-between mb-s4">
+                                                                    <div className={`w-12 h-12 rounded-premium-xl flex items-center justify-center shadow-glow border border-white/10 text-lg font-black ${request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                                        request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
+                                                                            'bg-blue-500/20 text-blue-400'
+                                                                        }`}>
+                                                                        {request.title ? request.title.charAt(0).toUpperCase() : '?'}
+                                                                    </div>
+                                                                    <span className={`px-s2.5 py-1 rounded-premium-full text-[10px] font-black uppercase tracking-wider shadow-sm border ${request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-dark-700/50 text-dark-400 border-dark-600/30'
+                                                                        }`}>
+                                                                        {request.status}
+                                                                    </span>
+                                                                </div>
 
-                                                    <h3 className="text-body font-black text-dark-100 mb-s2 group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-tight">{request.title || 'Untitled Campaign'}</h3>
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Budget</span>
-                                                            <span className="text-xs-pure font-black text-dark-100">₹{request.budget?.toLocaleString()}</span>
-                                                        </div>
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Matches</span>
-                                                            <span className="text-xs-pure font-black text-primary-400">{request.matchedCreators?.length || 0}</span>
-                                                        </div>
-                                                    </div>
+                                                                <h3 className="text-body font-black text-dark-100 mb-s2 group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-tight">{request.title || 'Untitled Campaign'}</h3>
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Budget</span>
+                                                                        <span className="text-xs-pure font-black text-dark-100">₹{request.budget?.toLocaleString()}</span>
+                                                                    </div>
+                                                                    <div className="flex flex-col items-end">
+                                                                        <span className="text-[10px] font-black text-dark-500 uppercase tracking-tighter">Matches</span>
+                                                                        <span className="text-xs-pure font-black text-primary-400">{request.matchedCreators?.length || 0}</span>
+                                                                    </div>
+                                                                </div>
 
-                                                    {/* Progress Bar Simulation */}
-                                                    <div className="w-full bg-dark-950/50 rounded-free h-1 mt-s5 overflow-hidden border border-dark-800/50">
-                                                        <motion.div
-                                                            initial={{ width: 0 }}
-                                                            animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
-                                                            className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-free"
-                                                        />
-                                                    </div>
-                                                </motion.div>
-                                            ) : null
-                                        ))}
-                                    </div>
-                                )}
+                                                                {/* Progress Bar Simulation */}
+                                                                <div className="w-full bg-dark-950/50 rounded-free h-1 mt-s5 overflow-hidden border border-dark-800/50">
+                                                                    <motion.div
+                                                                        initial={{ width: 0 }}
+                                                                        animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
+                                                                        className="bg-gradient-to-r from-indigo-600 to-indigo-400 h-full rounded-free"
+                                                                    />
+                                                                </div>
+                                                            </motion.div>
+                                                        ) : null
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </FocusWrapper>
                     </motion.div>

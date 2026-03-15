@@ -8,7 +8,8 @@ import {
     FaEye,
     FaUsers,
     FaChartLine,
-    FaCalendar
+    FaCalendar,
+    FaLock
 } from 'react-icons/fa';
 import { HiSparkles, HiBriefcase } from 'react-icons/hi';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
@@ -240,9 +241,10 @@ const SellerSummaryCards = ({ summary }) => {
         },
         {
             title: 'Average ROI',
-            value: `${(current.averageROI || 0).toFixed(1)}%`,
+            value: <span className="text-base font-medium text-dark-400 flex items-center gap-2 mt-2"><FaLock className="text-sm" /> Soon</span>,
             icon: FaChartLine,
-            color: 'emerald'
+            color: 'emerald',
+            showGrowth: false
         }
     ];
 
@@ -537,42 +539,14 @@ const SpendingChart = ({ analytics }) => {
  * ROI Chart (Seller)
  */
 const ROIChart = ({ analytics }) => {
-    const data = {
-        labels: analytics.map(a => new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
-        datasets: [{
-            label: 'ROI (%)',
-            data: analytics.map(a => a.sellerMetrics?.averageROI || 0),
-            borderColor: 'rgb(16, 185, 129)',
-            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-            fill: true,
-            tension: 0.4
-        }]
-    };
-
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            title: { display: true, text: 'Average ROI', color: '#fff' }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                ticks: { color: '#9CA3AF' }
-            },
-            x: {
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                ticks: { color: '#9CA3AF' }
-            }
-        }
-    };
-
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
-            <div className="h-56 md:h-64">
-                <Line data={data} options={options} />
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-56 md:h-64 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-500">
+                    <FaLock className="text-xl" />
+                </div>
+                <h3 className="text-dark-200 font-semibold mb-2">Average ROI</h3>
+                <p className="text-dark-400 text-sm max-w-[250px]">Currently working on this and will implement soon.</p>
             </div>
         </div>
     );
@@ -582,40 +556,14 @@ const ROIChart = ({ analytics }) => {
  * Reach Chart (Seller)
  */
 const ReachChart = ({ analytics }) => {
-    const data = {
-        labels: analytics.map(a => new Date(a.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
-        datasets: [{
-            label: 'Total Reach',
-            data: analytics.map(a => a.sellerMetrics?.totalReach || 0),
-            backgroundColor: 'rgba(59, 130, 246, 0.8)',
-            borderRadius: 8
-        }]
-    };
-
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            title: { display: true, text: 'Campaign Reach', color: '#fff' }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                ticks: { color: '#9CA3AF' }
-            },
-            x: {
-                grid: { display: false },
-                ticks: { color: '#9CA3AF' }
-            }
-        }
-    };
-
     return (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6">
-            <div className="h-56 md:h-64">
-                <Bar data={data} options={options} />
+        <div className="bg-dark-900 border border-dark-800 rounded-2xl p-4 md:p-6 flex flex-col items-center justify-center text-center">
+            <div className="h-56 md:h-64 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-4 text-blue-500">
+                    <FaLock className="text-xl" />
+                </div>
+                <h3 className="text-dark-200 font-semibold mb-2">Campaign Reach</h3>
+                <p className="text-dark-400 text-sm max-w-[250px]">Currently working on this and will implement soon.</p>
             </div>
         </div>
     );

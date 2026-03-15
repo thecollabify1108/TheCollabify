@@ -203,13 +203,6 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
 
     return (
         <>
-            {/* Floating FAB — only shown in stand-alone mode (no onClose prop) */}
-            {!onClose && (
-                <motion.button initial={{ scale: 0 }} animate={{ scale: 1 }} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} onClick={() => setIsOpen(true)} className="fixed bottom-[calc(8.5rem+env(safe-area-inset-bottom))] right-6 z-50 w-14 h-14 bg-indigo-700 hover:bg-indigo-600 rounded-full shadow-lg flex items-center justify-center text-white md:bottom-[calc(8rem+env(safe-area-inset-bottom))]">
-                    <FaMagic className="text-xl" />
-                </motion.button>
-            )}
-
             <AnimatePresence>
                 {isOpen && (
                     <>
@@ -232,14 +225,9 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
                                 </div>
 
                                 <div className="flex gap-2 mt-4">
-                                    {[
-                                        { id: 'intelligence', label: 'Intelligence', icon: <HiSparkles /> },
-                                        { id: 'toolkit', label: 'Toolkit', icon: <FaMagic /> }
-                                    ].map(tab => (
-                                        <button key={tab.id} onClick={() => { setActiveTab(tab.id); setModeResult(null); setGeneratedContent(null); }} className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab.id ? 'bg-indigo-600 text-white' : 'bg-white/10 text-indigo-200 hover:bg-white/15'}`}>
-                                            <span className="flex items-center justify-center gap-1">{tab.icon}<span className="hidden sm:inline">{tab.label}</span></span>
-                                        </button>
-                                    ))}
+                                    <div className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white text-center">
+                                        <span className="flex items-center justify-center gap-1"><HiSparkles /><span className="hidden sm:inline">Intelligence</span></span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -329,72 +317,6 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
                                     </div>
                                 )}
 
-                                {/* Toolkit Tab */}
-                                {activeTab === 'toolkit' && (
-                                    <div className="space-y-5">
-                                        <div>
-                                            <h3 className="text-sm font-semibold text-dark-200 uppercase tracking-wider">Creator Toolkit</h3>
-                                            <p className="text-xs text-dark-400 mt-1">Utility tools for content creation support.</p>
-                                        </div>
-
-                                        {/* Content Brief */}
-                                        <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
-                                            <button onClick={() => setToolkitExpanded(toolkitExpanded === 'caption' ? false : 'caption')} className="w-full flex items-center justify-between text-left">
-                                                <div className="flex items-center gap-2"><FaMagic className="text-purple-400 text-xs" /><span className="text-sm font-medium text-dark-200">Content Brief</span></div>
-                                                {toolkitExpanded === 'caption' ? <FaChevronUp className="text-dark-400 text-xs" /> : <FaChevronDown className="text-dark-400 text-xs" />}
-                                            </button>
-                                            <AnimatePresence>
-                                                {toolkitExpanded === 'caption' && (
-                                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-3 overflow-hidden">
-                                                        <div><label className={labelCls}>Topic / Product</label><input type="text" value={params.topic} onChange={e => setParams({ ...params, topic: e.target.value })} className={inputCls} placeholder="e.g. Summer skincare collection" /></div>
-                                                        <div><label className={labelCls}>Platform</label><select value={params.platform} onChange={e => setParams({ ...params, platform: e.target.value })} className={selectCls}>{PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-                                                        <div>
-                                                            <label className={labelCls}>Tone</label>
-                                                            <div className="flex gap-2">
-                                                                {['casual', 'professional', 'storytelling', 'promotional'].map(t => (
-                                                                    <button key={t} onClick={() => setParams({ ...params, tone: t })} className={`flex-1 py-2 rounded-lg text-xs font-medium transition-colors ${params.tone === t ? 'bg-purple-600 text-white' : 'bg-dark-800 text-dark-300 hover:bg-dark-700'}`}>{t.charAt(0).toUpperCase() + t.slice(1)}</button>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                        <button onClick={handleGenerateCaption} disabled={isGenerating || !params.topic.trim()} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors">{isGenerating ? 'Generating...' : 'Generate Brief'}</button>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-
-                                        {/* Discovery Tags */}
-                                        <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
-                                            <button onClick={() => setToolkitExpanded(toolkitExpanded === 'hashtags' ? false : 'hashtags')} className="w-full flex items-center justify-between text-left">
-                                                <div className="flex items-center gap-2"><FaHashtag className="text-purple-400 text-xs" /><span className="text-sm font-medium text-dark-200">Discovery Tags</span></div>
-                                                {toolkitExpanded === 'hashtags' ? <FaChevronUp className="text-dark-400 text-xs" /> : <FaChevronDown className="text-dark-400 text-xs" />}
-                                            </button>
-                                            <AnimatePresence>
-                                                {toolkitExpanded === 'hashtags' && (
-                                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-3 overflow-hidden">
-                                                        <div><label className={labelCls}>Topic</label><input type="text" value={params.topic} onChange={e => setParams({ ...params, topic: e.target.value })} className={inputCls} placeholder="e.g. Sustainable fashion" /></div>
-                                                        <div><label className={labelCls}>Category</label><select value={params.niche} onChange={e => setParams({ ...params, niche: e.target.value })} className={selectCls}>{NICHES.slice(0, 7).map(n => <option key={n} value={n}>{n}</option>)}</select></div>
-                                                        <button onClick={handleGenerateHashtags} disabled={isGenerating} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium text-sm transition-colors">{isGenerating ? 'Generating...' : 'Generate Tags'}</button>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-
-                                        {/* Toolkit Generated Content */}
-                                        {generatedContent && (
-                                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-dark-800 border border-dark-700 rounded-xl p-4 space-y-3">
-                                                <div className="flex items-center justify-between">
-                                                    <h3 className="font-semibold text-dark-100">Output</h3>
-                                                    <button onClick={() => copyToClipboard(Array.isArray(generatedContent.content) ? generatedContent.content.join(' ') : generatedContent.content)} className="p-2 hover:bg-dark-700 rounded-lg transition-colors"><FaCopy className="text-dark-400" /></button>
-                                                </div>
-                                                <div className="text-dark-200 text-sm whitespace-pre-wrap">
-                                                    {generatedContent.type === 'hashtags' && (<div className="flex flex-wrap gap-2">{generatedContent.content.map((tag, i) => (<span key={i} className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded">{tag}</span>))}</div>)}
-                                                    {generatedContent.type === 'caption' && (<p>{generatedContent.content}</p>)}
-                                                </div>
-                                                {onUse && (<button onClick={useContent} className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors">Use This Content</button>)}
-                                            </motion.div>
-                                        )}
-                                    </div>
-                                )}
                             </div>
                         </motion.div>
                     </>
