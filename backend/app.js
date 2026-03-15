@@ -281,6 +281,14 @@ const initializeModules = async () => {
     try {
         console.log('🔄 Loading modules...');
 
+        // 0. Load synchronous modules FIRST to completely eliminate race conditions
+        try {
+            initializeSocketServer = require('./socketServer');
+            console.log('✅ Socket.io loaded');
+        } catch (e) {
+            console.error('❌ Socket.io load failed:', e.message);
+        }
+
         // 1. Load Prisma
         try {
             prisma = require('./config/prisma');
@@ -336,15 +344,7 @@ const initializeModules = async () => {
             }).on('error', () => { /* ignore self-ping errors */ });
         }, 4 * 60 * 1000); // every 4 minutes
 
-        // 4. Load Socket.io
-        try {
-            initializeSocketServer = require('./socketServer');
-            console.log('✅ Socket.io loaded');
-        } catch (e) {
-            console.error('❌ Socket.io load failed:', e.message);
-        }
-
-        // 5. Heavy logic that can stay async
+        // 2b. Keep-alive: ping DB every 2 minutes to prevent Azure cold-start
         // (Socket.io, DB connection testing, etc.)
 
         isFullyInitialized = true;
