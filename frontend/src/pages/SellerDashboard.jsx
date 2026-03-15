@@ -229,7 +229,6 @@ const SellerDashboard = () => {
                 // haptic.light();
             }}
             tabs={tabs}
-            showGuide={showGuide}
         >
             {/* Early Bird Banner */}
             <EarlyBirdBanner />
