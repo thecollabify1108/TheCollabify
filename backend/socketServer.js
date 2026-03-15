@@ -43,7 +43,7 @@ function initializeSocketServer(httpServer) {
             methods: ['GET', 'POST'],
             credentials: true
         },
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],
         pingTimeout: 60000, // Increase for Cloudflare/Azure stability
         pingInterval: 25000,
         connectTimeout: 45000,

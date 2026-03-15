@@ -207,7 +207,7 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'none'"],
-            connectSrc: ["'self'", "https://thecollabify.tech", "https://*.thecollabify.tech", "https://www.googleapis.com", "https://*.azurewebsites.net"],
+            connectSrc: ["'self'", "https://thecollabify.tech", "https://*.thecollabify.tech", "https://www.googleapis.com", "https://*.azurewebsites.net", "wss:", "ws:"],
             frameSrc: ["'none'"],
             frameAncestors: ["'none'"],
             scriptSrc: ["'self'"],

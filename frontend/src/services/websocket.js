@@ -40,7 +40,7 @@ class WebSocketService {
                 userId,
                 token
             },
-            transports: ['websocket', 'polling'],
+            transports: ['polling', 'websocket'],
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
