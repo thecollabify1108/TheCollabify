@@ -129,7 +129,10 @@ router.post('/requests', auth, isSeller, [
     body('targetCategory').notEmpty().withMessage('Target category is required'),
     body('followerRange.min').isInt({ min: 0 }).withMessage('Minimum follower count must be positive'),
     body('followerRange.max').isInt({ min: 0 }).withMessage('Maximum follower count must be positive'),
-    body('campaignGoal').isIn(['Reach', 'Traffic', 'Sales']).withMessage('Invalid campaign goal'),
+    body('campaignGoal').custom((val) => {
+        const valid = ['REACH', 'TRAFFIC', 'SALES', 'AWARENESS', 'CONVERSION', 'ENGAGEMENT', 'CONTENT'];
+        return valid.includes(val.toUpperCase());
+    }).withMessage('Invalid campaign goal'),
     handleValidation
 ], async (req, res) => {
     try {
@@ -158,6 +161,18 @@ router.post('/requests', auth, isSeller, [
         const categories = Array.isArray(targetCategory) ? targetCategory.map(formatCategory) : [formatCategory(targetCategory)];
         const types = Array.isArray(promotionType) ? promotionType.map(t => t.toUpperCase()) : [promotionType.toUpperCase()];
 
+        // Map goals to database enums
+        const goalMapping = {
+            'AWARENESS': 'REACH',
+            'CONVERSION': 'SALES',
+            'CONTENT': 'REACH',
+            'ENGAGEMENT': 'REACH',
+            'REACH': 'REACH',
+            'TRAFFIC': 'TRAFFIC',
+            'SALES': 'SALES'
+        };
+        const finalGoal = goalMapping[campaignGoal ? campaignGoal.toUpperCase() : 'AWARENESS'] || 'REACH';
+
         // Create promotion request
         const request = await prisma.promotionRequest.create({
             data: {
@@ -170,7 +185,7 @@ router.post('/requests', auth, isSeller, [
                 targetCategory: categories,
                 minFollowers: followerRange.min,
                 maxFollowers: followerRange.max,
-                campaignGoal: campaignGoal.toUpperCase(),
+                campaignGoal: finalGoal,
                 deadline: deadline ? new Date(deadline) : undefined,
                 status: 'OPEN'
             }
