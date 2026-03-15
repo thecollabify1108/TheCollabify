@@ -32,7 +32,7 @@ const BottomSheet = ({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 z-50 bg-dark-950/80 backdrop-blur-sm transition-opacity"
+                        className="fixed inset-0 z-[60] bg-dark-950/80 backdrop-blur-sm transition-opacity"
                     />
 
                     {/* Sheet / Modal */}
@@ -49,7 +49,7 @@ const BottomSheet = ({
                                 onClose();
                             }
                         }}
-                        className={`fixed bottom-0 left-0 right-0 z-50 bg-dark-900 
+                        className={`fixed bottom-0 left-0 right-0 z-[60] bg-dark-900 
                             rounded-t-3xl border-t border-dark-700 shadow-2xl 
                             max-h-[90vh] overflow-y-auto overflow-x-hidden
                             md:inset-0 md:m-auto md:max-w-4xl md:max-h-[85vh] md:rounded-2xl md:border

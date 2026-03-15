@@ -320,8 +320,8 @@ model PromotionRequest {
   description       String           @db.Text
   minBudget         Float
   maxBudget         Float
-  promotionType     PromotionType
-  targetCategory    Category
+  promotionType     PromotionType[]
+  targetCategory    Category[]
   minFollowers      Int
   maxFollowers      Int
   campaignGoal      CampaignGoal

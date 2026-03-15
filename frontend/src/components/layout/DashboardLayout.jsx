@@ -36,7 +36,7 @@ const DashboardLayout = ({
 
             {/* Main Content Area */}
             <main className={`transition-all duration-300 ${'lg:pl-56' /* Add padding for sidebar on desktop */
-                } pt-0 pb-20 lg:pb-8`}>
+                } pt-0 pb-32 lg:pb-8`}>
 
                 <div className="max-w-7xl mx-auto px-s2 sm:px-s4 lg:px-s6 pt-s1 md:pt-s6">
                     {children}

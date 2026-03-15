@@ -121,7 +121,11 @@ router.post('/requests', auth, isSeller, [
     body('description').trim().isLength({ min: 20, max: 1000 }).withMessage('Description must be between 20 and 1000 characters'),
     body('budgetRange.min').isFloat({ min: 0 }).withMessage('Minimum budget must be positive'),
     body('budgetRange.max').isFloat({ min: 0 }).withMessage('Maximum budget must be positive'),
-    body('promotionType').isIn(['Reels', 'Stories', 'Posts', 'Website Visit']).withMessage('Invalid promotion type'),
+    body('promotionType').custom((val) => {
+        const types = Array.isArray(val) ? val : [val];
+        const valid = ['REELS', 'STORIES', 'POSTS', 'WEBSITE_VISIT'];
+        return types.every(t => valid.includes(t.toUpperCase()));
+    }).withMessage('Invalid promotion type'),
     body('targetCategory').notEmpty().withMessage('Target category is required'),
     body('followerRange.min').isInt({ min: 0 }).withMessage('Minimum follower count must be positive'),
     body('followerRange.max').isInt({ min: 0 }).withMessage('Maximum follower count must be positive'),
@@ -145,6 +149,15 @@ router.post('/requests', auth, isSeller, [
         FrictionService.trackCampaignStart(req.userId, { title, targetCategory })
             .catch(err => console.error('Friction tracking failed:', err));
 
+        // Helper to format category
+        const formatCategory = (cat) => {
+            const valid = ['Fashion', 'Tech', 'Fitness', 'Food', 'Travel', 'Lifestyle', 'Beauty', 'Gaming', 'Education', 'Entertainment', 'Health', 'Business', 'Art', 'Music', 'Sports', 'Other'];
+            return valid.find(v => v.toLowerCase() === cat.toLowerCase()) || 'Other';
+        };
+
+        const categories = Array.isArray(targetCategory) ? targetCategory.map(formatCategory) : [formatCategory(targetCategory)];
+        const types = Array.isArray(promotionType) ? promotionType.map(t => t.toUpperCase()) : [promotionType.toUpperCase()];
+
         // Create promotion request
         const request = await prisma.promotionRequest.create({
             data: {
@@ -153,8 +166,8 @@ router.post('/requests', auth, isSeller, [
                 description,
                 minBudget: budgetRange.min,
                 maxBudget: budgetRange.max,
-                promotionType: [promotionType.toUpperCase().replace(/\s+/g, '_')],
-                targetCategory: targetCategory,
+                promotionType: types,
+                targetCategory: categories,
                 minFollowers: followerRange.min,
                 maxFollowers: followerRange.max,
                 campaignGoal: campaignGoal.toUpperCase(),

@@ -22,8 +22,8 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
         minBudget: initialData?.minBudget || '',
         maxBudget: initialData?.maxBudget || '',
         targetNiche: initialData?.targetNiche || [],
-        minFollowers: initialData?.minFollowers || 1000,
-        maxFollowers: initialData?.maxFollowers || 100000,
+        minFollowers: initialData?.minFollowers || '',
+        maxFollowers: initialData?.maxFollowers || '',
         minEngagement: 2.0,
         duration: 14,
         requirements: initialData?.requirements || '',
@@ -77,15 +77,24 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
             return;
         }
 
-        const promotionTypeString = Array.isArray(formData.promotionType) 
-            ? formData.promotionType.map(t => t === 'Story' ? 'Stories' : t === 'Reel' ? 'Reels' : t === 'Post' ? 'Posts' : t).join(', ')
-            : (formData.promotionType === 'Story' ? 'Stories' : formData.promotionType === 'Reel' ? 'Reels' : formData.promotionType === 'Post' ? 'Posts' : formData.promotionType);
+        const promotionTypeArray = Array.isArray(formData.promotionType) ? formData.promotionType : [formData.promotionType];
+        const promotionTypeFormatted = promotionTypeArray.map(t => {
+            const map = {
+                'Post': 'POSTS',
+                'Story': 'STORIES',
+                'Reel': 'REELS',
+                'Video': 'REELS', // Map others to logical enums
+                'IGTV': 'REELS',
+                'Live': 'REELS'
+            };
+            return map[t] || t.toUpperCase();
+        });
 
         const payload = {
             title: formData.title,
             description: formData.description,
-            promotionType: promotionTypeString,
-            targetCategory: formData.targetNiche.join(', ') || 'Lifestyle',
+            promotionType: promotionTypeFormatted,
+            targetCategory: formData.targetNiche,
             budgetRange: {
                 min: Number(formData.minBudget),
                 max: Number(formData.maxBudget)
@@ -148,7 +157,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 sm:p-6">
             {/* Backdrop */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -163,7 +172,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                 initial={{ opacity: 0, scale: 0.95, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                className="relative z-10 w-full max-w-4xl bg-dark-950/98 backdrop-blur-2xl rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col border border-white/10 max-h-[92vh] sm:max-h-[90vh]"
+                className="relative z-10 w-full max-w-4xl bg-dark-950/98 backdrop-blur-2xl rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col border border-white/10 max-h-[92vh] sm:max-h-[85vh] bottom-4 sm:bottom-0"
             >
                 {/* Header */}
                 <div className="bg-gradient-to-r from-primary-700 to-indigo-800 p-5 border-b border-white/10 relative shrink-0">
@@ -207,7 +216,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-32 sm:pb-8 custom-scrollbar">
                     <AnimatePresence mode="wait">
                         {/* Step 0: Basics */}
                         {currentStep === 0 && (
@@ -311,7 +320,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                                     <input
                                                         type="number"
                                                         value={formData.minFollowers}
-                                                        onChange={(e) => setFormData({ ...formData, minFollowers: parseInt(e.target.value) || 0 })}
+                                                        onChange={(e) => setFormData({ ...formData, minFollowers: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                                         className="w-full pl-12 pr-3 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
                                                     />
                                                 </div>
@@ -320,14 +329,14 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                                     <input
                                                         type="number"
                                                         value={formData.maxFollowers}
-                                                        onChange={(e) => setFormData({ ...formData, maxFollowers: parseInt(e.target.value) || 0 })}
+                                                        onChange={(e) => setFormData({ ...formData, maxFollowers: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                                         className="w-full pl-12 pr-3 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
                                                     />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 gap-6">
                                             <div>
                                                 <label className="block text-xs font-bold text-dark-300 uppercase tracking-wider mb-3">Min Engagement %</label>
                                                 <div className="relative">
@@ -335,25 +344,10 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                                         type="number"
                                                         step="0.1"
                                                         value={formData.minEngagement}
-                                                        onChange={(e) => setFormData({ ...formData, minEngagement: parseFloat(e.target.value) || 0 })}
+                                                        onChange={(e) => setFormData({ ...formData, minEngagement: e.target.value === '' ? '' : parseFloat(e.target.value) })}
                                                         className="w-full px-4 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
                                                     />
                                                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-400 font-bold">%</span>
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <div className="flex justify-between mb-3">
-                                                    <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Duration Days</label>
-                                                </div>
-                                                <div className="relative">
-                                                    <input
-                                                        type="number"
-                                                        value={formData.duration}
-                                                        onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
-                                                        className="w-full px-4 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
-                                                    />
-                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-400 font-bold italic">Days</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -453,20 +447,20 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="relative">
                                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400 font-bold">₹</span>
-                                                <input
-                                                    type="number"
-                                                    value={formData.minBudget}
-                                                    onChange={(e) => setFormData({ ...formData, minBudget: e.target.value })}
-                                                    placeholder="Min Budget"
-                                                    className="w-full pl-8 pr-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
-                                                />
+                                                    <input
+                                                        type="number"
+                                                        value={formData.minBudget}
+                                                        onChange={(e) => setFormData({ ...formData, minBudget: e.target.value === '' ? '' : parseInt(e.target.value) })}
+                                                        placeholder="Min Budget"
+                                                        className="w-full pl-8 pr-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
+                                                    />
                                             </div>
                                             <div className="relative">
                                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400 font-bold">₹</span>
                                                 <input
                                                     type="number"
                                                     value={formData.maxBudget}
-                                                    onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value })}
+                                                    onChange={(e) => setFormData({ ...formData, maxBudget: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                                     placeholder="Max Budget"
                                                     className="w-full pl-8 pr-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500 focus:outline-none text-sm"
                                                 />
@@ -484,7 +478,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                                 min="3"
                                                 max="90"
                                                 value={formData.duration}
-                                                onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
+                                                onChange={(e) => setFormData({ ...formData, duration: e.target.value === '' ? '' : parseInt(e.target.value) })}
                                                 className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
                                             />
                                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-400 font-bold italic">Days</span>

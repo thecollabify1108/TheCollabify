@@ -47,7 +47,7 @@ const filterCreators = async (request) => {
                 gte: request.minFollowers,
                 lte: request.maxFollowers
             },
-            category: request.targetCategory,
+            category: { in: request.targetCategory },
             promotionTypes: {
                 hasSome: request.promotionType
             },
@@ -86,7 +86,10 @@ const calculateEngagementScore = (engagementRate, followerCount) => {
  * Calculate niche similarity score
  */
 const calculateNicheSimilarity = (creatorCategory, targetCategory) => {
-    if (creatorCategory === targetCategory) return 100;
+    const targets = Array.isArray(targetCategory) ? targetCategory : [targetCategory];
+    
+    // Exact Match
+    if (targets.includes(creatorCategory)) return 100;
 
     const relatedCategories = {
         'Fashion': ['Beauty', 'Lifestyle'],
@@ -106,11 +109,15 @@ const calculateNicheSimilarity = (creatorCategory, targetCategory) => {
         'Lifestyle': ['Fashion', 'Beauty', 'Food', 'Travel', 'Health']
     };
 
-    if (relatedCategories[targetCategory]?.includes(creatorCategory)) {
-        return 50;
-    }
+    // Check if any target category is related to creator category
+    let maxScore = 0;
+    targets.forEach(target => {
+        if (relatedCategories[target]?.includes(creatorCategory)) {
+            maxScore = Math.max(maxScore, 50);
+        }
+    });
 
-    return 0;
+    return maxScore;
 };
 
 /**
