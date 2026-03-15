@@ -1,7 +1,7 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    FaFire
+    FaFire, FaLock
 } from 'react-icons/fa';
 import { HiSparkles, HiUserGroup, HiViewGrid } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
@@ -36,14 +36,12 @@ import EnhancedCreatorSearch from '../components/seller/EnhancedCreatorSearch';
 import SmartRecommendationsPanel from '../components/seller/SmartRecommendationsPanel';
 import SwipeableCreatorCard from '../components/seller/SwipeableCreatorCard';
 import AnalyticsDashboard from '../components/analytics/AnalyticsDashboard';
-import TeamManagement from '../components/team/TeamManagement';
 import { getReliabilityLevel } from '../utils/reliability';
 import StatCard from '../components/dashboard/StatCard';
 import PerformanceChart from '../components/dashboard/PerformanceChart';
 import FocusWrapper from '../components/dashboard/FocusWrapper';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
-import AIAssistantPanel from '../components/common/AIAssistantPanel';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -359,7 +357,7 @@ const SellerDashboard = () => {
                     </motion.div>
                 )}
 
-                {/* Team Management Tab */}
+                {/* Team Management Tab (locked — unfinished) */}
                 {activeTab === 'team' && (
                     <motion.div
                         key="team"
@@ -367,7 +365,10 @@ const SellerDashboard = () => {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
                     >
-                        <TeamManagement />
+                        <div className="bg-dark-800/60 border border-dark-700/50 rounded-xl p-6 flex flex-col items-center justify-center min-h-[200px]">
+                            <FaLock className="text-3xl text-dark-400 mb-2" />
+                            <span className="text-dark-300 text-sm font-medium">Team Management coming soon</span>
+                        </div>
                     </motion.div>
                 )}
 
@@ -382,13 +383,14 @@ const SellerDashboard = () => {
                     >
                         {/* 1. Hero Section */}
                         <DashboardHero
-                            userName={user?.name?.split(' ')[0] || 'Brand'}
+                            userName={user?.name?.split(' ')[0] || 'Seller'}
                             role="Seller"
-                            dailyInsight={requests?.[0]?.aiInsight || "Create a campaign to begin matching with creators."}
+                            dailyInsight={requests?.[0]?.aiInsight || "Welcome to your Seller Dashboard. Launch a campaign to get started!"}
                             reliability={{
                                 level: getReliabilityLevel(user?.reliabilityScore || 1.0),
                                 score: user?.reliabilityScore || 1.0
                             }}
+                            hideProfileButton={true}
                         />
 
 
@@ -430,7 +432,9 @@ const SellerDashboard = () => {
                         </div>
 
                         {/* Brand Insights */}
-                        <BrandInsightCards />
+                        <div className="mt-4">
+                            <BrandInsightCards />
+                        </div>
 
                         {/* 3. Charts & Applicant Feed */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:h-[350px]">
@@ -577,14 +581,7 @@ const SellerDashboard = () => {
                 )}
             </BottomSheet>
 
-            {/* Intelligence Copilot Panel */}
-            <AIAssistantPanel
-                campaign={selectedRequest}
-                onUse={(content) => {
-                    console.log('Copilot Content:', content);
-                    toast.success('Content ready to use');
-                }}
-            />
+            {/* Intelligence Copilot Panel — removed for production launch */}
 
 
         </DashboardLayout>
