@@ -9,6 +9,7 @@ class WebSocketService {
         this.socket = null;
         this.isConnected = false;
         this.listeners = new Map();
+        this.emitQueue = []; // Queue for events while disconnected
     }
 
     /**
@@ -42,17 +43,26 @@ class WebSocketService {
             transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionDelay: 1000,
-            reconnectionAttempts: 5
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: Infinity, // Keep trying to reconnect in background
+            forceNew: true, // Prevent multiplexing issues
+            timeout: 20000 // Give more time for handshake
         });
 
         this.socket.on('connect', () => {
             console.log('✅ Connected to WebSocket server');
             this.isConnected = true;
+            this._drainQueue();
         });
 
         this.socket.on('disconnect', (reason) => {
             console.log('❌ Disconnected from WebSocket:', reason);
             this.isConnected = false;
+            
+            // If disconnected by server, attempt manual reconnect if transport is still alive
+            if (reason === 'io server disconnect') {
+                this.socket.connect();
+            }
         });
 
         this.socket.on('connect_error', (error) => {
@@ -60,9 +70,23 @@ class WebSocketService {
             if (import.meta.env.DEV || !error.message?.toLowerCase().includes('auth')) {
                 console.error('❌ WebSocket connection error:', error);
             }
+            this.isConnected = false;
         });
 
         return this.socket;
+    }
+
+    /**
+     * Internal method to drain the emit queue
+     */
+    _drainQueue() {
+        if (this.emitQueue.length > 0) {
+            console.log(`📥 Draining WebSocket emit queue (${this.emitQueue.length} events)`);
+            while (this.emitQueue.length > 0) {
+                const { event, data } = this.emitQueue.shift();
+                this.socket.emit(event, data);
+            }
+        }
     }
 
     /**
@@ -75,6 +99,7 @@ class WebSocketService {
             this.socket = null;
             this.isConnected = false;
             this.listeners.clear();
+            this.emitQueue = [];
         }
     }
 
@@ -119,21 +144,24 @@ class WebSocketService {
      */
     emit(event, data) {
         if (!this.socket) {
-            console.warn(`ΓÜá∩╕Å WebSocket singleton not initialized. Cannot emit: ${event}`);
+            console.warn(`⚠️ WebSocket singleton not initialized. Cannot emit: ${event}`);
             return false;
         }
 
         if (!this.isConnected || !this.socket.connected) {
-            console.warn(`ΓÜá∩╕Å WebSocket not connected (State: ${this.isConnected ? 'IDLE' : 'DISCONNECTED'}). Queueing/Ignoring emit: ${event}`);
-            // Optional: Implement a simple queue if needed, but for now just prevent the error
-            return false;
+            // Queue the event instead of ignoring it
+            this.emitQueue.push({ event, data });
+            if (import.meta.env.DEV) {
+                console.log(`⏳ WebSocket disconnected. Queued event: ${event}`);
+            }
+            return true; 
         }
 
         try {
             this.socket.emit(event, data);
             return true;
         } catch (err) {
-            console.error(`Γ¥î Failed to emit ${event}:`, err);
+            console.error(`❌ Failed to emit ${event}:`, err);
             return false;
         }
     }

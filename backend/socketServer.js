@@ -28,6 +28,8 @@ function initializeSocketServer(httpServer) {
         if (/^https:\/\/([\w-]+\.)*thecollabify\.(tech|pages\.dev)$/.test(origin)) return true;
         if (/^https:\/\/([\w-]+\.)*thecollabify-frontend\.pages\.dev$/.test(origin)) return true;
         if (/^https:\/\/[\w-]+\.[\w-]+\.azurewebsites\.net$/.test(origin)) return true;
+        // Explicitly allow production specific variants if not caught by regex
+        if (origin === 'https://thecollabify.tech' || origin === 'https://api.thecollabify.tech') return true;
         return envOrigins.includes(origin);
     };
 
@@ -35,12 +37,17 @@ function initializeSocketServer(httpServer) {
         cors: {
             origin: (origin, callback) => {
                 if (isAllowedOrigin(origin)) return callback(null, true);
+                console.warn(`[Socket.io] CORS blocked origin: ${origin}`);
                 return callback(new Error('CORS not allowed for Socket.IO origin'));
             },
             methods: ['GET', 'POST'],
             credentials: true
         },
-        transports: ['websocket', 'polling']
+        transports: ['websocket', 'polling'],
+        pingTimeout: 60000, // Increase for Cloudflare/Azure stability
+        pingInterval: 25000,
+        connectTimeout: 45000,
+        allowEIO3: true // Support older engine.io clients if any
     });
 
     // Using default in-memory Socket.io adapter (Redis removed to reduce cost)
