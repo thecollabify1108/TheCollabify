@@ -21,10 +21,12 @@ const { sendCreatorAcceptedEmail, sendNewMatchEmail } = require('../utils/brevoE
 const handleValidation = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        const errorArray = errors.array();
+        console.error('Validation failed for /requests:', JSON.stringify(errorArray, null, 2));
         return res.status(400).json({
             success: false,
             message: 'Validation failed',
-            errors: errors.array()
+            errors: errorArray
         });
     }
     next();
@@ -122,16 +124,18 @@ router.post('/requests', auth, isSeller, [
     body('budgetRange.min').isFloat({ min: 0 }).withMessage('Minimum budget must be positive'),
     body('budgetRange.max').isFloat({ min: 0 }).withMessage('Maximum budget must be positive'),
     body('promotionType').custom((val) => {
+        if (!val) return false;
         const types = Array.isArray(val) ? val : [val];
         const valid = ['REELS', 'STORIES', 'POSTS', 'WEBSITE_VISIT'];
-        return types.every(t => valid.includes(t.toUpperCase()));
+        return types.every(t => t && valid.includes(t.toString().toUpperCase()));
     }).withMessage('Invalid promotion type'),
-    body('targetCategory').notEmpty().withMessage('Target category is required'),
+    body('targetCategory').isArray({ min: 1 }).withMessage('At least one target category is required'),
     body('followerRange.min').isInt({ min: 0 }).withMessage('Minimum follower count must be positive'),
     body('followerRange.max').isInt({ min: 0 }).withMessage('Maximum follower count must be positive'),
     body('campaignGoal').custom((val) => {
+        if (!val) return false;
         const valid = ['REACH', 'TRAFFIC', 'SALES', 'AWARENESS', 'CONVERSION', 'ENGAGEMENT', 'CONTENT'];
-        return valid.includes(val.toUpperCase());
+        return valid.includes(val.toString().toUpperCase());
     }).withMessage('Invalid campaign goal'),
     handleValidation
 ], async (req, res) => {

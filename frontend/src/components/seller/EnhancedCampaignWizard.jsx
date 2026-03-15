@@ -72,8 +72,21 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
     };
 
     const handleSubmit = () => {
-        if (!formData.title || !formData.minBudget || !formData.maxBudget) {
-            toast.error('Please fill in required fields');
+        // Strict frontend validation to match backend requirements
+        if (!formData.title || formData.title.length < 5) {
+            toast.error('Title must be at least 5 characters');
+            return;
+        }
+        if (!formData.description || formData.description.length < 20) {
+            toast.error('Description must be at least 20 characters');
+            return;
+        }
+        if (!formData.minBudget || !formData.maxBudget) {
+            toast.error('Budget range is required');
+            return;
+        }
+        if (!formData.targetNiche || formData.targetNiche.length === 0) {
+            toast.error('Please select at least one category');
             return;
         }
 
@@ -103,7 +116,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                 min: Number(formData.minFollowers),
                 max: Number(formData.maxFollowers)
             },
-            campaignGoal: 'Reach',
+            campaignGoal: formData.goal || 'Reach',
             requirements: formData.requirements || undefined,
             deadline: new Date(Date.now() + formData.duration * 24 * 60 * 60 * 1000).toISOString(),
             location: formData.locationType !== 'ONLINE' ? formData.location : undefined,
@@ -117,12 +130,20 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
     };
 
     const applyTemplate = (templateData) => {
+        // Map template fields to wizard state structure
+        const mappedData = {
+            ...templateData,
+            minBudget: templateData.budget || templateData.minBudget || '',
+            maxBudget: templateData.budget ? templateData.budget * 1.5 : (templateData.maxBudget || ''),
+            goal: templateData.goal || 'AWARENESS'
+        };
+        
         setFormData({
             ...formData,
-            ...templateData
+            ...mappedData
         });
         setShowTemplates(false);
-        toast.success('Template applied!');
+        toast.success(`Template applied!`);
     };
 
     const toggleCategory = (category) => {
