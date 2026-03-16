@@ -11,7 +11,16 @@
 
 const express = require('express');
 const router = express.Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+let stripe;
+try {
+    if (process.env.STRIPE_SECRET_KEY) {
+        stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    } else {
+        console.warn('[Stripe Webhook] STRIPE_SECRET_KEY missing — webhook will reject events.');
+    }
+} catch (e) {
+    console.warn('[Stripe Webhook] Failed to init Stripe:', e.message);
+}
 const prisma = require('../config/prisma');
 
 router.post('/', express.raw({ type: 'application/json' }), async (req, res) => {
