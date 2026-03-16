@@ -18,8 +18,8 @@ const ProfileForm = ({ profile, onSave }) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         followerRange: {
-            min: profile?.verifiedFollowerRangeMin || '',
-            max: profile?.verifiedFollowerRangeMax || ''
+            min: profile?.followerCount || '',
+            max: (profile?.followerCount ? profile.followerCount + 500 : '')
         },
         engagementRate: profile?.engagementRate || '',
         category: profile?.category || '',
@@ -57,11 +57,14 @@ const ProfileForm = ({ profile, onSave }) => {
                 ...prev,
                 priceRange: { ...prev.priceRange, [key]: value }
             }));
-        } else if (name.startsWith('followerRange.')) {
-            const key = name.split('.')[1];
+        } else if (name === 'followerRange.min') {
+            const minVal = parseInt(value) || 0;
             setFormData(prev => ({
                 ...prev,
-                followerRange: { ...prev.followerRange, [key]: value }
+                followerRange: { 
+                    min: value, 
+                    max: minVal + 500 
+                }
             }));
         } else if (name.startsWith('location.')) {
             const key = name.split('.')[1];
@@ -209,8 +212,8 @@ const ProfileForm = ({ profile, onSave }) => {
                                 name="followerRange.min"
                                 value={formData.followerRange?.min || ''}
                                 onChange={handleChange}
-                                placeholder="Min e.g. 6000"
-                                className="input-field"
+                                placeholder="Min e.g. 5000"
+                                className="input-field font-bold"
                                 min="0"
                                 required
                             />
@@ -218,9 +221,9 @@ const ProfileForm = ({ profile, onSave }) => {
                                 type="number"
                                 name="followerRange.max"
                                 value={formData.followerRange?.max || ''}
-                                onChange={handleChange}
-                                placeholder="Max e.g. 6500"
-                                className="input-field"
+                                readOnly
+                                placeholder="Max (Auto 500+)"
+                                className="input-field bg-dark-800/50 border-dashed text-dark-400 cursor-not-allowed font-bold"
                                 min="0"
                                 required
                             />
