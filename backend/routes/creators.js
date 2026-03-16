@@ -36,6 +36,14 @@ const FOLLOWER_RANGE_MAP = {
     'RANGE_100K_PLUS': 'RANGE_100K_PLUS'
 };
 
+const mapNumericToRangeEnum = (min) => {
+    if (min < 5000) return 'RANGE_1K_5K';
+    if (min < 10000) return 'RANGE_5K_10K';
+    if (min < 50000) return 'RANGE_10K_50K';
+    if (min < 100000) return 'RANGE_50K_100K';
+    return 'RANGE_100K_PLUS';
+};
+
 const FOLLOWER_RANGE_MIDPOINT = {
     RANGE_1K_5K: 3000,
     RANGE_5K_10K: 7500,
@@ -169,8 +177,7 @@ router.post('/profile', auth, isCreator, [
     body('instagramProfileUrl').notEmpty().withMessage('Instagram profile URL is required for verification'),
     body('instagramUrl').optional().isURL().withMessage('Invalid Instagram URL'),
     body('location.city').notEmpty().withMessage('City is required'),
-    // Follower range — structured selection only
-    body('followerRange').notEmpty().withMessage('Follower range selection is required'),
+    body('followerRange').notEmpty().withMessage('Follower range is required'),
     body('engagementRate').optional().isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
     handleValidation
 ], async (req, res) => {
@@ -208,15 +215,24 @@ router.post('/profile', auth, isCreator, [
         } = req.body;
 
         // Validate & map follower range
-        const followerRangeEnum = FOLLOWER_RANGE_MAP[followerRangeInput];
+        let followerRangeEnum;
+        let effectiveFollowerCount = 0;
+
+        if (typeof followerRangeInput === 'string') {
+            followerRangeEnum = FOLLOWER_RANGE_MAP[followerRangeInput];
+            effectiveFollowerCount = FOLLOWER_RANGE_MIDPOINT[followerRangeEnum] || 0;
+        } else if (typeof followerRangeInput === 'object' && followerRangeInput.min !== undefined) {
+            const minNum = parseInt(followerRangeInput.min) || 0;
+            followerRangeEnum = mapNumericToRangeEnum(minNum);
+            effectiveFollowerCount = minNum;
+        }
+
         if (!followerRangeEnum) {
             return res.status(400).json({
                 success: false,
-                message: 'Invalid follower range. Choose: 1k-5k, 5k-10k, 10k-50k, 50k-100k, 100k+'
+                message: 'Invalid follower range format'
             });
         }
-
-        const effectiveFollowerCount = FOLLOWER_RANGE_MIDPOINT[followerRangeEnum] || 0;
 
         // Generate AI insights
         const insights = generateInsights({
@@ -321,7 +337,7 @@ router.post('/profile', auth, isCreator, [
  * @access  Private (Creator)
  */
 router.put('/profile', auth, isCreator, [
-    body('followerRange').optional().isString().withMessage('Follower range must be a string selection'),
+    body('followerRange').optional().withMessage('Invalid follower range'),
     body('engagementRate').optional().isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
     body('priceRange.min').optional().isFloat({ min: 0 }).withMessage('Minimum price must be positive'),
     body('priceRange.max').optional().isFloat({ min: 0 }).withMessage('Maximum price must be positive'),
@@ -339,14 +355,15 @@ router.put('/profile', auth, isCreator, [
             });
         }
 
-        // ── EDIT THROTTLE: once per week ──────────────────────────
-        if (profile.profileLastEditedAt) {
+        // ── EDIT THROTTLE: only if profile is 100% complete ──────────────────────────
+        // Limitation starts once profile is 100% complete, then twice a week (every 3 days).
+        if (profile.profileCompletionPercentage >= 100 && profile.profileLastEditedAt) {
             const daysSinceEdit = (Date.now() - new Date(profile.profileLastEditedAt).getTime()) / (1000 * 60 * 60 * 24);
-            if (daysSinceEdit < 7) {
-                const daysLeft = Math.ceil(7 - daysSinceEdit);
+            if (daysSinceEdit < 3) {
+                const daysLeft = Math.ceil(3 - daysSinceEdit);
                 return res.status(429).json({
                     success: false,
-                    message: `Profile edits are allowed once per week. You can edit again in ${daysLeft} day(s).`,
+                    message: `Profile edits are allowed twice per week for completed profiles. You can edit again in ${daysLeft} day(s).`,
                     daysUntilNextEdit: daysLeft
                 });
             }
@@ -388,30 +405,44 @@ router.put('/profile', auth, isCreator, [
 
         if (req.body.location !== undefined) updateData.location = req.body.location;
 
-        // ── FOLLOWER RANGE THROTTLE: once per month ───────────────
+        // ── FOLLOWER RANGE THROTTLE ───────────────
         if (req.body.followerRange !== undefined) {
-            if (profile.followerRangeChangedAt) {
+            // Only throttle follower range changes for completed profiles
+            if (profile.profileCompletionPercentage >= 100 && profile.followerRangeChangedAt) {
                 const daysSinceChange = (Date.now() - new Date(profile.followerRangeChangedAt).getTime()) / (1000 * 60 * 60 * 24);
                 if (daysSinceChange < 30) {
                     const daysLeft = Math.ceil(30 - daysSinceChange);
                     return res.status(429).json({
                         success: false,
-                        message: `Follower range can only be changed once per month. You can change it again in ${daysLeft} day(s).`,
+                        message: `Follower range can only be changed once per month for completed profiles. You can change it again in ${daysLeft} day(s).`,
                         daysUntilNextChange: daysLeft
                     });
                 }
             }
-            const followerRangeEnum = FOLLOWER_RANGE_MAP[req.body.followerRange];
+            
+            let followerRangeEnum;
+            let count = 0;
+            const input = req.body.followerRange;
+            
+            if (typeof input === 'string') {
+                followerRangeEnum = FOLLOWER_RANGE_MAP[input];
+                count = FOLLOWER_RANGE_MIDPOINT[followerRangeEnum] || 0;
+            } else if (typeof input === 'object' && input.min !== undefined) {
+                const minNum = parseInt(input.min) || 0;
+                followerRangeEnum = mapNumericToRangeEnum(minNum);
+                count = minNum;
+            }
+
             if (!followerRangeEnum) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Invalid follower range. Choose: 1k-5k, 5k-10k, 10k-50k, 50k-100k, 100k+'
+                    message: 'Invalid follower range format'
                 });
             }
             updateData.followerRange = followerRangeEnum;
             updateData.followerRangeChangedAt = new Date();
-            updateData.followerCount = FOLLOWER_RANGE_MIDPOINT[followerRangeEnum] || 0;
-            updateData.selfReportedFollowers = updateData.followerCount;
+            updateData.followerCount = count;
+            updateData.selfReportedFollowers = count;
             updateData.verificationStatus = 'pending';
         }
 
@@ -500,7 +531,7 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
             prisma.promotionRequest.findMany({
                 where: {
                     status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
-                    targetCategory: profile.category,
+                    targetCategory: { has: profile.category },
                     promotionType: { hasSome: profile.promotionTypes },
                     minFollowers: { lte: profile.followerCount },
                     maxFollowers: { gte: profile.followerCount }
@@ -531,7 +562,7 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
             prisma.promotionRequest.count({
                 where: {
                     status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
-                    targetCategory: profile.category,
+                    targetCategory: { has: profile.category },
                     promotionType: { hasSome: profile.promotionTypes },
                     minFollowers: { lte: profile.followerCount },
                     maxFollowers: { gte: profile.followerCount }

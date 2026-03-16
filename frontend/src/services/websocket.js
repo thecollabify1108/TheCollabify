@@ -16,60 +16,49 @@ class WebSocketService {
      * Connect to WebSocket server
      */
     connect(userId, token) {
-        if (this.socket?.connected) {
-            console.log('✅ Already connected to WebSocket');
+        if (this.socket?.connected) return this.socket;
+        
+        if (this.isConnecting) {
+            console.log('⏳ WebSocket connection already in progress...');
             return this.socket;
         }
 
-        // If a socket already exists (connecting or reconnecting), don't create another one
-        if (this.socket) {
-            return this.socket;
-        }
-
-        const wsUrl = import.meta.env.VITE_WS_URL;
-
-        if (!wsUrl) {
-            console.error('❌ VITE_WS_URL environment variable is not configured!');
-            throw new Error('WebSocket URL not configured. Set VITE_WS_URL in environment variables.');
-        }
-
-        console.log(`🔌 Connecting to WebSocket: ${wsUrl}`);
+        this.isConnecting = true;
+        const wsUrl = import.meta.env.VITE_WS_URL || 'wss://api.thecollabify.tech';
+        
+        console.log(`🔌 Attempting WebSocket connection to: ${wsUrl}`);
 
         this.socket = io(wsUrl, {
-            auth: {
-                userId,
-                token
-            },
-            // Remove restricted transports to allow automatic upgrade (more stable)
+            auth: { userId, token },
             reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000,
-            reconnectionAttempts: Infinity,
+            reconnectionDelay: 2000,
+            reconnectionDelayMax: 10000,
+            reconnectionAttempts: 10,
             forceNew: true,
-            timeout: 20000
+            timeout: 10000
         });
 
         this.socket.on('connect', () => {
-            console.log(`✅ Connected to WebSocket [ID: ${this.socket.id}]`);
+            console.log(`🚀 WebSocket Established! [ID: ${this.socket.id}]`);
             this.isConnected = true;
+            this.isConnecting = false;
             this._drainQueue();
         });
 
-        this.socket.on('disconnect', (reason) => {
-            console.warn(`❌ WebSocket Disconnected: ${reason} [ID: ${this.socket?.id}]`);
+        this.socket.on('connect_error', (err) => {
+            console.warn('⚠️ WebSocket Connection Error:', err.message);
+            this.isConnecting = false;
             this.isConnected = false;
+        });
+
+        this.socket.on('disconnect', (reason) => {
+            console.warn(`🛑 WebSocket Disconnected: ${reason}`);
+            this.isConnected = false;
+            this.isConnecting = false;
             
             if (reason === 'io server disconnect') {
                 this.socket.connect();
             }
-        });
-
-        this.socket.on('connect_error', (error) => {
-            // Only log in dev, suppress auth errors in production
-            if (import.meta.env.DEV || !error.message?.toLowerCase().includes('auth')) {
-                console.error('❌ WebSocket connection error:', error);
-            }
-            this.isConnected = false;
         });
 
         return this.socket;

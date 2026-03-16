@@ -292,28 +292,43 @@ const Step3 = ({ data, setData }) => (
             />
         </div>
 
-        {/* Follower Range — Align with backend enumerations */}
+        {/* Follower Range — RESTORED MANUAL INPUT WITH 500 DIFF */}
         <div>
             <label className="block text-sm font-medium text-dark-200 mb-2">
                 <FaUsers className="inline mr-1 text-blue-400" /> Follower Range
             </label>
             <p className="text-[10px] text-emerald-400 mb-4 font-medium bg-emerald-400/5 p-3 rounded-xl border border-emerald-400/20">
-                <span className="font-bold mr-1">Selection:</span> Choose the range that best represents your audience size.
+                <span className="font-bold mr-1">Selection:</span> Manual input with a fixed 500 unit difference for verification.
             </p>
-            <div className="grid grid-cols-2 gap-2">
-                {['1k-5k', '5k-10k', '10k-50k', '50k-100k', '100k+'].map(range => (
-                    <button
-                        key={range}
-                        type="button"
-                        onClick={() => setData(d => ({ ...d, followerRange: range }))}
-                        className={`py-3 px-4 rounded-xl border-2 text-xs font-black transition-all ${data.followerRange === range
-                            ? 'border-primary-500 bg-primary-500/10 text-primary-400 shadow-glow'
-                            : 'border-dark-700 text-dark-500 hover:border-dark-600'
-                            }`}
-                    >
-                        {range}
-                    </button>
-                ))}
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <span className="text-[10px] text-dark-500 block uppercase tracking-widest font-bold">Minimum</span>
+                    <input
+                        type="number"
+                        value={data.followerRange?.min || ''}
+                        onChange={(e) => {
+                            const minVal = parseInt(e.target.value) || 0;
+                            setData(d => ({ 
+                                ...d, 
+                                followerRange: { 
+                                    min: minVal, 
+                                    max: minVal + 500 
+                                } 
+                            }));
+                        }}
+                        placeholder="e.g. 1000"
+                        className="input-field text-center font-black"
+                    />
+                </div>
+                <div className="space-y-2">
+                    <span className="text-[10px] text-dark-500 block uppercase tracking-widest font-bold">Maximum (Auto)</span>
+                    <input
+                        type="number"
+                        value={(parseInt(data.followerRange?.min) || 0) + 500}
+                        readOnly
+                        className="input-field bg-dark-800/50 border-dashed text-dark-400 cursor-not-allowed text-center font-black"
+                    />
+                </div>
             </div>
         </div>
 
@@ -515,7 +530,7 @@ const CreatorOnboarding = ({ onComplete }) => {
         instagramProfileUrl: '',
         // Signals
         bio: '',
-        followerRange: '1k-5k', // Default to first bucket
+        followerRange: { min: 1000, max: 1500 },
         engagementRate: '',
         portfolioLinks: [],
         willingToTravel: 'NO',
@@ -529,7 +544,7 @@ const CreatorOnboarding = ({ onComplete }) => {
         if (data.priceRange?.min && data.priceRange?.max) score += 20;
         if (data.instagramProfileUrl?.trim()) score += 20;
         if (data.bio?.trim().length > 10) score += 10;
-        if (data.followerRange) score += 10;
+        if (data.followerRange?.min > 0) score += 10;
         if (parseFloat(data.engagementRate) > 0) score += 10;
         if (data.portfolioLinks?.length > 0) score += 10;
         return Math.min(100, score);
@@ -564,7 +579,7 @@ const CreatorOnboarding = ({ onComplete }) => {
             location: data.location,
             isAvailable: data.availabilityStatus !== 'NOT_AVAILABLE',
             instagramProfileUrl: data.instagramProfileUrl?.trim() || '',
-            followerRange: data.followerRange // Send range string directly
+            followerRange: data.followerRange // Send range object {min, max}
         };
 
         if (data.bio?.trim()) payload.bio = data.bio.trim();
