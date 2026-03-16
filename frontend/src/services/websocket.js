@@ -40,26 +40,25 @@ class WebSocketService {
                 userId,
                 token
             },
-            transports: ['polling', 'websocket'],
+            // Remove restricted transports to allow automatic upgrade (more stable)
             reconnection: true,
             reconnectionDelay: 1000,
             reconnectionDelayMax: 5000,
-            reconnectionAttempts: Infinity, // Keep trying to reconnect in background
-            forceNew: true, // Prevent multiplexing issues
-            timeout: 20000 // Give more time for handshake
+            reconnectionAttempts: Infinity,
+            forceNew: true,
+            timeout: 20000
         });
 
         this.socket.on('connect', () => {
-            console.log('✅ Connected to WebSocket server');
+            console.log(`✅ Connected to WebSocket [ID: ${this.socket.id}]`);
             this.isConnected = true;
             this._drainQueue();
         });
 
         this.socket.on('disconnect', (reason) => {
-            console.log('❌ Disconnected from WebSocket:', reason);
+            console.warn(`❌ WebSocket Disconnected: ${reason} [ID: ${this.socket?.id}]`);
             this.isConnected = false;
             
-            // If disconnected by server, attempt manual reconnect if transport is still alive
             if (reason === 'io server disconnect') {
                 this.socket.connect();
             }
