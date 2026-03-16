@@ -3,19 +3,42 @@ const router = express.Router();
 const { body, validationResult } = require('express-validator');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
-const { userCacheMiddleware } = require('../middleware/cache');
 const { isCreator } = require('../middleware/roleCheck');
-const { generateInsights } = require('../services/aiInsights');
-const { notifyProfileInsights, notifySellerCreatorApplied } = require('../services/notificationService');
-const { sendCreatorAppliedEmail } = require('../utils/brevoEmailService');
-const { upload } = require('../services/storageService');
-const { updateReliabilityScore } = require('../services/reliabilityService');
-const { updateRiskScoreByUserId } = require('../services/riskScoreService');
+
+// Non-essential imports — wrapped so one failing dependency can't take down all creator routes
+let userCacheMiddleware;
+try { ({ userCacheMiddleware } = require('../middleware/cache')); } catch (e) { console.warn('[creators] cache middleware failed:', e.message); }
+if (!userCacheMiddleware) userCacheMiddleware = (_d) => (_req, _res, next) => next();
+
+let generateInsights;
+try { ({ generateInsights } = require('../services/aiInsights')); } catch (e) { console.warn('[creators] aiInsights failed:', e.message); }
+if (!generateInsights) generateInsights = () => ({});
+
+let notifyProfileInsights, notifySellerCreatorApplied;
+try { ({ notifyProfileInsights, notifySellerCreatorApplied } = require('../services/notificationService')); } catch (e) { console.warn('[creators] notificationService failed:', e.message); }
+if (!notifyProfileInsights) notifyProfileInsights = () => Promise.resolve();
+if (!notifySellerCreatorApplied) notifySellerCreatorApplied = () => Promise.resolve();
+
+let sendCreatorAppliedEmail;
+try { ({ sendCreatorAppliedEmail } = require('../utils/brevoEmailService')); } catch (e) { console.warn('[creators] brevoEmailService failed:', e.message); }
+if (!sendCreatorAppliedEmail) sendCreatorAppliedEmail = () => Promise.resolve({ success: false });
+
+let upload;
+try { ({ upload } = require('../services/storageService')); } catch (e) { console.warn('[creators] storageService failed:', e.message); }
+
+let updateReliabilityScore;
+try { ({ updateReliabilityScore } = require('../services/reliabilityService')); } catch (e) { console.warn('[creators] reliabilityService failed:', e.message); }
+if (!updateReliabilityScore) updateReliabilityScore = () => Promise.resolve();
+
+let updateRiskScoreByUserId;
+try { ({ updateRiskScoreByUserId } = require('../services/riskScoreService')); } catch (e) { console.warn('[creators] riskScoreService failed:', e.message); }
+if (!updateRiskScoreByUserId) updateRiskScoreByUserId = () => Promise.resolve();
+
 let EmbeddingService;
 try {
     EmbeddingService = require('../services/ai').EmbeddingService;
 } catch (e) {
-    console.warn('[AI] Failed to load EmbeddingService in creators routes:', e.message);
+    console.warn('[creators] EmbeddingService failed:', e.message);
     EmbeddingService = { embedCreatorProfile: () => Promise.resolve() };
 }
 
