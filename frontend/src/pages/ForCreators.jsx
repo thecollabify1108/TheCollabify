@@ -168,12 +168,12 @@ const ForCreators = () => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6 }}
                         >
-                            <h1 className="text-4xl md:text-5xl font-bold text-dark-100 mb-6 leading-tight">
-                                For Creators: Your Work Builds Your Score
+                            <h1 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight tracking-tight">
+                                Professional Growth: <br />
+                                <span className="gradient-text">Creator Intelligence.</span>
                             </h1>
-                            <p className="text-dark-400 text-lg mb-8">
-                                Our AI learns what makes you unique. Quality scoring, reliability tracking,
-                                and audience intelligence help the right brands find you.
+                            <p className="text-dark-400 text-lg mb-8 leading-relaxed">
+                                Your work builds your score. Our proprietary AI analyzes your unique voice and audience quality to match you with brands that actually value your influence.
                             </p>
 
                             {/* Benefits List */}
@@ -271,33 +271,23 @@ const ForCreators = () => {
             </section>
 
             {/* How It Works */}
-            <section className="py-10 px-4">
-                <div className="max-w-2xl mx-auto">
-                    <h2 className="text-2xl font-bold text-center mb-5 text-dark-100">
-                        Start Earning in <span className="gradient-text">3 Simple Steps</span>
+            <section className="py-20 px-4">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-3xl font-bold text-center mb-12 text-white">
+                        Your Path to <span className="gradient-text">Elite Partnerships</span>
                     </h2>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
-                            { step: '01', title: 'Build Your Profile', desc: 'Connect your Instagram. Our AI generates your CQI score and audience intelligence automatically.' },
-                            { step: '02', title: 'Get Matched by AI', desc: 'Brands find you through intelligence-ranked results — scored on quality, not just follower count.' },
-                            { step: '03', title: 'Deliver & Grow', desc: 'Complete collaborations, earn feedback, and watch your quality score compound.' }
+                            { step: '01', title: 'Sync & Score', desc: 'Connect your socials. Our Vision AI immediately analyzes your aesthetic and engagement quality to generate your initial CQI score.' },
+                            { step: '02', title: 'AI Discovery', desc: 'Get surfaced to brands using "Guided AI" mode. We match you based on deep semantic affinity, not just follower counts.' },
+                            { step: '03', title: 'Earn & Evolve', desc: 'Complete collaborations with secure Escrow protection. Every successful campaign builds your score and future discoverability.' }
                         ].map((item, idx) => (
-                            <div key={idx} className="glass-card overflow-hidden">
-                                <button
-                                    className="w-full flex items-center justify-between p-4 text-left"
-                                    onClick={() => setOpenStep(openStep === idx ? null : idx)}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-sm font-bold gradient-text opacity-60">{item.step}</span>
-                                        <span className="text-sm font-semibold text-dark-100">{item.title}</span>
-                                    </div>
-                                    <span className={`text-xl text-dark-400 transition-transform duration-200 leading-none ${openStep === idx ? 'rotate-45' : ''}`}>+</span>
-                                </button>
-                                {openStep === idx && (
-                                    <div className="px-4 pb-4 text-sm text-dark-400 border-t border-dark-800 pt-3">
-                                        {item.desc}
-                                    </div>
-                                )}
+                            <div key={idx} className="p-8 rounded-3xl glass-card border border-white/5 relative overflow-hidden group hover:border-white/10 transition-all">
+                                <div className="text-5xl font-black text-white/5 absolute -top-2 -right-2 group-hover:text-secondary-500/10 transition-colors uppercase italic">{item.step}</div>
+                                <h3 className="text-lg font-bold text-white mb-4 relative z-10">{item.title}</h3>
+                                <p className="text-sm text-dark-400 leading-relaxed relative z-10">
+                                    {item.desc}
+                                </p>
                             </div>
                         ))}
                     </div>

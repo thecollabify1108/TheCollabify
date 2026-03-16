@@ -11,30 +11,30 @@ const Roadmap = () => {
             phase: 'Phase 1',
             status: 'live',
             title: 'Intelligence Foundation',
-            subtitle: 'Shipped',
+            subtitle: 'Complete & Refined',
             color: 'emerald',
             items: [
                 { label: 'Creator Quality Index (CQI) scoring', done: true },
-                { label: 'Multi-signal fraud detection', done: true },
+                { label: 'Multi-signal fraud detection (V2)', done: true },
                 { label: 'Semantic embedding-based matching', done: true },
                 { label: 'Campaign performance prediction', done: true },
                 { label: 'Adaptive weight optimization', done: true },
-                { label: 'Feedback learning loop', done: true },
-                { label: 'Model version tracking', done: true }
+                { label: 'Feedback learning loop (Active)', done: true },
+                { label: 'Real-time WebSocket infrastructure', done: true }
             ]
         },
         {
             phase: 'Phase 2',
             status: 'building',
-            title: 'Audience Intelligence',
-            subtitle: 'In Progress',
+            title: 'Advanced Analytics',
+            subtitle: 'Active Deployment',
             color: 'primary',
             items: [
-                { label: 'Audience demographic profiling', done: true },
-                { label: 'Cross-platform audience overlap analysis', done: false },
-                { label: 'Audience authenticity deep scan', done: false },
-                { label: 'Lookalike audience discovery', done: false },
-                { label: 'Sentiment analysis on creator content', done: false }
+                { label: 'Audience demographic deep-profiling', done: true },
+                { label: 'Cross-platform overlap analysis', done: false },
+                { label: 'Sentiment analysis on creator content', done: true },
+                { label: 'Lookalike audience discovery V1', done: true },
+                { label: 'Campaign ROI forecasting tool', done: false }
             ]
         },
         {
@@ -54,7 +54,7 @@ const Roadmap = () => {
         {
             phase: 'Phase 4',
             status: 'planned',
-            title: 'Enterprise Infrastructure',
+            title: 'Global Scale',
             subtitle: 'Q4 2026',
             color: 'amber',
             items: [

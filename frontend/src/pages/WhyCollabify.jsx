@@ -58,48 +58,48 @@ const WhyCollabify = () => {
             icon: HiSparkles,
             title: 'Creator Quality Index (CQI)',
             color: 'bg-primary-500/20 text-primary-400',
-            description: 'Every creator gets a quality score based on measurable factors — not just follower count. CQI reflects what actually matters in a partnership.',
+            description: 'Our proprietary AI score that aggregates dozens of performance signals into a single readability index. We measure what actually generates ROI, not just vanity metrics.',
             points: [
-                'Engagement authenticity — real interactions vs. inflated metrics',
-                'Delivery reliability — on-time completion and communication history',
-                'Collaboration track record — past brand feedback and satisfaction scores',
-                'Content consistency — regular posting and production quality'
+                'Engagement authenticity — detecting real vs. synthetic interactions',
+                'Historical ROI — average conversion rates from past partnerships',
+                'Brand affinity — how well their voice aligns with specific niches',
+                'Reliability benchmark — on-time content delivery tracking'
             ]
         },
         {
             icon: HiShieldCheck,
-            title: 'Fraud Detection',
+            title: 'Deep Fraud Prevention',
             color: 'bg-emerald-500/20 text-emerald-400',
-            description: 'Brands should never pay for fake reach. Our system flags suspicious patterns before a match is presented — protecting your budget from day one.',
+            description: 'We identify bot farms and engagement groups before they waste your budget. Our multi-layer scan looks for anomalies in growth and comment patterns.',
             points: [
-                'Rapid follower growth spikes — indicates purchased followers',
-                'Engagement ratio anomalies — likes vs. comments vs. follower count',
-                'Suspicious comment patterns — generic or bot-generated content',
-                'Growth trajectory analysis — consistent growth vs. artificial inflation'
+                'Growth spike analysis — identifying purchased follower bursts',
+                'Comment sentiment verification — flagging generic bot scripts',
+                'Audience location heatmaps — ensuring geographic alignment',
+                'Engagement-to-Reach ratios — verifying real impression volume'
             ]
         },
         {
             icon: HiChartBar,
-            title: 'Smart Matching',
+            title: 'Semantic Smart Matching',
             color: 'bg-secondary-500/20 text-secondary-400',
-            description: 'We match brands with creators based on niche alignment, audience fit, and reliability — not just keyword searches or follower count.',
+            description: 'Beyond keywords. Our AI uses semantic embedding to understand the "soul" of a creator\'s content and matches it to your brand\'s core values.',
             points: [
-                'Niche and category relevance to your brand',
-                'Audience demographic alignment with your target market',
-                'Creator reliability score for campaign delivery',
-                'Collaboration outcome history for similar partnerships'
+                'Visual style mapping — matching aesthetic preferences',
+                'Tone-of-voice alignment — ensuring brand voice consistency',
+                'Competitor overlap — identifying creators your rivals missed',
+                'Niche depth analysis — finding specialized micro-experts'
             ]
         },
         {
             icon: HiLightningBolt,
-            title: 'Collaboration Management',
+            title: 'AI-Guided Workflows',
             color: 'bg-amber-500/20 text-amber-400',
-            description: 'From initial contact to final deliverable, manage the entire partnership in one place — no spreadsheets or scattered emails.',
+            description: 'Manage the entire collaboration lifecycle within a single dashboard. Our AI suggests timeline adjustments and helps verify deliverables automatically.',
             points: [
-                'Structured workflow with clear milestones and status tracking',
-                'Real-time in-platform messaging between brands and creators',
-                'Deliverable tracking and post-collaboration feedback',
-                'Feedback loop that improves future match quality'
+                'Smart timeline suggestions based on creator habits',
+                'Automated deliverable verification via vision AI',
+                'Real-time messaging with embedded contract tracking',
+                'Post-campaign learning loop to refine future matches'
             ]
         }
     ];

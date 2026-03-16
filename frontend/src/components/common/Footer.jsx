@@ -82,7 +82,7 @@ const Footer = () => {
                             </div>
                         </Link>
                         <p className={`text-sm leading-relaxed mb-6 ${isDark ? 'text-dark-400' : 'text-gray-600'}`}>
-                            TheCollabify is an AI collaboration intelligence platform — predictive matching, quality scoring, and fraud detection built on real partnership data.
+                            TheCollabify is the intelligence layer for creator commerce — predictive matching, quality scoring, and deep fraud detection built for authentic partnerships.
                         </p>
                         <div className="flex gap-3">
                             {socialLinks.map((social, index) => (
@@ -156,11 +156,11 @@ const Footer = () => {
                     </p>
 
                     <div className="flex items-center gap-6">
-                        <a href="mailto:support@thecollabify.com" className={`flex items-center gap-2 group text-sm font-medium transition-colors ${isDark ? 'text-dark-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'}`}>
+                        <a href="mailto:support@thecollabify.tech" className={`flex items-center gap-2 group text-sm font-medium transition-colors ${isDark ? 'text-dark-300 hover:text-primary-400' : 'text-gray-700 hover:text-primary-600'}`}>
                             <div className="w-8 h-8 rounded-full bg-primary-500/10 flex items-center justify-center text-primary-500 group-hover:bg-primary-500 group-hover:text-white transition-all">
                                 <FaEnvelope className="text-xs" />
                             </div>
-                            SUPPORT@THECOLLABIFY.COM
+                            SUPPORT@THECOLLABIFY.TECH
                         </a>
                     </div>
                 </div>

@@ -81,22 +81,31 @@ const HowAIWorks = () => {
             label: "High Confidence",
             range: "85%+",
             color: "emerald",
-            desc: "We are very sure this is a great fit. Matches all your core criteria.",
-            shadow: "shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+            desc: "The perfect match. High alignment across all signals including niche, budget, and historical performance.",
+            shadow: "shadow-[0_0_30px_rgba(16,185,129,0.2)]",
+            bg: "bg-emerald-500/10",
+            border: "border-emerald-500/30",
+            text: "text-emerald-400"
         },
         medium: {
             label: "Good Match",
             range: "65-84%",
             color: "blue",
-            desc: "Solid option. Meets most criteria but might vary on budget or niche.",
-            shadow: "shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+            desc: "Strong potential. Matches core niche criteria but may require slight budget or timeline flexibility.",
+            shadow: "shadow-[0_0_30px_rgba(59,130,246,0.2)]",
+            bg: "bg-blue-500/10",
+            border: "border-blue-500/30",
+            text: "text-blue-400"
         },
         experimental: {
             label: "Experimental",
             range: "<65%",
             color: "purple",
-            desc: "Wildcard option. Might be a hidden gem or outside your usual style.",
-            shadow: "shadow-[0_0_20px_rgba(168,85,247,0.3)]"
+            desc: "Strategic outlier. A high-growth creator slightly outside your usual profile but with high ROI potential.",
+            shadow: "shadow-[0_0_30px_rgba(168,85,247,0.2)]",
+            bg: "bg-purple-500/10",
+            border: "border-purple-500/30",
+            text: "text-purple-400"
         }
     };
 
@@ -205,7 +214,7 @@ const HowAIWorks = () => {
                                         <div className="space-y-6">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-xl font-bold text-dark-100">{signals[activeSignal].metric}</span>
-                                                <span className={`text-3xl font-black ${signals[activeSignal].metricColor}`}>
+                                                <span className={`text-3xl font-black ${signals[activeSignal].metricColor || 'text-primary-400'}`}>
                                                     {signals[activeSignal].value}
                                                 </span>
                                             </div>
@@ -257,7 +266,10 @@ const HowAIWorks = () => {
                                 className="text-center p-8 rounded-2xl bg-dark-800/30 border border-dark-700/50"
                             >
                                 <div className={`w-16 h-16 mx-auto rounded-full bg-dark-800 border border-dark-700 flex items-center justify-center text-3xl mb-6 ${loopSteps[activeLoopStep].color}`}>
-                                    <step.icon />
+                                    {(() => {
+                                        const StepIcon = loopSteps[activeLoopStep].icon;
+                                        return <StepIcon />;
+                                    })()}
                                 </div>
                                 <p className="text-lg text-dark-200 max-w-lg mx-auto leading-relaxed">
                                     {loopSteps[activeLoopStep].desc}
@@ -279,7 +291,7 @@ const HowAIWorks = () => {
                                 key={key}
                                 onClick={() => setActiveConfidence(key)}
                                 className={`px-6 py-2 rounded-full border text-sm font-bold transition-all ${activeConfidence === key
-                                    ? `bg-${level.color}-500/10 border-${level.color}-500 text-${level.color}-400 shadow-[0_0_15px_rgba(0,0,0,0.2)]`
+                                    ? `${level.bg} ${level.border} ${level.text} ${level.shadow}`
                                     : 'bg-transparent border-dark-700 text-dark-400 hover:border-dark-600'
                                     }`}
                             >
@@ -294,13 +306,13 @@ const HowAIWorks = () => {
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
-                            className={`glass-card p-8 border border-${confidenceLevels[activeConfidence].color}-500/30 text-center relative overflow-hidden`}
+                            className={`glass-card p-10 border ${confidenceLevels[activeConfidence].border} text-center relative overflow-hidden rounded-2xl shadow-2xl`}
                         >
-                            <div className={`absolute top-0 left-0 w-1 h-full bg-${confidenceLevels[activeConfidence].color}-500`}></div>
-                            <h3 className={`text-4xl font-black text-${confidenceLevels[activeConfidence].color}-400 mb-2`}>
+                            <div className={`absolute top-0 left-0 w-1.5 h-full ${confidenceLevels[activeConfidence].text.replace('text-', 'bg-')}`}></div>
+                            <h3 className={`text-5xl font-black ${confidenceLevels[activeConfidence].text} mb-3 tracking-tight`}>
                                 {confidenceLevels[activeConfidence].range}
                             </h3>
-                            <p className="text-dark-200 text-lg">
+                            <p className="text-dark-100 text-xl font-medium max-w-lg mx-auto italic">
                                 "{confidenceLevels[activeConfidence].desc}"
                             </p>
                         </motion.div>

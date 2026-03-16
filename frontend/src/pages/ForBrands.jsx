@@ -168,12 +168,13 @@ const ForBrands = () => {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.6 }}
                         >
-                            <h1 className="text-4xl md:text-5xl font-bold text-dark-100 mb-6 leading-tight">
-                                For Brands: Intelligence-Driven Creator Partnerships
+                            <h1 className="text-4xl md:text-5xl font-black text-white mb-6 leading-tight tracking-tight">
+                                Brand Intelligence: <br />
+                                <span className="gradient-text">Predictive Partnerships.</span>
                             </h1>
-                            <p className="text-dark-400 text-lg mb-8">
-                                Stop guessing. Our AI scores creator quality, predicts campaign ROI,
-                                and detects fraud — so you invest in partnerships that actually convert.
+                            <p className="text-dark-400 text-lg mb-8 leading-relaxed">
+                                Stop guessing. Our Guided AI scores creator quality in real-time, predicts campaign ROI before you spend,
+                                and detects fraud automatically — so you invest in partnerships that actually convert.
                             </p>
 
                             {/* Benefits List */}
@@ -271,33 +272,23 @@ const ForBrands = () => {
             </section>
 
             {/* How It Works */}
-            <section className="py-10 px-4">
-                <div className="max-w-2xl mx-auto">
-                    <h2 className="text-2xl font-bold text-center mb-5 text-dark-100">
-                        Launch Your Campaign in <span className="gradient-text">3 Simple Steps</span>
+            <section className="py-20 px-4">
+                <div className="max-w-4xl mx-auto">
+                    <h2 className="text-3xl font-bold text-center mb-12 text-white">
+                        The <span className="gradient-text">Guided AI</span> Experience
                     </h2>
-                    <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {[
-                            { step: '01', title: 'Define Campaign', desc: 'Set goals, budget, and audience. Our AI immediately begins scoring eligible creators.' },
-                            { step: '02', title: 'AI Scores & Ranks', desc: 'CQI scoring, fraud detection, and predictive ROI run on every potential match.' },
-                            { step: '03', title: 'Connect & Improve', desc: 'Accept matches, collaborate, and your feedback makes future predictions more accurate.' }
+                            { step: '01', title: 'Smart Briefing', desc: 'Use our Enhanced Wizard to define goals. AI immediately begins scoring eligible creators against your specific criteria.' },
+                            { step: '02', title: 'AI Matchmaking', desc: 'Review ranked profiles with CQI scores, fraud risk reports, and predictive ROI models for every match.' },
+                            { step: '03', title: 'Secure Launch', desc: 'Connect via real-time messaging, secure funds in escrow, and track deliverables with AI-verified milestones.' }
                         ].map((item, idx) => (
-                            <div key={idx} className="glass-card overflow-hidden">
-                                <button
-                                    className="w-full flex items-center justify-between p-4 text-left"
-                                    onClick={() => setOpenStep(openStep === idx ? null : idx)}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-sm font-bold gradient-text opacity-60">{item.step}</span>
-                                        <span className="text-sm font-semibold text-dark-100">{item.title}</span>
-                                    </div>
-                                    <span className={`text-xl text-dark-400 transition-transform duration-200 leading-none ${openStep === idx ? 'rotate-45' : ''}`}>+</span>
-                                </button>
-                                {openStep === idx && (
-                                    <div className="px-4 pb-4 text-sm text-dark-400 border-t border-dark-800 pt-3">
-                                        {item.desc}
-                                    </div>
-                                )}
+                            <div key={idx} className="p-8 rounded-3xl glass-card border border-white/5 relative overflow-hidden group hover:border-white/10 transition-all">
+                                <div className="text-5xl font-black text-white/5 absolute -top-2 -right-2 group-hover:text-primary-500/10 transition-colors uppercase italic">{item.step}</div>
+                                <h3 className="text-lg font-bold text-white mb-4 relative z-10">{item.title}</h3>
+                                <p className="text-sm text-dark-400 leading-relaxed relative z-10">
+                                    {item.desc}
+                                </p>
                             </div>
                         ))}
                     </div>
