@@ -84,19 +84,6 @@ const Footer = () => {
                         <p className={`text-sm leading-relaxed mb-6 ${isDark ? 'text-dark-400' : 'text-gray-600'}`}>
                             TheCollabify is the intelligence layer for creator commerce — predictive matching, quality scoring, and deep fraud detection built for authentic partnerships.
                         </p>
-                        <div className="flex gap-3">
-                            {socialLinks.map((social, index) => (
-                                <motion.a
-                                    key={index}
-                                    href={social.href}
-                                    whileHover={{ y: -4 }}
-                                    className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg border transition-all duration-300 ${social.color} hover:text-white hover:border-transparent ${isDark ? 'border-dark-800 bg-dark-900' : 'border-gray-200 bg-white'}`}
-                                    aria-label={social.label}
-                                >
-                                    {social.icon}
-                                </motion.a>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Quick Links */}

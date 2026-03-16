@@ -5,7 +5,7 @@ import {
     FaMapMarkerAlt, FaHandshake, FaRupeeSign, FaCheckCircle,
     FaArrowRight, FaArrowLeft, FaPen, FaStar, FaGlobe,
     FaInstagram, FaLink, FaBriefcase, FaChartLine, FaUsers,
-    FaRocket, FaEye, FaPaperPlane
+    FaRocket, FaEye, FaPaperPlane, FaPlus, FaMinus
 } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import { creatorAPI } from '../../services/api';
@@ -40,8 +40,10 @@ const TRAVEL_OPTIONS = [
 ];
 
 const PHASES = [
-    { label: 'Essentials', icon: FaRocket },
-    { label: 'Quality Signals', icon: FaStar },
+    { label: 'Basics', icon: FaRocket },
+    { label: 'Business', icon: FaBriefcase },
+    { label: 'Signals', icon: FaPen },
+    { label: 'Background', icon: FaGlobe },
     { label: 'Preview', icon: FaEye }
 ];
 
@@ -86,18 +88,17 @@ const ProgressBar = ({ currentPhase, completionPct }) => (
     </div>
 );
 
-// ─── Phase 1: Minimal Entry ─────────────────────────────────────
-const Phase1 = ({ data, setData }) => (
+// ─── Step 1: Basics ───────────────────────────────────────
+const Step1 = ({ data, setData }) => (
     <motion.div
         initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
         className="space-y-6"
     >
         <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-white mb-2">Let's get you started</h2>
-            <p className="text-dark-400">Just the basics — takes about 30 seconds.</p>
+            <h2 className="text-2xl font-bold text-white mb-2">Basics</h2>
+            <p className="text-dark-400">Let's set your foundation.</p>
         </div>
 
-        {/* Category / Niche — Multi-select up to 3 */}
         <div>
             <label className="block text-sm font-medium text-dark-200 mb-2">What's your content niche?</label>
             <p className="text-xs text-dark-400 mb-3">Select up to 3 categories ({data.categories?.length || 0}/3)</p>
@@ -131,20 +132,19 @@ const Phase1 = ({ data, setData }) => (
             </div>
         </div>
 
-        {/* Primary District */}
         <div>
             <label className="block text-sm font-medium text-dark-200 mb-2">
-                <FaMapMarkerAlt className="inline mr-1 text-primary-400" /> Primary District / City
+                <FaMapMarkerAlt className="inline mr-1 text-primary-400" /> Primary Location
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
-                    type="text" placeholder="District (e.g. South Delhi)"
+                    type="text" placeholder="District"
                     value={data.location?.district || ''}
                     onChange={(e) => setData(d => ({ ...d, location: { ...d.location, district: e.target.value } }))}
                     className="input-field"
                 />
                 <input
-                    type="text" placeholder="City (e.g. New Delhi)"
+                    type="text" placeholder="City"
                     value={data.location?.city || ''}
                     onChange={(e) => setData(d => ({ ...d, location: { ...d.location, city: e.target.value } }))}
                     className="input-field"
@@ -152,13 +152,12 @@ const Phase1 = ({ data, setData }) => (
             </div>
         </div>
 
-        {/* Collaboration Types */}
         <div>
             <label className="block text-sm font-medium text-dark-200 mb-2">
-                <FaHandshake className="inline mr-1 text-secondary-400" /> How do you collaborate?
+                <FaHandshake className="inline mr-1 text-secondary-400" /> Collaboration Style
             </label>
             <div className="grid grid-cols-2 gap-3">
-                {COLLAB_TYPES.map(type => {
+                {COLLAB_TYPES.slice(0, 4).map(type => {
                     const selected = data.collaborationTypes?.includes(type.id);
                     return (
                         <button
@@ -171,45 +170,49 @@ const Phase1 = ({ data, setData }) => (
                             className={`p-3 rounded-xl border-2 text-left transition-all ${selected ? 'border-purple-500 bg-purple-500/10' : 'border-dark-600 hover:border-dark-500'
                                 }`}
                         >
-                            <span className="text-lg">{type.icon}</span>
-                            <div className={`text-sm font-medium mt-1 ${selected ? 'text-purple-400' : 'text-dark-200'}`}>{type.label}</div>
+                            <div className={`text-sm font-medium ${selected ? 'text-purple-400' : 'text-dark-200'}`}>{type.label}</div>
                             <div className="text-[10px] text-dark-500">{type.desc}</div>
                         </button>
                     );
                 })}
             </div>
         </div>
+    </motion.div>
+);
 
-        {/* Charge Range */}
+// ─── Step 2: Business ─────────────────────────────────────
+const Step2 = ({ data, setData }) => (
+    <motion.div
+        initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
+        className="space-y-6"
+    >
+        <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Business Details</h2>
+            <p className="text-dark-400">Set your rates and availability.</p>
+        </div>
+
         <div>
             <label className="block text-sm font-medium text-dark-200 mb-2">
-                <FaRupeeSign className="inline mr-1 text-emerald-400" /> Your charge range per post (₹)
+                <FaRupeeSign className="inline mr-1 text-emerald-400" /> Charge per post (₹)
             </label>
             <div className="grid grid-cols-2 gap-4">
-                <div>
-                    <span className="text-[10px] text-dark-500 block mb-1">Minimum</span>
-                    <input
-                        type="number" placeholder="e.g. 500" min="0"
-                        value={data.priceRange?.min || ''}
-                        onChange={(e) => setData(d => ({ ...d, priceRange: { ...d.priceRange, min: e.target.value } }))}
-                        className="input-field"
-                    />
-                </div>
-                <div>
-                    <span className="text-[10px] text-dark-500 block mb-1">Maximum</span>
-                    <input
-                        type="number" placeholder="e.g. 5000" min="0"
-                        value={data.priceRange?.max || ''}
-                        onChange={(e) => setData(d => ({ ...d, priceRange: { ...d.priceRange, max: e.target.value } }))}
-                        className="input-field"
-                    />
-                </div>
+                <input
+                    type="number" placeholder="Min" min="0"
+                    value={data.priceRange?.min || ''}
+                    onChange={(e) => setData(d => ({ ...d, priceRange: { ...d.priceRange, min: e.target.value } }))}
+                    className="input-field font-black"
+                />
+                <input
+                    type="number" placeholder="Max" min="0"
+                    value={data.priceRange?.max || ''}
+                    onChange={(e) => setData(d => ({ ...d, priceRange: { ...d.priceRange, max: e.target.value } }))}
+                    className="input-field font-black"
+                />
             </div>
         </div>
 
-        {/* Availability */}
         <div>
-            <label className="block text-sm font-medium text-dark-200 mb-2">Current availability</label>
+            <label className="block text-sm font-medium text-dark-200 mb-2">Availability</label>
             <div className="grid grid-cols-3 gap-3">
                 {AVAILABILITY_OPTIONS.map(opt => (
                     <button
@@ -220,19 +223,17 @@ const Phase1 = ({ data, setData }) => (
                             : 'border-dark-600 hover:border-dark-500'
                             }`}
                     >
-                        <span className="text-lg">{opt.icon}</span>
-                        <div className={`text-xs font-medium mt-1 ${data.availabilityStatus === opt.id ? `text-${opt.color}-400` : 'text-dark-300'
+                        <div className={`text-xs font-medium ${data.availabilityStatus === opt.id ? `text-${opt.color}-400` : 'text-dark-300'
                             }`}>{opt.label}</div>
                     </button>
                 ))}
             </div>
         </div>
 
-        {/* Promotion Types (required but simple) */}
         <div>
-            <label className="block text-sm font-medium text-dark-200 mb-2">What content types do you create?</label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {['Reels', 'Stories', 'Posts', 'Website Visit'].map(type => {
+            <label className="block text-sm font-medium text-dark-200 mb-2">Content Types</label>
+            <div className="grid grid-cols-4 gap-2">
+                {['Reels', 'Stories', 'Posts', 'Visits'].map(type => {
                     const selected = data.promotionTypes?.includes(type);
                     return (
                         <button
@@ -242,7 +243,7 @@ const Phase1 = ({ data, setData }) => (
                                 const next = selected ? current.filter(t => t !== type) : [...current, type];
                                 setData(d => ({ ...d, promotionTypes: next }));
                             }}
-                            className={`py-3 rounded-xl border-2 text-sm font-medium transition-all ${selected ? 'border-primary-500 bg-primary-500/10 text-primary-400'
+                            className={`py-2 rounded-lg border-2 text-[10px] font-bold uppercase transition-all ${selected ? 'border-primary-500 bg-primary-500/10 text-primary-400'
                                 : 'border-dark-600 text-dark-300 hover:border-dark-500'
                                 }`}
                         >
@@ -253,14 +254,12 @@ const Phase1 = ({ data, setData }) => (
             </div>
         </div>
 
-        {/* Instagram URL — mandatory for follower verification */}
         <div>
             <label className="block text-sm font-medium text-dark-200 mb-2">
-                <FaInstagram className="inline mr-1 text-pink-400" /> Instagram Profile URL <span className="text-rose-400">*</span>
+                <FaInstagram className="inline mr-1 text-pink-400" /> Instagram URL *
             </label>
-            <p className="text-xs text-dark-400 mb-2">Required for follower verification</p>
             <input
-                type="url" placeholder="https://instagram.com/your_username"
+                type="url" placeholder="https://instagram.com/..."
                 value={data.instagramProfileUrl || ''}
                 onChange={(e) => setData(d => ({ ...d, instagramProfileUrl: e.target.value }))}
                 className="input-field"
@@ -269,8 +268,98 @@ const Phase1 = ({ data, setData }) => (
     </motion.div>
 );
 
-// ─── Phase 2: Quality Signals ───────────────────────────────────
-const Phase2 = ({ data, setData }) => {
+// ─── Step 3: Signals ─────────────────────────────────────
+const Step3 = ({ data, setData }) => (
+    <motion.div
+        initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
+        className="space-y-6"
+    >
+        <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold text-white mb-2">Profile Signals</h2>
+            <p className="text-dark-400">Deepen your authenticity markers.</p>
+        </div>
+
+        <div>
+            <label className="block text-sm font-medium text-dark-200 mb-2">
+                <FaPen className="inline mr-1 text-secondary-400" /> Bio
+            </label>
+            <textarea
+                value={data.bio || ''}
+                onChange={(e) => setData(d => ({ ...d, bio: e.target.value }))}
+                placeholder="Share your creator journey..."
+                className="input-field h-24 resize-none"
+                maxLength={500}
+            />
+        </div>
+
+        {/* Follower Range — FIXED 500 DIFF */}
+        <div>
+            <label className="block text-sm font-medium text-dark-200 mb-2">
+                <FaUsers className="inline mr-1 text-blue-400" /> Follower Range
+            </label>
+            <p className="text-[10px] text-emerald-400 mb-4 font-medium bg-emerald-400/5 p-3 rounded-xl border border-emerald-400/20">
+                <span className="font-bold mr-1">Selection:</span> Fixed 500 unit range for verification accuracy.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <span className="text-[10px] text-dark-500 block uppercase tracking-widest font-bold">Minimum</span>
+                    <div className="flex items-center bg-dark-800 border border-dark-700 rounded-xl overflow-hidden group focus-within:border-primary-500 transition-all">
+                        <button 
+                            type="button"
+                            onClick={() => {
+                                const min = Math.max(0, parseInt(data.followerRange?.min || 0) - 500);
+                                setData(d => ({ ...d, followerRange: { min, max: min + 500 } }));
+                            }}
+                            className="p-3 bg-dark-700/50 hover:bg-dark-700 text-primary-400 transition-colors"
+                        >
+                            <FaMinus size={10} />
+                        </button>
+                        <input
+                            type="number" 
+                            value={data.followerRange?.min || 0}
+                            readOnly
+                            className="w-full bg-transparent border-none text-center text-sm font-black text-white focus:ring-0"
+                        />
+                        <button 
+                            type="button"
+                            onClick={() => {
+                                const min = parseInt(data.followerRange?.min || 0) + 500;
+                                setData(d => ({ ...d, followerRange: { min, max: min + 500 } }));
+                            }}
+                            className="p-3 bg-dark-700/50 hover:bg-dark-700 text-primary-400 transition-colors"
+                        >
+                            <FaPlus size={10} />
+                        </button>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <span className="text-[10px] text-dark-500 block uppercase tracking-widest font-bold">Maximum (Auto)</span>
+                    <input
+                        type="number"
+                        value={(data.followerRange?.min || 0) + 500}
+                        readOnly
+                        className="input-field bg-dark-800/50 border-dashed text-dark-400 cursor-not-allowed text-center font-black"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label className="block text-sm font-medium text-dark-200 mb-2">
+                <FaChartLine className="inline mr-1 text-emerald-400" /> Engagement Rate (%)
+            </label>
+            <input
+                type="number" placeholder="e.g. 4.5" min="0" max="100" step="0.1"
+                value={data.engagementRate || ''}
+                onChange={(e) => setData(d => ({ ...d, engagementRate: e.target.value }))}
+                className="input-field"
+            />
+        </div>
+    </motion.div>
+);
+
+// ─── Step 4: Background ─────────────────────────────────────
+const Step4 = ({ data, setData }) => {
     const addPortfolioLink = () => {
         setData(d => ({ ...d, portfolioLinks: [...(d.portfolioLinks || []), ''] }));
     };
@@ -295,89 +384,12 @@ const Phase2 = ({ data, setData }) => {
             className="space-y-6"
         >
             <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-white mb-2">Boost your visibility</h2>
-                <p className="text-dark-400">These are optional, but completing them improves match quality.</p>
+                <h2 className="text-2xl font-bold text-white mb-2">Background</h2>
+                <p className="text-dark-400">Portfolio and travel preferences.</p>
             </div>
 
-            <div className="bg-primary-500/5 border border-primary-500/20 rounded-xl p-4 flex items-start gap-3 text-sm">
-                <FaChartLine className="text-primary-400 mt-0.5 flex-shrink-0" />
-                <span className="text-dark-300">Profiles with quality signals get <span className="text-primary-400 font-semibold">3× more matches</span> from brands.</span>
-            </div>
-
-            {/* Bio */}
             <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                    <FaPen className="inline mr-1 text-secondary-400" /> Bio — tell brands about you
-                </label>
-                <textarea
-                    value={data.bio || ''}
-                    onChange={(e) => setData(d => ({ ...d, bio: e.target.value }))}
-                    placeholder="I'm a lifestyle content creator based in Mumbai, specializing in food and travel content..."
-                    className="input-field h-24 resize-none"
-                    maxLength={500}
-                />
-                <p className="text-[10px] text-dark-500 mt-1">{(data.bio || '').length}/500</p>
-            </div>
-
-            {/* Follower Range — for manual verification */}
-            <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                    <FaUsers className="inline mr-1 text-blue-400" /> Follower Range
-                </label>
-                <p className="text-[10px] text-emerald-400 mb-3 font-medium bg-emerald-400/5 p-2 rounded-lg border border-emerald-400/20">
-                    <span className="font-bold mr-1">💡 Tip:</span> 
-                    Try to insert your followers in a range format (e.g., 5000-5500). (Max 1000 gap)
-                </p>
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <span className="text-[10px] text-dark-500 block mb-1">Minimum</span>
-                        <input
-                            type="number" placeholder="e.g. 6000" min="0"
-                            value={data.followerRange?.min || ''}
-                            onChange={(e) => setData(d => ({ ...d, followerRange: { ...d.followerRange, min: e.target.value } }))}
-                            className="input-field"
-                        />
-                    </div>
-                    <div>
-                        <span className="text-[10px] text-dark-500 block mb-1">Maximum</span>
-                        <input
-                            type="number" placeholder="e.g. 6500" min="0"
-                            value={data.followerRange?.max || ''}
-                            onChange={(e) => setData(d => ({ ...d, followerRange: { ...d.followerRange, max: e.target.value } }))}
-                            className="input-field"
-                        />
-                    </div>
-                </div>
-                {(() => {
-                    const fMin = parseInt(data.followerRange?.min);
-                    const fMax = parseInt(data.followerRange?.max);
-                    if (fMin > 0 && fMax > 0) {
-                        if (fMax < fMin) return <p className="text-xs text-rose-400 mt-1">Max must be ≥ Min</p>;
-                        if (fMax - fMin > 1000) return <p className="text-xs text-rose-400 mt-1">Range must be within 1000 (currently {fMax - fMin})</p>;
-                        return <p className="text-xs text-emerald-400 mt-1">✓ Valid range ({fMin.toLocaleString()} – {fMax.toLocaleString()})</p>;
-                    }
-                    return null;
-                })()}
-            </div>
-
-            {/* Engagement Rate */}
-            <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                    <FaChartLine className="inline mr-1 text-emerald-400" /> Engagement Rate (%)
-                </label>
-                <input
-                    type="number" placeholder="e.g. 4.5" min="0" max="100" step="0.1"
-                    value={data.engagementRate || ''}
-                    onChange={(e) => setData(d => ({ ...d, engagementRate: e.target.value }))}
-                    className="input-field"
-                />
-            </div>
-
-            {/* Portfolio Links */}
-            <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                    <FaLink className="inline mr-1 text-cyan-400" /> Portfolio Links
-                </label>
+                <label className="block text-sm font-medium text-dark-200 mb-2">Portfolio</label>
                 <div className="space-y-2">
                     {(data.portfolioLinks || []).map((link, i) => (
                         <div key={i} className="flex gap-2">
@@ -386,50 +398,35 @@ const Phase2 = ({ data, setData }) => {
                                 value={link} onChange={(e) => updateLink(i, e.target.value)}
                                 className="input-field flex-1"
                             />
-                            <button type="button" onClick={() => removeLink(i)}
-                                className="px-3 text-dark-400 hover:text-rose-400 transition">✕</button>
+                            <button type="button" onClick={() => removeLink(i)} className="p-2 text-rose-400">✕</button>
                         </div>
                     ))}
-                    <button type="button" onClick={addPortfolioLink}
-                        className="w-full py-2.5 border-2 border-dashed border-dark-600 rounded-xl text-dark-400 hover:border-dark-500 hover:text-dark-300 text-sm transition">
-                        + Add Link
-                    </button>
+                    <button type="button" onClick={addPortfolioLink} className="w-full py-2 border-2 border-dashed border-dark-600 rounded-xl text-dark-400 text-xs">+ Add link</button>
                 </div>
             </div>
 
-            {/* Travel Willingness */}
             <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                    <FaGlobe className="inline mr-1 text-amber-400" /> Willing to travel?
-                </label>
+                <label className="block text-sm font-medium text-dark-200 mb-2">Willing to travel?</label>
                 <div className="grid grid-cols-3 gap-3">
                     {TRAVEL_OPTIONS.map(opt => (
                         <button
                             key={opt.id} type="button"
                             onClick={() => setData(d => ({ ...d, willingToTravel: opt.id }))}
-                            className={`p-3 rounded-xl border-2 transition-all text-left ${data.willingToTravel === opt.id
-                                ? 'border-amber-500 bg-amber-500/10'
-                                : 'border-dark-600 hover:border-dark-500'
-                                }`}
+                            className={`p-3 rounded-xl border-2 text-left ${data.willingToTravel === opt.id ? 'border-amber-500 bg-amber-500/10 text-amber-400' : 'border-dark-600 text-dark-300'}`}
                         >
-                            <div className={`text-sm font-medium ${data.willingToTravel === opt.id ? 'text-amber-400' : 'text-dark-200'}`}>{opt.label}</div>
-                            <div className="text-[10px] text-dark-500 mt-0.5">{opt.desc}</div>
+                            <div className="text-xs font-bold">{opt.label}</div>
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Past Experience */}
             <div>
-                <label className="block text-sm font-medium text-dark-200 mb-2">
-                    <FaBriefcase className="inline mr-1 text-indigo-400" /> Past collaboration experience
-                </label>
+                <label className="block text-sm font-medium text-dark-200 mb-2">Past Experience</label>
                 <textarea
                     value={data.pastExperience || ''}
                     onChange={(e) => setData(d => ({ ...d, pastExperience: e.target.value }))}
-                    placeholder="I've worked with brands like X, Y for Instagram campaigns..."
-                    className="input-field h-20 resize-none"
-                    maxLength={500}
+                    placeholder="Brands you've worked with..."
+                    className="input-field h-20 resize-none text-xs"
                 />
             </div>
         </motion.div>
@@ -533,7 +530,7 @@ const Phase3 = ({ data, completionPct, userName }) => {
 // ─── Main Component ─────────────────────────────────────────────
 const CreatorOnboarding = ({ onComplete }) => {
     const { user } = useAuth();
-    const [phase, setPhase] = useState(0);
+    const [step, setStep] = useState(0); // 0 to 4 (5 steps)
     const [saving, setSaving] = useState(false);
     const [data, setData] = useState({
         categories: [],
@@ -543,9 +540,9 @@ const CreatorOnboarding = ({ onComplete }) => {
         collaborationTypes: ['REMOTE'],
         location: { district: '', city: '', state: '' },
         instagramProfileUrl: '',
-        // Phase 2
+        // Signals
         bio: '',
-        followerRange: { min: '', max: '' },
+        followerRange: { min: 0, max: 500 },
         engagementRate: '',
         portfolioLinks: [],
         willingToTravel: 'NO',
@@ -555,31 +552,29 @@ const CreatorOnboarding = ({ onComplete }) => {
     // Calculate live completion percentage
     const calculateLocalCompletion = () => {
         let score = 0;
-        if (data.categories?.length > 0) score += 10;
-        if (data.promotionTypes?.length > 0) score += 10;
-        if (data.priceRange?.min && data.priceRange?.max) score += 10;
-        if (data.availabilityStatus) score += 10;
-        if (data.collaborationTypes?.length > 0) score += 10;
-        if (data.location?.district || data.location?.city) score += 10;
-        if (data.bio?.trim().length > 10) score += 8;
-        const fMin = parseInt(data.followerRange?.min);
-        const fMax = parseInt(data.followerRange?.max);
-        if (fMin > 0 && fMax > 0) score += 8;
-        if (parseFloat(data.engagementRate) > 0) score += 8;
-        if (data.portfolioLinks?.filter(l => l.trim()).length > 0) score += 8;
-        if (data.willingToTravel && data.willingToTravel !== 'NO') score += 8;
+        if (data.categories?.length > 0) score += 20;
+        if (data.priceRange?.min && data.priceRange?.max) score += 20;
+        if (data.instagramProfileUrl?.trim()) score += 20;
+        if (data.bio?.trim().length > 10) score += 10;
+        if (data.followerRange?.min > 0) score += 10;
+        if (parseFloat(data.engagementRate) > 0) score += 10;
+        if (data.portfolioLinks?.length > 0) score += 10;
         return Math.min(100, score);
     };
 
     const completionPct = calculateLocalCompletion();
 
-    const validatePhase1 = () => {
-        if (!data.categories || data.categories.length === 0) { toast.error('Please select at least one content niche'); return false; }
-        if (!data.promotionTypes || data.promotionTypes.length === 0) { toast.error('Select at least one content type'); return false; }
-        if (!data.priceRange?.min || !data.priceRange?.max) { toast.error('Enter your charge range'); return false; }
-        if (parseFloat(data.priceRange.min) > parseFloat(data.priceRange.max)) { toast.error('Max price must be ≥ min price'); return false; }
-        if (!data.instagramProfileUrl?.trim()) { toast.error('Instagram profile URL is required for verification'); return false; }
-        if (!/instagram\.com/i.test(data.instagramProfileUrl)) { toast.error('Please enter a valid Instagram URL'); return false; }
+    const validateStep = (s) => {
+        if (s === 0) {
+            if (!data.categories || data.categories.length === 0) { toast.error('Please select at least one content niche'); return false; }
+            return true;
+        }
+        if (s === 1) {
+            if (!data.priceRange?.min || !data.priceRange?.max) { toast.error('Enter your charge range'); return false; }
+            if (parseFloat(data.priceRange.min) > parseFloat(data.priceRange.max)) { toast.error('Max price must be ≥ min price'); return false; }
+            if (!data.instagramProfileUrl?.trim()) { toast.error('Instagram profile URL is required'); return false; }
+            return true;
+        }
         return true;
     };
 
@@ -595,18 +590,14 @@ const CreatorOnboarding = ({ onComplete }) => {
             collaborationTypes: data.collaborationTypes,
             location: data.location,
             isAvailable: data.availabilityStatus !== 'NOT_AVAILABLE',
-            instagramProfileUrl: data.instagramProfileUrl?.trim() || ''
+            instagramProfileUrl: data.instagramProfileUrl?.trim() || '',
+            followerRange: {
+                min: parseInt(data.followerRange.min),
+                max: parseInt(data.followerRange.max)
+            },
+            followerCount: parseInt(data.followerRange.min)
         };
 
-        // Follower range → send as followerRange for backend verification
-        const fMin = parseInt(data.followerRange?.min);
-        const fMax = parseInt(data.followerRange?.max);
-        if (fMin > 0 && fMax > 0) {
-            payload.followerRange = { min: fMin, max: fMax };
-            payload.followerCount = fMin; // selfReportedFollowers = lower bound
-        }
-
-        // Phase 2 fields (only if filled)
         if (data.bio?.trim()) payload.bio = data.bio.trim();
         if (parseFloat(data.engagementRate) > 0) payload.engagementRate = parseFloat(data.engagementRate);
         if (data.portfolioLinks?.filter(l => l.trim()).length > 0) payload.portfolioLinks = data.portfolioLinks.filter(l => l.trim());
@@ -616,53 +607,28 @@ const CreatorOnboarding = ({ onComplete }) => {
         return payload;
     };
 
-    // Track whether profile has been created (to skip POST on subsequent saves)
     const [profileExists, setProfileExists] = useState(false);
 
     const saveToServer = async () => {
         setSaving(true);
         try {
             const payload = buildPayload();
-
-            // Validate follower range difference on client
-            if (payload.followerRange) {
-                const diff = payload.followerRange.max - payload.followerRange.min;
-                if (diff > 1000) {
-                    throw new Error(`Follower range must be within 1000 (currently ${diff})`);
-                }
-                if (payload.followerRange.max < payload.followerRange.min) {
-                    throw new Error('Max followers must be ≥ min followers');
-                }
-            }
-
             let res;
             if (profileExists) {
-                // Profile already saved — always PUT
                 res = await creatorAPI.updateProfile(payload);
             } else {
-                // First save — try POST, fall back to PUT if profile exists
                 try {
                     res = await creatorAPI.createProfile(payload);
                 } catch (error) {
-                    if (error.response?.status === 400 &&
-                        error.response?.data?.message?.includes('already exists')) {
+                    if (error.response?.status === 400 && error.response?.data?.message?.includes('already exists')) {
                         res = await creatorAPI.updateProfile(payload);
-                    } else {
-                        throw error;
-                    }
+                    } else throw error;
                 }
             }
-
             setProfileExists(true);
             return res.data.data.profile;
         } catch (error) {
-            // Provide clear error messages
-            if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-                throw new Error('Server took too long to respond. Please try again.');
-            }
-            if (!error.response && !error.message) {
-                throw new Error('Network error. Check your connection and try again.');
-            }
+            toast.error(error.response?.data?.message || error.message || 'Failed to save');
             throw error;
         } finally {
             setSaving(false);
@@ -670,104 +636,76 @@ const CreatorOnboarding = ({ onComplete }) => {
     };
 
     const handleNext = async () => {
-        if (phase === 0) {
-            if (!validatePhase1()) return;
+        if (!validateStep(step)) return;
+        
+        // Save at intermediate steps for better UX
+        if (step === 1 || step === 3) {
             try {
                 await saveToServer();
-                toast.success(`Profile created! ${completionPct}% complete`);
-                setPhase(1);
-            } catch (err) {
-                console.error('[Onboarding] Save failed:', err);
-                toast.error(err.response?.data?.message || err.message || 'Failed to save');
-            }
-        } else if (phase === 1) {
-            try {
-                await saveToServer();
-                toast.success('Quality signals saved!');
-                setPhase(2);
-            } catch (err) {
-                console.error('[Onboarding] Save failed:', err);
-                toast.error(err.response?.data?.message || err.message || 'Failed to save');
-            }
+                toast.success('Progress saved');
+            } catch (err) { return; }
         }
+        
+        setStep(s => Math.min(4, s + 1));
     };
 
     const handleFinish = async () => {
         try {
             const profile = await saveToServer();
             trackEvent('onboarding_completed');
-            toast.success('Profile ready. Welcome aboard.');
+            toast.success('Welcome to TheCollabify!');
             if (onComplete) onComplete(profile);
-        } catch (err) {
-            console.error('[Onboarding] Finish failed:', err);
-            toast.error(err.response?.data?.message || err.message || 'Failed to finish');
-        }
+        } catch (err) {}
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 sm:p-8">
+        <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-dark-950/20 backdrop-blur-3xl">
             <div className="w-full max-w-lg">
-                <ProgressBar currentPhase={phase} completionPct={completionPct} />
+                <ProgressBar currentPhase={step} completionPct={completionPct} />
 
-                <div className="glass-card p-6 sm:p-8">
+                <div className="glass-card p-6 sm:p-8 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-500/20 via-indigo-500/10 to-transparent" />
+                    
                     <AnimatePresence mode="wait">
-                        {phase === 0 && <Phase1 key="p1" data={data} setData={setData} />}
-                        {phase === 1 && <Phase2 key="p2" data={data} setData={setData} />}
-                        {phase === 2 && <Phase3 key="p3" data={data} completionPct={completionPct} userName={user?.name} />}
+                        {step === 0 && <Step1 key="s1" data={data} setData={setData} />}
+                        {step === 1 && <Step2 key="s2" data={data} setData={setData} />}
+                        {step === 2 && <Step3 key="s3" data={data} setData={setData} />}
+                        {step === 3 && <Step4 key="s4" data={data} setData={setData} />}
+                        {step === 4 && <Phase3 key="p3" data={data} completionPct={completionPct} userName={user?.name} />}
                     </AnimatePresence>
 
                     {/* Navigation */}
-                    <div className="flex justify-between items-center mt-8 pt-6 border-t border-dark-700">
-                        {phase > 0 ? (
-                            <button onClick={() => setPhase(p => p - 1)}
-                                className="flex items-center gap-2 text-dark-400 hover:text-white transition text-sm">
-                                <FaArrowLeft size={12} /> Back
+                    <div className="flex justify-between items-center mt-8 pt-6 border-t border-dark-700/50">
+                        {step > 0 ? (
+                            <button onClick={() => setStep(s => s - 1)}
+                                className="flex items-center gap-2 text-dark-400 hover:text-white transition-all text-[10px] font-bold uppercase tracking-widest">
+                                <FaArrowLeft size={10} /> Back
                             </button>
                         ) : <div />}
 
-                        {phase < 2 ? (
+                        {step < 4 ? (
                             <button
                                 onClick={handleNext} disabled={saving}
-                                className="btn-primary px-8 py-3 rounded-xl flex items-center gap-2 text-sm font-semibold disabled:opacity-50"
+                                className="px-8 py-2.5 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-500 hover:to-indigo-500 text-white rounded-xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all shadow-glow disabled:opacity-50"
                             >
-                                {saving ? (
-                                    <span className="flex items-center gap-2"><span className="animate-spin">⌛</span> Saving...</span>
-                                ) : (
-                                    <>{phase === 0 ? 'Continue' : 'Save & Preview'} <FaArrowRight size={12} /></>
-                                )}
+                                {saving ? 'Saving...' : <>{step === 3 ? 'Preview' : 'Next'} <FaArrowRight size={10} /></>}
                             </button>
                         ) : (
-                            <div className="flex gap-3">
-                                {completionPct < 100 && (
-                                    <button
-                                        onClick={() => setPhase(1)}
-                                        className="px-6 py-3 rounded-xl border border-dark-600 text-dark-300 hover:text-white text-sm transition"
-                                    >
-                                        Complete More
-                                    </button>
-                                )}
-                                <button
-                                    onClick={handleFinish} disabled={saving}
-                                    className="btn-primary px-8 py-3 rounded-xl flex items-center gap-2 text-sm font-semibold disabled:opacity-50"
-                                >
-                                    {saving ? <span className="animate-spin">⌛</span> : <FaPaperPlane size={12} />}
-                                    Finish & Go to Dashboard
-                                </button>
-                            </div>
+                            <button
+                                onClick={handleFinish} disabled={saving}
+                                className="px-8 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-90 text-white rounded-xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest transition-all shadow-glow disabled:opacity-50"
+                            >
+                                {saving ? 'Finalizing...' : <><FaPaperPlane size={10} /> Finish</>}
+                            </button>
                         )}
                     </div>
-
-                    {/* Completion nudge between phases */}
-                    {phase === 0 && completionPct < 60 && (
-                        <p className="text-center text-[11px] text-dark-500 mt-4">
-                            Fill in all fields above to reach 60% completion.
-                        </p>
-                    )}
-                    {phase === 1 && (
-                        <p className="text-center text-[11px] text-dark-500 mt-4">
-                            All fields here are optional. Skip to preview anytime.
-                        </p>
-                    )}
+                </div>
+                
+                {/* Step indicator dot */}
+                <div className="flex justify-center gap-1.5 mt-6">
+                    {PHASES.map((_, i) => (
+                        <div key={i} className={`h-1 rounded-full transition-all duration-300 ${i === step ? 'w-6 bg-primary-500' : 'w-1 bg-dark-700'}`} />
+                    ))}
                 </div>
             </div>
         </div>
