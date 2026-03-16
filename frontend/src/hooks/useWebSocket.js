@@ -13,8 +13,9 @@ const useWebSocket = (user) => {
     useEffect(() => {
         if (!user || hasConnected.current) return;
 
-        // Connect to WebSocket
+        // Connect to WebSocket — only if we have an explicit token
         const token = localStorage.getItem('token');
+        if (!token) return; // Cannot authenticate WebSocket without token
         webSocketService.connect(user.id, token);
         hasConnected.current = true;
 

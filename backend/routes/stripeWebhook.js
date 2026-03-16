@@ -26,6 +26,11 @@ const prisma = require('../config/prisma');
 router.post('/', express.raw({ type: 'application/json' }), async (req, res) => {
     const sig = req.headers['stripe-signature'];
 
+    if (!stripe) {
+        console.error('[Stripe Webhook] Stripe not initialized (missing STRIPE_SECRET_KEY)');
+        return res.status(500).json({ error: 'Stripe not configured on server' });
+    }
+
     if (!process.env.STRIPE_WEBHOOK_SECRET) {
         console.error('[Stripe Webhook] STRIPE_WEBHOOK_SECRET is not configured');
         return res.status(500).json({ error: 'Webhook not configured on server' });
