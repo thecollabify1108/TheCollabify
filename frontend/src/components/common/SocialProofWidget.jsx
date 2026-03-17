@@ -7,19 +7,17 @@ import api from '../../services/api';
 /**
  * Social Proof Widget
  * Shows real-time activity and platform statistics.
- * On mobile, the 4 stat cards are tap-to-expand (accordion style).
- * On desktop (md+) they always show their values.
+ * Stat cards always show their values (no tap-to-expand).
+ * Only shows Creators, Brands, and Success Rate.
+ * Activity ticker filters out admin signups.
  */
 const SocialProofWidget = () => {
-    const [recentActivity, setRecentActivity] = useState([]);
     const [stats, setStats] = useState({
         totalCreators: 0,
         totalBrands: 0,
-        activeCampaigns: 0,
         successRate: 98
     });
     const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
-    const [expandedCard, setExpandedCard] = useState(null); // mobile expand state
     const [activities, setActivities] = useState([]);
 
     useEffect(() => {
@@ -30,33 +28,28 @@ const SocialProofWidget = () => {
                 if (result.success) {
                     setStats(prev => ({ ...prev, ...result.data }));
                     if (result.data.activities) {
-                        setActivities(result.data.activities);
-                        setRecentActivity(result.data.activities);
+                        // Filter out admin signups — only show creator/brand/campaign/match/payment activity
+                        const filtered = result.data.activities.filter(a => {
+                            if (a.type === 'signup' && a.role && a.role.toUpperCase() === 'ADMIN') return false;
+                            return true;
+                        });
+                        setActivities(filtered);
                     }
                 }
             } catch (error) {
                 // Silently ignore — use default stats. This is non-critical UI.
-                // Don't pollute console on cold-start timeouts.
             }
         };
         fetchStats();
+    }, []);
+
+    useEffect(() => {
+        if (activities.length === 0) return;
         const interval = setInterval(() => {
-            if (activities.length > 0) {
-                setCurrentActivityIndex(prev => (prev + 1) % activities.length);
-            }
+            setCurrentActivityIndex(prev => (prev + 1) % activities.length);
         }, 4000);
         return () => clearInterval(interval);
     }, [activities.length]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setStats(prev => ({
-                ...prev,
-                activeCampaigns: prev.activeCampaigns + Math.floor(Math.random() * 2)
-            }));
-        }, 15000);
-        return () => clearInterval(interval);
-    }, []);
 
     const getActivityIcon = (type) => {
         switch (type) {
@@ -78,31 +71,44 @@ const SocialProofWidget = () => {
         }
     };
 
-    const currentActivity = recentActivity[currentActivityIndex];
+    const currentActivity = activities[currentActivityIndex];
 
     const statCards = [
-        { id: 'creators', icon: <HiUserGroup className="text-primary-400 text-lg" />, label: 'Creators', value: `${stats.totalCreators.toLocaleString()}+`, accent: 'border-primary-500/50 bg-primary-500/5' },
-        { id: 'brands', icon: <HiSparkles className="text-secondary-400 text-lg" />, label: 'Brands', value: `${stats.totalBrands.toLocaleString()}+`, accent: 'border-secondary-500/50 bg-secondary-500/5' },
-        { id: 'active', icon: <FaFire className="text-orange-400 text-lg" />, label: 'Active', value: stats.activeCampaigns.toLocaleString(), accent: 'border-orange-500/50 bg-orange-500/5' },
-        { id: 'success', icon: <HiTrendingUp className="text-green-400 text-lg" />, label: 'Success', value: `${stats.successRate}%`, accent: 'border-green-500/50 bg-green-500/5' }
+        {
+            id: 'creators',
+            icon: <HiUserGroup className="text-primary-400 text-lg" />,
+            label: 'Creators',
+            value: `${stats.totalCreators.toLocaleString()}+`,
+            accent: 'border-primary-500/30 bg-primary-500/5'
+        },
+        {
+            id: 'brands',
+            icon: <HiSparkles className="text-secondary-400 text-lg" />,
+            label: 'Brands',
+            value: `${stats.totalBrands.toLocaleString()}+`,
+            accent: 'border-secondary-500/30 bg-secondary-500/5'
+        },
+        {
+            id: 'success',
+            icon: <HiTrendingUp className="text-green-400 text-lg" />,
+            label: 'Success',
+            value: `${stats.successRate}%`,
+            accent: 'border-green-500/30 bg-green-500/5'
+        }
     ];
-
-    const handleCardClick = (id) => {
-        setExpandedCard(prev => prev === id ? null : id);
-    };
 
     return (
         <div className="space-y-3">
             {/* Recent Activity Ticker */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-dark-800 border border-dark-700 rounded-2xl p-4 shadow-lg"
-            >
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-dark-700 flex items-center justify-center flex-shrink-0">
-                        <AnimatePresence mode="wait">
-                            {currentActivity && (
+            {currentActivity && (
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-dark-800 border border-dark-700 rounded-2xl p-4 shadow-lg"
+                >
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-dark-700 flex items-center justify-center flex-shrink-0">
+                            <AnimatePresence mode="wait">
                                 <motion.div
                                     key={currentActivityIndex}
                                     initial={{ scale: 0, rotate: -180 }}
@@ -112,12 +118,10 @@ const SocialProofWidget = () => {
                                 >
                                     {getActivityIcon(currentActivity.type)}
                                 </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <AnimatePresence mode="wait">
-                            {currentActivity && (
+                            </AnimatePresence>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <AnimatePresence mode="wait">
                                 <motion.div
                                     key={currentActivityIndex}
                                     initial={{ opacity: 0, x: 20 }}
@@ -128,62 +132,39 @@ const SocialProofWidget = () => {
                                 >
                                     {getActivityText(currentActivity)}
                                 </motion.div>
-                            )}
-                        </AnimatePresence>
-                        <p className="text-xs text-dark-400 mt-1">{currentActivity?.time}</p>
-                    </div>
-                    <div className="flex items-center gap-1">
-                        {activities.map((_, index) => (
-                            <div key={index} className={`h-1.5 w-1.5 rounded-full transition-colors ${index === currentActivityIndex ? 'bg-primary-500' : 'bg-dark-700'}`} />
-                        ))}
-                    </div>
-                </div>
-            </motion.div>
-
-            {/* Platform Stats Grid — tap to expand on mobile */}
-            <div className="flex gap-2">
-                {statCards.map(card => {
-                    const isExpanded = expandedCard === card.id;
-                    const isShrunk = expandedCard !== null && !isExpanded;
-                    return (
-                        <motion.button
-                            key={card.id}
-                            onClick={() => handleCardClick(card.id)}
-                            animate={{ flex: isExpanded ? 2.5 : isShrunk ? 0.55 : 1 }}
-                            transition={{ duration: 0.28, ease: 'easeInOut' }}
-                            className={`overflow-hidden border rounded-xl p-2.5 text-left transition-colors md:flex-1 ${isExpanded ? card.accent : 'bg-dark-800 border-dark-700 hover:border-dark-600'}`}
-                            style={{ minWidth: 0 }}
-                        >
-                            {/* Icon + label row */}
-                            <div className="flex items-center gap-1 mb-1">
-                                {card.icon}
-                                <span className={`text-dark-400 font-medium leading-none transition-all duration-200 truncate ${isShrunk ? 'text-[8px]' : 'text-[11px]'}`}>
-                                    {card.label}
-                                </span>
-                            </div>
-
-                            {/* Value: animated in on mobile when expanded, always visible on desktop */}
-                            <AnimatePresence>
-                                {isExpanded && (
-                                    <motion.p
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                        className="text-lg font-bold text-dark-100 md:hidden"
-                                    >
-                                        {card.value}
-                                    </motion.p>
-                                )}
                             </AnimatePresence>
-                            {/* Desktop always shows the value */}
-                            <p className="hidden md:block text-2xl font-bold text-dark-100">{card.value}</p>
-                        </motion.button>
-                    );
-                })}
+                            <p className="text-xs text-dark-400 mt-1">{currentActivity?.time}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                            {activities.map((_, index) => (
+                                <div
+                                    key={index}
+                                    className={`h-1.5 w-1.5 rounded-full transition-colors ${index === currentActivityIndex ? 'bg-primary-500' : 'bg-dark-700'}`}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Platform Stats Grid — always shows values, no expandable cards */}
+            <div className="grid grid-cols-3 gap-2">
+                {statCards.map((card, i) => (
+                    <motion.div
+                        key={card.id}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.08 }}
+                        className={`border rounded-xl p-3 ${card.accent}`}
+                    >
+                        <div className="flex items-center gap-1.5 mb-1.5">
+                            {card.icon}
+                            <span className="text-dark-400 font-medium text-xs truncate">{card.label}</span>
+                        </div>
+                        <p className="text-xl font-bold text-dark-100">{card.value}</p>
+                    </motion.div>
+                ))}
             </div>
-            {/* Mobile hint */}
-            <p className="text-center text-dark-500 text-[10px] md:hidden">Tap a card to see the number</p>
         </div>
     );
 };

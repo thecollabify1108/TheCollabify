@@ -631,7 +631,7 @@ router.post('/conversations/:id/messages', auth, [
         }
 
         // ── ANTI-BYPASS: Pre-escrow negotiation limits ─────────────
-        const PRE_ESCROW_MSG_LIMIT = 5;
+        const PRE_ESCROW_MSG_LIMIT = 50;
         if (!conversation.isEscrowUnlocked) {
             const userMsgCount = isSeller ? (conversation.sellerMsgCount || 0) : (conversation.creatorMsgCount || 0);
             if (userMsgCount >= PRE_ESCROW_MSG_LIMIT) {

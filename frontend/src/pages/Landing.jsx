@@ -278,106 +278,75 @@ const Landing = () => {
                     <AnimatePresence>
                         {mobileMenuOpen && (
                             <>
-                                {/* Backdrop to close menu */}
+                                {/* Backdrop — tap anywhere outside to close */}
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     onClick={() => setMobileMenuOpen(false)}
-                                    className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm lg:hidden"
+                                    className="fixed inset-0 z-[90] bg-black/50 lg:hidden"
                                 />
+                                {/* Compact right-aligned dropdown card */}
                                 <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: -20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                                transition={{ duration: 0.2 }}
-                                className="fixed top-24 right-5 z-[100] w-72 bg-dark-950/98 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl flex flex-col p-6 lg:hidden"
-                            >
-                                {/* Decorative Background Elements */}
-                                <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary-500/10 blur-[120px] rounded-full pointer-events-none" />
-                                <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-secondary-500/10 blur-[120px] rounded-full pointer-events-none" />
-                                
-                                {/* Menu Header (Logo + Close) */}
-                                <div className="absolute top-0 left-0 right-0 h-20 px-6 flex items-center justify-between border-b border-white/5 bg-dark-950/50 backdrop-blur-md">
-                                    <Logo className="h-8 w-8" />
-                                    <motion.button
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="w-12 h-12 rounded-full flex items-center justify-center bg-white/5 border border-white/10"
-                                    >
-                                        <Icon name="close" size={24} className="text-white" />
-                                    </motion.button>
-                                </div>
-
-                                {/* Navigation Links */}
-                                <div className="flex flex-col space-y-6 mt-8">
-                                    {[
-                                        { label: 'For Brands', to: '/for-brands' },
-                                        { label: 'For Influencers', to: '/for-creators' },
-                                        { label: 'How It Works', to: '#how-it-works' },
-                                        { label: 'Features', to: '#features' },
-                                        { label: 'About Us', to: '#about' }
-                                    ].map((item, i) => (
-                                        <motion.div
-                                            key={item.label}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.1 + i * 0.1, type: "spring", stiffness: 100 }}
-                                        >
-                                            {item.to.startsWith('#') ? (
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    transition={{ duration: 0.18 }}
+                                    className="fixed top-20 right-4 z-[100] w-56 bg-dark-900 border border-dark-700 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden lg:hidden"
+                                >
+                                    {/* Navigation Links */}
+                                    <div className="flex flex-col py-2">
+                                        {[
+                                            { label: 'For Brands', to: '/for-brands' },
+                                            { label: 'For Influencers', to: '/for-creators' },
+                                            { label: 'How It Works', to: '#how-it-works' },
+                                            { label: 'Features', to: '#features' },
+                                            { label: 'About Us', to: '#about' }
+                                        ].map((item) => (
+                                            item.to.startsWith('#') ? (
                                                 <a
+                                                    key={item.label}
                                                     href={item.to}
-                                                    className="text-4xl font-black text-white hover:text-primary-400 transition-colors tracking-tighter"
+                                                    className="px-5 py-3 text-sm font-semibold text-dark-200 hover:text-white hover:bg-dark-800 transition-colors"
                                                     onClick={() => setMobileMenuOpen(false)}
                                                 >
                                                     {item.label}
                                                 </a>
                                             ) : (
                                                 <Link
+                                                    key={item.label}
                                                     to={item.to}
-                                                    className="text-4xl font-black text-white hover:text-primary-400 transition-colors tracking-tighter"
+                                                    className="px-5 py-3 text-sm font-semibold text-dark-200 hover:text-white hover:bg-dark-800 transition-colors"
                                                     onClick={() => setMobileMenuOpen(false)}
                                                 >
                                                     {item.label}
                                                 </Link>
-                                            )}
-                                        </motion.div>
-                                    ))}
-                                </div>
-
-                                {/* Action Buttons */}
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.6 }}
-                                    className="mt-auto mb-12 flex flex-col gap-4"
-                                >
-                                    <button
-                                        onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
-                                        className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-black uppercase tracking-widest text-sm hover:bg-white/10 transition-all"
-                                    >
-                                        Log In
-                                    </button>
-                                    <button
-                                        onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}
-                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-black uppercase tracking-widest text-sm shadow-lg shadow-primary-500/20 active:scale-95 transition-all"
-                                    >
-                                        Get Started
-                                    </button>
-                                </motion.div>
-
-                                {/* Footer Info */}
-                                <div className="mb-8 border-t border-white/5 pt-6 flex justify-between items-center opacity-40">
-                                    <span className="text-[10px] font-bold uppercase tracking-widest text-white">© 2026 TheCollabify</span>
-                                    <div className="flex gap-4">
-                                        <Icon name="twitter" size={16} />
-                                        <Icon name="instagram" size={16} />
+                                            )
+                                        ))}
                                     </div>
-                                </div>
-                            </motion.div>
-                        </>
-                    )}
-                </AnimatePresence>
+
+                                    {/* Divider */}
+                                    <div className="border-t border-dark-700 mx-3" />
+
+                                    {/* Action Buttons */}
+                                    <div className="p-3 flex flex-col gap-2">
+                                        <button
+                                            onClick={() => { navigate('/login'); setMobileMenuOpen(false); }}
+                                            className="w-full py-2.5 rounded-xl bg-dark-800 border border-dark-600 text-dark-200 font-semibold text-sm hover:bg-dark-700 transition-all text-center"
+                                        >
+                                            LOG IN
+                                        </button>
+                                        <button
+                                            onClick={() => { navigate('/register'); setMobileMenuOpen(false); }}
+                                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-primary-600 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-primary-500/20 active:scale-95 transition-all text-center"
+                                        >
+                                            GET STARTED
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
                 </nav>
 
                 {/* Hero Section - VRInfluence Style */}
