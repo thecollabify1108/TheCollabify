@@ -137,7 +137,7 @@ const Navbar = () => {
                     </div>
 
                     {/* Right side (Mobile) */}
-                    <div className="flex md:hidden items-center space-x-2">
+                    <div className="flex md:hidden items-center space-x-2 ml-auto">
                         <ThemeToggle />
                         <LiveNotificationBell userId={user?.id} />
                         <button

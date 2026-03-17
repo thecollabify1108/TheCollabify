@@ -560,8 +560,8 @@ const rankCreators = async (creators, request, userId = null) => {
                 creator.willingToTravel
             ),
             campaignType: calculateCampaignTypeScore(
-                creator.collaborationTypes,
-                request.locationType
+                creator.promotionTypes,
+                request.promotionType
             ),
             availability: calculateAvailabilityScore(creator.availabilityStatus),
             reliability: Math.min(150, (creator.reliabilityScore || 1.0) * 100) // Normalize 1.0 to 100, capped at 150
@@ -766,19 +766,38 @@ const explainMatch = async (creatorId, promotionRequest) => {
             promotionRequest.minBudget,
             promotionRequest.maxBudget
         ),
+        roi: 0,
         insight: creator.insights?.score || 50,
-        availability: creator.isAvailable ? 100 : 0,
-        trackRecord: calculateTrackRecordScore(creator)
+        trackRecord: calculateTrackRecordScore(creator),
+        intent: calculateIntentScore(creator.category, null),
+        personalization: calculatePersonalizationScore(creator.id, null),
+        location: calculateLocationScore(
+            creator.location,
+            promotionRequest.location,
+            promotionRequest.locationType,
+            creator.willingToTravel
+        ),
+        campaignType: calculateCampaignTypeScore(
+            creator.promotionTypes,
+            promotionRequest.promotionType
+        ),
+        availability: calculateAvailabilityScore(creator.availabilityStatus),
+        reliability: Math.min(150, (creator.reliabilityScore || 1.0) * 100)
     };
 
     const matchScore = Math.round(
         (scores.engagement * SCORING_WEIGHTS.engagementRate) +
         (scores.niche * SCORING_WEIGHTS.nicheSimilarity) +
         (scores.price * SCORING_WEIGHTS.priceCompatibility) +
+        (scores.roi * SCORING_WEIGHTS.predictedROI) +
         (scores.insight * SCORING_WEIGHTS.insightScore) +
-        (scores.availability * SCORING_WEIGHTS.availability) +
         (scores.trackRecord * SCORING_WEIGHTS.trackRecord) +
-        ((creator.reliabilityScore || 1.0) * 100 * (SCORING_WEIGHTS.reliability || 0.08))
+        (scores.intent * SCORING_WEIGHTS.intentMatch) +
+        (scores.personalization * SCORING_WEIGHTS.personalization) +
+        (scores.location * SCORING_WEIGHTS.locationMatch) +
+        (scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch) +
+        (scores.availability * SCORING_WEIGHTS.availabilityMatch) +
+        (scores.reliability * SCORING_WEIGHTS.reliability)
     );
 
     const structuredExplanation = generateStructuredExplanation(creator, promotionRequest, scores);
@@ -809,13 +828,18 @@ const explainMatch = async (creatorId, promotionRequest) => {
             },
             availability: {
                 score: scores.availability,
-                weight: SCORING_WEIGHTS.availability,
-                contribution: scores.availability * SCORING_WEIGHTS.availability
+                weight: SCORING_WEIGHTS.availabilityMatch,
+                contribution: scores.availability * SCORING_WEIGHTS.availabilityMatch
             },
             trackRecord: {
                 score: scores.trackRecord,
                 weight: SCORING_WEIGHTS.trackRecord,
                 contribution: scores.trackRecord * SCORING_WEIGHTS.trackRecord
+            },
+            campaignTypeMatch: {
+                score: scores.campaignType,
+                weight: SCORING_WEIGHTS.campaignTypeMatch,
+                contribution: scores.campaignType * SCORING_WEIGHTS.campaignTypeMatch
             }
         }
     };

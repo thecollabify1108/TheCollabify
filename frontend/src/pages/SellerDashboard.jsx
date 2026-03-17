@@ -128,6 +128,17 @@ const SellerDashboard = () => {
         }
     };
 
+    const handleDeleteCampaign = async (requestId) => {
+        try {
+            await sellerAPI.deleteRequest(requestId);
+            toast.success('Campaign deleted successfully');
+            setSelectedRequest(null);
+            fetchData();
+        } catch (err) {
+            toast.error('Failed to delete campaign');
+        }
+    };
+
     const handleMessageCreator = (requestId, creatorId, creatorName) => {
         // Navigate to messages
         navigate(`/messages?user=${creatorId}&name=${creatorName}`);
@@ -256,15 +267,7 @@ const SellerDashboard = () => {
                 )}
             </AnimatePresence>
 
-            {/* Collapsible Stats Bar */}
-            <QuickStatsBar 
-                stats={stats} 
-                onStatClick={(id) => {
-                    if (id === 'pending') setActiveTab('discover');
-                    else if (id === 'campaigns') setActiveTab('dashboard');
-                    else if (id === 'matches') setActiveTab('discover');
-                }}
-            />
+            {/* QuickStatsBar Removed */}
 
             <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
             <AnimatePresence mode="wait">
@@ -487,68 +490,50 @@ const SellerDashboard = () => {
                                                     onAction={() => setShowRequestWizard(true)}
                                                 />
                                             ) : (
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+                                                <div className="flex flex-col gap-3">
                                                     {requests.slice(0, 6).map((request, index) => (
                                                         request ? (
                                                             <motion.div
                                                                 key={request.id}
-                                                                initial={{ opacity: 0, y: 20 }}
+                                                                initial={{ opacity: 0, y: 10 }}
                                                                 animate={{ opacity: 1, y: 0 }}
                                                                 transition={{ delay: index * 0.05 }}
-                                                                whileHover={{ y: -8 }}
                                                                 onClick={() => setSelectedRequest(request)}
-                                                                className="relative p-7 rounded-[2rem] bg-dark-900/40 backdrop-blur-3xl border border-white/5 hover:border-primary-500/50 cursor-pointer transition-all group overflow-hidden shadow-2xl hover:shadow-primary-500/10"
+                                                                className="flex items-center justify-between p-4 rounded-premium-2xl bg-dark-900/40 border border-white/5 hover:bg-dark-800/60 hover:border-primary-500/30 cursor-pointer transition-all group shadow-sm hover:shadow-primary-500/5 mb-1"
                                                             >
-                                                                {/* Animated background glow on hover */}
-                                                                <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-indigo-500/0 group-hover:from-primary-500/5 group-hover:to-indigo-500/10 transition-all duration-500" />
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg shadow-inner ${
+                                                                        request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                                        request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400' :
+                                                                        'bg-blue-500/20 text-blue-400'
+                                                                    }`}>
+                                                                        {request.title ? request.title.charAt(0).toUpperCase() : '?'}
+                                                                    </div>
+                                                                    <div>
+                                                                        <h3 className="text-base font-bold text-white group-hover:text-primary-400 transition-colors uppercase tracking-tight">
+                                                                            {request.title || 'Untitled Campaign'}
+                                                                        </h3>
+                                                                        <div className="flex items-center gap-2 mt-1">
+                                                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                                                                                request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                                                                                'bg-dark-700/50 text-dark-300 border-dark-600/30'
+                                                                            }`}>
+                                                                                {request.status}
+                                                                            </span>
+                                                                            <span className="text-[10px] font-medium text-dark-400 uppercase tracking-widest">
+                                                                                • ₹{(request.maxBudget || request.minBudget || 0).toLocaleString()}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                                 
-                                                                <div className="relative z-10">
-                                                                    <div className="flex items-start justify-between mb-6">
-                                                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl border border-white/10 text-xl font-black ${
-                                                                            request.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400 shadow-emerald-500/10' :
-                                                                            request.status === 'Accepted' ? 'bg-purple-500/20 text-purple-400 shadow-purple-500/10' :
-                                                                            'bg-blue-500/20 text-blue-400 shadow-blue-500/10'
-                                                                        }`}>
-                                                                            {request.title ? request.title.charAt(0).toUpperCase() : '?'}
-                                                                        </div>
-                                                                        <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg border backdrop-blur-md ${
-                                                                            request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                                                                            'bg-dark-700/50 text-dark-300 border-dark-600/30'
-                                                                        }`}>
-                                                                            {request.status}
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <h3 className="text-xl font-black text-white mb-3 group-hover:text-primary-400 transition-colors uppercase tracking-tight leading-none">
-                                                                        {request.title || 'Untitled Campaign'}
-                                                                    </h3>
-                                                                    
-                                                                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
-                                                                        <div className="flex flex-col">
-                                                                            <span className="text-[10px] font-black text-dark-500 uppercase tracking-widest mb-1">Budget</span>
-                                                                            <span className="text-lg font-black text-white flex items-center gap-1">
-                                                                                <span className="text-primary-500/50 text-xs">₹</span>
-                                                                                {request.budget?.toLocaleString()}
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="flex flex-col items-end">
-                                                                            <span className="text-[10px] font-black text-dark-500 uppercase tracking-widest mb-1">Matches</span>
-                                                                            <span className="text-lg font-black text-primary-400 group-hover:scale-110 transition-transform">
-                                                                                {request.matchedCreators?.length || 0}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="mt-6 flex items-center gap-2">
-                                                                        <div className="flex-1 h-1.5 bg-dark-950 rounded-full overflow-hidden p-[1px] border border-white/5">
-                                                                            <motion.div
-                                                                                initial={{ width: 0 }}
-                                                                                animate={{ width: `${Math.min(100, (request.matchedCreators?.length || 0) * 10)}%` }}
-                                                                                className="h-full bg-gradient-to-r from-primary-600 to-indigo-600 rounded-full shadow-glow"
-                                                                            />
-                                                                        </div>
-                                                                        <span className="text-[9px] font-black text-dark-500 uppercase">Growth</span>
-                                                                    </div>
+                                                                <div className="flex flex-col items-end">
+                                                                    <span className="text-xl font-black text-primary-400 group-hover:scale-110 transition-transform">
+                                                                        {request.matchedCreators?.length || 0}
+                                                                    </span>
+                                                                    <span className="text-[9px] font-black text-dark-500 uppercase tracking-widest">
+                                                                        Matches
+                                                                    </span>
                                                                 </div>
                                                             </motion.div>
                                                         ) : null
@@ -606,6 +591,7 @@ const SellerDashboard = () => {
                         onReject={handleRejectCreator}
                         onUpdateStatus={handleUpdateCampaignStatus}
                         onMessage={handleMessageCreator}
+                        onDelete={handleDeleteCampaign}
                         onManageCollaboration={(mc) => {
                             setActiveCollabMatch(mc);
                             setSelectedRequest(null);

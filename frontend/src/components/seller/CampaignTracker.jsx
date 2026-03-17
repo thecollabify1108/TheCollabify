@@ -16,7 +16,7 @@ import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
 import ConfirmModal from '../common/ConfirmModal';
 import { trackMatchOutcome } from '../../services/feedback';
 
-const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus, onMessage, onManageCollaboration }) => {
+const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus, onMessage, onManageCollaboration, onDelete }) => {
     const [activeSection, setActiveSection] = useState('applicants');
     const [confirmModal, setConfirmModal] = useState({
         isOpen: false,
@@ -26,10 +26,10 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
         variant: 'primary'
     });
 
-    const applicants = request.matchedCreators?.filter(mc => mc.status === 'Applied') || [];
-    const matched = request.matchedCreators?.filter(mc => mc.status === 'Matched') || [];
-    const accepted = request.matchedCreators?.filter(mc => mc.status === 'Accepted') || [];
-    const rejected = request.matchedCreators?.filter(mc => mc.status === 'Rejected') || [];
+    const applicants = request.matchedCreators?.filter(mc => mc.status?.toUpperCase() === 'APPLIED') || [];
+    const matched = request.matchedCreators?.filter(mc => mc.status?.toUpperCase() === 'MATCHED') || [];
+    const accepted = request.matchedCreators?.filter(mc => mc.status?.toUpperCase() === 'ACCEPTED') || [];
+    const rejected = request.matchedCreators?.filter(mc => mc.status?.toUpperCase() === 'REJECTED') || [];
 
     const getStatusColor = (status) => {
         switch (status) {
@@ -67,17 +67,17 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         <div className="flex flex-wrap gap-s4 text-xs-pure font-bold">
                             <div className="flex items-center text-dark-300 bg-dark-900/40 px-s3 py-1.5 rounded-full border border-dark-700/50">
                                 <FaDollarSign className="mr-1 text-emerald-400" />
-                                <span className="uppercase tracking-wider font-black">${request.budgetRange?.min} - ${request.budgetRange?.max}</span>
+                                <span className="uppercase tracking-wider font-black">${request.minBudget || 0} - ${request.maxBudget || 0}</span>
                             </div>
                             <div className="flex items-center text-dark-300 bg-dark-900/40 px-s3 py-1.5 rounded-full border border-dark-700/50">
                                 <FaUsers className="mr-1 text-primary-400" />
                                 <span className="uppercase tracking-wider font-black">
-                                    {request.followerRange?.min >= 1000
-                                        ? `${(request.followerRange.min / 1000).toFixed(0)}K`
-                                        : request.followerRange?.min} -
-                                    {request.followerRange?.max >= 1000000
-                                        ? `${(request.followerRange.max / 1000000).toFixed(1)}M`
-                                        : `${(request.followerRange.max / 1000).toFixed(0)}K`}
+                                    {(request.minFollowers || 0) >= 1000
+                                        ? `${((request.minFollowers || 0) / 1000).toFixed(0)}K`
+                                        : (request.minFollowers || 0)} - 
+                                    {(request.maxFollowers || 0) >= 1000000
+                                        ? `${((request.maxFollowers || 0) / 1000000).toFixed(1)}M`
+                                        : `${((request.maxFollowers || 0) / 1000).toFixed(0)}K`}
                                 </span>
                             </div>
                             <span className="px-s3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">{request.promotionType}</span>
@@ -137,12 +137,31 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                                         }
                                     });
                                 }}
-                                className="btn-outline text-sm flex items-center text-red-400 border-red-500/50 hover:bg-red-500/10"
+                                className="btn-outline text-sm flex items-center text-amber-500 border-amber-500/50 hover:bg-amber-500/10"
                             >
                                 <FaFlag className="mr-2" />
-                                Cancel Campaign
+                                Cancel
                             </button>
                         )}
+
+                        {/* Delete Campaign Formally */}
+                        <button
+                            onClick={() => {
+                                setConfirmModal({
+                                    isOpen: true,
+                                    title: 'Delete Campaign?',
+                                    message: 'Are you sure you want to permanently delete this campaign? This cannot be undone.',
+                                    variant: 'danger',
+                                    onConfirm: () => {
+                                        if(onDelete) onDelete(request.id);
+                                    }
+                                });
+                            }}
+                            className="btn-outline text-sm flex items-center text-red-500 border-red-500/50 hover:bg-red-500/20 w-fit"
+                        >
+                            <FaTimes className="mr-2" />
+                            Delete
+                        </button>
                     </div>
                 </div>
 

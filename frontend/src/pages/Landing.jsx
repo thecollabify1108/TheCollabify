@@ -253,7 +253,7 @@ const Landing = () => {
                             </div>
 
                             {/* Mobile Right Side */}
-                            <div className="flex lg:hidden items-center space-x-s1">
+                            <div className="flex lg:hidden items-center space-x-s1 ml-auto">
                                 <div className="scale-90 origin-right">
                                     <ThemeToggle />
                                 </div>
