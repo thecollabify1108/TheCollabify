@@ -503,18 +503,20 @@ const CreatorDashboard = () => {
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                                     {(() => {
                                                         const activeCollabs = applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted');
-                                                        // Deduplicate by promotion ID
-                                                        const uniqueCollabs = Array.from(new Map(activeCollabs.map(item => [item.promotion?.id, item])).values());
+                                                        const uniqueCollabs = Array.from(new Map(activeCollabs.map(item => [item.promotion?.id || Math.random(), item])).values());
                                                         
-                                                        return uniqueCollabs.length === 0 ? (
-                                                        <div className="md:col-span-2 p-12 rounded-[2rem] bg-dark-800/20 border border-white/5 flex flex-col items-center justify-center text-center backdrop-blur-md">
-                                                            <div className="w-16 h-16 rounded-full bg-dark-700/30 flex items-center justify-center mb-6 border border-white/5">
-                                                                <FaHandshake className="text-3xl text-dark-500" />
-                                                            </div>
-                                                            <p className="text-xs font-black text-dark-400 uppercase tracking-[0.2em]">No active collaborations yet</p>
-                                                        </div>
-                                                    ) : (
-                                                        applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').map((app, i) => (
+                                                        if (uniqueCollabs.length === 0) {
+                                                            return (
+                                                                <div className="md:col-span-2 p-12 rounded-[2rem] bg-dark-800/20 border border-white/5 flex flex-col items-center justify-center text-center backdrop-blur-md">
+                                                                    <div className="w-16 h-16 rounded-full bg-dark-700/30 flex items-center justify-center mb-6 border border-white/5">
+                                                                        <FaHandshake className="text-3xl text-dark-500" />
+                                                                    </div>
+                                                                    <p className="text-xs font-black text-dark-400 uppercase tracking-[0.2em]">No active collaborations yet</p>
+                                                                </div>
+                                                            );
+                                                        }
+
+                                                        return uniqueCollabs.map((app, i) => (
                                                             <motion.div
                                                                 key={app.id}
                                                                 initial={{ opacity: 0, scale: 0.95 }}
@@ -524,7 +526,6 @@ const CreatorDashboard = () => {
                                                                 onClick={() => setActiveCollab({ id: app.id, promotion: app.promotion, seller: app.sellerId || app.seller })}
                                                                 className="relative p-6 rounded-[2rem] bg-dark-900/40 border border-white/5 backdrop-blur-3xl cursor-pointer hover:border-primary-500/50 transition-all group overflow-hidden shadow-2xl hover:shadow-primary-500/10"
                                                             >
-                                                                {/* Animated background glow */}
                                                                 <div className="absolute inset-0 bg-gradient-to-br from-primary-500/0 to-indigo-500/0 group-hover:from-primary-500/5 group-hover:to-indigo-500/10 transition-all duration-500" />
                                                                 
                                                                 <div className="relative z-10">
@@ -537,21 +538,21 @@ const CreatorDashboard = () => {
                                                                             <p className="text-[10px] font-black text-primary-400 uppercase tracking-widest">{app.sellerId?.name || app.seller?.name || 'Brand'}</p>
                                                                         </div>
                                                                     </div>
- 
+
                                                                     <div className="p-1 px-2 mb-6">
                                                                         <CollaborationStepper
                                                                             currentStatus={app.collaborationStatus || 'ACCEPTED'}
                                                                             className="scale-90 origin-left"
                                                                         />
                                                                     </div>
- 
+
                                                                     <div className="pt-6 border-t border-white/5 flex items-center justify-between">
                                                                         <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] group-hover:text-primary-400 transition-colors">Manage Collab →</span>
                                                                         <span className="text-[10px] font-black text-dark-500 uppercase tracking-widest">{new Date(app.updatedAt).toLocaleDateString()}</span>
                                                                     </div>
                                                                 </div>
                                                             </motion.div>
-                                                        ))
+                                                        ));
                                                     })()}
                                                 </div>
 
