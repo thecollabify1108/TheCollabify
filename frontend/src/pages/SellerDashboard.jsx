@@ -155,12 +155,6 @@ const SellerDashboard = () => {
             description: 'Campaigns'
         },
         {
-            id: 'search',
-            label: 'Search',
-            iconName: 'search',
-            description: 'Find Creators'
-        },
-        {
             id: 'analytics',
             label: 'Stats',
             iconName: 'grid',

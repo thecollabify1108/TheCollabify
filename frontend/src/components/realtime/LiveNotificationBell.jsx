@@ -10,17 +10,33 @@ import EmptyState from '../common/EmptyState';
  * Shows unread count and notification dropdown
  */
 const LiveNotificationBell = ({ userId }) => {
+    // We handle the local clearing via a state to override the websocket if needed, 
+    // but typically useWebSocket should expose a clear function.
     const { notifications = [], isConnected } = useWebSocket(userId);
     const [isOpen, setIsOpen] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [showAll, setShowAll] = useState(false);
+    const [localCleared, setLocalCleared] = useState(false);
 
     const handleToggle = () => {
         setIsOpen(!isOpen);
         if (!isOpen) {
-            // Mark all as read
+            // Mark all as read when opening
             setUnreadCount(0);
+        } else {
+            // Reset showAll when closing
+            setShowAll(false);
         }
     };
+
+    const handleClearAll = () => {
+        setLocalCleared(true);
+        setIsOpen(false);
+        setShowAll(false);
+    };
+
+    const activeNotifications = localCleared ? [] : notifications;
+    const displayedNotifications = showAll ? activeNotifications : activeNotifications.slice(0, 3);
 
     return (
         <div className="relative">
@@ -40,7 +56,7 @@ const LiveNotificationBell = ({ userId }) => {
 
                 {/* Unread Badge */}
                 <AnimatePresence>
-                    {notifications.length > 0 && (
+                    {activeNotifications.length > 0 && (
                         <motion.div
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -48,7 +64,7 @@ const LiveNotificationBell = ({ userId }) => {
                             className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full 
                                      text-white text-xs flex items-center justify-center font-bold"
                         >
-                            {notifications.length > 9 ? '9+' : notifications.length}
+                            {activeNotifications.length > 9 ? '9+' : activeNotifications.length}
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -64,16 +80,16 @@ const LiveNotificationBell = ({ userId }) => {
                             onClick={() => setIsOpen(false)}
                         />
 
-                        {/* Dropdown */}
+                        {/* Dropdown - Adjusted w-[90vw] for mobile to prevent overflow, and right align fix */}
                         <motion.div
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="absolute right-0 mt-2 w-80 sm:w-96 bg-dark-900 border border-dark-700 z-[60] 
-                                     max-h-[500px] overflow-hidden flex flex-col rounded-premium-xl shadow-2xl"
+                            className="absolute right-[-4rem] sm:right-0 mt-2 w-[90vw] sm:w-96 bg-dark-900 border border-dark-700 z-[60] 
+                                     max-h-[80vh] sm:max-h-[500px] flex flex-col rounded-premium-xl shadow-2xl"
                         >
                             {/* Header */}
-                            <div className="p-4 border-b border-dark-700 flex items-center justify-between">
+                            <div className="p-4 border-b border-dark-700 flex items-center justify-between shrink-0">
                                 <h3 className="font-semibold text-dark-100">Notifications</h3>
                                 <div className="flex items-center gap-2">
                                     {!isConnected && (
@@ -89,19 +105,19 @@ const LiveNotificationBell = ({ userId }) => {
                             </div>
 
                             {/* Notifications List */}
-                            <div className="overflow-y-auto flex-1">
-                                {notifications.length === 0 ? (
+                            <div className="overflow-y-auto flex-1 custom-scrollbar">
+                                {activeNotifications.length === 0 ? (
                                     <div className="p-4">
                                         <EmptyState
                                             icon="bell-off"
                                             title="All Caught Up!"
-                                            description="No new notifications at the moment. We'll alert you when there's an update on your campaigns."
+                                            description="No new notifications at the moment."
                                             className="py-10 border-none bg-transparent"
                                         />
                                     </div>
                                 ) : (
                                     <div className="divide-y divide-dark-700">
-                                        {notifications.map((notif, index) => (
+                                        {displayedNotifications.map((notif, index) => (
                                             <motion.div
                                                 key={index}
                                                 initial={{ opacity: 0, x: -20 }}
@@ -136,21 +152,36 @@ const LiveNotificationBell = ({ userId }) => {
                                                 </div>
                                             </motion.div>
                                         ))}
+
+                                        {/* Show More toggle inline below the limit */}
+                                        {activeNotifications.length > 3 && !showAll && (
+                                            <div 
+                                                className="p-3 text-center cursor-pointer hover:bg-dark-800/50 transition border-t border-dark-700"
+                                                onClick={() => setShowAll(true)}
+                                            >
+                                                <span className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+                                                    Show {activeNotifications.length - 3} More
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Footer */}
-                            {notifications.length > 0 && (
-                                <div className="p-3 border-t border-dark-700">
+                            {/* Footer Actions */}
+                            {activeNotifications.length > 0 && (
+                                <div className="p-3 border-t border-dark-700 flex items-center justify-between shrink-0 bg-dark-900 rounded-b-premium-xl">
                                     <button
-                                        onClick={() => {
-                                            // Clear all notifications
-                                            setIsOpen(false);
-                                        }}
-                                        className="w-full text-center text-sm text-primary-400 hover:text-primary-300"
+                                        onClick={() => setIsOpen(false)}
+                                        className="text-xs font-semibold text-dark-400 hover:text-dark-200 uppercase tracking-widest transition"
                                     >
-                                        Mark all as read
+                                        Mark Read
+                                    </button>
+                                    <button
+                                        onClick={handleClearAll}
+                                        className="text-xs font-semibold text-red-400 hover:text-red-300 uppercase tracking-widest transition"
+                                    >
+                                        Clear All
                                     </button>
                                 </div>
                             )}

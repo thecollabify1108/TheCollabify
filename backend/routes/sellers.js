@@ -52,7 +52,6 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
                 where,
                 select: {
                     id: true,
-                    brandName: true,
                     title: true,
                     description: true,
                     minBudget: true,
@@ -74,10 +73,6 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
                                     followerCount: true,
                                     category: true,
                                     verificationStatus: true,
-                                    followerRiskScore: true,
-                                    followerMismatchPercentage: true,
-                                    compositeRiskScore: true,
-                                    riskLevel: true,
                                     user: {
                                         select: { id: true, name: true, avatar: true }
                                     }

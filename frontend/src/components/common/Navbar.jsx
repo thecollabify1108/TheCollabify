@@ -160,14 +160,14 @@ const Navbar = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm md:hidden"
+                            className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-md md:hidden"
                         />
                         
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: -20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                            className="fixed top-24 right-5 z-[100] w-72 bg-dark-950/98 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl flex flex-col p-5 md:hidden"
+                            className="fixed top-24 right-5 z-[100] w-72 bg-dark-950 border border-white/10 rounded-3xl shadow-2xl flex flex-col p-5 md:hidden"
                         >
                             {/* Decorative background glow */}
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary-500/10 blur-3xl rounded-full pointer-events-none" />
