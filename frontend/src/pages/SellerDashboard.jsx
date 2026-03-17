@@ -16,6 +16,7 @@ import QuickStatsBar from '../components/seller/QuickStatsBar';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import CollaborationHub from '../components/common/CollaborationHub';
 import ChatBox from '../components/common/ChatBox';
+import CreatorLeads from '../components/seller/CreatorLeads';
 
 // Lazy-loaded: defers InsightCards API call until dashboard scrolls into view
 const BrandInsightCards = lazy(() => import('../components/analytics/InsightCards').then(m => ({ default: m.BrandInsightCards })));
@@ -57,6 +58,7 @@ const SellerDashboard = () => {
     const [allCreators, setAllCreators] = useState([]);
     const [isCampaignsExpanded, setIsCampaignsExpanded] = useState(false);
     const [pendingCreators, setPendingCreators] = useState([]);
+    const [leadsCount, setLeadsCount] = useState(0);
 
     const fetchData = async () => {
         setLoading(true);
@@ -172,6 +174,13 @@ const SellerDashboard = () => {
         },
         {
             id: 'discover',
+            label: 'Nearby',
+            iconName: 'search',
+            badge: leadsCount > 0 ? leadsCount : undefined,
+            description: 'Creator Leads'
+        },
+        {
+            id: 'applicants',
             label: 'Matches',
             iconName: 'users',
             badge: pendingCreators.length,
@@ -299,21 +308,34 @@ const SellerDashboard = () => {
                                 allCreators={allCreators}
                                 onInvite={(creators) => {
                                     console.log('Inviting creators:', creators);
-                                    toast.success(`Invited ${creators.length} creators!`);
+                                    toast.success('Invitations sent!');
                                 }}
                             />
                         )}
                     </motion.div>
                 )}
 
-                {/* Discover Tab - Swipe Cards Only */}
+                {/* Nearby Leads Tab */}
                 {activeTab === 'discover' && (
                     <motion.div
                         key="discover"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="flex justify-center"
+                        className="p-4"
+                    >
+                        <CreatorLeads brandLocation={user?.brandProfile?.locationCity || ''} />
+                    </motion.div>
+                )}
+
+                {/* Applicants Tab (formerly Matches) */}
+                {activeTab === 'applicants' && (
+                    <motion.div
+                        key="applicants"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="space-y-6"
                     >
                         {/* Swipeable Creator Cards */}
                         <div className="w-full max-w-md">

@@ -24,6 +24,8 @@ import CollaborationStepper from '../components/common/CollaborationStepper';
 const CreatorInsightCards = lazy(() => import('../components/analytics/InsightCards').then(m => ({ default: m.CreatorInsightCards })));
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import { getReliabilityLevel } from '../utils/reliability';
+import CreatorPitchWizard from '../components/creator/CreatorPitchWizard';
+import { availabilityAPI } from '../services/api';
 
 // NEW: Enhanced Components
 import AIAssistantPanel from '../components/common/AIAssistantPanel';
@@ -74,6 +76,8 @@ const CreatorDashboard = () => {
     const [focusMode, setFocusMode] = useState(null);
     const [availabilityStatus, setAvailabilityStatus] = useState('idle');
     const [activeCollab, setActiveCollab] = useState(null);
+    const [activePitch, setActivePitch] = useState(null);
+    const [showPitchWizard, setShowPitchWizard] = useState(false);
 
     const [searchParams] = useSearchParams();
 
@@ -157,10 +161,11 @@ const CreatorDashboard = () => {
                 promotionsPromise = creatorAPI.getPromotions();
                 applicationsPromise = creatorAPI.getApplications();
             }
-            const [profileRes, promotionsRes, applicationsRes] = await Promise.allSettled([
+            const [profileRes, promotionsRes, applicationsRes, pitchRes] = await Promise.allSettled([
                 profilePromise,
                 promotionsPromise,
-                applicationsPromise
+                applicationsPromise,
+                user?.role !== 'seller' && user?.role !== 'brand' ? availabilityAPI.getMy() : Promise.resolve({ data: { data: { campaign: null } } })
             ]);
 
             if (profileRes.status === 'fulfilled') {
@@ -187,6 +192,10 @@ const CreatorDashboard = () => {
                 const freshApplications = applicationsRes.value.data.data.applications;
                 setApplications(freshApplications);
                 setCache('creator_applications', freshApplications);
+            }
+
+            if (pitchRes?.status === 'fulfilled') {
+                setActivePitch(pitchRes.value.data.data.campaign);
             }
         } finally {
             if (!isBackground) {
@@ -279,6 +288,17 @@ const CreatorDashboard = () => {
             setAvailabilityStatus('error');
             setTimeout(() => setAvailabilityStatus('idle'), 2000);
             toast.error('Failed to update availability');
+        }
+    };
+
+    const handleDeletePitch = async () => {
+        if (!activePitch) return;
+        try {
+            await availabilityAPI.delete(activePitch.id);
+            setActivePitch(null);
+            toast.success('Collab Request Deactivated');
+        } catch (error) {
+            toast.error('Failed to deactivate request');
         }
     };
 
@@ -613,6 +633,63 @@ const CreatorDashboard = () => {
                                                 </LoadingButton>
                                             </motion.div>
                                         </FocusWrapper>
+
+                                        {/* Creator Pitch Card */}
+                                        <FocusWrapper sectionId="pitch" currentFocus={focusMode} className="h-full">
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: 0.7 }}
+                                                className={`p-s5 rounded-premium-2xl border backdrop-blur-sm h-full shadow-md transition-all ${
+                                                    activePitch 
+                                                    ? 'bg-emerald-500/5 border-emerald-500/30' 
+                                                    : 'bg-primary-500/5 border-primary-500/20 hover:shadow-glow'
+                                                }`}
+                                            >
+                                                {activePitch ? (
+                                                    <div className="space-y-4">
+                                                        <div className="flex justify-between items-start">
+                                                            <div>
+                                                                <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure flex items-center gap-2">
+                                                                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                                                    Active Lead
+                                                                </h3>
+                                                                <p className="text-[10px] text-dark-400 mt-1 uppercase tracking-widest">{activePitch.locationCity}</p>
+                                                            </div>
+                                                            <button 
+                                                                onClick={handleDeletePitch}
+                                                                className="text-[10px] font-black text-red-400 uppercase tracking-widest hover:text-red-300 transition-colors"
+                                                            >
+                                                                Deactivate
+                                                            </button>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-small text-white">₹{activePitch.collaborationBudgetMin} - ₹{activePitch.collaborationBudgetMax}</span>
+                                                            <span className="text-[10px] font-bold text-dark-500">{activePitch.durationDays} Days</span>
+                                                        </div>
+                                                        <p className="text-[10px] text-dark-400 line-clamp-2 md:line-clamp-1 italic">"{activePitch.description}"</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        <div className="flex items-center gap-s4">
+                                                            <div className="p-s3 rounded-full bg-primary-500/20 text-primary-400 shadow-sm">
+                                                                <HiLightningBolt className="text-h3" />
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="font-bold text-white uppercase tracking-wider text-xs-pure">Raise Pitch</h3>
+                                                                <p className="text-small text-dark-400">Can't find matches? Let brands find you.</p>
+                                                            </div>
+                                                        </div>
+                                                        <LoadingButton
+                                                            onClick={() => setShowPitchWizard(true)}
+                                                            className="w-full py-s2 rounded-premium-lg bg-primary-600 hover:bg-primary-500 text-small font-bold text-white transition-all border-none"
+                                                        >
+                                                            Create Lead
+                                                        </LoadingButton>
+                                                    </div>
+                                                )}
+                                            </motion.div>
+                                        </FocusWrapper>
                                     </div>
                                 </>
                             ) : (
@@ -818,6 +895,24 @@ const CreatorDashboard = () => {
                         conversation={selectedConversation}
                         onClose={() => setSelectedConversation(null)}
                     />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showPitchWizard && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="w-full max-w-2xl bg-dark-900 rounded-premium-2xl overflow-hidden shadow-premium border border-dark-700/50"
+                        >
+                            <CreatorPitchWizard 
+                                onClose={() => setShowPitchWizard(false)} 
+                                onSuccess={() => fetchData(true)}
+                            />
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </DashboardLayout>

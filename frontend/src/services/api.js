@@ -250,6 +250,14 @@ export const platformAPI = {
     getIntelligenceSummary: () => api.get('public/intelligence-summary')
 };
 
+// Availability API
+export const availabilityAPI = {
+    getNearby: (params) => api.get('availability/nearby', { params }),
+    getMy: () => api.get('availability/my'),
+    create: (data) => api.post('availability', data),
+    delete: (id) => api.delete(`availability/${id}`)
+};
+
 // Collaboration API
 export const collaborationAPI = {
     initializeCollaboration: (matchId) => api.post('collaboration/initialize', { matchId }),
