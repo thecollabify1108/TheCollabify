@@ -375,8 +375,9 @@ const Landing = () => {
                                     </div>
                                 </div>
                             </motion.div>
-                        )}
-                    </AnimatePresence>
+                        </>
+                    )}
+                </AnimatePresence>
                 </nav>
 
                 {/* Hero Section - VRInfluence Style */}
