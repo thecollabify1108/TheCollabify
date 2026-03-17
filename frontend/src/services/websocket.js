@@ -10,6 +10,7 @@ class WebSocketService {
         this.isConnected = false;
         this.listeners = new Map();
         this.emitQueue = []; // Queue for events while disconnected
+        this._warned = new Set(); // Track warnings to avoid spam
     }
 
     /**
@@ -17,7 +18,6 @@ class WebSocketService {
      */
     connect(userId, token) {
         if (!userId || !token) {
-            console.warn('⚠️ WebSocket connect blocked: Missing userId or token');
             return null;
         }
 
@@ -101,7 +101,10 @@ class WebSocketService {
      */
     on(event, callback) {
         if (!this.socket) {
-            console.warn('WebSocket not connected. Call connect() first.');
+            if (!this._warned.has('on')) {
+                this._warned.add('on');
+                console.debug('WebSocket: queuing listener, socket not ready yet.');
+            }
             return;
         }
 
@@ -137,7 +140,6 @@ class WebSocketService {
      */
     emit(event, data) {
         if (!this.socket) {
-            console.warn(`⚠️ WebSocket singleton not initialized. Cannot emit: ${event}`);
             return false;
         }
 

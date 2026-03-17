@@ -1035,4 +1035,74 @@ router.post('/upload-portfolio', auth, isCreator, upload.single('image'), async 
     }
 });
 
+/**
+ * @route   GET /api/creators/applications
+ * @desc    Get all campaigns the creator has applied to
+ * @access  Private (Creator)
+ */
+router.get('/applications', auth, async (req, res) => {
+    try {
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId }
+        });
+
+        if (!profile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Creator profile not found. Please create your profile first.'
+            });
+        }
+
+        const matches = await prisma.matchedCreator.findMany({
+            where: {
+                creatorId: profile.id,
+                status: { in: ['APPLIED', 'MATCHED', 'INVITED', 'ACCEPTED', 'REJECTED'] }
+            },
+            include: {
+                promotion: {
+                    select: {
+                        id: true,
+                        title: true,
+                        brandName: true,
+                        description: true,
+                        minBudget: true,
+                        maxBudget: true,
+                        promotionType: true,
+                        targetCategory: true,
+                        minFollowers: true,
+                        maxFollowers: true,
+                        status: true,
+                        createdAt: true,
+                        seller: {
+                            select: { name: true, avatar: true }
+                        }
+                    }
+                }
+            },
+            orderBy: { appliedAt: 'desc' }
+        });
+
+        const applications = matches.map(m => ({
+            id: m.id,
+            promotionId: m.promotionId,
+            status: m.status,
+            matchScore: m.matchScore,
+            appliedAt: m.appliedAt,
+            respondedAt: m.respondedAt,
+            promotion: m.promotion
+        }));
+
+        res.json({
+            success: true,
+            data: { applications }
+        });
+    } catch (error) {
+        console.error('Get creator applications error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get applications'
+        });
+    }
+});
+
 module.exports = router;

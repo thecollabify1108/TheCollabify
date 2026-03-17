@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HiLocationMarker, HiCurrencyRupee, HiCalendar, HiSparkles, HiX } from 'react-icons/hi';
+import { HiLocationMarker, HiCurrencyRupee, HiCalendar, HiSparkles, HiX, HiLightningBolt } from 'react-icons/hi';
 import { availabilityAPI } from '../../services/api';
 import toast from 'react-hot-toast';
 
