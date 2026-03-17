@@ -379,8 +379,8 @@ router.put('/profile', auth, isCreator, [
             });
         }
 
-        // ── EDIT THROTTLE: only if profile is 100% complete ──────────────────────────
-        // Limitation starts once profile is 100% complete, then twice a week (every 3 days).
+        // ── EDIT THROTTLE: REMOVED FOR EVENT ──────────────────────────
+        /*
         if (profile.profileCompletionPercentage >= 100 && profile.profileLastEditedAt) {
             const daysSinceEdit = (Date.now() - new Date(profile.profileLastEditedAt).getTime()) / (1000 * 60 * 60 * 24);
             if (daysSinceEdit < 3) {
@@ -392,6 +392,7 @@ router.put('/profile', auth, isCreator, [
                 });
             }
         }
+        */
 
         // Update fields
         const updateData = { profileLastEditedAt: new Date() };
@@ -429,8 +430,9 @@ router.put('/profile', auth, isCreator, [
 
         if (req.body.location !== undefined) updateData.location = req.body.location;
 
-        // ── FOLLOWER RANGE THROTTLE ───────────────
+        // ── FOLLOWER RANGE THROTTLE: REMOVED FOR EVENT ───────────────
         if (req.body.followerRange !== undefined) {
+            /*
             // Only throttle follower range changes for completed profiles
             if (profile.profileCompletionPercentage >= 100 && profile.followerRangeChangedAt) {
                 const daysSinceChange = (Date.now() - new Date(profile.followerRangeChangedAt).getTime()) / (1000 * 60 * 60 * 24);
@@ -443,6 +445,7 @@ router.put('/profile', auth, isCreator, [
                     });
                 }
             }
+            */
             
             let followerRangeEnum;
             let count = 0;
