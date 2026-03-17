@@ -247,9 +247,6 @@ const SellerDashboard = () => {
             }}
             tabs={tabs}
         >
-            {/* Early Bird Banner */}
-            <EarlyBirdBanner />
-
             {/* Collaboration Hub Modal */}
             <AnimatePresence>
                 {activeCollabMatch && (

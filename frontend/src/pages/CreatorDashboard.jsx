@@ -424,7 +424,6 @@ const CreatorDashboard = () => {
             setActiveTab={setActiveTab}
             tabs={tabs}
         >
-            <EarlyBirdBanner />
             <Suspense fallback={<div className="flex items-center justify-center py-12"><Skeleton className="w-full h-64" /></div>}>
                 <AnimatePresence mode="wait">
 
