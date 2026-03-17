@@ -910,7 +910,7 @@ const CreatorDashboard = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="w-full max-w-2xl bg-dark-900 rounded-premium-2xl overflow-hidden shadow-premium border border-dark-700/50"
+                            className="w-full max-w-2xl bg-dark-900 rounded-premium-2xl overflow-y-auto max-h-[90vh] shadow-premium border border-dark-700/50"
                         >
                             <CreatorPitchWizard 
                                 onClose={() => setShowPitchWizard(false)} 
