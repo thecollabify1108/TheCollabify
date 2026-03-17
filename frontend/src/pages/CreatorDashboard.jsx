@@ -501,7 +501,12 @@ const CreatorDashboard = () => {
                                                 </div>
 
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                                    {applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted').length === 0 ? (
+                                                    {(() => {
+                                                        const activeCollabs = applications.filter(app => app.applicationStatus === 'ACCEPTED' || app.status === 'Accepted');
+                                                        // Deduplicate by promotion ID
+                                                        const uniqueCollabs = Array.from(new Map(activeCollabs.map(item => [item.promotion?.id, item])).values());
+                                                        
+                                                        return uniqueCollabs.length === 0 ? (
                                                         <div className="md:col-span-2 p-12 rounded-[2rem] bg-dark-800/20 border border-white/5 flex flex-col items-center justify-center text-center backdrop-blur-md">
                                                             <div className="w-16 h-16 rounded-full bg-dark-700/30 flex items-center justify-center mb-6 border border-white/5">
                                                                 <FaHandshake className="text-3xl text-dark-500" />
@@ -547,7 +552,7 @@ const CreatorDashboard = () => {
                                                                 </div>
                                                             </motion.div>
                                                         ))
-                                                    )}
+                                                    })()}
                                                 </div>
 
                                                 {/* Earnings overview (moved lower) */}
@@ -853,10 +858,7 @@ const CreatorDashboard = () => {
             <QuickActionsFAB
                 userRole="creator"
                 onBrowse={() => setActiveTab('opportunities')}
-                onQuickApply={() => {
-                    setActiveTab('opportunities');
-                    toast.success('Browse opportunities below to apply!');
-                }}
+                onPitch={() => setShowPitchWizard(true)}
             />
 
             <AIAssistantPanel

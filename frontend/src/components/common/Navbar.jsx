@@ -51,9 +51,9 @@ const Navbar = () => {
     };
 
     return (
-        <nav className={`sticky top-3 z-50 mx-3 sm:mx-4 lg:mx-6 rounded-2xl border transition-all duration-300 ${scrolled
-            ? 'bg-dark-950/95 backdrop-blur-2xl border-dark-700 shadow-lg shadow-primary-500/5'
-            : 'bg-dark-950/70 backdrop-blur-xl border-dark-800'
+        <nav className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${scrolled
+            ? 'bg-dark-950/95 backdrop-blur-2xl border-dark-700 shadow-lg shadow-primary-500/5 py-1'
+            : 'bg-dark-950/80 backdrop-blur-xl border-dark-800/50 py-3'
             }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
@@ -167,7 +167,7 @@ const Navbar = () => {
                             initial={{ opacity: 0, scale: 0.9, y: -20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                            className="fixed top-24 right-5 z-[100] w-72 bg-dark-900/95 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl flex flex-col p-6 md:hidden"
+                            className="fixed top-24 right-5 z-[100] w-72 bg-dark-950/98 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl flex flex-col p-5 md:hidden"
                         >
                             {/* Decorative background glow */}
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary-500/10 blur-3xl rounded-full pointer-events-none" />

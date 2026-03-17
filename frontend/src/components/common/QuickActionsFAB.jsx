@@ -10,20 +10,20 @@ import Icon from './Icon';
  * @param {Function} onQuickApply - Handler for quick apply (creators only)
  * @param {Function} onCreateCampaign - Handler for create campaign (sellers only)
  */
-const QuickActionsFAB = ({ userRole, onBrowse, onQuickApply, onCreateCampaign }) => {
+const QuickActionsFAB = ({ userRole, onBrowse, onPitch, onCreateCampaign }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     const creatorActions = [
         {
             icon: <Icon name="search" size={20} />,
-            label: 'Browse',
+            label: 'Opportunities',
             action: onBrowse,
             bg: 'bg-primary-500'
         },
         {
-            icon: <Icon name="plus" size={20} />,
-            label: 'Quick Apply',
-            action: onQuickApply,
+            icon: <Icon name="sparkles" size={20} />,
+            label: 'Raise Request',
+            action: onPitch,
             bg: 'bg-emerald-500'
         }
     ];

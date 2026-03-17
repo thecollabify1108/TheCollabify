@@ -218,7 +218,7 @@ const Landing = () => {
                     <div className="max-w-7xl mx-auto px-s2 sm:px-s3 lg:px-s4">
                         <div className="flex items-center justify-between h-16">
                             {/* Logo — centered on mobile, left on desktop */}
-                            <Link to="/" className="flex items-center gap-2 group absolute left-1/2 -translate-x-1/2 lg:static lg:left-auto lg:translate-x-0">
+                            <Link to="/" className="flex items-center gap-2 group relative lg:relative lg:left-auto lg:translate-x-0">
                                 <Logo className="h-7 w-7 object-contain transition-all duration-300 group-hover:rotate-12 group-hover:scale-110 flex-shrink-0" />
                                 <div className="flex items-baseline leading-none">
                                     <span className="text-small italic text-dark-100">The</span>
@@ -253,7 +253,7 @@ const Landing = () => {
                             </div>
 
                             {/* Mobile Right Side */}
-                            <div className="flex lg:hidden items-center space-x-s1 ml-auto">
+                            <div className="flex lg:hidden items-center space-x-s1 ml-auto relative z-10">
                                 <div className="scale-90 origin-right">
                                     <ThemeToggle />
                                 </div>
@@ -277,12 +277,21 @@ const Landing = () => {
                     {/* Mobile Menu Overlay */}
                     <AnimatePresence>
                         {mobileMenuOpen && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.3 }}
-                                className="fixed inset-0 z-[100] bg-dark-950 flex flex-col pt-24 px-8"
+                            <>
+                                {/* Backdrop to close menu */}
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="fixed inset-0 z-[90] bg-black/40 backdrop-blur-sm lg:hidden"
+                                />
+                                <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: -20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                                transition={{ duration: 0.2 }}
+                                className="fixed top-24 right-5 z-[100] w-72 bg-dark-950/98 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl flex flex-col p-6 lg:hidden"
                             >
                                 {/* Decorative Background Elements */}
                                 <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary-500/10 blur-[120px] rounded-full pointer-events-none" />
@@ -998,7 +1007,7 @@ const Landing = () => {
 
                 {/* Product Roadmap Section */}
                 <section id="roadmap" className="py-10 md:py-14 px-s2 relative bg-dark-900/30 border-t border-dark-800/50">
-                    <div className="max-w-5xl mx-auto">
+                    <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-8">
                             <span className="text-primary-400 text-xs-pure font-bold tracking-widest uppercase mb-2 block">What's Coming</span>
                             <motion.h2 className="text-xl md:text-h1 font-bold mb-2 text-dark-100" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
@@ -1042,8 +1051,7 @@ const Landing = () => {
                     </div>
                 </section>
 
-                {/* Leaderboard Section */}
-                <Leaderboard />
+                {/* Leaderboard Section Removed */}
 
                 {/* Testimonials Carousel - Hidden until real testimonials are collected */}
                 {/* <TestimonialsCarousel /> */}

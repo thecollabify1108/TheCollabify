@@ -597,6 +597,8 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
         // Map response
         const promotionsWithStatus = promotions.map(promo => ({
             ...promo,
+            budgetRange: { min: promo.minBudget, max: promo.maxBudget },
+            followerRange: { min: promo.minFollowers, max: promo.maxFollowers },
             hasApplied: promo.matchedCreators.length > 0 && promo.matchedCreators[0].status === 'APPLIED'
         }));
 
@@ -685,8 +687,8 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
             await prisma.matchedCreator.create({
                 data: {
                     promotionId: promotion.id,
-                    creatorId: req.userId,
-                    matchScore: (profile.insights && profile.insights.score) || 50,
+                    creatorId: profile.id,
+                    matchScore: (profile.aiScore) || 50,
                     matchReason: `Applied by creator. ${profile.category} specialist with ${profile.followerCount} followers.`,
                     status: 'APPLIED',
                     appliedAt: new Date()
@@ -792,8 +794,7 @@ router.get('/applications', auth, isCreator, userCacheMiddleware(30), async (req
                     title: promo.title,
                     description: promo.description,
                     promotionType: promo.promotionType,
-                    minBudget: promo.minBudget,
-                    maxBudget: promo.maxBudget,
+                    budgetRange: { min: promo.minBudget, max: promo.maxBudget },
                     campaignGoal: promo.campaignGoal,
                     status: promo.status,
                     seller: promo.seller

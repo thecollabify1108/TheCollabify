@@ -442,22 +442,6 @@ const SellerDashboard = () => {
                                 delay={0.1}
                             />
                             <StatCard
-                                label="Active Campaigns"
-                                value={stats.active}
-                                icon={<HiViewGrid />}
-                                color="blue"
-                                trend={0}
-                                delay={0.2}
-                            />
-                            <StatCard
-                                label="Pending Applicants"
-                                value={stats.pending}
-                                icon={<HiUserGroup />}
-                                color="purple"
-                                trend={0}
-                                delay={0.3}
-                            />
-                            <StatCard
                                 label="Total Matches"
                                 value={stats.totalMatches}
                                 icon={<HiSparkles />}
@@ -536,14 +520,8 @@ const SellerDashboard = () => {
                                                                             {request.title || 'Untitled Campaign'}
                                                                         </h3>
                                                                         <div className="flex items-center gap-2 mt-1">
-                                                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
-                                                                                request.status === 'Open' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
-                                                                                'bg-dark-700/50 text-dark-300 border-dark-600/30'
-                                                                            }`}>
-                                                                                {request.status}
-                                                                            </span>
                                                                             <span className="text-[10px] font-medium text-dark-400 uppercase tracking-widest">
-                                                                                • ₹{(request.maxBudget || request.minBudget || 0).toLocaleString()}
+                                                                                ₹{(request.maxBudget || request.minBudget || 0).toLocaleString()}
                                                                             </span>
                                                                         </div>
                                                                     </div>
