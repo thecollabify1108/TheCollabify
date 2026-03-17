@@ -202,7 +202,8 @@ router.get('/nearby', auth, isSeller, userCacheMiddleware(120), [
                             minPrice: true,
                             maxPrice: true,
                             bio: true,
-                            user: { select: { name: true, avatar: true } }
+                            user: { select: { id: true, name: true, avatar: true } },
+                            userId: true
                         }
                     }
                 },

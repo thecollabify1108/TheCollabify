@@ -20,7 +20,7 @@ const CreatorLeads = ({ brandLocation = '' }) => {
         setLoading(true);
         try {
             const res = await availabilityAPI.getNearby({ 
-                locationCity: filter.location,
+                city: filter.location,
                 niche: filter.niche 
             });
             setLeads(res.data.data.campaigns || []);
