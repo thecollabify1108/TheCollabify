@@ -1,0 +1,41 @@
+Γ£à Sentry module loaded
+Γ£à Swagger loaded
+≡ƒöì [Startup] Validating environment...
+
+ΓÜá∩╕Å  MISSING RECOMMENDED ENV VARS (features will degrade gracefully):
+Γ£à All critical environment variables are set
+   - NEW_RELIC_LICENSE_KEY not set ΓÇö New Relic License Key (APM monitoring disabled if missing)
+
+Γ£à [Startup] Environment validated
+Γ£à Process-level error handlers initialized
+≡ƒöì [Startup] Port configured: 5000
+[Sentry] express is not instrumented. This is likely because you required/imported express before calling `Sentry.init()`.
+Γ£à Sentry initialized (v10 compatibility mode)
+Γä╣∩╕Å  Redis disabled ΓÇö using in-memory fallbacks
+[Stripe Webhook] STRIPE_SECRET_KEY missing ΓÇö webhook will reject events.
+Γ£à Stripe webhook route registered
+Warning: connect.session() MemoryStore is not
+designed for a production environment, as it will leak
+memory, and will not scale past a single process.
+Γ£à Google OAuth configured
+Γ£à Passport initialized
+ΓÜá∩╕Å  Cloudinary env vars missing ΓÇö file uploads disabled (set CLOUDINARY_CLOUD_NAME, API_KEY, API_SECRET)
+Γ£à Brevo Email Service initialized
+creators route failed: Cannot set properties of undefined (setting 'message')
+ΓÜá∩╕Å  STRIPE_SECRET_KEY missing. Payment services will be restricted.
+≡ƒöä Loading modules...
+Γ£à Socket.io loaded
+Γ£à Prisma loaded
+New Relic for Node.js halted startup due to an error:
+Error: Not starting without license key!
+    at C:\Users\sukhv\project 2\backend\node_modules\newrelic\lib\agent.js:369:18
+    at HealthReporter.stop (C:\Users\sukhv\project 2\backend\node_modules\newrelic\lib\health-reporter.js:229:15)
+    at onNextTick (C:\Users\sukhv\project 2\backend\node_modules\newrelic\lib\agent.js:368:28)
+    at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+Γ£à Server listening on port 5000
+Γ£à Prisma DB connection warmed up
+Γ£à Database connected
+≡ƒÜÇ Full initialization complete!
+Γ£à [AdminSeed] Admin account already exists ΓÇö skipping
+Γä╣∩╕Å  Background schedulers disabled (set ENABLE_BACKGROUND_JOBS=true to enable)
+Γ£à Socket.io initialized

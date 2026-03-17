@@ -359,8 +359,9 @@ router.post('/profile', auth, isCreator, [
  * @desc    Update creator profile
  * @access  Private (Creator)
  */
+// Use existing handleValidation from line 114
 router.put('/profile', auth, isCreator, [
-    body('followerRange').optional().withMessage('Invalid follower range'),
+    body('followerRange').optional(),
     body('engagementRate').optional().isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
     body('priceRange.min').optional().isFloat({ min: 0 }).withMessage('Minimum price must be positive'),
     body('priceRange.max').optional().isFloat({ min: 0 }).withMessage('Maximum price must be positive'),
