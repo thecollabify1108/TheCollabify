@@ -250,7 +250,7 @@ const ProfileForm = ({ profile, onSave }) => {
                             className="input-field"
                             min="0"
                             max="100"
-                            step="0.1"
+                            step="any"
                             required
                         />
                     </div>
@@ -385,7 +385,7 @@ const ProfileForm = ({ profile, onSave }) => {
                         <div>
                             <span className="text-xs text-dark-400 mb-1 block">Minimum Charge</span>
                             <input
-                                type="number"
+                                type="number" step="any"
                                 name="priceRange.min"
                                 value={formData.priceRange?.min || ''}
                                 onChange={handleChange}
@@ -397,7 +397,7 @@ const ProfileForm = ({ profile, onSave }) => {
                         <div>
                             <span className="text-xs text-dark-400 mb-1 block">Maximum / Preferred</span>
                             <input
-                                type="number"
+                                type="number" step="any"
                                 name="priceRange.max"
                                 value={formData.priceRange?.max || ''}
                                 onChange={handleChange}

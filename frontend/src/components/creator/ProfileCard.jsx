@@ -84,7 +84,11 @@ const ProfileCard = ({ profile, onEdit }) => {
                             <HiUserGroup className="text-blue-400" />
                             <span className="text-xs text-dark-400">Followers</span>
                         </div>
-                        <div className="text-2xl font-bold text-dark-100">{formatNumber(profile.followerCount)}</div>
+                        <div className="text-2xl font-bold text-dark-100">
+                            {profile.followerRange?.max ? 
+                                `${formatNumber(profile.followerRange.min)} - ${formatNumber(profile.followerRange.max)}` 
+                                : formatNumber(profile.followerCount)}
+                        </div>
                     </div>
                     <div className="p-4 rounded-xl bg-dark-800/40 border border-dark-700/50">
                         <div className="flex items-center gap-2 mb-2">
@@ -136,8 +140,8 @@ const ProfileCard = ({ profile, onEdit }) => {
                     </div>
                 )}
 
-                {/* Instagram URL */}
-                {profile.instagramProfileUrl && (
+                {/* Instagram URL - Hidden from public */}
+                {profile.instagramProfileUrl && (authUser?.role === 'ADMIN' || authUser?.id === profile.userId) && (
                     <div className="mb-6">
                         <h4 className="text-sm font-semibold text-dark-300 mb-3">Instagram Profile</h4>
                         <a
@@ -147,7 +151,7 @@ const ProfileCard = ({ profile, onEdit }) => {
                             className="flex items-center gap-2 text-primary-400 hover:text-primary-300 transition-colors"
                         >
                             <FaInstagram />
-                            <span className="text-sm">View Profile</span>
+                            <span className="text-sm">View Profile (Hidden from public)</span>
                         </a>
                     </div>
                 )}

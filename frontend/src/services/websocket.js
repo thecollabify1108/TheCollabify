@@ -16,6 +16,11 @@ class WebSocketService {
      * Connect to WebSocket server
      */
     connect(userId, token) {
+        if (!userId || !token) {
+            console.warn('⚠️ WebSocket connect blocked: Missing userId or token');
+            return null;
+        }
+
         if (this.socket?.connected) return this.socket;
         
         if (this.isConnecting) {

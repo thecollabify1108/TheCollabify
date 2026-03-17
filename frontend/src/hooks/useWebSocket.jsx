@@ -16,11 +16,7 @@ const useWebSocket = (userId) => {
         // WebSocket requires an explicit token — skip connection if none available
         const token = localStorage.getItem('token');
         if (!userId || !token) {
-            // No user or no explicit token — cannot authenticate WebSocket
-            webSocketService.disconnect();
-            setIsConnected(false);
-            setNotifications([]);
-            setOnlineUsers(new Set());
+            // Wait for user or token to become available
             return;
         }
 

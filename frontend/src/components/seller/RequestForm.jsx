@@ -165,7 +165,7 @@ const RequestForm = ({ onSubmit }) => {
                         <div className="relative">
                             <FaRupeeSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
                             <input
-                                type="number"
+                                type="number" step="any"
                                 name="budgetRange.min"
                                 value={formData.budgetRange.min}
                                 onChange={handleChange}
@@ -178,7 +178,7 @@ const RequestForm = ({ onSubmit }) => {
                         <div className="relative">
                             <FaRupeeSign className="absolute left-4 top-1/2 transform -translate-y-1/2 text-dark-400" />
                             <input
-                                type="number"
+                                type="number" step="any"
                                 name="budgetRange.max"
                                 value={formData.budgetRange.max}
                                 onChange={handleChange}

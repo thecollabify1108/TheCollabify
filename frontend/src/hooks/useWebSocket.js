@@ -44,13 +44,6 @@ const useWebSocket = (user) => {
         // Request initial online users list
         webSocketService.getOnlineUsers();
 
-        // Cleanup on unmount
-        return () => {
-            if (hasConnected.current) {
-                webSocketService.disconnect();
-                hasConnected.current = false;
-            }
-        };
     }, [user]);
 
     return {

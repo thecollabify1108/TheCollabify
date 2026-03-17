@@ -197,13 +197,13 @@ const Step2 = ({ data, setData }) => (
             </label>
             <div className="grid grid-cols-2 gap-4">
                 <input
-                    type="number" placeholder="Min" min="0"
+                    type="number" step="any" placeholder="Min" min="0"
                     value={data.priceRange?.min || ''}
                     onChange={(e) => setData(d => ({ ...d, priceRange: { ...d.priceRange, min: e.target.value } }))}
                     className="input-field font-black"
                 />
                 <input
-                    type="number" placeholder="Max" min="0"
+                    type="number" step="any" placeholder="Max" min="0"
                     value={data.priceRange?.max || ''}
                     onChange={(e) => setData(d => ({ ...d, priceRange: { ...d.priceRange, max: e.target.value } }))}
                     className="input-field font-black"
@@ -337,7 +337,7 @@ const Step3 = ({ data, setData }) => (
                 <FaChartLine className="inline mr-1 text-emerald-400" /> Engagement Rate (%)
             </label>
             <input
-                type="number" placeholder="e.g. 4.5" min="0" max="100" step="0.1"
+                type="number" placeholder="e.g. 4.5" min="0" max="100" step="any"
                 value={data.engagementRate || ''}
                 onChange={(e) => setData(d => ({ ...d, engagementRate: e.target.value }))}
                 className="input-field"
