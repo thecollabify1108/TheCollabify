@@ -183,9 +183,11 @@ const CreatorDashboard = () => {
             }
 
             if (promotionsRes.status === 'fulfilled') {
-                const freshPromotions = promotionsRes.value.data.data.promotions;
-                setPromotions(freshPromotions);
-                setCache('creator_promotions', freshPromotions);
+                const rawPromotions = promotionsRes.value.data.data.promotions;
+                // Deduplicate by ID to prevent duplicate campaign cards
+                const uniquePromotions = Array.from(new Map(rawPromotions.map(p => [p.id, p])).values());
+                setPromotions(uniquePromotions);
+                setCache('creator_promotions', uniquePromotions);
             }
 
             if (applicationsRes.status === 'fulfilled') {

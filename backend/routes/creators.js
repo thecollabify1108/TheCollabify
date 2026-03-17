@@ -562,6 +562,7 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
                 },
                 select: {
                     id: true,
+                    brandName: true,
                     title: true,
                     description: true,
                     minBudget: true,

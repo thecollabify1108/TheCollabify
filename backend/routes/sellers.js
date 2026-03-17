@@ -52,6 +52,7 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
                 where,
                 select: {
                     id: true,
+                    brandName: true,
                     title: true,
                     description: true,
                     minBudget: true,
@@ -120,6 +121,7 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
  */
 router.post('/requests', auth, isSeller, [
     body('title').trim().isLength({ min: 5, max: 100 }).withMessage('Title must be between 5 and 100 characters'),
+    body('brandName').optional().trim().isLength({ max: 50 }).withMessage('Brand name must be less than 50 characters'),
     body('description').trim().isLength({ min: 20, max: 1000 }).withMessage('Description must be between 20 and 1000 characters'),
     body('budgetRange.min').isFloat({ min: 0 }).withMessage('Minimum budget must be positive'),
     body('budgetRange.max').isFloat({ min: 0 }).withMessage('Maximum budget must be positive'),
@@ -142,6 +144,7 @@ router.post('/requests', auth, isSeller, [
     try {
         const {
             title,
+            brandName,
             description,
             budgetRange,
             promotionType,
@@ -181,6 +184,7 @@ router.post('/requests', auth, isSeller, [
         const request = await prisma.promotionRequest.create({
             data: {
                 sellerId: req.userId,
+                brandName,
                 title,
                 description,
                 minBudget: budgetRange.min,

@@ -17,6 +17,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
     const [showTemplates, setShowTemplates] = useState(false);
     const [formData, setFormData] = useState({
         title: initialData?.title || '',
+        brandName: initialData?.brandName || '',
         description: initialData?.description || '',
         promotionType: initialData?.promotionType || ['Post'], // Support multiple
         minBudget: initialData?.minBudget || '',
@@ -105,6 +106,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
 
         const payload = {
             title: formData.title,
+            brandName: formData.brandName,
             description: formData.description,
             promotionType: promotionTypeFormatted,
             targetCategory: formData.targetNiche,
@@ -259,6 +261,19 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                         placeholder="e.g., Summer Fashion Collection"
                                         className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500/80 focus:ring-1 focus:ring-primary-500/50 focus:outline-none transition-all shadow-inner text-sm"
                                         autoFocus
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-dark-300 mb-2 uppercase tracking-wider">
+                                        Brand Name <span className="text-red-400">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.brandName}
+                                        onChange={(e) => setFormData({ ...formData, brandName: e.target.value })}
+                                        placeholder="e.g., Zara, Nike, Myntra"
+                                        className="w-full px-4 py-2.5 bg-dark-800/80 border border-dark-700 rounded-xl text-white placeholder-dark-500 focus:border-primary-500/80 focus:ring-1 focus:ring-primary-500/50 focus:outline-none transition-all shadow-inner text-sm"
                                     />
                                 </div>
 

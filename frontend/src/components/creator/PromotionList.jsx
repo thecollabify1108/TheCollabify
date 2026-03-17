@@ -8,7 +8,6 @@ import UrgencyBadge from '../common/UrgencyBadge';
 import { trackMatchFeedback } from '../../services/feedback';
 
 const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComplete = false }) => {
-    const [expandedId, setExpandedId] = useState(null);
 
     if (!promotions || promotions.length === 0) {
         if (profileComplete) {
@@ -52,7 +51,9 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between">
                             <div className="flex-1">
                                 <div className="flex items-center flex-wrap gap-2 mb-2">
-                                    <h3 className="text-lg font-semibold text-dark-100">{promotion.title}</h3>
+                                    <h3 className="text-lg font-semibold text-dark-100">
+                                        {promotion.brandName ? `${promotion.brandName} - ${promotion.title}` : promotion.title}
+                                    </h3>
                                     <span className={`badge ${promotion.status === 'Open' ? 'badge-success' :
                                         promotion.status === 'Creator Interested' ? 'badge-warning' :
                                             'badge-neutral'
@@ -76,9 +77,11 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
                                     {promotion.description?.substring(0, 200)}...
                                 </p>
 
-                                <div className="flex flex-wrap gap-3 mb-4">
-                                    <span className="badge badge-info">{promotion.promotionType}</span>
-                                    <span className="badge badge-neutral">{promotion.targetCategory}</span>
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {(Array.isArray(promotion.promotionType) ? promotion.promotionType : [promotion.promotionType]).map((type, idx) => (
+                                        <span key={idx} className="badge badge-info">{type}</span>
+                                    ))}
+                                    <span className="badge badge-neutral">{Array.isArray(promotion.targetCategory) ? promotion.targetCategory.join(', ') : promotion.targetCategory}</span>
                                     <span className="badge badge-neutral">{promotion.campaignGoal}</span>
                                 </div>
 
@@ -121,30 +124,10 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
 
                             {/* Action Buttons */}
                             <div className="mt-4 md:mt-0 md:ml-6 flex flex-col gap-2">
-                                <button
-                                    onClick={() => {
-                                        const isExpanding = expandedId !== promotion.id;
-                                        setExpandedId(isExpanding ? promotion.id : null);
-                                        if (isExpanding) {
-                                            trackMatchFeedback({
-                                                targetUserId: promotion.sellerId?.id || promotion.sellerId,
-                                                action: 'CLICKED',
-                                                source: 'promotion_list',
-                                                matchId: promotion.id,
-                                                meta: { type: 'ai_insights' }
-                                            });
-                                        }
-                                    }}
-                                    className="btn-outline flex items-center justify-center text-sm"
-                                >
-                                    <FaChartLine className="mr-2" />
-                                    {expandedId === promotion.id ? 'Hide Insights' : 'AI Insights'}
-                                </button>
-
                                 {promotion.hasApplied ? (
                                     <button
                                         disabled
-                                        className="btn-secondary flex items-center justify-center opacity-75 cursor-not-allowed"
+                                        className="btn-secondary flex items-center justify-center opacity-75 cursor-not-allowed w-full md:w-auto"
                                     >
                                         <FaCheckCircle className="mr-2" />
                                         Applied
@@ -152,40 +135,13 @@ const PromotionList = ({ promotions, onApply, creatorProfile = null, profileComp
                                 ) : (
                                     <button
                                         onClick={() => onApply(promotion.id)}
-                                        className="btn-3d flex items-center justify-center"
+                                        className="btn-3d flex items-center justify-center w-full md:w-auto"
                                     >
                                         Apply Now
                                     </button>
                                 )}
                             </div>
                         </div>
-
-                        {/* AI Insights Expansion */}
-                        <AnimatePresence>
-                            {expandedId === promotion.id && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden mt-4 pt-4 border-t border-dark-700"
-                                >
-                                    <PredictiveAnalyticsWidget
-                                        campaignData={{
-                                            budget: promotion.budgetRange?.max || 5000,
-                                            creatorFollowers: creatorProfile?.followerCount || promotion.followerRange?.max || 50000,
-                                            creatorEngagementRate: creatorProfile?.engagementRate || 3.5,
-                                            promotionType: promotion.promotionType,
-                                            category: promotion.targetCategory,
-                                            duration: 14
-                                        }}
-                                        creatorProfile={{
-                                            followers: creatorProfile?.followerCount || 50000,
-                                            avgEngagementRate: creatorProfile?.engagementRate || 3.5
-                                        }}
-                                    />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </motion.div>
                 ))}
             </div>
