@@ -435,9 +435,7 @@ model MatchOutcome {
   timeline       Json
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  matchedCreator MatchedCreator @relation(fields: [matchId], references: [id])
-
-  @@index([status])
+  matchedCreator MatchedCreator @relation(fields: [matchId], references: [id], onDelete: Cascade)
 }
 
 model Collaboration {

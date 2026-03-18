@@ -204,7 +204,7 @@ router.post('/requests', auth, isSeller, [
             await prisma.matchedCreator.createMany({
                 data: matchedCreatorsResults.map(match => ({
                     promotionId: request.id,
-                    creatorId: match.creatorId,
+                    creatorId: match.id,  // Fixed: use match.id not match.creatorId
                     matchScore: match.matchScore,
                     matchReason: match.matchReason,
                     status: 'MATCHED'

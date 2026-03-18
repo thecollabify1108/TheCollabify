@@ -8,7 +8,7 @@ exports.config = {
     /**
      * Your New Relic license key.
      */
-    license_key: process.env.NEW_RELIC_LICENSE_KEY,
+    license_key: process.env.NEW_RELIC_LICENSE_KEY || 'disabled-in-development',
     logging: {
         /**
          * Level at which to log. 'info' is default, 'debug' is helpful for troubleshooting.
