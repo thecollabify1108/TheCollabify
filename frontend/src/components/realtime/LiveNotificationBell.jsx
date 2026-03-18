@@ -76,11 +76,9 @@ const LiveNotificationBell = ({ userId }) => {
                     <>
                         {/* Backdrop - closes on any outside click */}
                         <div
-                            className="fixed inset-0 z-[55] bg-transparent"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setIsOpen(false);
-                            }}
+                            className="fixed inset-0 z-[55] bg-black/20"
+                            onClick={() => setIsOpen(false)}
+                            role="presentation"
                         />
 
                         {/* Dropdown - Adjusted w-[90vw] for mobile to prevent overflow, and right align fix */}

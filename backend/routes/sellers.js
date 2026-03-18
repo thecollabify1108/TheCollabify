@@ -221,11 +221,11 @@ router.post('/requests', auth, isSeller, [
         if (creatorsToNotify.length > 0) {
             // Batch-fetch all creator profiles in one query
             prisma.creatorProfile.findMany({
-                where: { id: { in: creatorsToNotify.map(m => m.creatorId) } },
+                where: { id: { in: creatorsToNotify.map(m => m.id) } },
                 include: { user: { select: { id: true, name: true, email: true } } }
             }).then(creators => {
                 return Promise.allSettled(creators.filter(c => c?.user).map(creator => {
-                    const match = creatorsToNotify.find(m => m.creatorId === creator.id);
+                    const match = creatorsToNotify.find(m => m.id === creator.id);
                     return Promise.allSettled([
                         notifyCreatorNewMatch(creator.user.id, request, match?.matchScore || 0),
                         sendNewMatchEmail(creator.user.email, creator.user.name, request.title, match?.matchScore || 0, request.targetCategory)

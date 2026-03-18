@@ -268,7 +268,7 @@ router.post('/message-request', auth, async (req, res) => {
                 creatorUserId: creatorId,
                 creatorProfileId: creatorProfile.id,
                 status: 'PENDING',
-                lastMessage: 'Message request sent'
+                lastMessageContent: 'Message request sent'
             },
             include: {
                 seller: { select: { id: true, name: true, email: true } },
