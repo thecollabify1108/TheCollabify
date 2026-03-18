@@ -195,8 +195,13 @@ router.post('/requests', auth, isSeller, [
             data: requestData
         });
 
-        // Find matching creators using AI matching service
-        const matchedCreatorsResults = await findMatchingCreators(request);
+        // Find matching creators using AI matching service (fail-safe to avoid blocking request creation)
+        let matchedCreatorsResults = [];
+        try {
+            matchedCreatorsResults = await findMatchingCreators(request);
+        } catch (err) {
+            console.error('findMatchingCreators failed (continuing without matches):', err.message);
+        }
 
         // Store matched creators in batch (single query instead of N individual creates)
         let matchedCreators = [];

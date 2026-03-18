@@ -18,7 +18,7 @@ const AdminUsers = () => {
     const [verificationLoading, setVerificationLoading] = useState(false);
     const [statusFilter, setStatusFilter] = useState('');
     const [expandedCreator, setExpandedCreator] = useState(null);
-    const [verifyForm, setVerifyForm] = useState({ min: '', max: '' });
+    const [verifyForm, setVerifyForm] = useState({ followers: '', engagement: '' });
     const [verifying, setVerifying] = useState(false);
     const [recalculating, setRecalculating] = useState(null);
 
@@ -55,30 +55,33 @@ const AdminUsers = () => {
     };
 
     const handleVerify = async (creatorId) => {
-        const min = parseInt(verifyForm.min);
-        const max = parseInt(verifyForm.max);
-        if (isNaN(min) || isNaN(max) || min < 0 || max < 0) {
-            toast.error('Enter valid follower numbers');
+        const followers = parseInt(verifyForm.followers);
+        const engagement = verifyForm.engagement !== '' ? parseFloat(verifyForm.engagement) : null;
+
+        if (isNaN(followers) || followers < 0) {
+            toast.error('Enter a valid follower count');
             return;
         }
-        if (max < min) {
-            toast.error('Max must be >= Min');
+        if (engagement !== null && (isNaN(engagement) || engagement < 0 || engagement > 100)) {
+            toast.error('Engagement must be between 0 and 100');
             return;
         }
+
         try {
             setVerifying(true);
             const res = await adminAPI.verifyCreator(creatorId, {
-                verifiedFollowerRangeMin: min,
-                verifiedFollowerRangeMax: max
+                verifiedFollowers: followers,
+                verifiedEngagementRate: engagement
             });
             const result = res.data.data;
+            const mismatchText = result.followerMismatchPercentage != null ? `${result.followerMismatchPercentage}% deviation` : 'Verified';
             toast.success(
                 result.verificationStatus === 'verified'
                     ? 'Creator verified successfully'
-                    : `Mismatch flagged (${result.followerMismatchPercentage}% deviation)`
+                    : `Mismatch flagged (${mismatchText})`
             );
             setExpandedCreator(null);
-            setVerifyForm({ min: '', max: '' });
+            setVerifyForm({ followers: '', engagement: '' });
             fetchCreators();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Verification failed');
@@ -455,6 +458,16 @@ const AdminUsers = () => {
                                                     className="overflow-hidden"
                                                 >
                                                     <div className="px-6 py-4 bg-dark-900/40 border-t border-dark-700/50">
+                                                        {/* Instagram link for manual verification */}
+                                                        {creator.instagramProfileUrl && (
+                                                            <div className="mb-3 px-3 py-2 rounded-lg bg-dark-800/50 border border-dark-700/40 flex items-center justify-between gap-3 text-sm text-dark-200">
+                                                                <span className="text-[10px] font-bold uppercase tracking-wider text-dark-400">Instagram URL</span>
+                                                                <a href={creator.instagramProfileUrl} target="_blank" rel="noreferrer" className="text-primary-400 hover:text-primary-300 font-semibold underline">
+                                                                    {creator.instagramProfileUrl}
+                                                                </a>
+                                                            </div>
+                                                        )}
+
                                                         {/* Current Stats */}
                                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                                                             <div className="p-3 rounded-xl bg-dark-800/60 border border-dark-700/30">
@@ -479,33 +492,7 @@ const AdminUsers = () => {
                                                             </div>
                                                         </div>
 
-                                                        {/* Risk Component Breakdown */}
-                                                        {creator.compositeRiskScore != null && creator.compositeRiskScore > 0 && (
-                                                            <div className="mb-4 p-3 rounded-xl bg-dark-800/40 border border-dark-700/30">
-                                                                <div className="text-[10px] font-bold text-dark-500 uppercase tracking-widest mb-2">Risk Breakdown</div>
-                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                                    {[
-                                                                        { label: 'Follower Consistency', value: creator.riskFollowerMismatch, weight: '40%' },
-                                                                        { label: 'Engagement Patterns', value: creator.riskEngagementAnomaly, weight: '25%' },
-                                                                        { label: 'Growth Stability', value: creator.riskGrowthInstability, weight: '20%' },
-                                                                        { label: 'Content Activity', value: creator.riskContentInactivity, weight: '15%' }
-                                                                    ].map(comp => (
-                                                                        <div key={comp.label}>
-                                                                            <div className="flex justify-between mb-0.5">
-                                                                                <span className="text-[10px] text-dark-300">{comp.label}</span>
-                                                                                <span className="text-[9px] text-dark-500">{Math.round(comp.value ?? 0)} ({comp.weight})</span>
-                                                                            </div>
-                                                                            <div className="h-1.5 w-full bg-dark-900 rounded-full overflow-hidden">
-                                                                                <div
-                                                                                    className={`h-full rounded-full transition-all ${(comp.value ?? 0) <= 30 ? 'bg-emerald-500' : (comp.value ?? 0) <= 60 ? 'bg-amber-500' : 'bg-red-500'}`}
-                                                                                    style={{ width: `${Math.min(100, comp.value ?? 0)}%` }}
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
+                                                        {/* Risk breakdown removed per request: risk shown only as composite score */}
 
                                                         {/* Previous verification data */}
                                                         {creator.verifiedFollowerRangeMin != null && (
@@ -520,30 +507,32 @@ const AdminUsers = () => {
                                                         {/* Verify Form */}
                                                         <div className="flex flex-col sm:flex-row items-end gap-3">
                                                             <div className="flex-1 w-full">
-                                                                <label className="block text-[10px] font-bold text-dark-400 uppercase tracking-wider mb-1">Verified Min Followers</label>
+                                                                <label className="block text-[10px] font-bold text-dark-400 uppercase tracking-wider mb-1">Verified Followers (actual)</label>
                                                                 <input
                                                                     type="number"
                                                                     min="0"
                                                                     placeholder="e.g. 9500"
-                                                                    value={verifyForm.min}
-                                                                    onChange={(e) => setVerifyForm(f => ({ ...f, min: e.target.value }))}
+                                                                    value={verifyForm.followers}
+                                                                    onChange={(e) => setVerifyForm(f => ({ ...f, followers: e.target.value }))}
                                                                     className="w-full px-3 py-2 bg-dark-900/60 border border-dark-700 rounded-lg text-dark-100 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all"
                                                                 />
                                                             </div>
                                                             <div className="flex-1 w-full">
-                                                                <label className="block text-[10px] font-bold text-dark-400 uppercase tracking-wider mb-1">Verified Max Followers</label>
+                                                                <label className="block text-[10px] font-bold text-dark-400 uppercase tracking-wider mb-1">Admin Engagement Rate (%)</label>
                                                                 <input
                                                                     type="number"
                                                                     min="0"
-                                                                    placeholder="e.g. 10500"
-                                                                    value={verifyForm.max}
-                                                                    onChange={(e) => setVerifyForm(f => ({ ...f, max: e.target.value }))}
+                                                                    max="100"
+                                                                    step="0.1"
+                                                                    placeholder="e.g. 6.5"
+                                                                    value={verifyForm.engagement}
+                                                                    onChange={(e) => setVerifyForm(f => ({ ...f, engagement: e.target.value }))}
                                                                     className="w-full px-3 py-2 bg-dark-900/60 border border-dark-700 rounded-lg text-dark-100 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none transition-all"
                                                                 />
                                                             </div>
                                                             <button
                                                                 onClick={() => handleVerify(creator.id)}
-                                                                disabled={verifying || !verifyForm.min || !verifyForm.max}
+                                                                disabled={verifying || !verifyForm.followers}
                                                                 className="px-6 py-2 rounded-lg bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold uppercase tracking-wider shadow-glow hover:shadow-glow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all whitespace-nowrap"
                                                             >
                                                                 {verifying ? 'Verifying...' : 'Verify'}

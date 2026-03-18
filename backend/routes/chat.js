@@ -198,7 +198,7 @@ router.get('/conversations', auth, userCacheMiddleware(15), async (req, res) => 
 router.post('/message-request', auth, async (req, res) => {
     try {
         const sellerId = req.userId;
-        const { creatorId } = req.body;
+        const { creatorId, promotionId: promotionIdInput } = req.body;
 
         if (req.user.activeRole !== 'SELLER') {
             return res.status(403).json({
@@ -231,7 +231,8 @@ router.post('/message-request', auth, async (req, res) => {
 
         // Find creator profile to get profileId
         const creatorProfile = await prisma.creatorProfile.findFirst({
-            where: { userId: creatorId }
+            where: { userId: creatorId },
+            include: { user: { select: { name: true } } }
         });
 
         if (!creatorProfile) {
@@ -261,12 +262,38 @@ router.post('/message-request', auth, async (req, res) => {
         }
         */
 
+        // Ensure a promotionId exists for the conversation. If one was not
+        // provided (e.g., contacting a lead directly), create a lightweight
+        // ad-hoc promotion to satisfy the foreign key constraint. This keeps
+        // the conversation linked without blocking the flow.
+        let promotionId = promotionIdInput;
+        if (!promotionId) {
+            const adHocTitle = `Direct chat with ${creatorProfile?.user?.name || 'creator'}`;
+            const adHoc = await prisma.promotionRequest.create({
+                data: {
+                    sellerId,
+                    title: adHocTitle,
+                    description: 'Ad-hoc conversation request from seller',
+                    minBudget: 0,
+                    maxBudget: 0,
+                    promotionType: ['REELS'],
+                    targetCategory: creatorProfile?.category ? [creatorProfile.category] : ['Other'],
+                    minFollowers: 0,
+                    maxFollowers: creatorProfile?.followerCount || 0,
+                    campaignGoal: 'REACH',
+                    status: 'OPEN'
+                }
+            });
+            promotionId = adHoc.id;
+        }
+
         // Create new conversation with pending status
         conversation = await prisma.conversation.create({
             data: {
                 sellerId: sellerId,
                 creatorUserId: creatorId,
                 creatorProfileId: creatorProfile.id,
+                promotionId,
                 status: 'PENDING',
                 lastMessageContent: 'Message request sent'
             },
