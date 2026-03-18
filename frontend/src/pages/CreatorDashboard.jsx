@@ -724,7 +724,7 @@ const CreatorDashboard = () => {
                                 promotions={promotions}
                                 onApply={handleApplyToPromotion}
                                 creatorProfile={profile}
-                                profileComplete={(profile?.profileCompletionPercentage ?? 0) >= 100}
+                                profileComplete={calculateProfileCompletion() >= 100}
                             />
                         </motion.div>
                     )}

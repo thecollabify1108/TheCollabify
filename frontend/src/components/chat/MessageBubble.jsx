@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FaCheck, FaCheckDouble } from 'react-icons/fa';
+import { FaCheck, FaCheckDouble, FaLock } from 'react-icons/fa';
 
 const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl }) => {
     const time = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -28,9 +28,9 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl }) =>
             )}
 
             {/* Bubble */}
-            <div className={`max-w-[70%] sm:max-w-[60%] relative group`}>
+            <div className={`max-w-xs sm:max-w-sm md:max-w-md relative group`}>
                 <div
-                    className={`px-4 py-3 rounded-2xl shadow-md text-sm sm:text-base break-words ${isOwn
+                    className={`px-4 py-3 rounded-2xl shadow-md text-sm sm:text-base break-words overflow-hidden ${isOwn
                         ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-sm'
                         : 'bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 border border-gray-200 dark:border-dark-700 rounded-bl-sm shadow-sm'
                         }`}

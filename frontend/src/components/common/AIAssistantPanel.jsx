@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaCopy, FaChevronDown, FaChevronUp, FaLock } from 'react-icons/fa';
+import { FaMagic, FaTimes, FaHashtag, FaLightbulb, FaCopy, FaChevronDown, FaChevronUp, FaLock, FaChartLine } from 'react-icons/fa';
 import { HiSparkles } from 'react-icons/hi';
 import { aiAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -208,115 +208,69 @@ const AIAssistantPanel = ({ campaign = {}, onUse, onClose }) => {
                     <>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={handleClose} className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[90]" />
 
-                        <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-dark-900 border-l border-dark-800 shadow-2xl z-[100] overflow-y-auto">
-                            {/* Header */}
-                            <div className="sticky top-0 bg-indigo-950 border-b border-indigo-800/50 p-5 z-10">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <HiSparkles className="text-3xl text-white" />
-                                        <div>
-                                            <h2 className="text-xl font-bold text-white">Intelligence Copilot</h2>
-                                            <p className="text-white/80 text-sm">Collabify Campaign Intelligence</p>
-                                        </div>
-                                    </div>
-                                    <button onClick={handleClose} className="p-2 hover:bg-white/20 rounded-lg transition-colors">
-                                        <FaTimes className="text-white" />
-                                    </button>
-                                </div>
+                        <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25 }} className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-dark-900 border-l border-dark-800 shadow-2xl z-[100] overflow-y-auto flex flex-col items-center justify-center">
+                            
+                            {/* Coming Soon Content */}
+                            <div className="p-6 space-y-6 text-center">
+                                {/* Close Button */}
+                                <button onClick={handleClose} className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors">
+                                    <FaTimes className="text-white text-lg" />
+                                </button>
 
-                                <div className="flex gap-2 mt-4">
-                                    <div className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600 text-white text-center">
-                                        <span className="flex items-center justify-center gap-1"><HiSparkles /><span className="hidden sm:inline">Intelligence</span></span>
+                                {/* Icon */}
+                                <div className="flex justify-center mb-4">
+                                    <div className="w-20 h-20 rounded-full bg-indigo-950 border-2 border-indigo-500/40 flex items-center justify-center">
+                                        <HiSparkles className="text-4xl text-indigo-400" />
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="p-6 space-y-6">
+                                {/* Title */}
+                                <div>
+                                    <h2 className="text-2xl font-bold text-white mb-2">AI Intelligence Coming Soon</h2>
+                                    <p className="text-dark-400 text-sm">
+                                        We're currently working on powerful AI-powered intelligence tools to supercharge your campaign strategy and creator insights.
+                                    </p>
+                                </div>
 
-                                {/* Intelligence Tab */}
-                                {activeTab === 'intelligence' && (
-                                    <div className="space-y-5">
+                                {/* Features Preview */}
+                                <div className="space-y-3 text-left bg-dark-800/30 border border-dark-700/50 rounded-xl p-4">
+                                    <div className="flex items-start gap-3">
+                                        <FaLightbulb className="text-amber-400 text-sm mt-1 flex-shrink-0" />
                                         <div>
-                                            <h3 className="text-sm font-semibold text-dark-200 uppercase tracking-wider">Intelligence Modes</h3>
-                                            <p className="text-xs text-dark-400 mt-1">Select an analysis mode to generate structured intelligence reports.</p>
+                                            <p className="text-sm font-medium text-white">Match Intelligence</p>
+                                            <p className="text-xs text-dark-400 mt-0.5">AI-powered creator-campaign fit scoring</p>
                                         </div>
-
-                                        {/* Mode Selector */}
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {INTELLIGENCE_MODES.map(mode => {
-                                                const locked = isModeLocked(mode.id);
-                                                const summary = isModeSummary(mode.id);
-                                                return (
-                                                    <button key={mode.id} onClick={() => { setSelectedMode(mode.id); setModeResult(null); }} className={`p-3 rounded-xl border text-left transition-all relative ${locked ? 'bg-dark-800/30 border-dark-700/30 opacity-60' : selectedMode === mode.id ? 'bg-purple-600/20 border-purple-500 ring-1 ring-purple-500/50' : 'bg-dark-800/50 border-dark-700/50 hover:border-dark-600'}`}>
-                                                        <div className="flex items-center justify-between">
-                                                            <span className={`text-sm font-medium ${locked ? 'text-dark-400' : selectedMode === mode.id ? 'text-purple-300' : 'text-dark-200'}`}>{mode.short}</span>
-                                                            {locked && <FaLock className="text-dark-500 text-[10px]" />}
-                                                            {summary && <span className="text-[9px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded font-medium">SUMMARY</span>}
-                                                        </div>
-                                                        <p className="text-xs text-dark-400 mt-0.5 leading-tight">{mode.desc}</p>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* Daily limit indicator for FREE tier */}
-                                        {dailyRemaining !== null && dailyRemaining >= 0 && (
-                                            <div className="flex items-center gap-2 px-3 py-2 bg-dark-800/50 border border-dark-700/50 rounded-lg">
-                                                <span className="text-xs text-dark-400">Daily queries remaining:</span>
-                                                <span className={`text-xs font-semibold ${dailyRemaining === 0 ? 'text-red-400' : dailyRemaining <= 1 ? 'text-yellow-400' : 'text-green-400'}`}>{dailyRemaining}/{featureManifest?.dailyAILimit || 3}</span>
-                                            </div>
-                                        )}
-
-                                        {/* Mode Form */}
-                                        {selectedMode && (
-                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                                                {isModeLocked(selectedMode) ? (
-                                                    <UpgradePrompt
-                                                        feature={INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label}
-                                                        tier={upgradePlan?.name || 'Pro'}
-                                                        onUpgrade={() => toast.success(`${upgradePlan?.name || 'Pro'} upgrade coming soon!`)}
-                                                    />
-                                                ) : (
-                                                    <>
-                                                        <div className="bg-dark-800/50 border border-dark-700/50 rounded-xl p-4 space-y-3">
-                                                            <h4 className="text-sm font-medium text-dark-200">{INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label} Parameters</h4>
-                                                            {renderModeForm()}
-                                                        </div>
-
-                                                        {isModeSummary(selectedMode) && (
-                                                            <UpgradePrompt
-                                                                compact
-                                                                feature={INTELLIGENCE_MODES.find(m => m.id === selectedMode)?.label}
-                                                                tier={upgradePlan?.name || 'Pro'}
-                                                                message={`Summary mode — upgrade to ${upgradePlan?.name || 'Pro'} for full breakdown`}
-                                                                onUpgrade={() => toast.success(`${upgradePlan?.name || 'Pro'} upgrade coming soon!`)}
-                                                            />
-                                                        )}
-
-                                                        <button onClick={handleRunMode} disabled={isGenerating || (dailyRemaining !== null && dailyRemaining <= 0)} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-lg font-medium transition-colors">
-                                                            {isGenerating ? 'Analyzing...' : dailyRemaining !== null && dailyRemaining <= 0 ? 'Daily Limit Reached' : 'Run Analysis'}
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </motion.div>
-                                        )}
-
-                                        {/* Mode Result */}
-                                        {modeResult && renderModeResult()}
-
-                                        {/* Show upgrade message for gated (summary) results */}
-                                        {modeResult?.data?._gated && (
-                                            <UpgradePrompt
-                                                compact
-                                                feature="Full Intelligence Report"
-                                                tier={upgradePlan?.name || 'Pro'}
-                                                message={modeResult.data._upgradeMessage || `Upgrade to see the full breakdown`}
-                                                onUpgrade={() => toast.success(`${upgradePlan?.name || 'Pro'} upgrade coming soon!`)}
-                                            />
-                                        )}
                                     </div>
-                                )}
+                                    <div className="flex items-start gap-3">
+                                        <FaMagic className="text-purple-400 text-sm mt-1 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-sm font-medium text-white">Campaign Strategy</p>
+                                            <p className="text-xs text-dark-400 mt-0.5">Strategic planning powered by AI analysis</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start gap-3">
+                                        <FaChartLine className="text-emerald-400 text-sm mt-1 flex-shrink-0" />
+                                        <div>
+                                            <p className="text-sm font-medium text-white">ROI Prediction</p>
+                                            <p className="text-xs text-dark-400 mt-0.5">Forecast performance and optimize budget</p>
+                                        </div>
+                                    </div>
+                                </div>
 
+                                {/* Message */}
+                                <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-lg p-4">
+                                    <p className="text-sm text-indigo-200">
+                                        Keep exploring the rest of the platform while we perfect these AI features. Check back soon!
+                                    </p>
+                                </div>
+
+                                {/* Close Button */}
+                                <button 
+                                    onClick={handleClose}
+                                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-medium transition-colors"
+                                >
+                                    Got It
+                                </button>
                             </div>
                         </motion.div>
                     </>

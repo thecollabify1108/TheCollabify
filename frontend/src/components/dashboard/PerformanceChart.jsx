@@ -14,10 +14,12 @@ const PerformanceChart = ({ data, title, color = "#6366f1" }) => {
 
             <div className="flex-1" style={{ minHeight: 200, minWidth: 200 }}>
                 {(!data || data.length === 0) ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-dark-500">
-                        <div className="w-12 h-12 rounded-full bg-dark-700/50 flex items-center justify-center text-2xl">📊</div>
-                        <p className="text-xs font-medium uppercase tracking-wider">No data yet</p>
-                        <p className="text-[10px] text-dark-600">Analytics will appear once campaigns run</p>
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-dark-500">
+                        <div className="w-14 h-14 rounded-full bg-dark-700/50 flex items-center justify-center text-3xl leading-none flex-shrink-0">📊</div>
+                        <div className="text-center">
+                            <p className="text-xs font-medium uppercase tracking-wider">No data yet</p>
+                            <p className="text-[10px] text-dark-600 mt-1">Analytics will appear once campaigns run</p>
+                        </div>
                     </div>
                 ) : (
                     <ResponsiveContainer width="100%" height="100%" minHeight={200} minWidth={200}>

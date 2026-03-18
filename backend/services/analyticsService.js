@@ -204,8 +204,10 @@ class AnalyticsService {
      * Get analytics dashboard data
      */
     static async getDashboardAnalytics(userId, type, period = 'monthly', limit = 12) {
+        // Always fetch from 'daily' snapshots - period parameter indicates aggregation level requested
+        // but data is stored as daily snapshots
         const analytics = await prisma.analytics.findMany({
-            where: { userId, period },
+            where: { userId, period: 'daily' },
             orderBy: { date: 'desc' },
             take: limit
         });
@@ -213,7 +215,7 @@ class AnalyticsService {
         if (analytics.length === 0) {
             await this.recordDailySnapshot(userId, type);
             return await prisma.analytics.findMany({
-                where: { userId, period },
+                where: { userId, period: 'daily' },
                 orderBy: { date: 'desc' },
                 take: limit
             });
