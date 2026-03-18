@@ -554,26 +554,29 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
         }
 
         // Find matching promotion requests with pagination
+        // Matching is by category & promotionType only (follower filtering removed to simplify matching)
+        const matchWhere = {
+            status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
+            targetCategory: { has: profile.category },
+            promotionType: { hasSome: profile.promotionTypes }
+        };
+
         const [promotions, total] = await prisma.$transaction([
             prisma.promotionRequest.findMany({
-                where: {
-                    status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
-                    targetCategory: { has: profile.category },
-                    promotionType: { hasSome: profile.promotionTypes },
-                    minFollowers: { lte: profile.followerCount },
-                    maxFollowers: { gte: profile.followerCount }
-                },
+                where: matchWhere,
                 select: {
                     id: true,
-                    brandName: true,
                     title: true,
                     description: true,
                     minBudget: true,
                     maxBudget: true,
+                    minFollowers: true,
+                    maxFollowers: true,
                     promotionType: true,
                     campaignGoal: true,
                     deadline: true,
                     createdAt: true,
+                    location: true,
                     seller: {
                         select: { name: true, email: true, avatar: true }
                     },
@@ -587,15 +590,7 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
                 skip: skip,
                 take: limit
             }),
-            prisma.promotionRequest.count({
-                where: {
-                    status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
-                    targetCategory: { has: profile.category },
-                    promotionType: { hasSome: profile.promotionTypes },
-                    minFollowers: { lte: profile.followerCount },
-                    maxFollowers: { gte: profile.followerCount }
-                }
-            })
+            prisma.promotionRequest.count({ where: matchWhere })
         ]);
 
         // Map response

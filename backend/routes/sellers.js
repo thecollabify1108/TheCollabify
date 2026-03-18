@@ -127,8 +127,8 @@ router.post('/requests', auth, isSeller, [
         return types.every(t => t && valid.includes(t.toString().toUpperCase()));
     }).withMessage('Invalid promotion type'),
     body('targetCategory').isArray({ min: 1 }).withMessage('At least one target category is required'),
-    body('followerRange.min').isInt({ min: 0 }).withMessage('Minimum follower count must be positive'),
-    body('followerRange.max').isInt({ min: 0 }).withMessage('Maximum follower count must be positive'),
+    body('followerRange.min').optional().isInt({ min: 0 }).withMessage('Minimum follower count must be positive'),
+    body('followerRange.max').optional().isInt({ min: 0 }).withMessage('Maximum follower count must be positive'),
     body('campaignGoal').custom((val) => {
         if (!val) return false;
         const valid = ['REACH', 'TRAFFIC', 'SALES', 'AWARENESS', 'CONVERSION', 'ENGAGEMENT', 'CONTENT'];
@@ -175,23 +175,24 @@ router.post('/requests', auth, isSeller, [
         };
         const finalGoal = goalMapping[campaignGoal ? campaignGoal.toUpperCase() : 'AWARENESS'] || 'REACH';
 
-        // Create promotion request
+        // Create promotion request (brandName & followerRange are optional)
+        const requestData = {
+            sellerId: req.userId,
+            title,
+            description,
+            minBudget: budgetRange.min,
+            maxBudget: budgetRange.max,
+            promotionType: types,
+            targetCategory: categories,
+            minFollowers: followerRange?.min || 0,
+            maxFollowers: followerRange?.max || 10000000,
+            campaignGoal: finalGoal,
+            deadline: deadline ? new Date(deadline) : undefined,
+            status: 'OPEN'
+        };
+
         const request = await prisma.promotionRequest.create({
-            data: {
-                sellerId: req.userId,
-                brandName,
-                title,
-                description,
-                minBudget: budgetRange.min,
-                maxBudget: budgetRange.max,
-                promotionType: types,
-                targetCategory: categories,
-                minFollowers: followerRange.min,
-                maxFollowers: followerRange.max,
-                campaignGoal: finalGoal,
-                deadline: deadline ? new Date(deadline) : undefined,
-                status: 'OPEN'
-            }
+            data: requestData
         });
 
         // Find matching creators using AI matching service

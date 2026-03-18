@@ -22,7 +22,16 @@ const CreatorPitchWizard = ({ onClose, onSuccess, initialData = null }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === 'durationDays') {
+            // Allow up to 10. Blank is okay to clear the field.
+            let parsedValue = value;
+            if (value !== '') {
+               parsedValue = Math.min(Math.max(parseInt(value) || 0, 1), 10);
+            }
+            setFormData(prev => ({ ...prev, [name]: parsedValue }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -148,7 +157,6 @@ const CreatorPitchWizard = ({ onClose, onSuccess, initialData = null }) => {
                             value={formData.durationDays}
                             onChange={handleChange}
                             min="1"
-                            max="10"
                             className="w-full bg-dark-800/50 border border-dark-700/50 rounded-xl pl-11 pr-4 py-3 text-white focus:outline-none focus:border-primary-500/50 transition-all shadow-inner"
                             required
                         />

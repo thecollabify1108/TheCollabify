@@ -76,8 +76,11 @@ const LiveNotificationBell = ({ userId }) => {
                     <>
                         {/* Backdrop - closes on any outside click */}
                         <div
-                            className="fixed inset-0 z-[55]"
-                            onClick={() => setIsOpen(false)}
+                            className="fixed inset-0 z-[55] bg-transparent"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsOpen(false);
+                            }}
                         />
 
                         {/* Dropdown - Adjusted w-[90vw] for mobile to prevent overflow, and right align fix */}
@@ -85,8 +88,8 @@ const LiveNotificationBell = ({ userId }) => {
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="absolute right-[-4rem] sm:right-0 mt-2 w-[90vw] sm:w-96 bg-dark-900 border border-dark-700 z-[60] 
-                                     max-h-[80vh] sm:max-h-[500px] flex flex-col rounded-premium-xl shadow-2xl"
+                            className="absolute right-[-2rem] sm:right-0 mt-2 w-[85vw] sm:w-96 bg-dark-950 border border-dark-700 z-[60] 
+                                     max-h-[60vh] sm:max-h-[70vh] flex flex-col rounded-premium-xl shadow-2xl"
                         >
                             {/* Header */}
                             <div className="p-4 border-b border-dark-700 flex items-center justify-between shrink-0">

@@ -147,7 +147,6 @@ model Achievement {
 model PromotionRequest {
   id                    String                   @id @default(uuid())
   sellerId              String
-  brandName             String?
   title                 String
   description           String
   minBudget             Float

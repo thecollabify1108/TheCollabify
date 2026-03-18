@@ -243,6 +243,8 @@ router.post('/message-request', auth, async (req, res) => {
 
         // H5 FIX: Verify an accepted/matched match exists between this seller and creator
         // before allowing a conversation to be opened. Prevents contact without prior matching.
+        // REMOVED: Sellers need to be able to contact nearby creators freely via "Contact Creator".
+        /*
         const existingMatch = await prisma.matchedCreator.findFirst({
             where: {
                 creator: { userId: creatorId },
@@ -251,12 +253,13 @@ router.post('/message-request', auth, async (req, res) => {
             }
         });
 
-        if (!existingMatch) {
+        if (!existingMatch && req.user.activeRole !== 'ADMIN') {
             return res.status(403).json({
                 success: false,
-                message: 'You can only message creators who have been matched to your campaign.'
+                message: 'You can only message creators you have matched with'
             });
         }
+        */
 
         // Create new conversation with pending status
         conversation = await prisma.conversation.create({

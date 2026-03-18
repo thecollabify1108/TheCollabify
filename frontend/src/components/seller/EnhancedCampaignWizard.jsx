@@ -344,51 +344,6 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
                                     </div>
                                 </div>
 
-                                <div className="p-5 bg-dark-800/30 border border-dark-700/50 rounded-xl space-y-6">
-                                    <div className="flex flex-col gap-6">
-                                        <div>
-                                            <div className="flex justify-between mb-3">
-                                                <label className="text-xs font-bold text-dark-300 uppercase tracking-wider">Follower Range</label>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-dark-500 uppercase">Min</span>
-                                                    <input
-                                                        type="number"
-                                                        value={formData.minFollowers}
-                                                        onChange={(e) => setFormData({ ...formData, minFollowers: e.target.value === '' ? '' : parseInt(e.target.value) })}
-                                                        className="w-full pl-12 pr-3 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
-                                                    />
-                                                </div>
-                                                <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-dark-500 uppercase">Max</span>
-                                                    <input
-                                                        type="number"
-                                                        value={formData.maxFollowers}
-                                                        onChange={(e) => setFormData({ ...formData, maxFollowers: e.target.value === '' ? '' : parseInt(e.target.value) })}
-                                                        className="w-full pl-12 pr-3 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 gap-6">
-                                            <div>
-                                                <label className="block text-xs font-bold text-dark-300 uppercase tracking-wider mb-3">Min Engagement %</label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="number"
-                                                        step="0.1"
-                                                        value={formData.minEngagement}
-                                                        onChange={(e) => setFormData({ ...formData, minEngagement: e.target.value === '' ? '' : parseFloat(e.target.value) })}
-                                                        className="w-full px-4 py-2 bg-dark-900/60 border border-dark-700 rounded-xl text-white text-xs font-bold focus:border-primary-500 focus:outline-none transition-all"
-                                                    />
-                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-primary-400 font-bold">%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
 
                                 <div>
                                     <label className="block text-xs font-bold text-dark-300 mb-3 uppercase tracking-wider">

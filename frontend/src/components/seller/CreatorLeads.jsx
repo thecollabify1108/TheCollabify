@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { HiLocationMarker, HiCurrencyRupee, HiCalendar, HiChat, HiSparkles } from 'react-icons/hi';
-import { availabilityAPI } from '../../services/api';
+import { availabilityAPI, chatAPI } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import EmptyState from '../common/EmptyState';
 import { SkeletonList } from '../common/Skeleton';
@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 const CreatorLeads = ({ brandLocation = '' }) => {
     const [leads, setLeads] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [contactingId, setContactingId] = useState(null);
     const [filter, setFilter] = useState({
         location: brandLocation || '',
         niche: ''
@@ -35,6 +36,34 @@ const CreatorLeads = ({ brandLocation = '' }) => {
     useEffect(() => {
         fetchLeads();
     }, [filter.location, filter.niche]);
+
+    const handleContactCreator = async (lead) => {
+        if (contactingId) return; // prevent double-click
+        setContactingId(lead.id);
+        try {
+            // Try to start a conversation via the chat API
+            const res = await chatAPI.sendMessageRequest(lead.creator?.userId);
+            const conversationId = res?.data?.data?.conversation?.id || res?.data?.data?.id;
+            if (conversationId) {
+                navigate(`/messages?conversation=${conversationId}`);
+            } else {
+                // Fallback: Go to messages with the user
+                navigate(`/messages?user=${lead.creator?.userId}&name=${lead.creator?.user?.name}`);
+            }
+            toast.success('Conversation started!');
+        } catch (error) {
+            console.error('Error contacting creator:', error);
+            // If conversation already exists, try to navigate to messages
+            if (error?.response?.status === 409) {
+                navigate(`/messages?user=${lead.creator?.userId}&name=${lead.creator?.user?.name}`);
+                toast.success('Opening existing conversation');
+            } else {
+                toast.error('Failed to start conversation. Try again.');
+            }
+        } finally {
+            setContactingId(null);
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -120,11 +149,12 @@ const CreatorLeads = ({ brandLocation = '' }) => {
                             </div>
 
                             <button
-                                onClick={() => navigate(`/messages?user=${lead.creator.userId}&name=${lead.creator?.user?.name}`)}
-                                className="w-full bg-white/5 hover:bg-primary-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 group-hover:bg-primary-600 border border-white/10"
+                                onClick={() => handleContactCreator(lead)}
+                                disabled={contactingId === lead.id}
+                                className="w-full bg-white/5 hover:bg-primary-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2 group-hover:bg-primary-600 border border-white/10 disabled:opacity-50"
                             >
                                 <HiChat />
-                                Contact Creator
+                                {contactingId === lead.id ? 'Starting...' : 'Contact Creator'}
                             </button>
                         </motion.div>
                     ))}
@@ -135,3 +165,4 @@ const CreatorLeads = ({ brandLocation = '' }) => {
 };
 
 export default CreatorLeads;
+

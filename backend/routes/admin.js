@@ -627,6 +627,8 @@ router.get('/creators/pending-verification', auth, isAdmin, async (req, res) => 
                 followerCount: c.followerCount,
                 selfReportedFollowers: c.selfReportedFollowers,
                 engagementRate: c.engagementRate,
+                instagramProfileUrl: c.instagramProfileUrl || '',
+                followerRange: c.followerRange,
                 verificationStatus: c.verificationStatus,
                 verifiedFollowerRangeMin: c.verifiedFollowerRangeMin,
                 verifiedFollowerRangeMax: c.verifiedFollowerRangeMax,
@@ -636,10 +638,6 @@ router.get('/creators/pending-verification', auth, isAdmin, async (req, res) => 
                 verifiedBy: c.verifiedBy,
                 compositeRiskScore: c.compositeRiskScore,
                 riskLevel: c.riskLevel,
-                riskFollowerMismatch: c.riskFollowerMismatch,
-                riskEngagementAnomaly: c.riskEngagementAnomaly,
-                riskGrowthInstability: c.riskGrowthInstability,
-                riskContentInactivity: c.riskContentInactivity,
                 createdAt: c.createdAt
             }))
         });
@@ -655,55 +653,70 @@ router.get('/creators/pending-verification', auth, isAdmin, async (req, res) => 
  * @access  Private (Admin)
  */
 router.post('/creators/:id/verify', auth, isAdmin, [
-    body('verifiedFollowerRangeMin').isInt({ min: 0 }).withMessage('Min followers must be a non-negative integer'),
-    body('verifiedFollowerRangeMax').isInt({ min: 0 }).withMessage('Max followers must be a non-negative integer'),
+    body('verifiedFollowers').isInt({ min: 0 }).withMessage('Verified followers must be a non-negative integer'),
+    body('verifiedEngagementRate').optional().isFloat({ min: 0, max: 100 }).withMessage('Engagement rate must be between 0 and 100'),
     handleValidation
 ], async (req, res) => {
     try {
         const { id } = req.params;
-        const { verifiedFollowerRangeMin, verifiedFollowerRangeMax } = req.body;
-
-        if (verifiedFollowerRangeMax < verifiedFollowerRangeMin) {
-            return res.status(400).json({
-                success: false,
-                message: 'Max followers must be greater than or equal to min followers'
-            });
-        }
+        const { verifiedFollowers, verifiedEngagementRate } = req.body;
 
         const profile = await prisma.creatorProfile.findUnique({ where: { id } });
         if (!profile) {
             return res.status(404).json({ success: false, message: 'Creator profile not found' });
         }
 
-        // Calculate mismatch
-        const selfReported = profile.followerCount || profile.selfReportedFollowers || 0;
-        const verifiedMid = (verifiedFollowerRangeMin + verifiedFollowerRangeMax) / 2;
-        const mismatch = verifiedMid > 0
-            ? (Math.abs(selfReported - verifiedMid) / verifiedMid * 100)
-            : 0;
+        // Compare verified followers against creator's selected follower range
+        const FOLLOWER_RANGE_BOUNDS = {
+            RANGE_1K_5K: { min: 1000, max: 5000 },
+            RANGE_5K_10K: { min: 5000, max: 10000 },
+            RANGE_10K_50K: { min: 10000, max: 50000 },
+            RANGE_50K_100K: { min: 50000, max: 100000 },
+            RANGE_100K_PLUS: { min: 100000, max: Infinity }
+        };
+
+        const rangeBounds = FOLLOWER_RANGE_BOUNDS[profile.followerRange] || { min: 0, max: Infinity };
+        const isInRange = verifiedFollowers >= rangeBounds.min && verifiedFollowers <= rangeBounds.max;
+
+        // Calculate mismatch percentage based on how far outside the range they are
+        let mismatch = 0;
+        if (!isInRange) {
+            const rangeMid = (rangeBounds.min + rangeBounds.max) / 2;
+            mismatch = rangeMid > 0 ? (Math.abs(verifiedFollowers - rangeMid) / rangeMid * 100) : 100;
+        }
         const mismatchRounded = Math.round(mismatch * 100) / 100;
 
         let riskScore = 'none';
         let verificationStatus = 'verified';
-        if (mismatch > 15) {
-            riskScore = 'high';
-            verificationStatus = 'mismatch_flagged';
-        } else if (mismatch > 5) {
-            riskScore = 'medium';
+        if (!isInRange) {
+            if (mismatch > 30) {
+                riskScore = 'high';
+                verificationStatus = 'mismatch_flagged';
+            } else {
+                riskScore = 'medium';
+                verificationStatus = 'verified';
+            }
+        }
+
+        const updateData = {
+            verifiedFollowerRangeMin: parseInt(verifiedFollowers),
+            verifiedFollowerRangeMax: parseInt(verifiedFollowers),
+            selfReportedFollowers: profile.followerCount || profile.selfReportedFollowers || 0,
+            followerMismatchPercentage: mismatchRounded,
+            followerRiskScore: riskScore,
+            verificationStatus,
+            verificationLastUpdated: new Date(),
+            verifiedBy: req.userId
+        };
+
+        // Update engagement rate if provided by admin
+        if (verifiedEngagementRate !== undefined && verifiedEngagementRate !== null) {
+            updateData.engagementRate = parseFloat(verifiedEngagementRate);
         }
 
         const updated = await prisma.creatorProfile.update({
             where: { id },
-            data: {
-                verifiedFollowerRangeMin: parseInt(verifiedFollowerRangeMin),
-                verifiedFollowerRangeMax: parseInt(verifiedFollowerRangeMax),
-                selfReportedFollowers: selfReported,
-                followerMismatchPercentage: mismatchRounded,
-                followerRiskScore: riskScore,
-                verificationStatus,
-                verificationLastUpdated: new Date(),
-                verifiedBy: req.userId
-            }
+            data: updateData
         });
 
         res.json({
@@ -713,8 +726,8 @@ router.post('/creators/:id/verify', auth, isAdmin, [
                 verificationStatus: updated.verificationStatus,
                 followerMismatchPercentage: updated.followerMismatchPercentage,
                 followerRiskScore: updated.followerRiskScore,
-                verifiedFollowerRangeMin: updated.verifiedFollowerRangeMin,
-                verifiedFollowerRangeMax: updated.verifiedFollowerRangeMax,
+                verifiedFollowers: parseInt(verifiedFollowers),
+                engagementRate: updated.engagementRate,
                 verificationLastUpdated: updated.verificationLastUpdated
             }
         });
