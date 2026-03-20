@@ -115,12 +115,20 @@ const CreatorSearch = () => {
 
     const handleMessage = async (creator) => {
         try {
-            // Import needed - we'll add this at top
+            // Import needed
             const { chatAPI } = await import('../../services/api');
             const toast = (await import('react-hot-toast')).default;
 
+            // Get creator ID - handle both direct ID and nested structure
+            const creatorId = creator.id || creator.creatorId || creator.userId;
+            
+            if (!creatorId) {
+                toast.error('Unable to contact creator - missing ID');
+                return;
+            }
+
             // Send message request to creator
-            const response = await chatAPI.sendMessageRequest(creator.id || creator.creatorId);
+            const response = await chatAPI.sendMessageRequest(creatorId);
 
             if (response.data.success) {
                 toast.success('Message request sent! Waiting for creator approval.');
@@ -133,7 +141,8 @@ const CreatorSearch = () => {
             }
         } catch (error) {
             const toast = (await import('react-hot-toast')).default;
-            toast.error(error.response?.data?.message || 'Failed to send message request');
+            const errorMsg = error?.response?.data?.message || 'Failed to send message request';
+            toast.error(errorMsg);
         }
     };
 

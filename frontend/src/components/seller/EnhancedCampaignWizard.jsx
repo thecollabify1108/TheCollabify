@@ -27,6 +27,7 @@ const EnhancedCampaignWizard = ({ isOpen, onClose, onSubmit, initialData = null 
         maxFollowers: initialData?.maxFollowers || '',
         minEngagement: 2.0,
         duration: 14,
+        goal: initialData?.goal || 'AWARENESS',
         requirements: initialData?.requirements || '',
         platforms: ['instagram'],
         location: {

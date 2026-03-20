@@ -76,7 +76,7 @@ const SellerDashboard = () => {
             setPendingCreators(pending);
         } catch (err) {
             console.error('Error fetching dashboard data:', err);
-            toast.error('Failed to load dashboard data');
+            // Don't show error toast - just show empty state if requests fail
             setRequests([]);
             setPendingCreators([]);
         } finally {
@@ -558,11 +558,20 @@ const SellerDashboard = () => {
                 onSubmit={async (payload) => {
                     try {
                         const loadingToast = toast.loading('Launching campaign...');
-                        await sellerAPI.createRequest(payload);
+                        // Validate payload
+                        if (!payload.title || !payload.description) {
+                            toast.error('Campaign title and description are required', { id: loadingToast });
+                            return;
+                        }
+                        const response = await sellerAPI.createRequest(payload);
                         toast.success('Campaign launched successfully!', { id: loadingToast });
-                        fetchData(); // Refresh dashboard data immediately
+                        setShowRequestWizard(false);
+                        // Refresh dashboard data immediately
+                        await fetchData();
                     } catch (err) {
-                        toast.error(err.response?.data?.message || 'Failed to launch campaign');
+                        const errorMsg = err.response?.data?.message || err.message || 'Failed to launch campaign';
+                        toast.error(errorMsg);
+                        console.error('Campaign creation error:', err);
                     }
                 }}
             />

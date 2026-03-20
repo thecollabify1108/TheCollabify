@@ -41,24 +41,36 @@ const CreatorLeads = ({ brandLocation = '' }) => {
         if (contactingId) return; // prevent double-click
         setContactingId(lead.id);
         try {
+            // Prefer creator.id (which is creatorProfileId) or creator.userId
+            const creatorUserId = lead.creator?.userId || lead.creator?.user?.id;
+            
+            if (!creatorUserId) {
+                toast.error('Unable to contact creator - missing ID');
+                setContactingId(null);
+                return;
+            }
+            
             // Try to start a conversation via the chat API
-            const res = await chatAPI.sendMessageRequest(lead.creator?.userId);
+            const res = await chatAPI.sendMessageRequest(creatorUserId);
             const conversationId = res?.data?.data?.conversation?.id || res?.data?.data?.id;
             if (conversationId) {
                 navigate(`/messages?conversation=${conversationId}`);
+                toast.success('Conversation started!');
             } else {
                 // Fallback: Go to messages with the user
-                navigate(`/messages?user=${lead.creator?.userId}&name=${lead.creator?.user?.name}`);
+                navigate(`/messages?user=${creatorUserId}&name=${lead.creator?.user?.name}`);
+                toast.success('Opening messages...');
             }
-            toast.success('Conversation started!');
         } catch (error) {
             console.error('Error contacting creator:', error);
             // If conversation already exists, try to navigate to messages
             if (error?.response?.status === 409) {
-                navigate(`/messages?user=${lead.creator?.userId}&name=${lead.creator?.user?.name}`);
+                const creatorUserId = lead.creator?.userId || lead.creator?.user?.id;
+                navigate(`/messages?user=${creatorUserId}&name=${lead.creator?.user?.name}`);
                 toast.success('Opening existing conversation');
             } else {
-                toast.error('Failed to start conversation. Try again.');
+                const errorMsg = error?.response?.data?.message || 'Failed to start conversation. Try again.';
+                toast.error(errorMsg);
             }
         } finally {
             setContactingId(null);
