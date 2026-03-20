@@ -412,6 +412,7 @@ try { safeRoute('/api/brands', require('./routes/brands')); } catch (e) { consol
 try { safeRoute('/api/availability', require('./routes/availabilityCampaigns')); } catch (e) { console.error('availabilityCampaigns route failed:', e.message); }
 try { safeRoute('/api/escrow', require('./routes/escrow')); } catch (e) { console.error('escrow route failed:', e.message); }
 try { safeRoute('/api/deliverables', require('./routes/deliverables')); } catch (e) { console.error('deliverables route failed:', e.message); }
+try { safeRoute('/api/demo', require('./routes/demo')); } catch (e) { console.error('demo route failed:', e.message); }
 
 // Root endpoint
 app.get('/', (req, res) => {
