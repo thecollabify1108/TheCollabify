@@ -72,7 +72,6 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
                                     id: true,
                                     followerCount: true,
                                     category: true,
-                                    verificationStatus: true,
                                     user: {
                                         select: { id: true, name: true, avatar: true }
                                     }
@@ -206,31 +205,67 @@ router.post('/requests', auth, isSeller, [
         // Store matched creators in batch (single query instead of N individual creates)
         let matchedCreators = [];
         if (matchedCreatorsResults.length > 0) {
-            await prisma.matchedCreator.createMany({
-                data: matchedCreatorsResults.map(match => ({
-                    promotionId: request.id,
-                    creatorId: match.id,  // Fixed: use match.id not match.creatorId
-                    matchScore: match.matchScore,
-                    matchReason: match.matchReason,
-                    status: 'MATCHED'
-                }))
-            });
-            // Fetch the created records for the response
-            matchedCreators = await prisma.matchedCreator.findMany({
-                where: { promotionId: request.id }
-            });
+            try {
+                // Guard against mismatched AI payloads by accepting either id or creatorId,
+                // and only inserting rows that point to real creator profiles.
+                const candidateIds = [...new Set(matchedCreatorsResults
+                    .map(m => m.id || m.creatorId)
+                    .filter(Boolean))];
+
+                const validProfiles = candidateIds.length
+                    ? await prisma.creatorProfile.findMany({
+                        where: { id: { in: candidateIds } },
+                        select: { id: true }
+                    })
+                    : [];
+
+                const validIds = new Set(validProfiles.map(p => p.id));
+
+                const rows = matchedCreatorsResults
+                    .map(match => {
+                        const resolvedCreatorId = validIds.has(match.id)
+                            ? match.id
+                            : (validIds.has(match.creatorId) ? match.creatorId : null);
+
+                        if (!resolvedCreatorId) return null;
+
+                        return {
+                            promotionId: request.id,
+                            creatorId: resolvedCreatorId,
+                            matchScore: Number.isFinite(match.matchScore) ? match.matchScore : 0,
+                            matchReason: match.matchReason || 'Matched by AI',
+                            status: 'MATCHED'
+                        };
+                    })
+                    .filter(Boolean);
+
+                if (rows.length > 0) {
+                    await prisma.matchedCreator.createMany({
+                        data: rows,
+                        skipDuplicates: true
+                    });
+                }
+
+                // Fetch the created records for the response
+                matchedCreators = await prisma.matchedCreator.findMany({
+                    where: { promotionId: request.id }
+                });
+            } catch (matchStoreErr) {
+                // Do not fail campaign creation when matching persistence has issues.
+                console.error('matchedCreator createMany failed (continuing):', matchStoreErr.message);
+            }
         }
 
         // Fire-and-forget: batch-notify matched creators (don't block response)
-        const creatorsToNotify = matchedCreatorsResults.slice(0, 10);
+        const creatorsToNotify = matchedCreators.slice(0, 10);
         if (creatorsToNotify.length > 0) {
             // Batch-fetch all creator profiles in one query
             prisma.creatorProfile.findMany({
-                where: { id: { in: creatorsToNotify.map(m => m.id) } },
+                where: { id: { in: creatorsToNotify.map(m => m.creatorId) } },
                 include: { user: { select: { id: true, name: true, email: true } } }
             }).then(creators => {
                 return Promise.allSettled(creators.filter(c => c?.user).map(creator => {
-                    const match = creatorsToNotify.find(m => m.id === creator.id);
+                    const match = creatorsToNotify.find(m => m.creatorId === creator.id);
                     return Promise.allSettled([
                         notifyCreatorNewMatch(creator.user.id, request, match?.matchScore || 0),
                         sendNewMatchEmail(creator.user.email, creator.user.name, request.title, match?.matchScore || 0, request.targetCategory)

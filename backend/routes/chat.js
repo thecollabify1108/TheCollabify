@@ -200,6 +200,13 @@ router.post('/message-request', auth, async (req, res) => {
         const sellerId = req.userId;
         const { creatorId, promotionId: promotionIdInput } = req.body;
 
+        if (!creatorId) {
+            return res.status(400).json({
+                success: false,
+                message: 'creatorId is required'
+            });
+        }
+
         if (req.user.activeRole !== 'SELLER') {
             return res.status(403).json({
                 success: false,
@@ -207,11 +214,40 @@ router.post('/message-request', auth, async (req, res) => {
             });
         }
 
+        // Accept both creator userId and creator profileId from clients
+        const creatorProfile = await prisma.creatorProfile.findFirst({
+            where: {
+                OR: [{ userId: creatorId }, { id: creatorId }]
+            },
+            include: { user: { select: { name: true } } }
+        });
+
+        if (!creatorProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Creator profile not found'
+            });
+        }
+
+        const creatorUserId = creatorProfile.userId;
+
+        // Validate creator user exists
+        const creatorUser = await prisma.user.findUnique({
+            where: { id: creatorUserId }
+        });
+
+        if (!creatorUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'Creator user not found'
+            });
+        }
+
         // Check if conversation already exists
         let conversation = await prisma.conversation.findFirst({
             where: {
                 sellerId: sellerId,
-                creatorUserId: creatorId
+                creatorUserId: creatorUserId
             },
             include: {
                 seller: { select: { id: true, name: true, email: true } },
@@ -226,31 +262,6 @@ router.post('/message-request', auth, async (req, res) => {
                 message: conversation.status === 'PENDING'
                     ? 'Message request already sent'
                     : 'Conversation already exists'
-            });
-        }
-
-        // Validate creator exists as a user
-        const creatorUser = await prisma.user.findUnique({
-            where: { id: creatorId }
-        });
-
-        if (!creatorUser) {
-            return res.status(404).json({
-                success: false,
-                message: 'Creator user not found'
-            });
-        }
-
-        // Find creator profile to get profileId
-        const creatorProfile = await prisma.creatorProfile.findFirst({
-            where: { userId: creatorId },
-            include: { user: { select: { name: true } } }
-        });
-
-        if (!creatorProfile) {
-            return res.status(404).json({
-                success: false,
-                message: 'Creator profile not found'
             });
         }
 
@@ -311,7 +322,7 @@ router.post('/message-request', auth, async (req, res) => {
         conversation = await prisma.conversation.create({
             data: {
                 sellerId: sellerId,
-                creatorUserId: creatorId,
+                creatorUserId,
                 creatorProfileId: creatorProfile.id,
                 promotionId,
                 status: 'PENDING',
