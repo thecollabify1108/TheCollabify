@@ -229,6 +229,18 @@ router.post('/message-request', auth, async (req, res) => {
             });
         }
 
+        // Validate creator exists as a user
+        const creatorUser = await prisma.user.findUnique({
+            where: { id: creatorId }
+        });
+
+        if (!creatorUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'Creator user not found'
+            });
+        }
+
         // Find creator profile to get profileId
         const creatorProfile = await prisma.creatorProfile.findFirst({
             where: { userId: creatorId },
@@ -268,23 +280,31 @@ router.post('/message-request', auth, async (req, res) => {
         // the conversation linked without blocking the flow.
         let promotionId = promotionIdInput;
         if (!promotionId) {
-            const adHocTitle = `Direct chat with ${creatorProfile?.user?.name || 'creator'}`;
-            const adHoc = await prisma.promotionRequest.create({
-                data: {
-                    sellerId,
-                    title: adHocTitle,
-                    description: 'Ad-hoc conversation request from seller',
-                    minBudget: 0,
-                    maxBudget: 0,
-                    promotionType: ['REELS'],
-                    targetCategory: creatorProfile?.category ? [creatorProfile.category] : ['Other'],
-                    minFollowers: 0,
-                    maxFollowers: creatorProfile?.followerCount || 0,
-                    campaignGoal: 'REACH',
-                    status: 'OPEN'
-                }
-            });
-            promotionId = adHoc.id;
+            try {
+                const adHocTitle = `Direct chat with ${creatorProfile?.user?.name || 'creator'}`;
+                const adHoc = await prisma.promotionRequest.create({
+                    data: {
+                        sellerId,
+                        title: adHocTitle,
+                        description: 'Ad-hoc conversation request from seller',
+                        minBudget: 0,
+                        maxBudget: 0,
+                        promotionType: ['REELS'],
+                        targetCategory: creatorProfile?.category ? [creatorProfile.category] : ['Other'],
+                        minFollowers: 0,
+                        maxFollowers: creatorProfile?.followerCount || 100000,
+                        campaignGoal: 'REACH',
+                        status: 'OPEN'
+                    }
+                });
+                promotionId = adHoc.id;
+            } catch (promErr) {
+                console.error('Error creating ad-hoc promotion:', promErr);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Failed to create promotion for direct chat'
+                });
+            }
         }
 
         // Create new conversation with pending status
