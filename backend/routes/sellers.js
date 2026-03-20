@@ -101,10 +101,57 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
         });
     } catch (error) {
         console.error('Get requests error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to get promotion requests'
-        });
+        // Fallback response to keep dashboard usable even if nested relation data is inconsistent
+        try {
+            const { status, page = 1, limit = 10 } = req.query;
+            const skip = (parseInt(page) - 1) * parseInt(limit);
+
+            const where = { sellerId: req.userId };
+            if (status) {
+                where.status = status.toUpperCase();
+            }
+
+            const [requests, total] = await Promise.all([
+                prisma.promotionRequest.findMany({
+                    where,
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        minBudget: true,
+                        maxBudget: true,
+                        promotionType: true,
+                        campaignGoal: true,
+                        deadline: true,
+                        status: true,
+                        createdAt: true
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    skip,
+                    take: parseInt(limit)
+                }),
+                prisma.promotionRequest.count({ where })
+            ]);
+
+            return res.json({
+                success: true,
+                data: {
+                    requests: requests.map(r => ({ ...r, matchedCreators: [] })),
+                    pagination: {
+                        page: parseInt(page),
+                        limit: parseInt(limit),
+                        total,
+                        pages: Math.ceil(total / parseInt(limit))
+                    }
+                }
+            });
+        } catch (fallbackErr) {
+            console.error('Get requests fallback error:', fallbackErr);
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to get promotion requests'
+            });
+        }
     }
 });
 

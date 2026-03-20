@@ -291,6 +291,36 @@ router.post('/message-request', auth, async (req, res) => {
         // the conversation linked without blocking the flow.
         let promotionId = promotionIdInput;
         if (!promotionId) {
+            // 1) Prefer a campaign where this creator was matched for this seller
+            const matched = await prisma.matchedCreator.findFirst({
+                where: {
+                    creator: { userId: creatorUserId },
+                    promotion: { sellerId }
+                },
+                select: { promotionId: true },
+                orderBy: { id: 'desc' }
+            });
+
+            if (matched?.promotionId) {
+                promotionId = matched.promotionId;
+            }
+        }
+
+        if (!promotionId) {
+            // 2) Fallback to seller's most recent campaign to satisfy FK
+            const latestRequest = await prisma.promotionRequest.findFirst({
+                where: { sellerId },
+                select: { id: true },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            if (latestRequest?.id) {
+                promotionId = latestRequest.id;
+            }
+        }
+
+        if (!promotionId) {
+            // 3) Last resort: create ad-hoc campaign
             try {
                 const adHocTitle = `Direct chat with ${creatorProfile?.user?.name || 'creator'}`;
                 const adHoc = await prisma.promotionRequest.create({
@@ -311,9 +341,9 @@ router.post('/message-request', auth, async (req, res) => {
                 promotionId = adHoc.id;
             } catch (promErr) {
                 console.error('Error creating ad-hoc promotion:', promErr);
-                return res.status(500).json({
+                return res.status(400).json({
                     success: false,
-                    message: 'Failed to create promotion for direct chat'
+                    message: 'Unable to start direct chat right now. Please launch one campaign first and try again.'
                 });
             }
         }
