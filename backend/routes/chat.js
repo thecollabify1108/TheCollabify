@@ -351,7 +351,21 @@ router.post('/message-request', auth, async (req, res) => {
         }
 
         if (!promotionId) {
-            // 3) Last resort: create ad-hoc campaign
+            // 3) Safety fallback: reuse latest open campaign globally.
+            // Keeps chat functional even when campaign creation is temporarily degraded.
+            const globalLatestRequest = await prisma.promotionRequest.findFirst({
+                where: { status: { in: ['OPEN', 'CREATOR_INTERESTED', 'ACCEPTED'] } },
+                select: { id: true },
+                orderBy: { createdAt: 'desc' }
+            });
+
+            if (globalLatestRequest?.id) {
+                promotionId = globalLatestRequest.id;
+            }
+        }
+
+        if (!promotionId) {
+            // 4) Last resort: create ad-hoc campaign
             try {
                 const adHocTitle = `Direct chat with ${creatorProfile?.user?.name || 'creator'}`;
                 const adHoc = await prisma.promotionRequest.create({
