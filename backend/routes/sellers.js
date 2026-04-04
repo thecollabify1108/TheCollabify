@@ -232,23 +232,11 @@ router.post('/requests', auth, isSeller, [
             status: 'OPEN'
         };
 
+        const scalarType = types[0] || 'REELS';
+        const scalarCategory = categories[0] || 'Other';
+
         let request;
         try {
-            request = await prisma.promotionRequest.create({
-                data: requestData
-            });
-        } catch (createErr) {
-            const errText = `${createErr?.message || ''}`;
-            const isEnumArrayMismatch =
-                /column\s+"promotionType"\s+is\s+of\s+type\s+"PromotionType"\s+but\s+expression\s+is\s+of\s+type\s+"PromotionType"\[\]/i.test(errText) ||
-                /column\s+"targetCategory"\s+is\s+of\s+type\s+"Category"\s+but\s+expression\s+is\s+of\s+type\s+"Category"\[\]/i.test(errText);
-
-            if (!isEnumArrayMismatch) {
-                throw createErr;
-            }
-
-            const scalarType = types[0] || 'REELS';
-            const scalarCategory = categories[0] || 'Other';
             const insertedRows = await prisma.$queryRaw`
                 INSERT INTO "PromotionRequest" (
                     "sellerId",
@@ -297,7 +285,7 @@ router.post('/requests', auth, isSeller, [
 
             const inserted = insertedRows?.[0];
             if (!inserted) {
-                throw createErr;
+                throw new Error('Failed to insert promotion request');
             }
 
             request = {
@@ -309,6 +297,9 @@ router.post('/requests', auth, isSeller, [
                     ? inserted.targetCategory
                     : [inserted.targetCategory].filter(Boolean)
             };
+        } catch (createErr) {
+            console.error('Promotion request raw insert failed:', createErr);
+            throw createErr;
         }
 
         // Find matching creators using AI matching service (fail-safe to avoid blocking request creation)
