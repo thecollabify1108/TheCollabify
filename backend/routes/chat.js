@@ -896,7 +896,7 @@ router.post('/conversations/:id/messages', auth, [
             where: { id: conversationId },
             data: {
                 lastMessageContent: contentToSave.substring(0, 100),
-                lastMessageAt: new Date(),
+                lastMessageCreatedAt: new Date(),
                 ...unreadUpdate,
                 ...msgCountUpdate
             }
