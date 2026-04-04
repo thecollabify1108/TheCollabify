@@ -131,7 +131,9 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
             console.error('Get requests fallback error:', fallbackErr);
             return res.status(500).json({
                 success: false,
-                message: 'Failed to get promotion requests'
+                message: 'Failed to get promotion requests',
+                errorCode: fallbackErr.code || null,
+                errorDetail: fallbackErr.message || null
             });
         }
     }

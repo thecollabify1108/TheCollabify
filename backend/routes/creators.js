@@ -621,7 +621,9 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
         console.error('Get promotions error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to get promotions'
+            message: 'Failed to get promotions',
+            errorCode: error.code || null,
+            errorDetail: error.message || null
         });
     }
 });
