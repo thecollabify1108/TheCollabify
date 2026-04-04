@@ -735,7 +735,7 @@ const Landing = () => {
                                 viewport={{ once: true }}
                                 transition={{ delay: 0.4 }}
                             >
-                                <div className="text-primary-400 mb-s4 text-h2 font-bold">//</div>
+                                <div className="text-primary-400 mb-s4 text-h2 font-bold">{'//'}</div>
                                 <h3 className="text-body font-bold text-dark-100 mb-s2">AI is the Natural Step</h3>
                                 <p className="text-dark-400 text-small leading-relaxed">
                                     Technology should handle the logistics—contracts, payments, and matching—so you can focus on creating the actual content.

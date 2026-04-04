@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Icon from '../common/Icon';
 
 const DashboardSidebar = ({ activeSection, setActiveSection, unreadMessages = 0 }) => {

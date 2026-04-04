@@ -40,6 +40,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
     // Get other user ID for online status
     const otherUserId = conversation?.participants?.find(p => p.id !== user?.id)?.id;
+    const otherUserDisplayName = otherUserName || conversation?.otherUser?.name || 'Negotiation';
 
     // Check if conversation is pending
     useEffect(() => {
@@ -229,7 +230,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                     className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-500 p-[2px] shadow-lg shadow-primary-500/20"
                                 >
                                     <div className="w-full h-full rounded-2xl bg-dark-900 flex items-center justify-center text-white text-2xl font-black">
-                                        {otherUserName?.[0]?.toUpperCase()}
+                                        {otherUserDisplayName?.[0]?.toUpperCase()}
                                     </div>
                                 </motion.div>
                                 {otherUserId && (
@@ -240,7 +241,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-black text-white tracking-tight leading-none mb-1">{otherUserName || 'Negotiation'}</h3>
+                                <h3 className="text-xl font-black text-white tracking-tight leading-none mb-1">{otherUserDisplayName}</h3>
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-primary-400 bg-primary-400/10 px-2 py-0.5 rounded-md uppercase tracking-wider border border-primary-500/20">
                                         {promotionTitle || 'Collaboration'}

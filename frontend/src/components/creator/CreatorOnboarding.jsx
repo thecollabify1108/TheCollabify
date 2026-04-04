@@ -33,6 +33,21 @@ const AVAILABILITY_OPTIONS = [
     { id: 'NOT_AVAILABLE', label: 'Not Available', color: 'rose', icon: '' }
 ];
 
+const AVAILABILITY_CLASSES = {
+    AVAILABLE_NOW: {
+        active: 'border-emerald-500 bg-emerald-500/10',
+        text: 'text-emerald-400'
+    },
+    LIMITED_AVAILABILITY: {
+        active: 'border-amber-500 bg-amber-500/10',
+        text: 'text-amber-400'
+    },
+    NOT_AVAILABLE: {
+        active: 'border-rose-500 bg-rose-500/10',
+        text: 'text-rose-400'
+    }
+};
+
 const TRAVEL_OPTIONS = [
     { id: 'NO', label: 'Local Only', desc: 'I prefer local work' },
     { id: 'LIMITED', label: 'Nearby Cities', desc: 'I can travel to nearby areas' },
@@ -219,11 +234,11 @@ const Step2 = ({ data, setData }) => (
                         key={opt.id} type="button"
                         onClick={() => setData(d => ({ ...d, availabilityStatus: opt.id }))}
                         className={`p-3 rounded-xl border-2 text-center transition-all ${data.availabilityStatus === opt.id
-                            ? `border-${opt.color}-500 bg-${opt.color}-500/10`
+                            ? AVAILABILITY_CLASSES[opt.id].active
                             : 'border-dark-600 hover:border-dark-500'
                             }`}
                     >
-                        <div className={`text-xs font-medium ${data.availabilityStatus === opt.id ? `text-${opt.color}-400` : 'text-dark-300'
+                        <div className={`text-xs font-medium ${data.availabilityStatus === opt.id ? AVAILABILITY_CLASSES[opt.id].text : 'text-dark-300'
                             }`}>{opt.label}</div>
                     </button>
                 ))}
@@ -639,7 +654,9 @@ const CreatorOnboarding = ({ onComplete }) => {
             trackEvent('onboarding_completed');
             toast.success('Welcome to TheCollabify!');
             if (onComplete) onComplete(profile);
-        } catch (err) {}
+        } catch (err) {
+            toast.error(err?.response?.data?.message || err?.message || 'Failed to complete onboarding');
+        }
     };
 
     return (

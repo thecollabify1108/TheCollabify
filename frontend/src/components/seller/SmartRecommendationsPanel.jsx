@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaRobot, FaStar, FaCheckCircle, FaEnvelope } from 'react-icons/fa';
 import { HiSparkles, HiLightningBolt } from 'react-icons/hi';
 import { aiAPI } from '../../services/api';

@@ -13,15 +13,8 @@ export const useNotifications = () => {
 };
 
 export const NotificationProvider = ({ children }) => {
-    let authContext;
-    try {
-        authContext = useAuth();
-    } catch (error) {
-        console.warn('AuthContext not available in NotificationProvider');
-        authContext = { isAuthenticated: false };
-    }
-
-    const { isAuthenticated } = authContext;
+    const authContext = useAuth();
+    const isAuthenticated = Boolean(authContext?.isAuthenticated);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [loading, setLoading] = useState(false);

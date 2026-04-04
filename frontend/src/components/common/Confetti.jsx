@@ -21,7 +21,8 @@ const Confetti = ({ active, duration = 3000, particleCount = 50, onComplete }) =
                 color: colors[Math.floor(Math.random() * colors.length)],
                 size: Math.random() * 8 + 4,
                 rotation: Math.random() * 360,
-                delay: Math.random() * 0.5
+                delay: Math.random() * 0.5,
+                isCircle: Math.random() > 0.5
             }));
 
             setParticles(newParticles);
@@ -49,7 +50,7 @@ const Confetti = ({ active, duration = 3000, particleCount = 50, onComplete }) =
                         backgroundColor: particle.color,
                         width: particle.size,
                         height: particle.size,
-                        borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+                        borderRadius: particle.isCircle ? '50%' : '2px',
                         transform: `rotate(${particle.rotation}deg)`,
                         animationDelay: `${particle.delay}s`
                     }}

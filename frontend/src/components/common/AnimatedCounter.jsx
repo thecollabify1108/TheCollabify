@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 const AnimatedCounter = ({
     end,
@@ -11,27 +11,7 @@ const AnimatedCounter = ({
     const [hasAnimated, setHasAnimated] = useState(false);
     const counterRef = useRef(null);
 
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting && !hasAnimated) {
-                        setHasAnimated(true);
-                        animateCount();
-                    }
-                });
-            },
-            { threshold: 0.5 }
-        );
-
-        if (counterRef.current) {
-            observer.observe(counterRef.current);
-        }
-
-        return () => observer.disconnect();
-    }, [hasAnimated]);
-
-    const animateCount = () => {
+    const animateCount = useCallback(() => {
         const startTime = Date.now();
         const startValue = 0;
 
@@ -51,7 +31,27 @@ const AnimatedCounter = ({
         };
 
         requestAnimationFrame(updateCount);
-    };
+    }, [duration, end]);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && !hasAnimated) {
+                        setHasAnimated(true);
+                        animateCount();
+                    }
+                });
+            },
+            { threshold: 0.5 }
+        );
+
+        if (counterRef.current) {
+            observer.observe(counterRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [hasAnimated, animateCount]);
 
     return (
         <span ref={counterRef} className={className}>

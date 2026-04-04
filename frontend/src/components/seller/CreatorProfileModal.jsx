@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    FaArrowLeft, FaStar, FaInstagram, FaEnvelope, FaTimes,
+    FaArrowLeft, FaStar, FaEnvelope,
     FaMapMarkerAlt, FaLanguage, FaCheckCircle, FaHeart
 } from 'react-icons/fa';
 import {
-    HiSparkles, HiLightningBolt, HiUserGroup, HiCash, HiChat,
+    HiSparkles, HiLightningBolt, HiUserGroup, HiChat,
     HiPhotograph, HiChartBar, HiStar
 } from 'react-icons/hi';
 import EmptyState from '../common/EmptyState';
@@ -20,8 +20,10 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
 
     if (!isOpen || !creator) return null;
 
-    const profile = creator.creatorId || creator;
-    const user = profile.userId || {};
+    const profile = creator.creatorId && typeof creator.creatorId === 'object'
+        ? creator.creatorId
+        : creator;
+    const user = profile.user || creator.user || {};
 
     const tabs = [
         { id: 'overview', label: 'Overview', icon: HiSparkles },
@@ -213,7 +215,7 @@ const CreatorProfileModal = ({ creator, matchScore, isOpen, onClose, onMessage, 
 };
 
 // Overview Tab Component
-const OverviewTab = ({ profile, user }) => (
+const OverviewTab = ({ profile }) => (
     <div className="space-y-s6">
         {/* AI Intelligence Panel */}
         <div className="bg-gradient-to-br from-primary-900/20 to-secondary-900/20 backdrop-blur-sm p-s6 rounded-premium-2xl border border-primary-500/20 shadow-inner">
@@ -311,26 +313,40 @@ const OverviewTab = ({ profile, user }) => (
 // Portfolio Tab Component
 const PortfolioTab = ({ profile }) => (
     <div className="space-y-s6">
-        <div className="bg-dark-800/40 backdrop-blur-sm p-s8 rounded-premium-2xl border border-dark-700/30 text-center shadow-inner">
-            <HiPhotograph className="mx-auto text-dark-600 text-5xl mb-s4 opacity-50" />
-            <h4 className="text-body font-black text-dark-200 mb-s2 uppercase tracking-widest">Portfolio Coming Soon</h4>
-            <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">
-                Connecting Instagram insights to showcase top-performing content.
-            </p>
-        </div>
-        {/* Instagram feed grid - Coming soon placeholder */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-s4">
-            {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="aspect-square bg-dark-800/40 backdrop-blur-sm rounded-premium-2xl flex items-center justify-center border border-dark-700/30 group cursor-not-allowed hover:bg-dark-800/60 transition-all">
-                    <HiPhotograph className="text-dark-600 text-3xl group-hover:scale-110 transition-transform opacity-30" />
-                </div>
-            ))}
-        </div>
+        {profile.portfolioLinks?.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-s4">
+                {profile.portfolioLinks.map((link, i) => (
+                    <a
+                        key={i}
+                        href={link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-dark-800/40 backdrop-blur-sm p-s5 rounded-premium-xl border border-dark-700/30 hover:border-primary-500/40 transition-all shadow-md"
+                    >
+                        <div className="flex items-center gap-s3">
+                            <HiPhotograph className="text-primary-400 text-2xl" />
+                            <div className="min-w-0">
+                                <p className="text-xs-pure font-black text-dark-100 uppercase tracking-widest">Portfolio Link {i + 1}</p>
+                                <p className="text-small text-dark-400 truncate">{link}</p>
+                            </div>
+                        </div>
+                    </a>
+                ))}
+            </div>
+        ) : (
+            <div className="bg-dark-800/40 backdrop-blur-sm p-s8 rounded-premium-2xl border border-dark-700/30 text-center shadow-inner">
+                <HiPhotograph className="mx-auto text-dark-600 text-5xl mb-s4 opacity-50" />
+                <h4 className="text-body font-black text-dark-200 mb-s2 uppercase tracking-widest">No Portfolio Links Added</h4>
+                <p className="text-xs-pure font-bold text-dark-500 uppercase tracking-widest">
+                    Ask the creator to add portfolio links in profile settings.
+                </p>
+            </div>
+        )}
     </div>
 );
 
 // Analytics Tab Component
-const AnalyticsTab = ({ profile }) => (
+const AnalyticsTab = () => (
     <div className="space-y-6">
         <div className="bg-dark-800/50 rounded-xl p-6 text-center">
             <HiChartBar className="mx-auto text-primary-400 text-5xl mb-4" />
@@ -346,7 +362,7 @@ const AnalyticsTab = ({ profile }) => (
 );
 
 // Reviews Tab Component
-const ReviewsTab = ({ profile }) => (
+const ReviewsTab = () => (
     <div className="space-y-4">
         <EmptyState
             icon="heart-broken"

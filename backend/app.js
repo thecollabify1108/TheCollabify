@@ -1,3 +1,14 @@
+const dotenv = require('dotenv');
+
+// Load environment variables FIRST (Critical for middleware config)
+dotenv.config();
+
+// Prevent insecure TLS disablement in production.
+if (process.env.NODE_ENV === 'production' && process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0') {
+    console.warn('⚠️ NODE_TLS_REJECT_UNAUTHORIZED=0 is unsafe in production. Enforcing certificate validation.');
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
+}
+
 // New Relic APM — must be loaded FIRST but only if license key is configured
 // In development, newrelic will be disabled if no license key is set
 if (process.env.NEW_RELIC_LICENSE_KEY && process.env.NEW_RELIC_LICENSE_KEY !== 'disabled-in-development') {
@@ -6,16 +17,19 @@ if (process.env.NEW_RELIC_LICENSE_KEY && process.env.NEW_RELIC_LICENSE_KEY !== '
 
 const express = require('express');
 const http = require('http');
-const dotenv = require('dotenv');
-
-// Load environment variables FIRST (Critical for middleware config)
-dotenv.config();
 
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const morgan = require('morgan');
 const helmet = require('helmet');
+
+let MemoryStore = null;
+try {
+    MemoryStore = require('memorystore')(session);
+} catch (e) {
+    console.warn('⚠️ Memorystore unavailable. Falling back to express-session default store:', e.message);
+}
 
 // Advanced Security Middleware
 const requestTracker = require('./middleware/requestTracker');
@@ -256,7 +270,7 @@ if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
     console.warn('⚠️ SESSION_SECRET not set in production. Using fallback. Set it in Azure Environment Variables!');
 }
 
-app.use(session({
+const sessionOptions = {
     secret: process.env.SESSION_SECRET || 'collabify-session-fallback-secret-change-in-prod',
     resave: false,
     saveUninitialized: false,
@@ -265,7 +279,15 @@ app.use(session({
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
     }
-}));
+};
+
+if (MemoryStore) {
+    sessionOptions.store = new MemoryStore({
+        checkPeriod: 24 * 60 * 60 * 1000
+    });
+}
+
+app.use(session(sessionOptions));
 
 // 7. Initialize Passport (MUST be synchronous before routes are registered)
 try {
@@ -412,7 +434,6 @@ try { safeRoute('/api/brands', require('./routes/brands')); } catch (e) { consol
 try { safeRoute('/api/availability', require('./routes/availabilityCampaigns')); } catch (e) { console.error('availabilityCampaigns route failed:', e.message); }
 try { safeRoute('/api/escrow', require('./routes/escrow')); } catch (e) { console.error('escrow route failed:', e.message); }
 try { safeRoute('/api/deliverables', require('./routes/deliverables')); } catch (e) { console.error('deliverables route failed:', e.message); }
-try { safeRoute('/api/demo', require('./routes/demo')); } catch (e) { console.error('demo route failed:', e.message); }
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -422,10 +443,12 @@ app.get('/', (req, res) => {
     });
 });
 
-// Start background initialization
-initializeModules().catch(err => {
-    console.error('💥 Background initialization failed:', err);
-});
+// Start background initialization only outside tests to avoid open-handle side effects.
+if (process.env.NODE_ENV !== 'test') {
+    initializeModules().catch(err => {
+        console.error('💥 Background initialization failed:', err);
+    });
+}
 
 // In-memory admin bootstrap status for operational visibility
 const adminBootstrapStatus = {

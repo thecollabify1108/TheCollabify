@@ -8,8 +8,7 @@ import {
     FaTimes,
     FaFlag
 } from 'react-icons/fa';
-import { HiSparkles, HiCreditCard, HiClipboardList } from 'react-icons/hi';
-import toast from 'react-hot-toast';
+import { HiSparkles, HiClipboardList } from 'react-icons/hi';
 import CreatorCard from './CreatorCard';
 import CollaborationStepper from '../common/CollaborationStepper';
 import PredictiveAnalyticsWidget from '../analytics/PredictiveAnalyticsWidget';
@@ -297,14 +296,9 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                                 <HiClipboardList className="text-primary-400 group-hover:scale-110 transition-transform" /> Manage Collaboration
                             </button>
 
-                            <button
-                                onClick={() => {
-                                    toast.success('Payment system upgrade in progress.');
-                                }}
-                                className="w-full py-s3 rounded-premium-xl bg-gradient-to-r from-emerald-600/50 to-teal-600/50 text-white/50 cursor-not-allowed font-black text-xs-pure uppercase tracking-widest shadow-glow hover:shadow-glow-lg transition-all flex items-center justify-center gap-2"
-                            >
-                                <HiCreditCard /> Secure Checkout (Coming Soon)
-                            </button>
+                            <div className="w-full py-s3 rounded-premium-xl bg-dark-800/60 text-dark-300 font-bold text-xs-pure uppercase tracking-widest border border-dark-700/50 flex items-center justify-center gap-2">
+                                <HiClipboardList className="text-primary-400" /> Collaboration managed in Hub
+                            </div>
                         </div>
                     </CreatorCard>
                 ))}

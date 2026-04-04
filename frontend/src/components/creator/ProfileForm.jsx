@@ -13,6 +13,20 @@ const CATEGORIES = [
 ];
 
 const PROMOTION_TYPES = ['Reels', 'Stories', 'Posts', 'Website Visit'];
+const AVAILABILITY_STYLE = {
+    AVAILABLE_NOW: {
+        active: 'border-emerald-500 bg-emerald-500/10',
+        text: 'text-emerald-400'
+    },
+    LIMITED_AVAILABILITY: {
+        active: 'border-amber-500 bg-amber-500/10',
+        text: 'text-amber-400'
+    },
+    NOT_AVAILABLE: {
+        active: 'border-rose-500 bg-rose-500/10',
+        text: 'text-rose-400'
+    }
+};
 
 const ProfileForm = ({ profile, onSave }) => {
     const [loading, setLoading] = useState(false);
@@ -463,11 +477,11 @@ const ProfileForm = ({ profile, onSave }) => {
                                     isAvailable: option.id !== 'NOT_AVAILABLE'
                                 }))}
                                 className={`p-4 rounded-xl border-2 transition-all text-left ${formData.availabilityStatus === option.id
-                                    ? `border-${option.color}-500 bg-${option.color}-500/10`
+                                    ? AVAILABILITY_STYLE[option.id].active
                                     : 'border-dark-600 hover:border-dark-500 bg-dark-800'
                                     }`}
                             >
-                                <div className={`text-sm font-bold ${formData.availabilityStatus === option.id ? `text-${option.color}-400` : 'text-dark-100'}`}>
+                                <div className={`text-sm font-bold ${formData.availabilityStatus === option.id ? AVAILABILITY_STYLE[option.id].text : 'text-dark-100'}`}>
                                     {option.label}
                                 </div>
                                 <div className="text-xs text-dark-400 mt-1">{option.desc}</div>

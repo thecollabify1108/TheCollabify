@@ -297,11 +297,11 @@ const AdminUsers = () => {
                                 <tbody className="divide-y divide-dark-800">
                                     {loading ? (
                                         <tr>
-                                            <td colspan="6" className="px-6 py-8 text-center text-dark-400">Loading users...</td>
+                                            <td colSpan="6" className="px-6 py-8 text-center text-dark-400">Loading users...</td>
                                         </tr>
                                     ) : filteredUsers.length === 0 ? (
                                         <tr>
-                                            <td colspan="6" className="px-6 py-8 text-center text-dark-400">No users found.</td>
+                                            <td colSpan="6" className="px-6 py-8 text-center text-dark-400">No users found.</td>
                                         </tr>
                                     ) : filteredUsers.map((user) => (
                                         <tr key={user.id} className="hover:bg-dark-800/30 transition-colors">

@@ -16,6 +16,70 @@ import ThemeToggle from '../common/ThemeToggle';
 import NotificationBell from '../common/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
 
+const SidebarContent = ({ menuItems, activeTab, setActiveTab, setIsMobileMenuOpen, user, handleLogout }) => (
+    <>
+        {/* Logo */}
+        <div className="p-6 border-b border-dark-800 flex justify-between items-center">
+            <Link to="/" className="flex items-center gap-3">
+                <img src="/favicon.png" alt="TheCollabify" className="w-8 h-8 object-contain" />
+                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-dark-400">
+                    AdminPanel
+                </span>
+            </Link>
+            {/* Close Button for Mobile */}
+            <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="lg:hidden text-dark-400 hover:text-white"
+            >
+                <FaTimes size={24} />
+            </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+            <div className="text-xs font-semibold text-dark-500 uppercase tracking-wider mb-4 px-2">Menu</div>
+            {menuItems.map((item) => (
+                <button
+                    key={item.id}
+                    onClick={() => {
+                        setActiveTab(item.id);
+                        setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === item.id
+                        ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
+                        : 'text-dark-400 hover:bg-dark-800 hover:text-dark-100'
+                        }`}
+                >
+                    <span className={`text-lg group-hover:scale-110 transition-transform ${activeTab === item.id ? 'text-white' : 'text-dark-400 group-hover:text-primary-400'}`}>
+                        {item.icon}
+                    </span>
+                    <span className="font-medium">{item.label}</span>
+                </button>
+            ))}
+        </nav>
+
+        {/* User Profile */}
+        <div className="p-4 border-t border-dark-800">
+            <div className="bg-dark-800/50 rounded-xl p-3 flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-white font-bold">
+                    {user?.name?.charAt(0) || 'A'}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <div className="text-sm font-bold text-dark-100 truncate">{user?.name || 'Admin'}</div>
+                    <div className="text-xs text-dark-400 truncate">{user?.email || 'admin@collabify.com'}</div>
+                </div>
+            </div>
+            <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors text-sm font-medium"
+            >
+                <FaSignOutAlt />
+                Sign Out
+            </button>
+        </div>
+    </>
+);
+
 const AdminLayout = ({ children, activeTab, setActiveTab }) => {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
@@ -33,75 +97,18 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
         { id: 'settings', label: 'Platform Settings', icon: <FaCog /> },
     ];
 
-    const SidebarContent = () => (
-        <>
-            {/* Logo */}
-            <div className="p-6 border-b border-dark-800 flex justify-between items-center">
-                <Link to="/" className="flex items-center gap-3">
-                    <img src="/favicon.png" alt="TheCollabify" className="w-8 h-8 object-contain" />
-                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-dark-400">
-                        AdminPanel
-                    </span>
-                </Link>
-                {/* Close Button for Mobile */}
-                <button
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="lg:hidden text-dark-400 hover:text-white"
-                >
-                    <FaTimes size={24} />
-                </button>
-            </div>
-
-            {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                <div className="text-xs font-semibold text-dark-500 uppercase tracking-wider mb-4 px-2">Menu</div>
-                {menuItems.map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => {
-                            setActiveTab(item.id);
-                            setIsMobileMenuOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === item.id
-                            ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/20'
-                            : 'text-dark-400 hover:bg-dark-800 hover:text-dark-100'
-                            }`}
-                    >
-                        <span className={`text-lg group-hover:scale-110 transition-transform ${activeTab === item.id ? 'text-white' : 'text-dark-400 group-hover:text-primary-400'}`}>
-                            {item.icon}
-                        </span>
-                        <span className="font-medium">{item.label}</span>
-                    </button>
-                ))}
-            </nav>
-
-            {/* User Profile */}
-            <div className="p-4 border-t border-dark-800">
-                <div className="bg-dark-800/50 rounded-xl p-3 flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-indigo-700 flex items-center justify-center text-white font-bold">
-                        {user?.name?.charAt(0) || 'A'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                        <div className="text-sm font-bold text-dark-100 truncate">{user?.name || 'Admin'}</div>
-                        <div className="text-xs text-dark-400 truncate">{user?.email || 'admin@collabify.com'}</div>
-                    </div>
-                </div>
-                <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center justify-center gap-2 p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors text-sm font-medium"
-                >
-                    <FaSignOutAlt />
-                    Sign Out
-                </button>
-            </div>
-        </>
-    );
-
     return (
         <div className="min-h-screen bg-dark-950 flex transition-colors duration-300">
             {/* Desktop Sidebar */}
             <aside className="w-64 bg-dark-900 border-r border-dark-800 flex-shrink-0 fixed h-full z-30 hidden lg:flex flex-col transition-colors duration-300">
-                <SidebarContent />
+                <SidebarContent
+                    menuItems={menuItems}
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    setIsMobileMenuOpen={setIsMobileMenuOpen}
+                    user={user}
+                    handleLogout={handleLogout}
+                />
             </aside>
 
             {/* Mobile Sidebar Overlay */}
@@ -122,7 +129,14 @@ const AdminLayout = ({ children, activeTab, setActiveTab }) => {
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                             className="fixed inset-y-0 left-0 w-64 bg-dark-900 border-r border-dark-800 z-50 flex flex-col lg:hidden"
                         >
-                            <SidebarContent />
+                            <SidebarContent
+                                menuItems={menuItems}
+                                activeTab={activeTab}
+                                setActiveTab={setActiveTab}
+                                setIsMobileMenuOpen={setIsMobileMenuOpen}
+                                user={user}
+                                handleLogout={handleLogout}
+                            />
                         </motion.aside>
                     </>
                 )}

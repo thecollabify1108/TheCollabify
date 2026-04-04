@@ -1,17 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaLightbulb,
-    FaRocket,
     FaChartLine,
-    FaUsers,
     FaClock,
     FaCheckCircle,
     FaMagic,
     FaArrowRight,
-    FaInstagram,
-    FaHashtag,
-    FaStar
+    FaHashtag
 } from 'react-icons/fa';
 import { aiAPI } from '../../services/api';
 
@@ -25,11 +21,7 @@ const AIOpportunitySuggestions = ({ profile, promotions = [], onApplySuggestion 
     const [activeSuggestion, setActiveSuggestion] = useState(null);
 
     // Generate AI suggestions based on profile and opportunities
-    useEffect(() => {
-        generateSuggestions();
-    }, [profile, promotions]);
-
-    const generateSuggestions = async () => {
+    const generateSuggestions = useCallback(async () => {
         if (!profile) return;
         setLoading(true);
 
@@ -49,11 +41,15 @@ const AIOpportunitySuggestions = ({ profile, promotions = [], onApplySuggestion 
         } finally {
             setLoading(false);
         }
-    };
+    }, [profile]);
+
+    useEffect(() => {
+        generateSuggestions();
+    }, [generateSuggestions, promotions]);
 
     const getIconForType = (id) => {
         switch (id) {
-            case 'engagement': return HiTrendingUp;
+            case 'engagement': return FaChartLine;
             case 'niche': return FaHashtag;
             case 'pricing': return FaChartLine;
             case 'timing': return FaClock;
@@ -94,7 +90,7 @@ const AIOpportunitySuggestions = ({ profile, promotions = [], onApplySuggestion 
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center">
-                        <HiSparkles className="text-white text-xl" />
+                        <FaMagic className="text-white text-xl" />
                     </div>
                     <div>
                         <h3 className="text-lg font-bold text-dark-100">AI Tips for You</h3>

@@ -49,8 +49,10 @@ if (process.env.NODE_ENV === 'development') {
  * This fires a trivial SELECT 1 so the TCP connection + TLS handshake
  * happen at boot time rather than on the first user request.
  */
-prisma.$queryRaw`SELECT 1`
-    .then(() => console.log('✅ Prisma DB connection warmed up'))
-    .catch((err) => console.warn('⚠️  Prisma warmup query failed (will retry on first request):', err.message));
+if (process.env.NODE_ENV !== 'test') {
+    prisma.$queryRaw`SELECT 1`
+        .then(() => console.log('✅ Prisma DB connection warmed up'))
+        .catch((err) => console.warn('⚠️  Prisma warmup query failed (will retry on first request):', err.message));
+}
 
 module.exports = prisma;

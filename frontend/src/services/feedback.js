@@ -19,11 +19,11 @@ export const trackMatchFeedback = (feedbackData) => {
         authAPI.post('/api/analytics/feedback', feedbackData)
             .catch(err => {
                 // Silent failure - do not disturb user experience
-                if (process.env.NODE_ENV === 'development') {
+                if (import.meta.env.DEV) {
                     console.warn('Feedback logging failed:', err.message);
                 }
             });
-    } catch (error) {
+    } catch {
         // double safety
     }
 };
@@ -38,11 +38,11 @@ export const trackMatchOutcome = (outcomeData) => {
     try {
         authAPI.post('/api/analytics/outcome', outcomeData)
             .catch(err => {
-                if (process.env.NODE_ENV === 'development') {
+                if (import.meta.env.DEV) {
                     console.warn('Outcome logging failed:', err.message);
                 }
             });
-    } catch (error) {
+    } catch {
         // safety
     }
 };

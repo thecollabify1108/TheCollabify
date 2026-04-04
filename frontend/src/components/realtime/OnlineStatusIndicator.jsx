@@ -24,7 +24,7 @@ const OnlineStatusIndicator = ({
         corner: 'absolute top-1 right-1'
     };
 
-    const Indicator = () => (
+    const indicatorNode = (
         <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -51,12 +51,12 @@ const OnlineStatusIndicator = ({
     );
 
     if (!showLabel) {
-        return <Indicator />;
+        return indicatorNode;
     }
 
     return (
         <div className="flex items-center gap-2">
-            <Indicator />
+            {indicatorNode}
             <span className={`text-sm ${isOnline ? 'text-green-400' : 'text-gray-500'}`}>
                 {isOnline ? 'Online' : 'Offline'}
             </span>

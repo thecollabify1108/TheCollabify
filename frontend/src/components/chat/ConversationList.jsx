@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { FaSearch, FaCircle } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import { FaSearch } from 'react-icons/fa';
 
 const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) => {
     const [searchTerm, setSearchTerm] = useState('');
@@ -35,8 +34,9 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) =>
                     </div>
                 ) : (
                     filteredConversations.map(convo => {
-                        const isOnline = onlineUsers.includes(convo.otherUser.id);
+                        const isOnline = convo.otherUser?.id ? onlineUsers.includes(convo.otherUser.id) : false;
                         const isActive = activeId === convo.id;
+                        const displayName = convo.otherUser?.name || 'Unknown User';
 
                         return (
                             <button
@@ -48,7 +48,7 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) =>
                                 {/* Avatar */}
                                 <div className="relative flex-shrink-0">
                                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary-500/20 to-secondary-500/20 flex items-center justify-center text-primary-400 font-bold border border-gray-200 dark:border-dark-700">
-                                        {convo.otherUser.name.charAt(0)}
+                                        {displayName.charAt(0)}
                                     </div>
                                     {isOnline && (
                                         <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-dark-900"></div>
@@ -59,7 +59,7 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) =>
                                 <div className="flex-1 min-w-0 text-left">
                                     <div className="flex justify-between items-baseline mb-1">
                                         <h4 className={`font-semibold truncate ${isActive ? 'text-gray-900 dark:text-white' : 'text-gray-900 dark:text-dark-100'}`}>
-                                            {convo.otherUser.name}
+                                            {displayName}
                                         </h4>
                                         <span className="text-xs text-gray-500 dark:text-dark-400 flex-shrink-0 ml-2">
                                             {new Date(convo.lastMessageAt || convo.updatedAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}

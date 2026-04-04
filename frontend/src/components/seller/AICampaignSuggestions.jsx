@@ -11,6 +11,7 @@ import {
     FaMagic,
     FaArrowRight
 } from 'react-icons/fa';
+import { HiLightningBolt, HiSparkles, HiTrendingUp } from 'react-icons/hi';
 import { aiAPI } from '../../services/api';
 
 /**
