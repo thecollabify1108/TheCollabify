@@ -232,9 +232,84 @@ router.post('/requests', auth, isSeller, [
             status: 'OPEN'
         };
 
-        const request = await prisma.promotionRequest.create({
-            data: requestData
-        });
+        let request;
+        try {
+            request = await prisma.promotionRequest.create({
+                data: requestData
+            });
+        } catch (createErr) {
+            const errText = `${createErr?.message || ''}`;
+            const isEnumArrayMismatch =
+                /column\s+"promotionType"\s+is\s+of\s+type\s+"PromotionType"\s+but\s+expression\s+is\s+of\s+type\s+"PromotionType"\[\]/i.test(errText) ||
+                /column\s+"targetCategory"\s+is\s+of\s+type\s+"Category"\s+but\s+expression\s+is\s+of\s+type\s+"Category"\[\]/i.test(errText);
+
+            if (!isEnumArrayMismatch) {
+                throw createErr;
+            }
+
+            const scalarType = types[0] || 'REELS';
+            const scalarCategory = categories[0] || 'Other';
+            const insertedRows = await prisma.$queryRaw`
+                INSERT INTO "PromotionRequest" (
+                    "sellerId",
+                    "title",
+                    "description",
+                    "minBudget",
+                    "maxBudget",
+                    "promotionType",
+                    "targetCategory",
+                    "minFollowers",
+                    "maxFollowers",
+                    "campaignGoal",
+                    "deadline",
+                    "status"
+                )
+                VALUES (
+                    ${req.userId},
+                    ${title},
+                    ${description},
+                    ${budgetRange.min},
+                    ${budgetRange.max},
+                    ${scalarType}::"PromotionType",
+                    ${scalarCategory}::"Category",
+                    ${followerRange?.min || 0},
+                    ${followerRange?.max || 10000000},
+                    ${finalGoal},
+                    ${deadline ? new Date(deadline) : null},
+                    'OPEN'
+                )
+                RETURNING
+                    "id",
+                    "sellerId",
+                    "title",
+                    "description",
+                    "minBudget",
+                    "maxBudget",
+                    "promotionType",
+                    "targetCategory",
+                    "minFollowers",
+                    "maxFollowers",
+                    "campaignGoal",
+                    "deadline",
+                    "status",
+                    "createdAt"
+            `;
+
+            const inserted = insertedRows?.[0];
+            if (!inserted) {
+                throw createErr;
+            }
+
+            request = {
+                ...inserted,
+                promotionType: Array.isArray(inserted.promotionType)
+                    ? inserted.promotionType
+                    : [inserted.promotionType].filter(Boolean),
+                targetCategory: Array.isArray(inserted.targetCategory)
+                    ? inserted.targetCategory
+                    : [inserted.targetCategory].filter(Boolean)
+            };
+        }
 
         // Find matching creators using AI matching service (fail-safe to avoid blocking request creation)
         let matchedCreatorsResults = [];
