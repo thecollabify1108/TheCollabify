@@ -24,6 +24,10 @@ const recommendedEnvVars = {
     EMAIL_USER: 'SMTP User',
     EMAIL_PASS: 'SMTP Password',
     NEW_RELIC_LICENSE_KEY: 'New Relic License Key (APM monitoring disabled if missing)',
+    STRIPE_SECRET_KEY: 'Stripe secret key (payments/escrow restricted if missing)',
+    CLOUDINARY_CLOUD_NAME: 'Cloudinary cloud name (file uploads disabled if missing)',
+    CLOUDINARY_API_KEY: 'Cloudinary API key',
+    CLOUDINARY_API_SECRET: 'Cloudinary API secret',
 };
 
 const optionalEnvVars = {

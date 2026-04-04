@@ -34,9 +34,11 @@ const initSentry = (app) => {
             profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
         });
 
-        // V10: Automatically setup Express error handling
-        // This replaces the old app.use(Sentry.Handlers.errorHandler())
-        Sentry.setupExpressErrorHandler(app);
+        // setupExpressErrorHandler may warn if Express was loaded before Sentry.init.
+        // Keep initialization stable and rely on explicit captureException + app error middleware.
+        if (app && process.env.SENTRY_EXPRESS_AUTO_HANDLER === 'true') {
+            Sentry.setupExpressErrorHandler(app);
+        }
 
         console.log('✅ Sentry initialized (v10 compatibility mode)');
     } catch (error) {

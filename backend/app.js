@@ -203,6 +203,44 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Readiness endpoint for deployment gates.
+// In production, returns 503 when launch-critical integrations are missing.
+app.get('/health/readiness', (req, res) => {
+    const checks = {
+        databaseUrl: Boolean(process.env.DATABASE_URL),
+        jwtSecret: Boolean(process.env.JWT_SECRET),
+        sessionSecret: Boolean(process.env.SESSION_SECRET),
+        stripeSecret: Boolean(process.env.STRIPE_SECRET_KEY),
+        cloudinary: Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET),
+    };
+
+    const missing = Object.entries(checks)
+        .filter(([, value]) => !value)
+        .map(([key]) => key);
+
+    const isProd = process.env.NODE_ENV === 'production';
+    const launchCriticalInProd = ['databaseUrl', 'jwtSecret', 'sessionSecret', 'stripeSecret', 'cloudinary'];
+    const criticalMissing = missing.filter((k) => launchCriticalInProd.includes(k));
+
+    if (isProd && criticalMissing.length > 0) {
+        return res.status(503).json({
+            status: 'not-ready',
+            environment: process.env.NODE_ENV || 'development',
+            message: 'Launch-critical configuration is missing',
+            checks,
+            missing,
+            criticalMissing,
+        });
+    }
+
+    return res.status(200).json({
+        status: 'ready',
+        environment: process.env.NODE_ENV || 'development',
+        checks,
+        missing,
+    });
+});
+
 // Track initialization status
 let prisma = null;
 let initializeSocketServer = null;
