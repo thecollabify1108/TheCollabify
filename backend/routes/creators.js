@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const { Prisma } = require('@prisma/client');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { isCreator } = require('../middleware/roleCheck');
@@ -553,52 +554,79 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
             });
         }
 
-        // Find matching promotion requests with pagination
-        // Matching is by category only. Promotion type filtering is skipped here
-        // to avoid enum-array casting issues on some production database revisions.
-        const matchWhere = {
-            status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
-            targetCategory: { has: profile.category }
-        };
+        // Raw SQL is used here to bypass enum-array casting issues
+        // observed on some production database revisions.
+        const promotions = await prisma.$queryRaw`
+            SELECT
+                p."id",
+                p."title",
+                p."description",
+                p."minBudget",
+                p."maxBudget",
+                p."minFollowers",
+                p."maxFollowers",
+                p."campaignGoal",
+                p."deadline",
+                p."createdAt",
+                p."location",
+                s."name" AS "sellerName",
+                s."email" AS "sellerEmail",
+                s."avatar" AS "sellerAvatar"
+            FROM "PromotionRequest" p
+            JOIN "User" s ON s."id" = p."sellerId"
+            WHERE p."status" IN ('OPEN', 'CREATOR_INTERESTED')
+              AND ${profile.category} = ANY(p."targetCategory")
+            ORDER BY p."createdAt" DESC
+            OFFSET ${skip}
+            LIMIT ${limit}
+        `;
 
-        const [promotions, total] = await prisma.$transaction([
-            prisma.promotionRequest.findMany({
-                where: matchWhere,
-                select: {
-                    id: true,
-                    title: true,
-                    description: true,
-                    minBudget: true,
-                    maxBudget: true,
-                    minFollowers: true,
-                    maxFollowers: true,
-                    campaignGoal: true,
-                    deadline: true,
-                    createdAt: true,
-                    location: true,
-                    seller: {
-                        select: { name: true, email: true, avatar: true }
-                    },
-                    // Optimize: Only fetch match status for THIS creator
-                    matchedCreators: {
-                        where: { creatorId: profile.id },
-                        select: { status: true }
-                    }
-                },
-                orderBy: { createdAt: 'desc' },
-                skip: skip,
-                take: limit
-            }),
-            prisma.promotionRequest.count({ where: matchWhere })
-        ]);
+        const totalRows = await prisma.$queryRaw`
+            SELECT COUNT(*)::int AS "count"
+            FROM "PromotionRequest" p
+            WHERE p."status" IN ('OPEN', 'CREATOR_INTERESTED')
+              AND ${profile.category} = ANY(p."targetCategory")
+        `;
+        const total = totalRows?.[0]?.count || 0;
+
+        const promotionIds = promotions.map(p => p.id);
+        let appliedSet = new Set();
+        if (promotionIds.length > 0) {
+            const appliedRows = await prisma.$queryRaw`
+                SELECT "promotionId", "status"
+                FROM "MatchedCreator"
+                WHERE "creatorId" = ${profile.id}
+                  AND "promotionId" IN (${Prisma.join(promotionIds)})
+            `;
+            appliedSet = new Set(
+                appliedRows
+                    .filter(r => r.status === 'APPLIED')
+                    .map(r => r.promotionId)
+            );
+        }
 
         // Map response
         const promotionsWithStatus = promotions.map(promo => ({
-            ...promo,
-            promotionType: promo.promotionType || [],
+            id: promo.id,
+            title: promo.title,
+            description: promo.description,
+            minBudget: promo.minBudget,
+            maxBudget: promo.maxBudget,
+            minFollowers: promo.minFollowers,
+            maxFollowers: promo.maxFollowers,
+            campaignGoal: promo.campaignGoal,
+            deadline: promo.deadline,
+            createdAt: promo.createdAt,
+            location: promo.location,
+            seller: {
+                name: promo.sellerName,
+                email: promo.sellerEmail,
+                avatar: promo.sellerAvatar
+            },
+            promotionType: [],
             budgetRange: { min: promo.minBudget, max: promo.maxBudget },
             followerRange: { min: promo.minFollowers, max: promo.maxFollowers },
-            hasApplied: promo.matchedCreators.length > 0 && promo.matchedCreators[0].status === 'APPLIED'
+            hasApplied: appliedSet.has(promo.id)
         }));
 
         res.json({

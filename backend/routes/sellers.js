@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const { Prisma } = require('@prisma/client');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { userCacheMiddleware } = require('../middleware/cache');
@@ -40,43 +41,51 @@ const handleValidation = (req, res, next) => {
 router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res) => {
     try {
         const { status, page = 1, limit = 10 } = req.query;
-        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+        const normalizedStatus = status ? String(status).toUpperCase() : null;
 
-        const where = { sellerId: req.userId };
-        if (status) {
-            where.status = status.toUpperCase();
-        }
+        const statusSql = normalizedStatus
+            ? Prisma.sql`AND "status" = ${normalizedStatus}`
+            : Prisma.empty;
 
-        const [requests, total] = await Promise.all([
-            prisma.promotionRequest.findMany({
-                where,
-                select: {
-                    id: true,
-                    title: true,
-                    description: true,
-                    minBudget: true,
-                    maxBudget: true,
-                    campaignGoal: true,
-                    deadline: true,
-                    status: true,
-                    createdAt: true
-                },
-                orderBy: { createdAt: 'desc' },
-                skip,
-                take: parseInt(limit)
-            }),
-            prisma.promotionRequest.count({ where })
-        ]);
+        const requests = await prisma.$queryRaw`
+            SELECT
+                "id",
+                "title",
+                "description",
+                "minBudget",
+                "maxBudget",
+                "campaignGoal",
+                "deadline",
+                "status",
+                "createdAt"
+            FROM "PromotionRequest"
+            WHERE "sellerId" = ${req.userId}
+            ${statusSql}
+            ORDER BY "createdAt" DESC
+            OFFSET ${skip}
+            LIMIT ${limitNum}
+        `;
+
+        const totalRows = await prisma.$queryRaw`
+            SELECT COUNT(*)::int AS "count"
+            FROM "PromotionRequest"
+            WHERE "sellerId" = ${req.userId}
+            ${statusSql}
+        `;
+        const total = totalRows?.[0]?.count || 0;
 
         res.json({
             success: true,
             data: {
                 requests: requests.map(r => ({ ...r, matchedCreators: [] })),
                 pagination: {
-                    page: parseInt(page),
-                    limit: parseInt(limit),
+                    page: pageNum,
+                    limit: limitNum,
                     total,
-                    pages: Math.ceil(total / parseInt(limit))
+                    pages: Math.ceil(total / limitNum)
                 }
             }
         });
