@@ -895,7 +895,7 @@ router.post('/conversations/:id/messages', auth, [
         await prisma.conversation.update({
             where: { id: conversationId },
             data: {
-                lastMessage: contentToSave.substring(0, 100),
+                lastMessageContent: contentToSave.substring(0, 100),
                 lastMessageAt: new Date(),
                 ...unreadUpdate,
                 ...msgCountUpdate
