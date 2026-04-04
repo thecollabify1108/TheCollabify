@@ -575,7 +575,6 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
             FROM "PromotionRequest" p
             JOIN "User" s ON s."id" = p."sellerId"
             WHERE p."status" IN ('OPEN', 'CREATOR_INTERESTED')
-              AND ${profile.category} = ANY(p."targetCategory")
             ORDER BY p."createdAt" DESC
             OFFSET ${skip}
             LIMIT ${limit}
@@ -585,7 +584,6 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
             SELECT COUNT(*)::int AS "count"
             FROM "PromotionRequest" p
             WHERE p."status" IN ('OPEN', 'CREATOR_INTERESTED')
-              AND ${profile.category} = ANY(p."targetCategory")
         `;
         const total = totalRows?.[0]?.count || 0;
 
@@ -606,7 +604,12 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
         }
 
         // Map response
-        const promotionsWithStatus = promotions.map(promo => ({
+        const promotionsWithStatus = promotions
+            .filter(promo => {
+                if (!Array.isArray(promo.targetCategory)) return true;
+                return promo.targetCategory.includes(profile.category);
+            })
+            .map(promo => ({
             id: promo.id,
             title: promo.title,
             description: promo.description,
