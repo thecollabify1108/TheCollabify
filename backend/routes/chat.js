@@ -870,7 +870,6 @@ router.post('/conversations/:id/messages', auth, [
             data: {
                 conversationId: conversationId,
                 senderId: userId,
-                receiverId: isSeller ? conversation.creatorUserId : conversation.sellerId,
                 content: contentToSave,
                 messageType: req.body.messageType || 'TEXT',
                 isEncrypted: req.body.isEncrypted || false,
