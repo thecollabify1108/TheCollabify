@@ -871,7 +871,6 @@ router.post('/conversations/:id/messages', auth, [
                 conversationId: conversationId,
                 senderId: userId,
                 content: contentToSave,
-                messageType: req.body.messageType || 'TEXT',
                 isEncrypted: req.body.isEncrypted || false,
                 encryptionVersion: req.body.encryptionVersion || '1.0'
             },
