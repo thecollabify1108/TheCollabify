@@ -60,25 +60,7 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
                     campaignGoal: true,
                     deadline: true,
                     status: true,
-                    createdAt: true,
-                    matchedCreators: {
-                        select: {
-                            id: true,
-                            matchScore: true,
-                            status: true,
-                            creatorId: true,
-                            creator: {
-                                select: {
-                                    id: true,
-                                    followerCount: true,
-                                    category: true,
-                                    user: {
-                                        select: { id: true, name: true, avatar: true }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    createdAt: true
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,
@@ -90,7 +72,7 @@ router.get('/requests', auth, isSeller, userCacheMiddleware(30), async (req, res
         res.json({
             success: true,
             data: {
-                requests,
+                requests: requests.map(r => ({ ...r, matchedCreators: [] })),
                 pagination: {
                     page: parseInt(page),
                     limit: parseInt(limit),
@@ -195,10 +177,14 @@ router.post('/requests', auth, isSeller, [
             deadline
         } = req.body;
 
-        // Fire-and-forget: Log Campaign Flow Start (don't block response)
-        const FrictionService = require('../services/frictionService');
-        FrictionService.trackCampaignStart(req.userId, { title, targetCategory })
-            .catch(err => console.error('Friction tracking failed:', err));
+        // Fire-and-forget: Log campaign creation; never block request on analytics tooling.
+        try {
+            const FrictionService = require('../services/frictionService');
+            FrictionService.trackCampaignStart(req.userId, { title, targetCategory })
+                .catch(err => console.error('Friction tracking failed:', err));
+        } catch (frictionErr) {
+            console.error('Friction service unavailable (non-fatal):', frictionErr.message);
+        }
 
         // Helper to format category
         const formatCategory = (cat) => {

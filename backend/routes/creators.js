@@ -543,7 +543,7 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
 
         const profile = await prisma.creatorProfile.findUnique({
             where: { userId: req.userId },
-            select: { category: true, promotionTypes: true, followerCount: true } // Select only needed fields
+            select: { id: true, category: true, promotionTypes: true, followerCount: true } // Select only needed fields
         });
 
         if (!profile) {
@@ -553,12 +553,16 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
             });
         }
 
+        const promotionTypes = Array.isArray(profile.promotionTypes) && profile.promotionTypes.length > 0
+            ? profile.promotionTypes
+            : ['REELS', 'STORIES', 'POSTS', 'WEBSITE_VISIT'];
+
         // Find matching promotion requests with pagination
         // Matching is by category & promotionType only (follower filtering removed to simplify matching)
         const matchWhere = {
             status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
             targetCategory: { has: profile.category },
-            promotionType: { hasSome: profile.promotionTypes }
+            promotionType: { hasSome: promotionTypes }
         };
 
         const [promotions, total] = await prisma.$transaction([
@@ -582,7 +586,7 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
                     },
                     // Optimize: Only fetch match status for THIS creator
                     matchedCreators: {
-                        where: { creatorId: req.userId },
+                        where: { creatorId: profile.id },
                         select: { status: true }
                     }
                 },
@@ -663,7 +667,7 @@ router.post('/promotions/:id/apply', auth, isCreator, async (req, res) => {
 
         // Check if already applied
         const existingApplication = promotion.matchedCreators.find(
-            mc => mc.creatorId === req.userId
+            mc => mc.creatorId === profile.id
         );
 
         if (existingApplication && existingApplication.status === 'APPLIED') {
