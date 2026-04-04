@@ -319,7 +319,9 @@ router.post('/requests', auth, isSeller, [
         console.error('Create request error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to create promotion request'
+            message: 'Failed to create promotion request',
+            errorCode: error.code || null,
+            errorDetail: error.message || null
         });
     }
 });

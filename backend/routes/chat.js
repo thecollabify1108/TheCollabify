@@ -388,7 +388,9 @@ router.post('/message-request', auth, async (req, res) => {
                 console.error('Error creating ad-hoc promotion:', promErr);
                 return res.status(400).json({
                     success: false,
-                    message: 'Unable to start direct chat right now. Please launch one campaign first and try again.'
+                    message: 'Unable to start direct chat right now. Please launch one campaign first and try again.',
+                    errorCode: promErr.code || null,
+                    errorDetail: promErr.message || null
                 });
             }
         }
