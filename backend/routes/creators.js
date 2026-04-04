@@ -553,16 +553,12 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
             });
         }
 
-        const promotionTypes = Array.isArray(profile.promotionTypes) && profile.promotionTypes.length > 0
-            ? profile.promotionTypes
-            : ['REELS', 'STORIES', 'POSTS', 'WEBSITE_VISIT'];
-
         // Find matching promotion requests with pagination
-        // Matching is by category & promotionType only (follower filtering removed to simplify matching)
+        // Matching is by category only. Promotion type filtering is skipped here
+        // to avoid enum-array casting issues on some production database revisions.
         const matchWhere = {
             status: { in: ['OPEN', 'CREATOR_INTERESTED'] },
-            targetCategory: { has: profile.category },
-            promotionType: { hasSome: promotionTypes }
+            targetCategory: { has: profile.category }
         };
 
         const [promotions, total] = await prisma.$transaction([
@@ -576,7 +572,6 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
                     maxBudget: true,
                     minFollowers: true,
                     maxFollowers: true,
-                    promotionType: true,
                     campaignGoal: true,
                     deadline: true,
                     createdAt: true,
@@ -600,6 +595,7 @@ router.get('/promotions', auth, isCreator, userCacheMiddleware(30), async (req, 
         // Map response
         const promotionsWithStatus = promotions.map(promo => ({
             ...promo,
+            promotionType: promo.promotionType || [],
             budgetRange: { min: promo.minBudget, max: promo.maxBudget },
             followerRange: { min: promo.minFollowers, max: promo.maxFollowers },
             hasApplied: promo.matchedCreators.length > 0 && promo.matchedCreators[0].status === 'APPLIED'

@@ -2,9 +2,9 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    FaFire, FaLock, FaChevronDown, FaChevronUp
+    FaFire
 } from 'react-icons/fa';
-import { HiSparkles, HiUserGroup, HiViewGrid } from 'react-icons/hi';
+import { HiSparkles, HiUserGroup } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
 import { sellerAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -12,9 +12,9 @@ import toast from 'react-hot-toast';
 // New Components
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Navbar from '../components/common/Navbar';
-import QuickStatsBar from '../components/seller/QuickStatsBar';
 import CampaignTracker from '../components/seller/CampaignTracker';
 import CollaborationHub from '../components/common/CollaborationHub';
+import ConversationList from '../components/common/ConversationList';
 import ChatBox from '../components/common/ChatBox';
 import CreatorLeads from '../components/seller/CreatorLeads';
 
@@ -29,7 +29,6 @@ import DashboardHero from '../components/dashboard/DashboardHero';
 import LoadingButton from '../components/common/LoadingButton';
 import EmptyState from '../components/common/EmptyState';
 import BottomSheet from '../components/common/BottomSheet';
-import EarlyBirdBanner from '../components/common/EarlyBirdBanner';
 
 // Skeleton Loading Components
 import { Skeleton, SkeletonStats, SkeletonCard, SkeletonList } from '../components/common/Skeleton';
@@ -43,7 +42,6 @@ import PerformanceChart from '../components/dashboard/PerformanceChart';
 import FocusWrapper from '../components/dashboard/FocusWrapper';
 import QuickActionsFAB from '../components/common/QuickActionsFAB';
 import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard';
-import Icon from '../components/common/Icon';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -56,9 +54,9 @@ const SellerDashboard = () => {
     const [activeCollabMatch, setActiveCollabMatch] = useState(null);
     const [showAIRecommendations, setShowAIRecommendations] = useState(false);
     const [allCreators, setAllCreators] = useState([]);
-    const [isCampaignsExpanded, setIsCampaignsExpanded] = useState(false);
     const [pendingCreators, setPendingCreators] = useState([]);
-    const [leadsCount, setLeadsCount] = useState(0);
+    const [leadsCount] = useState(0);
+    const [selectedConversation, setSelectedConversation] = useState(null);
 
     const fetchData = async () => {
         setLoading(true);
@@ -159,12 +157,6 @@ const SellerDashboard = () => {
             label: 'Stats',
             iconName: 'grid',
             description: 'Analytics'
-        },
-        {
-            id: 'team',
-            label: 'Team',
-            iconName: 'users',
-            description: 'Manage Team'
         },
         {
             id: 'discover',
@@ -337,21 +329,6 @@ const SellerDashboard = () => {
                     </motion.div>
                 )}
 
-                {/* Team Management Tab (locked — unfinished) */}
-                {activeTab === 'team' && (
-                    <motion.div
-                        key="team"
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                    >
-                        <div className="bg-dark-800/60 border border-dark-700/50 rounded-xl p-6 flex flex-col items-center justify-center min-h-[200px]">
-                            <FaLock className="text-3xl text-dark-400 mb-2" />
-                            <span className="text-dark-300 text-sm font-medium">Currently we have not this, so content all locked. We are working on this and will soon implement.</span>
-                        </div>
-                    </motion.div>
-                )}
-
                 {/* Messages Tab */}
                 {activeTab === 'messages' && (
                     <motion.div
@@ -365,9 +342,7 @@ const SellerDashboard = () => {
                             <h2 className="text-h2 font-bold text-dark-100 mb-s1">Messages</h2>
                             <p className="text-body text-dark-400">Chat with applicants and creators</p>
                         </div>
-                        <div className="flex-1 rounded-2xl overflow-hidden border border-dark-700/50">
-                            <ChatBox />
-                        </div>
+                        <ConversationList onSelectConversation={setSelectedConversation} />
                     </motion.div>
                 )}
 
@@ -563,7 +538,7 @@ const SellerDashboard = () => {
                             toast.error('Campaign title and description are required', { id: loadingToast });
                             return;
                         }
-                        const response = await sellerAPI.createRequest(payload);
+                        await sellerAPI.createRequest(payload);
                         toast.success('Campaign launched successfully!', { id: loadingToast });
                         setShowRequestWizard(false);
                         // Refresh dashboard data immediately
@@ -601,6 +576,18 @@ const SellerDashboard = () => {
             </BottomSheet>
 
             {/* Intelligence Copilot Panel — removed for production launch */}
+
+            <AnimatePresence>
+                {selectedConversation && (
+                    <ChatBox
+                        conversationId={selectedConversation.id}
+                        otherUserName={selectedConversation.creatorUserId?.name || selectedConversation.otherUser?.name || 'Creator'}
+                        promotionTitle={selectedConversation.promotionId?.title || 'Campaign'}
+                        conversation={selectedConversation}
+                        onClose={() => setSelectedConversation(null)}
+                    />
+                )}
+            </AnimatePresence>
 
 
         </DashboardLayout>

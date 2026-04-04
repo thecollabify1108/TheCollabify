@@ -354,7 +354,6 @@ router.post('/message-request', auth, async (req, res) => {
             // 3) Safety fallback: reuse latest open campaign globally.
             // Keeps chat functional even when campaign creation is temporarily degraded.
             const globalLatestRequest = await prisma.promotionRequest.findFirst({
-                where: { status: { in: ['OPEN', 'CREATOR_INTERESTED', 'ACCEPTED'] } },
                 select: { id: true },
                 orderBy: { createdAt: 'desc' }
             });
