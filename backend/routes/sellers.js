@@ -252,7 +252,8 @@ router.post('/requests', auth, isSeller, [
                     "maxFollowers",
                     "campaignGoal",
                     "deadline",
-                    "status"
+                    "status",
+                    "updatedAt"
                 )
                 VALUES (
                     ${randomUUID()},
@@ -267,7 +268,8 @@ router.post('/requests', auth, isSeller, [
                     ${followerRange?.max || 10000000},
                     ${finalGoal}::"CampaignGoal",
                     ${deadline ? new Date(deadline) : null},
-                    'OPEN'
+                    'OPEN',
+                    ${new Date()}
                 )
                 RETURNING
                     "id",
