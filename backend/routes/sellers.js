@@ -262,7 +262,7 @@ router.post('/requests', auth, isSeller, [
                     ${scalarCategory}::"Category",
                     ${followerRange?.min || 0},
                     ${followerRange?.max || 10000000},
-                    ${finalGoal},
+                    ${finalGoal}::"CampaignGoal",
                     ${deadline ? new Date(deadline) : null},
                     'OPEN'
                 )
