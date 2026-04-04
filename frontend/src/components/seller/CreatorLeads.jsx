@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { HiLocationMarker, HiCurrencyRupee, HiCalendar, HiChat, HiSparkles } from 'react-icons/hi';
 import { availabilityAPI, chatAPI } from '../../services/api';
@@ -17,7 +17,7 @@ const CreatorLeads = ({ brandLocation = '' }) => {
     });
     const navigate = useNavigate();
 
-    const fetchLeads = async () => {
+    const fetchLeads = useCallback(async () => {
         setLoading(true);
         try {
             const res = await availabilityAPI.getNearby({ 
@@ -31,11 +31,11 @@ const CreatorLeads = ({ brandLocation = '' }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter.location, filter.niche]);
 
     useEffect(() => {
         fetchLeads();
-    }, [filter.location, filter.niche]);
+    }, [fetchLeads]);
 
     const handleContactCreator = async (lead) => {
         if (contactingId) return; // prevent double-click
@@ -54,7 +54,7 @@ const CreatorLeads = ({ brandLocation = '' }) => {
             const res = await chatAPI.sendMessageRequest(creatorUserId);
             const conversationId = res?.data?.data?.conversation?.id || res?.data?.data?.id;
             if (conversationId) {
-                navigate(`/messages?conversation=${conversationId}`);
+                navigate(`/messages?c=${conversationId}`);
                 toast.success('Conversation started!');
             } else {
                 // Fallback: Go to messages with the user
@@ -146,7 +146,7 @@ const CreatorLeads = ({ brandLocation = '' }) => {
                             </div>
 
                             <div className="p-3 bg-dark-800/30 rounded-xl mb-4 border border-white/5">
-                                <p className="text-sm text-dark-300 italic line-clamp-2">"{lead.description}"</p>
+                                <p className="text-sm text-dark-300 italic line-clamp-2">{lead.description}</p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 mb-5">

@@ -16,8 +16,10 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const [otherUserPublicKey, setOtherUserPublicKey] = useState(null);
     const messagesEndRef = useRef(null);
 
-    const otherUser = conversation.otherUser;
-    const isOnline = onlineUsers.includes(otherUser.id);
+    const otherUser = conversation.otherUser || conversation.creatorUser || conversation.seller || {};
+    const otherUserId = otherUser?.id;
+    const otherUserName = otherUser?.name || 'Unknown User';
+    const isOnline = otherUserId ? onlineUsers.includes(otherUserId) : false;
 
     const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversation.id, true);
 
@@ -39,7 +41,12 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             }
 
             // 2. Try to fetch other user's public key
-            const res = await chatAPI.getPGPKey(otherUser.id);
+            if (!otherUserId) {
+                setIsSecure(false);
+                return;
+            }
+
+            const res = await chatAPI.getPGPKey(otherUserId);
             if (res.data.success && res.data.data.publicKey) {
                 setOtherUserPublicKey(res.data.data.publicKey);
                 setIsSecure(true);
@@ -126,7 +133,9 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             scrollToBottom();
 
             // Broadcast via Socket
-            socketService.sendMessage(conversation.id, displayMsg, otherUser.id);
+            if (otherUserId) {
+                socketService.sendMessage(conversation.id, displayMsg, otherUserId);
+            }
 
         } catch (error) {
             console.error('Failed to send', error);
@@ -153,14 +162,14 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
                     <div className="relative">
                         <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-secondary-500 flex items-center justify-center text-white font-bold">
-                            {otherUser.name.charAt(0)}
+                            {otherUserName.charAt(0)}
                         </div>
                         {isOnline && <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-dark-900" />}
                     </div>
 
                     <div>
                         <div className="flex items-center gap-2">
-                            <h3 className="font-bold text-gray-900 dark:text-dark-100">{otherUser.name}</h3>
+                            <h3 className="font-bold text-gray-900 dark:text-dark-100">{otherUserName}</h3>
                             {isSecure && <FaShieldAlt className="text-emerald-500 text-xs" title="Guardian Elite Encrypted Session" />}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-400">
@@ -198,7 +207,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
                             message={msg}
                             isOwn={isOwn}
                             showAvatar={showAvatar}
-                            senderName={otherUser.name}
+                            senderName={otherUserName}
                         />
                     );
                 })}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import ChatLayout from '../components/chat/ChatLayout';
 import ConversationList from '../components/chat/ConversationList';
@@ -13,42 +13,38 @@ const Messages = () => {
     const [searchParams] = useSearchParams();
     const [conversations, setConversations] = useState([]);
     const [activeConversationId, setActiveConversationId] = useState(null);
-    const [loading, setLoading] = useState(true);
 
     // WebSocket Hook
     const { onlineUsers } = useWebSocket(user);
 
-    useEffect(() => {
-        fetchConversations();
-    }, []);
-
-    // Handle initial conversation from URL
-    useEffect(() => {
-        const convoId = searchParams.get('c');
-        if (convoId) {
-            setActiveConversationId(convoId);
-        }
-    }, [searchParams]);
-
-    const fetchConversations = async () => {
+    const fetchConversations = useCallback(async () => {
+        if (!user?.role) return;
         try {
-            setLoading(true);
             const res = await chatAPI.getConversations();
+            const rawConversations = res?.data?.data?.conversations || [];
 
             // Normalize conversation data for UI
-            const formatted = res.data.data.conversations.map(c => {
+            const formatted = rawConversations.map(c => {
                 const isSeller = user.role === 'seller';
-                const otherUser = isSeller ? c.creatorUserId : c.sellerId;
+                const otherUser = isSeller ? c.creatorUser : c.seller;
                 const unreadCount = isSeller ? c.unreadCountSeller : c.unreadCountCreator;
 
                 return {
                     ...c,
-                    otherUser,
+                    otherUser: otherUser || null,
                     unreadCount
                 };
             });
 
             setConversations(formatted);
+
+            const userParam = searchParams.get('user');
+            if (!activeConversationId && userParam) {
+                const matched = formatted.find(c => c.otherUser?.id === userParam);
+                if (matched) {
+                    setActiveConversationId(matched.id);
+                }
+            }
 
             // Auto-select first if none selected and desktop
             if (!activeConversationId && formatted.length > 0 && window.innerWidth >= 768) {
@@ -56,10 +52,21 @@ const Messages = () => {
             }
         } catch (error) {
             console.error('Failed to load chats', error);
-        } finally {
-            setLoading(false);
         }
-    };
+    }, [user?.role, searchParams, activeConversationId]);
+
+    useEffect(() => {
+        if (!user?.id || !user?.role) return;
+        fetchConversations();
+    }, [user?.id, user?.role, fetchConversations]);
+
+    // Handle initial conversation from URL
+    useEffect(() => {
+        const convoId = searchParams.get('c') || searchParams.get('conversation');
+        if (convoId) {
+            setActiveConversationId(convoId);
+        }
+    }, [searchParams]);
 
     const activeConversation = conversations.find(c => c.id === activeConversationId);
 

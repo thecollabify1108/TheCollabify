@@ -256,12 +256,43 @@ router.post('/message-request', auth, async (req, res) => {
         });
 
         if (conversation) {
+            if (conversation.status !== 'ACTIVE') {
+                conversation = await prisma.conversation.update({
+                    where: { id: conversation.id },
+                    data: {
+                        status: 'ACTIVE',
+                        creatorAccepted: 'accepted',
+                        sellerAccepted: 'accepted',
+                        lastMessageContent: conversation.lastMessageContent || 'Conversation started'
+                    },
+                    include: {
+                        seller: { select: { id: true, name: true, email: true } },
+                        creatorUser: { select: { id: true, name: true, email: true } }
+                    }
+                });
+            }
+
+            const existingMatch = await prisma.matchedCreator.findFirst({
+                where: {
+                    promotionId: conversation.promotionId,
+                    creatorId: creatorProfile.id
+                }
+            });
+
+            if (existingMatch && existingMatch.status !== 'ACCEPTED') {
+                await prisma.matchedCreator.update({
+                    where: { id: existingMatch.id },
+                    data: {
+                        status: 'ACCEPTED',
+                        respondedAt: new Date()
+                    }
+                });
+            }
+
             return res.json({
                 success: true,
                 data: { conversation },
-                message: conversation.status === 'PENDING'
-                    ? 'Message request already sent'
-                    : 'Conversation already exists'
+                message: 'Conversation already exists'
             });
         }
 
@@ -348,21 +379,53 @@ router.post('/message-request', auth, async (req, res) => {
             }
         }
 
-        // Create new conversation with pending status
+        // Create new conversation as immediately chat-capable for direct outreach.
+        // This prevents the seller contact flow from dead-ending in a pending state.
         conversation = await prisma.conversation.create({
             data: {
                 sellerId: sellerId,
                 creatorUserId,
                 creatorProfileId: creatorProfile.id,
                 promotionId,
-                status: 'PENDING',
-                lastMessageContent: 'Message request sent'
+                status: 'ACTIVE',
+                creatorAccepted: 'accepted',
+                sellerAccepted: 'accepted',
+                lastMessageContent: 'Conversation started'
             },
             include: {
                 seller: { select: { id: true, name: true, email: true } },
                 creatorUser: { select: { id: true, name: true, email: true } }
             }
         });
+
+        // Ensure there is an accepted match record so message sending is allowed.
+        const existingMatch = await prisma.matchedCreator.findFirst({
+            where: {
+                promotionId,
+                creatorId: creatorProfile.id
+            }
+        });
+
+        if (existingMatch) {
+            await prisma.matchedCreator.update({
+                where: { id: existingMatch.id },
+                data: {
+                    status: 'ACCEPTED',
+                    respondedAt: new Date()
+                }
+            });
+        } else {
+            await prisma.matchedCreator.create({
+                data: {
+                    promotionId,
+                    creatorId: creatorProfile.id,
+                    matchScore: 100,
+                    matchReason: 'Direct outreach conversation',
+                    status: 'ACCEPTED',
+                    respondedAt: new Date()
+                }
+            });
+        }
 
         res.json({
             success: true,
@@ -410,12 +473,26 @@ router.post('/message-request/:conversationId/accept', auth, async (req, res) =>
             where: { id: conversationId },
             data: {
                 status: 'ACTIVE',
-                lastMessage: 'Request accepted',
-                acceptanceStatus: { byCreator: 'accepted' }
+                creatorAccepted: 'accepted',
+                sellerAccepted: conversation.sellerAccepted || 'accepted',
+                lastMessageContent: conversation.lastMessageContent || 'Request accepted',
+                lastMessageCreatedAt: new Date()
             },
             include: {
                 seller: { select: { id: true, name: true, email: true } },
                 creatorUser: { select: { id: true, name: true, email: true } }
+            }
+        });
+
+        // Keep match status aligned so messaging gates remain satisfied.
+        await prisma.matchedCreator.updateMany({
+            where: {
+                promotionId: updatedConversation.promotionId,
+                creator: { userId: creatorId }
+            },
+            data: {
+                status: 'ACCEPTED',
+                respondedAt: new Date()
             }
         });
 
@@ -814,7 +891,7 @@ router.post('/conversations/:id/messages', auth, [
 
         res.status(201).json({
             success: true,
-            data: message
+            data: { message }
         });
 
     } catch (error) {

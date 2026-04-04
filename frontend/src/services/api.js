@@ -154,7 +154,20 @@ export const chatAPI = {
     getConversations: () => api.get('chat/conversations'),
     getConversation: (id) => api.get(`chat/conversations/${id}`),
     getMessages: (conversationId, params) => api.get(`chat/conversations/${conversationId}/messages`, { params }),
-    sendMessage: (conversationId, content) => api.post(`chat/conversations/${conversationId}/messages`, { content }),
+    sendMessage: (conversationId, content) => {
+        const payload = typeof content === 'string' ? { content } : content;
+        return api.post(`chat/conversations/${conversationId}/messages`, payload).then((response) => {
+            const message = response?.data?.data?.message || response?.data?.data || response?.data?.message || response?.data;
+
+            return {
+                ...response,
+                data: {
+                    ...response.data,
+                    data: { message }
+                }
+            };
+        });
+    },
     getUnreadCount: () => api.get('chat/unread-count'),
     editMessage: (messageId, content) => api.put(`chat/messages/${messageId}`, { content }),
     deleteMessage: (messageId) => api.delete(`chat/messages/${messageId}`),
