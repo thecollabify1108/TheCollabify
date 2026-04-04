@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const { randomUUID } = require('crypto');
 const { Prisma } = require('@prisma/client');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
@@ -239,6 +240,7 @@ router.post('/requests', auth, isSeller, [
         try {
             const insertedRows = await prisma.$queryRaw`
                 INSERT INTO "PromotionRequest" (
+                    "id",
                     "sellerId",
                     "title",
                     "description",
@@ -253,6 +255,7 @@ router.post('/requests', auth, isSeller, [
                     "status"
                 )
                 VALUES (
+                    ${randomUUID()},
                     ${req.userId},
                     ${title},
                     ${description},
