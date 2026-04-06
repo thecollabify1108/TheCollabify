@@ -4,9 +4,18 @@ import { FaSearch } from 'react-icons/fa';
 const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
+    const getDisplayName = (conversation) => {
+        const otherUser = conversation.otherUser || conversation.creatorUser || conversation.seller || {};
+        return otherUser?.name
+            || conversation.creatorProfile?.user?.name
+            || conversation.promotionId?.title
+            || 'Creator';
+    };
+
     const filteredConversations = conversations.filter(c => {
         const otherUser = c.otherUser;
-        return otherUser?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+        const displayName = getDisplayName(c);
+        return displayName.toLowerCase().includes(searchTerm.toLowerCase());
     });
 
     return (
@@ -36,7 +45,7 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) =>
                     filteredConversations.map(convo => {
                         const isOnline = convo.otherUser?.id ? onlineUsers.includes(convo.otherUser.id) : false;
                         const isActive = activeId === convo.id;
-                        const displayName = convo.otherUser?.name || 'Unknown User';
+                        const displayName = getDisplayName(convo);
 
                         return (
                             <button

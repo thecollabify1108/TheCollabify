@@ -26,7 +26,7 @@ const Messages = () => {
             // Normalize conversation data for UI
             const formatted = rawConversations.map(c => {
                 const isSeller = user.role === 'seller';
-                const otherUser = isSeller ? c.creatorUser : c.seller;
+                const otherUser = isSeller ? (c.creatorUser || c.creatorProfile?.user) : c.seller;
                 const unreadCount = isSeller ? c.unreadCountSeller : c.unreadCountCreator;
 
                 return {

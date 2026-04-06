@@ -57,9 +57,19 @@ const ConversationList = ({ onSelectConversation }) => {
 
     const getOtherUser = (conversation) => {
         if (user?.role === 'seller') {
-            return conversation.creatorUser || conversation.otherUser || null;
+            return conversation.creatorUser || conversation.creatorProfile?.user || conversation.otherUser || null;
         }
         return conversation.seller || conversation.otherUser || null;
+    };
+
+    const getDisplayName = (conversation) => {
+        const otherUser = getOtherUser(conversation);
+        return otherUser?.name
+            || conversation.creatorUser?.name
+            || conversation.creatorProfile?.user?.name
+            || conversation.seller?.name
+            || conversation.promotionId?.title
+            || 'Creator';
     };
 
     const getUnreadCount = (conversation) => {
@@ -122,6 +132,7 @@ const ConversationList = ({ onSelectConversation }) => {
                     {conversations.map((conversation, index) => {
                         const otherUser = getOtherUser(conversation);
                         const unreadCount = getUnreadCount(conversation);
+                        const displayName = getDisplayName(conversation);
 
                         return (
                             <motion.div
@@ -137,7 +148,7 @@ const ConversationList = ({ onSelectConversation }) => {
                                     {/* Avatar Placeholder */}
                                     <div className="relative shrink-0">
                                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-600/20 to-primary-600/20 border border-white/10 flex items-center justify-center text-primary-400 font-black text-lg shadow-inner">
-                                            {(otherUser?.name || 'U').charAt(0)}
+                                            {(displayName || 'U').charAt(0)}
                                         </div>
                                         {unreadCount > 0 && (
                                             <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-lg border-2 border-dark-900">
@@ -149,7 +160,7 @@ const ConversationList = ({ onSelectConversation }) => {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-0.5">
                                             <h4 className={`text-small font-black truncate ${unreadCount > 0 ? 'text-white' : 'text-dark-100'}`}>
-                                                {otherUser?.name || 'Unknown User'}
+                                                {displayName}
                                             </h4>
                                             <span className="text-[10px] font-bold text-dark-500 uppercase whitespace-nowrap">
                                                 {formatTime(conversation.lastMessage?.createdAt || conversation.createdAt)}
