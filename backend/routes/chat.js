@@ -287,6 +287,17 @@ router.post('/message-request', auth, async (req, res) => {
                         respondedAt: new Date()
                     }
                 });
+            } else if (!existingMatch) {
+                await prisma.matchedCreator.create({
+                    data: {
+                        promotionId: conversation.promotionId,
+                        creatorId: creatorProfile.id,
+                        matchScore: 100,
+                        matchReason: 'Direct outreach conversation (existing conversation backfill)',
+                        status: 'ACCEPTED',
+                        respondedAt: new Date()
+                    }
+                });
             }
 
             return res.json({

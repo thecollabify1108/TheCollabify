@@ -782,10 +782,23 @@ router.get('/applications', auth, isCreator, userCacheMiddleware(30), async (req
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
 
+        // MatchedCreator.creatorId stores CreatorProfile.id, not User.id.
+        const profile = await prisma.creatorProfile.findUnique({
+            where: { userId: req.userId },
+            select: { id: true }
+        });
+
+        if (!profile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Profile not found'
+            });
+        }
+
         const whereClause = {
             matchedCreators: {
                 some: {
-                    creatorId: req.userId,
+                    creatorId: profile.id,
                     status: { in: ['APPLIED', 'ACCEPTED', 'REJECTED', 'INVITED'] }
                 }
             }
@@ -807,7 +820,7 @@ router.get('/applications', auth, isCreator, userCacheMiddleware(30), async (req
                         select: { name: true, email: true, avatar: true }
                     },
                     matchedCreators: {
-                        where: { creatorId: req.userId },
+                        where: { creatorId: profile.id },
                         select: { status: true, appliedAt: true, respondedAt: true }
                     }
                 },
