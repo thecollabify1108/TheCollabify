@@ -785,8 +785,7 @@ router.post('/conversations/:id/messages', auth, [
     try {
         const conversationId = req.params.id;
         const conversation = await prisma.conversation.findUnique({
-            where: { id: conversationId },
-            include: { promotion: true }
+            where: { id: conversationId }
         });
 
         if (!conversation) {
