@@ -405,9 +405,27 @@ router.get('/me', auth, async (req, res) => {
             select: { type: true }
         });
 
+        let brandProfile = null;
+        if (req.user.activeRole === 'SELLER') {
+            brandProfile = await prisma.brandProfile.findUnique({
+                where: { userId: req.userId },
+                select: {
+                    id: true,
+                    brandName: true,
+                    category: true,
+                    locationCity: true,
+                    locationState: true,
+                    locationCountry: true
+                }
+            });
+        }
+
+        const userPayload = sanitizeUser({ ...req.user, roles });
+        if (brandProfile) userPayload.brandProfile = brandProfile;
+
         res.json({
             success: true,
-            data: { user: sanitizeUser({ ...req.user, roles }) }
+            data: { user: userPayload }
         });
     } catch (error) {
         console.error('Get user error:', error);

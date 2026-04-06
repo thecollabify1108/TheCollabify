@@ -171,17 +171,32 @@ router.get('/nearby', auth, isSeller, userCacheMiddleware(120), [
         const { niche, city, state, page = 1, limit = 20 } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
+        // Resolve seller location: explicit query city first, then seller brand profile city.
+        const sellerProfile = await prisma.brandProfile.findUnique({
+            where: { userId: req.userId },
+            select: { locationCity: true, locationState: true }
+        });
+
+        const effectiveCity = (city || sellerProfile?.locationCity || '').trim();
+        const effectiveState = (state || sellerProfile?.locationState || '').trim();
+
+        if (!effectiveCity) {
+            return res.status(400).json({
+                success: false,
+                message: 'Location is required to discover nearby creators. Please add your city.',
+                errorCode: 'LOCATION_REQUIRED'
+            });
+        }
+
         const where = {
             isActive: true,
-            expiresAt: { gte: new Date() }
+            expiresAt: { gte: new Date() },
+            locationCity: { equals: effectiveCity, mode: 'insensitive' }
         };
 
-        // Location expansion: City → State → Country fallback
-        if (city) {
-            where.OR = [
-                { locationCity: { contains: city, mode: 'insensitive' } },
-                ...(state ? [{ locationState: { contains: state, mode: 'insensitive' } }] : [])
-            ];
+        // Optional strict state narrowing in addition to city
+        if (effectiveState) {
+            where.locationState = { equals: effectiveState, mode: 'insensitive' };
         }
 
         if (niche) where.niche = niche;
@@ -231,7 +246,12 @@ router.get('/nearby', auth, isSeller, userCacheMiddleware(120), [
             success: true,
             data: {
                 campaigns: sanitized,
-                pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / parseInt(limit)) }
+                pagination: { page: parseInt(page), limit: parseInt(limit), total, pages: Math.ceil(total / parseInt(limit)) },
+                filters: {
+                    city: effectiveCity,
+                    state: effectiveState || null,
+                    niche: niche || null
+                }
             }
         });
     } catch (err) {

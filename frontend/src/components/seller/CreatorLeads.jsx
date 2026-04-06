@@ -11,23 +11,52 @@ const CreatorLeads = ({ brandLocation = '' }) => {
     const [leads, setLeads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [contactingId, setContactingId] = useState(null);
+    const [requiresLocation, setRequiresLocation] = useState(false);
+    const [locationInput, setLocationInput] = useState('');
     const [filter, setFilter] = useState({
         location: brandLocation || '',
         niche: ''
     });
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const saved = localStorage.getItem('sellerNearbyCity');
+        const initial = (brandLocation || saved || '').trim();
+
+        if (initial) {
+            setFilter(prev => ({ ...prev, location: initial }));
+            setLocationInput(initial);
+            setRequiresLocation(false);
+        } else {
+            setRequiresLocation(true);
+        }
+    }, [brandLocation]);
+
     const fetchLeads = useCallback(async () => {
+        const trimmedCity = (filter.location || '').trim();
+        if (!trimmedCity) {
+            setLeads([]);
+            setLoading(false);
+            setRequiresLocation(true);
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await availabilityAPI.getNearby({ 
-                city: filter.location,
+                city: trimmedCity,
                 niche: filter.niche 
             });
             setLeads(res.data.data.campaigns || []);
+            setRequiresLocation(false);
         } catch (error) {
             console.error('Error fetching leads:', error);
-            toast.error('Failed to load creator leads');
+            if (error?.response?.data?.errorCode === 'LOCATION_REQUIRED') {
+                setRequiresLocation(true);
+                setLeads([]);
+            } else {
+                toast.error('Failed to load creator leads');
+            }
         } finally {
             setLoading(false);
         }
@@ -36,6 +65,18 @@ const CreatorLeads = ({ brandLocation = '' }) => {
     useEffect(() => {
         fetchLeads();
     }, [fetchLeads]);
+
+    const handleSetLocation = () => {
+        const trimmed = locationInput.trim();
+        if (!trimmed) {
+            toast.error('Please enter your city to see nearby creators');
+            return;
+        }
+
+        localStorage.setItem('sellerNearbyCity', trimmed);
+        setFilter(prev => ({ ...prev, location: trimmed }));
+        setRequiresLocation(false);
+    };
 
     const handleContactCreator = async (lead) => {
         if (contactingId) return; // prevent double-click
@@ -92,7 +133,11 @@ const CreatorLeads = ({ brandLocation = '' }) => {
                         type="text"
                         placeholder="Filter by city..."
                         value={filter.location}
-                        onChange={(e) => setFilter(prev => ({ ...prev, location: e.target.value }))}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setFilter(prev => ({ ...prev, location: value }));
+                            setLocationInput(value);
+                        }}
                         className="bg-dark-800/50 border border-dark-700/50 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-primary-500/50 w-40"
                     />
                     <select 
@@ -107,6 +152,30 @@ const CreatorLeads = ({ brandLocation = '' }) => {
                     </select>
                 </div>
             </div>
+
+            {requiresLocation && (
+                <div className="glass-card p-5 rounded-premium-2xl border border-amber-500/30 bg-amber-500/5">
+                    <h3 className="text-white font-bold mb-2">Set your location to view nearby creators</h3>
+                    <p className="text-dark-300 text-sm mb-4">
+                        Nearby discovery is location-locked. Enter your city to continue.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                        <input
+                            type="text"
+                            placeholder="Enter seller city"
+                            value={locationInput}
+                            onChange={(e) => setLocationInput(e.target.value)}
+                            className="bg-dark-800/60 border border-dark-700/60 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-amber-500/60"
+                        />
+                        <button
+                            onClick={handleSetLocation}
+                            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-dark-900 font-bold"
+                        >
+                            Use this location
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {loading ? (
                 <SkeletonList count={3} />
