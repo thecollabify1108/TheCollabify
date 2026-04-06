@@ -14,6 +14,7 @@ try {
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const { randomUUID } = require('crypto');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { userCacheMiddleware } = require('../middleware/cache');
@@ -876,19 +877,66 @@ router.post('/conversations/:id/messages', auth, [
             isSeller
         });
 
-        // Create message
-        const message = await prisma.message.create({
-            data: {
-                conversationId: conversationId,
-                senderId: userId,
-                content: contentToSave,
-                isEncrypted: req.body.isEncrypted || false,
-                encryptionVersion: req.body.encryptionVersion || '1.0'
-            },
-            include: {
-                sender: { select: { id: true, name: true, avatar: true } }
+        // Create message. Fallback handles legacy production schemas where Message
+        // may still have required columns not represented in current Prisma model.
+        let message;
+        try {
+            message = await prisma.message.create({
+                data: {
+                    conversationId: conversationId,
+                    senderId: userId,
+                    content: contentToSave,
+                    isEncrypted: req.body.isEncrypted || false,
+                    encryptionVersion: req.body.encryptionVersion || '1.0'
+                },
+                include: {
+                    sender: { select: { id: true, name: true, avatar: true } }
+                }
+            });
+        } catch (createErr) {
+            console.error('Primary message create failed, attempting legacy fallback:', createErr.message);
+
+            const messageId = randomUUID();
+            const now = new Date();
+            let hasLegacyMessageType = false;
+
+            try {
+                const columns = await prisma.$queryRaw`
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_schema = 'public'
+                      AND table_name = 'Message'
+                `;
+
+                hasLegacyMessageType = Array.isArray(columns)
+                    && columns.some(c => c.column_name === 'messageType');
+            } catch (columnErr) {
+                console.error('Failed to inspect Message columns:', columnErr.message);
             }
-        });
+
+            if (hasLegacyMessageType) {
+                await prisma.$executeRaw`
+                    INSERT INTO "Message" ("id", "conversationId", "senderId", "content", "isRead", "createdAt", "updatedAt", "messageType")
+                    VALUES (${messageId}, ${conversationId}, ${userId}, ${contentToSave}, ${false}, ${now}, ${now}, ${'TEXT'})
+                `;
+            } else {
+                await prisma.$executeRaw`
+                    INSERT INTO "Message" ("id", "conversationId", "senderId", "content", "isRead", "createdAt", "updatedAt")
+                    VALUES (${messageId}, ${conversationId}, ${userId}, ${contentToSave}, ${false}, ${now}, ${now})
+                `;
+            }
+
+            message = await prisma.message.findUnique({
+                where: { id: messageId },
+                include: {
+                    sender: { select: { id: true, name: true, avatar: true } }
+                }
+            });
+
+            if (!message) {
+                throw createErr;
+            }
+        }
 
         // Record custom metric for successful messages
         newrelic?.recordMetric?.('Custom/Chat/MessageSent', 1);
