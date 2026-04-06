@@ -971,7 +971,9 @@ router.post('/conversations/:id/messages', auth, [
         console.error('Send message error:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to send message'
+            message: 'Failed to send message',
+            errorCode: error.code || 'UNKNOWN',
+            errorDetail: error.message || null
         });
     }
 });
