@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
     FaBriefcase,
-    FaDollarSign,
+    FaRupeeSign,
     FaUsers,
     FaCheck,
     FaTimes,
@@ -30,13 +30,29 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
     const accepted = request.matchedCreators?.filter(mc => mc.status?.toUpperCase() === 'ACCEPTED') || [];
     const rejected = request.matchedCreators?.filter(mc => mc.status?.toUpperCase() === 'REJECTED') || [];
 
+    const normalizedStatus = String(request.status || '').toUpperCase();
+    const formatCurrencyINR = (value) => `Rs ${Number(value || 0).toLocaleString('en-IN')}`;
+    const formatFollowers = (value) => {
+        const num = Number(value || 0);
+        if (!num) return 'N/A';
+        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+        if (num >= 1000) return `${Math.round(num / 1000)}K`;
+        return `${num}`;
+    };
+    const promotionTypeLabel = Array.isArray(request.promotionType)
+        ? (request.promotionType[0] || 'N/A')
+        : (request.promotionType || 'N/A');
+    const categoryLabel = Array.isArray(request.targetCategory)
+        ? (request.targetCategory[0] || 'N/A')
+        : (request.targetCategory || 'N/A');
+
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Open': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-            case 'Creator Interested': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-            case 'Accepted': return 'bg-primary-500/20 text-primary-400 border-primary-500/30';
-            case 'Completed': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-            case 'Cancelled': return 'bg-red-500/20 text-red-400 border-red-500/30';
+        switch (String(status || '').toUpperCase()) {
+            case 'OPEN': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+            case 'CREATOR_INTERESTED': return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+            case 'ACCEPTED': return 'bg-primary-500/20 text-primary-400 border-primary-500/30';
+            case 'COMPLETED': return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+            case 'CANCELLED': return 'bg-red-500/20 text-red-400 border-red-500/30';
             default: return 'bg-dark-600 text-dark-300 border-dark-500';
         }
     };
@@ -58,45 +74,31 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         <div className="flex items-center flex-wrap gap-s3 mb-s2">
                             <h2 className="text-h1 font-black text-dark-100 uppercase tracking-tight">{request.title || 'Untitled Campaign'}</h2>
                             <span className={`px-s3 py-1 rounded-full text-xs-pure font-black uppercase tracking-widest border shadow-sm ${getStatusColor(request.status)}`}>
-                                {request.status}
+                                {String(request.status || 'OPEN').replace(/_/g, ' ')}
                             </span>
                         </div>
-                        <p className="text-body text-dark-400 mb-s4 leading-relaxed">{request.description}</p>
+                        <p className="text-body text-dark-400 mb-s4 leading-relaxed">{request.description || 'No campaign description provided.'}</p>
 
                         <div className="flex flex-wrap gap-s4 text-xs-pure font-bold">
                             <div className="flex items-center text-dark-300 bg-dark-900/40 px-s3 py-1.5 rounded-full border border-dark-700/50">
-                                <FaDollarSign className="mr-1 text-emerald-400" />
-                                <span className="uppercase tracking-wider font-black">${request.minBudget || 0} - ${request.maxBudget || 0}</span>
+                                <FaRupeeSign className="mr-1 text-emerald-400" />
+                                <span className="uppercase tracking-wider font-black">{formatCurrencyINR(request.minBudget)} - {formatCurrencyINR(request.maxBudget)}</span>
                             </div>
                             <div className="flex items-center text-dark-300 bg-dark-900/40 px-s3 py-1.5 rounded-full border border-dark-700/50">
                                 <FaUsers className="mr-1 text-primary-400" />
                                 <span className="uppercase tracking-wider font-black">
-                                    {(request.minFollowers || 0) >= 1000
-                                        ? `${((request.minFollowers || 0) / 1000).toFixed(0)}K`
-                                        : (request.minFollowers || 0)} - 
-                                    {(request.maxFollowers || 0) >= 1000000
-                                        ? `${((request.maxFollowers || 0) / 1000000).toFixed(1)}M`
-                                        : `${((request.maxFollowers || 0) / 1000).toFixed(0)}K`}
+                                    {formatFollowers(request.minFollowers)} - {formatFollowers(request.maxFollowers)}
                                 </span>
                             </div>
-                            <span className="px-s3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">{request.promotionType}</span>
-                            <span className="px-s3 py-1.5 rounded-full bg-dark-700/50 text-dark-300 border border-dark-600 uppercase tracking-widest">{request.targetCategory}</span>
+                            <span className="px-s3 py-1.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase tracking-widest">{promotionTypeLabel}</span>
+                            <span className="px-s3 py-1.5 rounded-full bg-dark-700/50 text-dark-300 border border-dark-600 uppercase tracking-widest">{categoryLabel}</span>
                         </div>
                     </div>
 
                     {/* Action Buttons */}
                     <div className="mt-4 md:mt-0 md:ml-6 flex flex-col gap-2">
-                        {/* Close Modal Button */}
-                        <button
-                            onClick={onClose}
-                            className="px-s4 py-s2 rounded-premium-xl bg-dark-700/50 border border-dark-600 text-dark-300 hover:text-dark-100 hover:bg-dark-600 transition-all text-xs-pure font-bold uppercase tracking-widest flex items-center shadow-premium"
-                        >
-                            <FaTimes className="mr-2" />
-                            Close
-                        </button>
-
                         {/* Campaign Status Actions */}
-                        {request.status === 'Accepted' && (
+                        {normalizedStatus === 'ACCEPTED' && (
                             <button
                                 onClick={() => {
                                     onUpdateStatus(request.id, 'Completed');
@@ -117,7 +119,7 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                                 Mark Complete
                             </button>
                         )}
-                        {['Open', 'Creator Interested'].includes(request.status) && (
+                        {['OPEN', 'CREATOR_INTERESTED'].includes(normalizedStatus) && (
                             <button
                                 onClick={() => {
                                     setConfirmModal({
@@ -139,28 +141,30 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                                 className="btn-outline text-sm flex items-center text-amber-500 border-amber-500/50 hover:bg-amber-500/10"
                             >
                                 <FaFlag className="mr-2" />
-                                Cancel
+                                Close Campaign
                             </button>
                         )}
 
-                        {/* Delete Campaign Formally */}
-                        <button
-                            onClick={() => {
-                                setConfirmModal({
-                                    isOpen: true,
-                                    title: 'Delete Campaign?',
-                                    message: 'Are you sure you want to permanently delete this campaign? This cannot be undone.',
-                                    variant: 'danger',
-                                    onConfirm: () => {
-                                        if(onDelete) onDelete(request.id);
-                                    }
-                                });
-                            }}
-                            className="btn-outline text-sm flex items-center text-red-500 border-red-500/50 hover:bg-red-500/20 w-fit"
-                        >
-                            <FaTimes className="mr-2" />
-                            Delete
-                        </button>
+                        {/* Single lifecycle action for terminal campaigns */}
+                        {['COMPLETED', 'CANCELLED'].includes(normalizedStatus) && (
+                            <button
+                                onClick={() => {
+                                    setConfirmModal({
+                                        isOpen: true,
+                                        title: 'Delete Campaign?',
+                                        message: 'Are you sure you want to permanently delete this campaign? This cannot be undone.',
+                                        variant: 'danger',
+                                        onConfirm: () => {
+                                            if (onDelete) onDelete(request.id);
+                                        }
+                                    });
+                                }}
+                                className="btn-outline text-sm flex items-center text-red-500 border-red-500/50 hover:bg-red-500/20 w-fit"
+                            >
+                                <FaTimes className="mr-2" />
+                                Delete Campaign
+                            </button>
+                        )}
                     </div>
                 </div>
 
