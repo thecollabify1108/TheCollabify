@@ -173,7 +173,10 @@ export const chatAPI = {
     deleteMessage: (messageId) => api.delete(`chat/messages/${messageId}`),
     deleteConversation: (conversationId) => api.delete(`chat/conversations/${conversationId}`),
     findOrRestoreConversation: (promotionId, creatorId) => api.post('chat/find-or-restore', { promotionId, creatorId }),
-    sendMessageRequest: (creatorId) => api.post('chat/message-request', { creatorId }),
+    sendMessageRequest: (creatorId, promotionId) => api.post('chat/message-request', {
+        creatorId,
+        ...(promotionId ? { promotionId } : {})
+    }),
     getRequests: () => api.get('chat/requests'),
     acceptRequest: (conversationId) => api.post(`chat/message-request/${conversationId}/accept`),
     rejectRequest: (conversationId) => api.post(`chat/message-request/${conversationId}/reject`),

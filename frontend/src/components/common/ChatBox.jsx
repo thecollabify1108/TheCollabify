@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaCircle } from 'react-icons/fa';
+import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaReply } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -8,8 +8,39 @@ import ConfirmModal from './ConfirmModal';
 import useTypingIndicator from '../../hooks/useTypingIndicator';
 import useWebSocket from '../../hooks/useWebSocket';
 import webSocketService from '../../services/websocket';
-import OnlineStatusIndicator from '../realtime/OnlineStatusIndicator';
-import TypingIndicator from '../realtime/TypingIndicator';
+
+const REPLY_HEADER_REGEX = /^\[\[reply:([^|\]]+)\|([^\]]*)\]\]\n/;
+
+const parseMessageContent = (content = '') => {
+    const match = content.match(REPLY_HEADER_REGEX);
+    if (!match) {
+        return { displayContent: content, replyMeta: null };
+    }
+
+    const replyToMessageId = match[1];
+    const encodedSnippet = match[2] || '';
+    let replySnippet = '';
+    try {
+        replySnippet = decodeURIComponent(encodedSnippet);
+    } catch {
+        replySnippet = encodedSnippet;
+    }
+
+    return {
+        displayContent: content.replace(REPLY_HEADER_REGEX, ''),
+        replyMeta: {
+            replyToMessageId,
+            replySnippet
+        }
+    };
+};
+
+const buildMessagePayload = (content, replyTo) => {
+    if (!replyTo?.id) return content;
+
+    const snippet = encodeURIComponent((replyTo.content || '').slice(0, 120));
+    return `[[reply:${replyTo.id}|${snippet}]]\n${content}`;
+};
 
 const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conversation }) => {
     const { user } = useAuth();
@@ -22,6 +53,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const [showMenu, setShowMenu] = useState(false);
     const [activeMessageMenu, setActiveMessageMenu] = useState(null);
     const [isPending, setIsPending] = useState(false);
+    const [replyingTo, setReplyingTo] = useState(null);
     
     // Confirm Modal State
     const [confirmModal, setConfirmModal] = useState({
@@ -40,7 +72,12 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
     // Get other user ID for online status
     const otherUserId = conversation?.participants?.find(p => p.id !== user?.id)?.id;
-    const otherUserDisplayName = otherUserName || conversation?.otherUser?.name || 'Negotiation';
+    const otherUserDisplayName =
+        otherUserName
+        || conversation?.otherUser?.name
+        || conversation?.creatorUser?.name
+        || conversation?.seller?.name
+        || 'Negotiation';
 
     // Check if conversation is pending
     useEffect(() => {
@@ -91,12 +128,14 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
         sendStopTyping();
         setSending(true);
+        const outgoingContent = buildMessagePayload(newMessage.trim(), replyingTo);
 
         try {
-            const res = await chatAPI.sendMessage(conversationId, newMessage.trim());
+            const res = await chatAPI.sendMessage(conversationId, outgoingContent);
             const newMsg = res.data.data.message;
             setMessages(prev => [...prev, newMsg]);
             setNewMessage('');
+            setReplyingTo(null);
 
             if (isConnected && otherUserId) {
                 webSocketService.sendMessage(conversationId, newMsg, otherUserId);
@@ -177,7 +216,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
     const startEdit = (message) => {
         setEditingMessageId(message.id);
-        setEditContent(message.content);
+        setEditContent(parseMessageContent(message.content).displayContent);
         setActiveMessageMenu(null);
     };
 
@@ -350,6 +389,12 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                             className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
                                         >
                                             <div className={`relative max-w-[85%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}>
+                                                {parseMessageContent(message.content).replyMeta && (
+                                                    <div className={`max-w-full px-3 py-2 rounded-xl border text-xs ${isOwn ? 'bg-primary-500/10 border-primary-500/30 text-primary-200' : 'bg-white/5 border-white/10 text-dark-300'}`}>
+                                                        <p className="font-bold uppercase tracking-wider text-[10px] mb-1">Replying to</p>
+                                                        <p className="line-clamp-2">{parseMessageContent(message.content).replyMeta.replySnippet || 'Previous message'}</p>
+                                                    </div>
+                                                )}
                                                 <div
                                                     className={`px-5 py-3.5 rounded-3xl shadow-2xl relative
                                                         ${message.isDeleted 
@@ -359,12 +404,24 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                                 : 'bg-white/5 backdrop-blur-md border border-white/10 text-white rounded-tl-none'
                                                         }`}
                                                 >
-                                                    <p className="text-[14px] leading-relaxed font-medium tracking-tight whitespace-pre-wrap">{message.content}</p>
+                                                    <p className="text-[14px] leading-relaxed font-medium tracking-tight whitespace-pre-wrap">{parseMessageContent(message.content).displayContent}</p>
                                                     
                                                     {isOwn && !message.isDeleted && (
                                                         <div className="absolute top-0 -left-12 opacity-0 group-hover:opacity-100 transition-all flex flex-col gap-2 p-1">
                                                             <button onClick={() => startEdit(message)} className="p-2 bg-dark-800 text-primary-400 rounded-xl border border-white/5 hover:bg-primary-500 hover:text-white transition-all"><FaEdit size={12} /></button>
                                                             <button onClick={() => handleDeleteMessage(message.id)} className="p-2 bg-dark-800 text-rose-400 rounded-xl border border-white/5 hover:bg-rose-500 hover:text-white transition-all"><FaTrash size={12} /></button>
+                                                        </div>
+                                                    )}
+
+                                                    {!isOwn && !message.isDeleted && (
+                                                        <div className="absolute top-0 -right-12 opacity-0 group-hover:opacity-100 transition-all flex flex-col gap-2 p-1">
+                                                            <button
+                                                                onClick={() => setReplyingTo({ id: message.id, content: parseMessageContent(message.content).displayContent })}
+                                                                className="p-2 bg-dark-800 text-primary-400 rounded-xl border border-white/5 hover:bg-primary-500 hover:text-white transition-all"
+                                                                title="Reply"
+                                                            >
+                                                                <FaReply size={12} />
+                                                            </button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -397,6 +454,23 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
                 {/* Premium Input */}
                 <div className="p-6 bg-dark-900/60 backdrop-blur-2xl border-t border-white/5">
+                    {replyingTo && (
+                        <div className="mb-3 rounded-xl border border-primary-500/30 bg-primary-500/10 px-4 py-2">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="text-[10px] font-black uppercase tracking-wider text-primary-300 mb-1">Replying to message</p>
+                                    <p className="text-xs text-primary-100 truncate">{replyingTo.content || 'Previous message'}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setReplyingTo(null)}
+                                    className="text-primary-200 hover:text-white transition"
+                                >
+                                    <FaTimes size={14} />
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     <form 
                         onSubmit={handleSendMessage}
                         className={`overflow-hidden rounded-[28px] border border-white/10 bg-dark-950/40 p-1.5 flex gap-3 focus-within:border-primary-500/50 focus-within:bg-dark-950 transition-all shadow-2xl ${(!canSendMessage || !conversationId) ? 'opacity-40 grayscale pointer-events-none' : ''}`}

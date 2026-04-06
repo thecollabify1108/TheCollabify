@@ -57,9 +57,9 @@ const ConversationList = ({ onSelectConversation }) => {
 
     const getOtherUser = (conversation) => {
         if (user?.role === 'seller') {
-            return conversation.creatorUserId;
+            return conversation.creatorUser || conversation.otherUser || null;
         }
-        return conversation.sellerId;
+        return conversation.seller || conversation.otherUser || null;
     };
 
     const getUnreadCount = (conversation) => {

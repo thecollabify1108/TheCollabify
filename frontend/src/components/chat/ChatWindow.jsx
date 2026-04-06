@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FaPaperPlane, FaPhone, FaVideo, FaInfoCircle, FaArrowLeft, FaEllipsisV } from 'react-icons/fa';
+import { FaPaperPlane, FaPhone, FaVideo, FaInfoCircle, FaArrowLeft, FaEllipsisV, FaTimes } from 'react-icons/fa';
 import MessageBubble from './MessageBubble';
 import { chatAPI } from '../../services/api';
 import useTypingIndicator from '../../hooks/useTypingIndicator';
@@ -14,12 +14,39 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const [sending, setSending] = useState(false);
     const [isSecure, setIsSecure] = useState(false);
     const [otherUserPublicKey, setOtherUserPublicKey] = useState(null);
+    const [replyingTo, setReplyingTo] = useState(null);
     const messagesEndRef = useRef(null);
 
     const otherUser = conversation.otherUser || conversation.creatorUser || conversation.seller || {};
     const otherUserId = otherUser?.id;
     const otherUserName = otherUser?.name || 'Unknown User';
     const isOnline = otherUserId ? onlineUsers.includes(otherUserId) : false;
+
+    const replyHeaderRegex = /^\[\[reply:([^|\]]+)\|([^\]]*)\]\]\n/;
+
+    const parseMessageContent = (content = '') => {
+        const match = content.match(replyHeaderRegex);
+        if (!match) {
+            return { displayContent: content, replyMeta: null };
+        }
+
+        let replySnippet = '';
+        try {
+            replySnippet = decodeURIComponent(match[2] || '');
+        } catch {
+            replySnippet = match[2] || '';
+        }
+
+        return {
+            displayContent: content.replace(replyHeaderRegex, ''),
+            replyMeta: { replyToMessageId: match[1], replySnippet }
+        };
+    };
+
+    const buildMessagePayload = (content) => {
+        if (!replyingTo?.id) return content;
+        return `[[reply:${replyingTo.id}|${encodeURIComponent((replyingTo.content || '').slice(0, 120))}]]\n${content}`;
+    };
 
     const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversation.id, true);
 
@@ -108,7 +135,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
         sendStopTyping();
 
         try {
-            let contentToSend = newMessage;
+            let contentToSend = buildMessagePayload(newMessage);
             let isEncrypted = false;
 
             // Apply E2EE if recipient key is available
@@ -130,6 +157,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
             setMessages(prev => [...prev, displayMsg]);
             setNewMessage('');
+            setReplyingTo(null);
             scrollToBottom();
 
             // Broadcast via Socket
@@ -208,6 +236,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
                             isOwn={isOwn}
                             showAvatar={showAvatar}
                             senderName={otherUserName}
+                            onReply={(message) => setReplyingTo(message)}
                         />
                     );
                 })}
@@ -216,6 +245,23 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
             {/* Input Area */}
             <div className="p-4 bg-white dark:bg-dark-900 border-t border-gray-200 dark:border-dark-800">
+                {replyingTo && (
+                    <div className="mb-3 rounded-xl border border-primary-500/30 bg-primary-500/10 px-4 py-2">
+                        <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <p className="text-[10px] font-black uppercase tracking-wider text-primary-600 dark:text-primary-300 mb-1">Replying to message</p>
+                                <p className="text-xs text-primary-700 dark:text-primary-100 truncate">{replyingTo.content || 'Previous message'}</p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setReplyingTo(null)}
+                                className="text-primary-600 dark:text-primary-200 hover:text-primary-800 dark:hover:text-white transition"
+                            >
+                                <FaTimes size={14} />
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <form onSubmit={handleSendMessage} className="flex items-center gap-3">
                     <button type="button" className="p-2 text-gray-500 dark:text-dark-400 hover:text-primary-400 transition rounded-full hover:bg-gray-100 dark:hover:bg-dark-800">
                         <FaEllipsisV />

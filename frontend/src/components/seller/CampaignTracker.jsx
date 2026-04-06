@@ -281,7 +281,7 @@ const CampaignTracker = ({ request, onClose, onAccept, onReject, onUpdateStatus,
                         matchScore={mc.matchScore}
                         matchReason={mc.matchReason}
                         status={mc.status}
-                        onMessage={() => onMessage && onMessage(request.id, mc.creatorId, mc.creatorId?.userId?.name || 'Creator')}
+                        onMessage={() => onMessage && onMessage(request.id, mc.creatorId, mc.creator?.user?.name || 'Creator')}
                     >
                         <div className="mt-s4 pt-s4 border-t border-dark-700/50 flex flex-col gap-s3">
                             {/* Quick Progress Tracker */}

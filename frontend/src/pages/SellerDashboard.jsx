@@ -1,12 +1,11 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaFire
 } from 'react-icons/fa';
 import { HiSparkles, HiUserGroup } from 'react-icons/hi';
 import { useAuth } from '../context/AuthContext';
-import { sellerAPI } from '../services/api';
+import { sellerAPI, chatAPI } from '../services/api';
 import toast from 'react-hot-toast';
 
 // New Components
@@ -45,7 +44,6 @@ import EnhancedCampaignWizard from '../components/seller/EnhancedCampaignWizard'
 
 const SellerDashboard = () => {
     const { user } = useAuth();
-    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -139,9 +137,22 @@ const SellerDashboard = () => {
         }
     };
 
-    const handleMessageCreator = (requestId, creatorId, creatorName) => {
-        // Navigate to messages
-        navigate(`/messages?user=${creatorId}&name=${creatorName}`);
+    const handleMessageCreator = async (requestId, creatorId) => {
+        try {
+            setActiveTab('messages');
+            const res = await chatAPI.sendMessageRequest(creatorId, requestId);
+            const conversation = res?.data?.data?.conversation;
+
+            if (conversation?.id) {
+                setSelectedConversation(conversation);
+                toast.success('Conversation opened');
+            } else {
+                toast.error('Unable to open conversation');
+            }
+        } catch (error) {
+            const errorMsg = error?.response?.data?.message || 'Failed to open chat';
+            toast.error(errorMsg);
+        }
     };
 
     // Bottom navigation - 6 tabs with Analytics & Team
@@ -307,7 +318,10 @@ const SellerDashboard = () => {
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="p-4"
                     >
-                        <CreatorLeads brandLocation={user?.brandProfile?.locationCity || ''} />
+                        <CreatorLeads
+                            brandLocation={user?.brandProfile?.locationCity || ''}
+                            onOpenConversation={handleMessageCreator}
+                        />
                     </motion.div>
                 )}
 
@@ -581,7 +595,7 @@ const SellerDashboard = () => {
                 {selectedConversation && (
                     <ChatBox
                         conversationId={selectedConversation.id}
-                        otherUserName={selectedConversation.creatorUserId?.name || selectedConversation.otherUser?.name || 'Creator'}
+                        otherUserName={selectedConversation.creatorUser?.name || selectedConversation.otherUser?.name || 'Creator'}
                         promotionTitle={selectedConversation.promotionId?.title || 'Campaign'}
                         conversation={selectedConversation}
                         onClose={() => setSelectedConversation(null)}

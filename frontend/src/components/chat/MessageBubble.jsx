@@ -1,8 +1,33 @@
 import { motion } from 'framer-motion';
-import { FaCheck, FaCheckDouble, FaLock } from 'react-icons/fa';
+import { FaCheck, FaCheckDouble, FaLock, FaReply } from 'react-icons/fa';
 
-const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl }) => {
+const REPLY_HEADER_REGEX = /^\[\[reply:([^|\]]+)\|([^\]]*)\]\]\n/;
+
+const parseMessageContent = (content = '') => {
+    const match = content.match(REPLY_HEADER_REGEX);
+    if (!match) {
+        return { displayContent: content, replyMeta: null };
+    }
+
+    let replySnippet = '';
+    try {
+        replySnippet = decodeURIComponent(match[2] || '');
+    } catch {
+        replySnippet = match[2] || '';
+    }
+
+    return {
+        displayContent: content.replace(REPLY_HEADER_REGEX, ''),
+        replyMeta: {
+            replyToMessageId: match[1],
+            replySnippet
+        }
+    };
+};
+
+const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onReply }) => {
     const time = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const parsed = parseMessageContent(message.content);
 
     return (
         <motion.div
@@ -29,13 +54,30 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl }) =>
 
             {/* Bubble */}
             <div className={`max-w-xs sm:max-w-sm md:max-w-md relative group`}>
+                {parsed.replyMeta && (
+                    <div className={`mb-1 px-3 py-2 rounded-xl border text-xs ${isOwn ? 'bg-primary-500/10 border-primary-500/30 text-primary-200' : 'bg-gray-100 dark:bg-dark-800/60 border-gray-200 dark:border-dark-700 text-gray-600 dark:text-dark-300'}`}>
+                        <p className="font-bold uppercase tracking-wider text-[10px] mb-1">Replying to</p>
+                        <p className="line-clamp-2">{parsed.replyMeta.replySnippet || 'Previous message'}</p>
+                    </div>
+                )}
+
                 <div
                     className={`px-4 py-3 rounded-2xl shadow-md text-sm sm:text-base break-words overflow-hidden ${isOwn
                         ? 'bg-gradient-to-r from-primary-600 to-secondary-600 text-white rounded-br-sm'
                         : 'bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 border border-gray-200 dark:border-dark-700 rounded-bl-sm shadow-sm'
                         }`}
                 >
-                    {message.content}
+                    {parsed.displayContent}
+                    {!isOwn && !message.isDeleted && onReply && (
+                        <button
+                            type="button"
+                            onClick={() => onReply({ id: message.id, content: parsed.displayContent })}
+                            className="absolute top-2 -right-10 opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-xl bg-gray-100 dark:bg-dark-800 border border-gray-200 dark:border-dark-700 text-primary-500 hover:text-primary-400"
+                            title="Reply"
+                        >
+                            <FaReply size={11} />
+                        </button>
+                    )}
                 </div>
 
                 {/* Meta info */}

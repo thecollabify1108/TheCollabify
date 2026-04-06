@@ -2,12 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { HiLocationMarker, HiCurrencyRupee, HiCalendar, HiChat, HiSparkles } from 'react-icons/hi';
 import { availabilityAPI, chatAPI } from '../../services/api';
-import { useNavigate } from 'react-router-dom';
 import EmptyState from '../common/EmptyState';
 import { SkeletonList } from '../common/Skeleton';
 import toast from 'react-hot-toast';
 
-const CreatorLeads = ({ brandLocation = '' }) => {
+const CreatorLeads = ({ brandLocation = '', onOpenConversation }) => {
     const [leads, setLeads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [contactingId, setContactingId] = useState(null);
@@ -17,7 +16,6 @@ const CreatorLeads = ({ brandLocation = '' }) => {
         location: brandLocation || '',
         niche: ''
     });
-    const navigate = useNavigate();
 
     useEffect(() => {
         const saved = localStorage.getItem('sellerNearbyCity');
@@ -90,29 +88,25 @@ const CreatorLeads = ({ brandLocation = '' }) => {
                 setContactingId(null);
                 return;
             }
+
+            if (onOpenConversation) {
+                await onOpenConversation(null, creatorUserId, lead.creator?.user?.name || 'Creator');
+                toast.success('Conversation started!');
+                return;
+            }
             
             // Try to start a conversation via the chat API
             const res = await chatAPI.sendMessageRequest(creatorUserId);
             const conversationId = res?.data?.data?.conversation?.id || res?.data?.data?.id;
             if (conversationId) {
-                navigate(`/messages?c=${conversationId}`);
                 toast.success('Conversation started!');
             } else {
-                // Fallback: Go to messages with the user
-                navigate(`/messages?user=${creatorUserId}&name=${lead.creator?.user?.name}`);
-                toast.success('Opening messages...');
+                toast.error('Unable to open conversation');
             }
         } catch (error) {
             console.error('Error contacting creator:', error);
-            // If conversation already exists, try to navigate to messages
-            if (error?.response?.status === 409) {
-                const creatorUserId = lead.creator?.userId || lead.creator?.user?.id;
-                navigate(`/messages?user=${creatorUserId}&name=${lead.creator?.user?.name}`);
-                toast.success('Opening existing conversation');
-            } else {
-                const errorMsg = error?.response?.data?.message || 'Failed to start conversation. Try again.';
-                toast.error(errorMsg);
-            }
+            const errorMsg = error?.response?.data?.message || 'Failed to start conversation. Try again.';
+            toast.error(errorMsg);
         } finally {
             setContactingId(null);
         }
