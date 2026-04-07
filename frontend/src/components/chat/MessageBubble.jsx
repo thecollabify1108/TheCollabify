@@ -28,6 +28,7 @@ const parseMessageContent = (content = '') => {
 const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onReply }) => {
     const time = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const parsed = parseMessageContent(message.content);
+    const deliveryLabel = isOwn ? (message.isRead ? 'Read' : 'Delivered') : null;
 
     return (
         <motion.div
@@ -91,8 +92,9 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onRe
                     <span>{time}</span>
                     {message.isEncrypted && <span className="text-emerald-500 ml-1" title="End-to-end encrypted"><FaLock size={8} /></span>}
                     {isOwn && (
-                        <span className={`ml-1 ${message.isRead ? 'text-blue-400' : 'text-gray-400 dark:text-dark-400'}`}>
+                        <span className={`ml-1 inline-flex items-center gap-1 ${message.isRead ? 'text-blue-400' : 'text-gray-400 dark:text-dark-400'}`} title={deliveryLabel}>
                             {message.isRead ? <FaCheckDouble size={10} /> : <FaCheck size={10} />}
+                            <span>{deliveryLabel}</span>
                         </span>
                     )}
                 </div>

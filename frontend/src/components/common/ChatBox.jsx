@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaReply, FaShieldAlt } from 'react-icons/fa';
+import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaReply, FaShieldAlt, FaCheck, FaCheckDouble } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -8,6 +8,7 @@ import ConfirmModal from './ConfirmModal';
 import useTypingIndicator from '../../hooks/useTypingIndicator';
 import useWebSocket from '../../hooks/useWebSocket';
 import webSocketService from '../../services/websocket';
+import encryptionService from '../../services/encryptionService';
 
 const REPLY_HEADER_REGEX = /^\[\[reply:([^|\]]+)\|([^\]]*)\]\]\n/;
 
@@ -42,12 +43,37 @@ const buildMessagePayload = (content, replyTo) => {
     return `[[reply:${replyTo.id}|${snippet}]]\n${content}`;
 };
 
+const PRIVACY_POLICY_DELETED_MESSAGE = 'This message was deleted under privacy policy';
+const DIGIT_WORDS = {
+    zero: '0', one: '1', two: '2', three: '3', four: '4',
+    five: '5', six: '6', seven: '7', eight: '8', nine: '9'
+};
+
+const normalizeDigitWords = (content = '') => {
+    return String(content || '')
+        .toLowerCase()
+        .replace(/\b(zero|one|two|three|four|five|six|seven|eight|nine)\b/g, (word) => DIGIT_WORDS[word] || word);
+};
+
+const violatesPrivacyPolicy = (content = '') => {
+    const normalized = normalizeDigitWords(content).replace(/[\s().-]/g, '').replace(/\+/g, '');
+    const hasPhoneLikeSequence = (normalized.match(/\d/g) || []).length >= 10 || /(?:\+?\d[\d\s().-]{7,}\d)/.test(content);
+    const hasEmailLikeSequence = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(content)
+        || /[a-z0-9._%+-]+\s*(?:@|\[at\]|\bat\b)\s*[a-z0-9.-]+\s*(?:\.|\[dot\]|\bdot\b)\s*[a-z]{2,}/i.test(content);
+    const lowered = content.toLowerCase();
+    const hasInstagramIdentifier = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content)
+        || /\b(instagram|insta|ig|insta\s*id|ig\s*id)\b/i.test(lowered) && /\b(?:instagram|insta|ig)\b.{0,24}\b[a-z0-9._]{3,}\b/i.test(lowered);
+    return hasPhoneLikeSequence || hasEmailLikeSequence || hasInstagramIdentifier;
+};
+
 const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conversation }) => {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
+    const [isSecure, setIsSecure] = useState(false);
+    const [otherUserPublicKey, setOtherUserPublicKey] = useState(null);
     const [editingMessageId, setEditingMessageId] = useState(null);
     const [editContent, setEditContent] = useState('');
     const [showMenu, setShowMenu] = useState(false);
@@ -70,11 +96,11 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const { isConnected, isUserOnline } = useWebSocket(user);
     const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversationId, isConnected);
 
-    // Get other user ID for online status
-    const otherUserId = conversation?.participants?.find(p => p.id !== user?.id)?.id;
+    const otherUser = conversation?.otherUser || conversation?.creatorUser || conversation?.seller || conversation?.participants?.find(p => p.id !== user?.id) || {};
+    const otherUserId = otherUser?.id;
     const otherUserDisplayName =
         otherUserName
-        || conversation?.otherUser?.name
+        || otherUser?.name
         || conversation?.creatorUser?.name
         || conversation?.seller?.name
         || 'Negotiation';
@@ -85,6 +111,38 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
             setIsPending(conversation.acceptanceStatus?.byCreator === 'pending');
         }
     }, [conversation]);
+
+    useEffect(() => {
+        const setupEncryption = async () => {
+            try {
+                if (!user?.id || !user?.email || !user?.name) {
+                    setIsSecure(false);
+                    return;
+                }
+
+                if (!encryptionService.hasPrivateKey(user.id)) {
+                    const { privateKey, publicKey } = await encryptionService.generateKeyPair(user.name, user.email);
+                    encryptionService.savePrivateKey(user.id, privateKey);
+                    await chatAPI.updatePGPKey(publicKey);
+                }
+
+                if (!otherUserId) {
+                    setIsSecure(false);
+                    return;
+                }
+
+                const res = await chatAPI.getPGPKey(otherUserId);
+                if (res.data.success && res.data.data.publicKey) {
+                    setOtherUserPublicKey(res.data.data.publicKey);
+                    setIsSecure(true);
+                }
+            } catch (error) {
+                setIsSecure(false);
+            }
+        };
+
+        setupEncryption();
+    }, [otherUserId, user?.id, user?.email, user?.name]);
 
     useEffect(() => {
         if (!conversationId || conversationId === 'undefined') {
@@ -103,6 +161,30 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     }, [conversationId]);
 
     useEffect(() => {
+        const handleNewMessage = (data) => {
+            if (data.conversationId === conversationId) {
+                setMessages(prev => [...prev, data.message]);
+                scrollToBottom();
+            }
+        };
+
+        const handleMessagesRead = (data) => {
+            if (data.conversationId !== conversationId || !data.messageIds?.length) return;
+            setMessages(prev => prev.map((message) => (
+                data.messageIds.includes(message.id) ? { ...message, isRead: true } : message
+            )));
+        };
+
+        webSocketService.onNewMessage(handleNewMessage);
+        webSocketService.onMessagesRead?.(handleMessagesRead);
+
+        return () => {
+            webSocketService.off('new_message', handleNewMessage);
+            webSocketService.off('messages_read', handleMessagesRead);
+        };
+    }, [conversationId]);
+
+    useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
@@ -110,7 +192,19 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         if (!conversationId || conversationId === 'undefined') return;
         try {
             const res = await chatAPI.getMessages(conversationId);
-            setMessages(res.data.data.messages || []);
+            const rawMessages = res.data.data.messages || [];
+            const decryptedMessages = await Promise.all(rawMessages.map(async (message) => {
+                if (message.isEncrypted && encryptionService.hasPrivateKey(user?.id)) {
+                    const decryptedContent = await encryptionService.decryptMessage(
+                        message.content,
+                        encryptionService.getPrivateKey(user.id)
+                    );
+                    return { ...message, content: decryptedContent };
+                }
+                return message;
+            }));
+
+            setMessages(decryptedMessages);
         } catch (error) {
             console.error('Failed to fetch messages:', error);
         } finally {
@@ -128,17 +222,38 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
         sendStopTyping();
         setSending(true);
-        const outgoingContent = buildMessagePayload(newMessage.trim(), replyingTo);
 
         try {
-            const res = await chatAPI.sendMessage(conversationId, outgoingContent);
+            const plainContent = newMessage.trim();
+            const moderatedContent = violatesPrivacyPolicy(plainContent) ? PRIVACY_POLICY_DELETED_MESSAGE : plainContent;
+            const outgoingContent = buildMessagePayload(moderatedContent, replyingTo);
+
+            let payloadContent = outgoingContent;
+            let isEncrypted = false;
+
+            if (isSecure && otherUserPublicKey) {
+                payloadContent = await encryptionService.encryptMessage(outgoingContent, otherUserPublicKey);
+                isEncrypted = true;
+            }
+
+            const res = await chatAPI.sendMessage(conversationId, {
+                content: payloadContent,
+                isEncrypted,
+                encryptionVersion: '1.0'
+            });
             const newMsg = res.data.data.message;
-            setMessages(prev => [...prev, newMsg]);
+
+            setMessages(prev => [...prev, {
+                ...newMsg,
+                content: moderatedContent,
+                isDelivered: true,
+                isDeleted: moderatedContent === PRIVACY_POLICY_DELETED_MESSAGE
+            }]);
             setNewMessage('');
             setReplyingTo(null);
 
             if (isConnected && otherUserId) {
-                webSocketService.sendMessage(conversationId, newMsg, otherUserId);
+                webSocketService.sendMessage(conversationId, newMsg, otherUserId, newMsg.id);
             }
         } catch (error) {
             if (error.response?.data?.isPending) {
@@ -441,6 +556,12 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                 <div className={`flex items-center gap-2 px-1 text-[10px] font-black text-dark-500 uppercase tracking-widest ${isOwn ? 'flex-row-reverse' : ''}`}>
                                                     <span>{formatTime(message.createdAt)}</span>
                                                     {message.isEdited && <span>• Edited</span>}
+                                                    {isOwn && (
+                                                        <span className={`inline-flex items-center gap-1 ${message.isRead ? 'text-sky-400' : 'text-dark-500'}`} title={message.isRead ? 'Read' : 'Delivered'}>
+                                                            {message.isRead ? <FaCheckDouble size={10} /> : <FaCheck size={10} />}
+                                                            <span>{message.isRead ? 'Read' : 'Delivered'}</span>
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </div>
                                         </motion.div>

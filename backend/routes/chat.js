@@ -774,6 +774,15 @@ router.get('/conversations/:id/messages', auth, async (req, res) => {
         const { page = 1, limit = 50 } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
+        const unreadMessages = await prisma.message.findMany({
+            where: {
+                conversationId: conversationId,
+                senderId: { not: userId },
+                isRead: false
+            },
+            select: { id: true, senderId: true }
+        });
+
         const messages = await prisma.message.findMany({
             where: { conversationId: conversationId },
             include: {
@@ -805,6 +814,16 @@ router.get('/conversations/:id/messages', auth, async (req, res) => {
             where: { id: conversationId },
             data: updateData
         });
+
+        if (unreadMessages.length > 0 && req.app?.locals?.io) {
+            const otherUserId = conversation.sellerId === userId ? conversation.creatorUserId : conversation.sellerId;
+            req.app.locals.io.to(`user_${otherUserId}`).emit('messages_read', {
+                conversationId,
+                readerId: userId,
+                messageIds: unreadMessages.map((message) => message.id),
+                readAt: new Date().toISOString()
+            });
+        }
 
         res.json({
             success: true,

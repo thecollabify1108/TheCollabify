@@ -235,6 +235,13 @@ class WebSocketService {
         this.on('message_sent', callback);
     }
 
+    /**
+     * Listen for read receipt updates
+     */
+    onMessagesRead(callback) {
+        this.on('messages_read', callback);
+    }
+
     // ===== ONLINE STATUS =====
 
     /**

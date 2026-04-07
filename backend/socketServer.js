@@ -156,6 +156,17 @@ function initializeSocketServer(httpServer) {
             });
         });
 
+        socket.on('messages_read_ack', (data) => {
+            const { conversationId, readerId, messageIds } = data || {};
+            if (!conversationId || !readerId) return;
+
+            socket.to(`conversation_${conversationId}`).emit('messages_read', {
+                conversationId,
+                readerId,
+                messageIds: Array.isArray(messageIds) ? messageIds : []
+            });
+        });
+
         // ===== ONLINE STATUS =====
         socket.on('get_online_users', () => {
             socket.emit('online_users_list', {

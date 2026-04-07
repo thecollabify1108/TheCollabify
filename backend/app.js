@@ -624,6 +624,7 @@ if (process.env.NODE_ENV !== 'test') {
         if (initializeSocketServer) {
             try {
                 const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
+                app.locals.io = io;
                 app.locals.sendNotification = sendNotification;
                 app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
                 app.locals.sendBulkNotification = sendBulkNotification;

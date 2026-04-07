@@ -8,6 +8,12 @@ import encryptionService from '../../services/encryptionService';
 import { FaLock, FaShieldAlt } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
+const PRIVACY_POLICY_DELETED_MESSAGE = 'This message was deleted under privacy policy';
+const DIGIT_WORDS = {
+    zero: '0', one: '1', two: '2', three: '3', four: '4',
+    five: '5', six: '6', seven: '7', eight: '8', nine: '9'
+};
+
 const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onBack }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -46,6 +52,22 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const buildMessagePayload = (content) => {
         if (!replyingTo?.id) return content;
         return `[[reply:${replyingTo.id}|${encodeURIComponent((replyingTo.content || '').slice(0, 120))}]]\n${content}`;
+    };
+
+    const normalizeDigitWords = (content = '') => {
+        return String(content || '')
+            .toLowerCase()
+            .replace(/\b(zero|one|two|three|four|five|six|seven|eight|nine)\b/g, (word) => DIGIT_WORDS[word] || word);
+    };
+
+    const violatesPrivacyPolicy = (content = '') => {
+        const normalized = normalizeDigitWords(content).replace(/[\s().-]/g, '').replace(/\+/g, '');
+        const hasPhoneLikeSequence = (normalized.match(/\d/g) || []).length >= 10 || /(?:\+?\d[\d\s().-]{7,}\d)/.test(content);
+        const hasEmailLikeSequence = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(content)
+            || /[a-z0-9._%+-]+\s*(?:@|\[at\]|\bat\b)\s*[a-z0-9.-]+\s*(?:\.|\[dot\]|\bdot\b)\s*[a-z]{2,}/i.test(content);
+        const hasInstagramIdentifier = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content)
+            || /\b(instagram|insta|ig|insta\s*id|ig\s*id)\b/i.test(content.toLowerCase()) && /\b(?:instagram|insta|ig)\b.{0,24}\b[a-z0-9._]{3,}\b/i.test(content.toLowerCase());
+        return hasPhoneLikeSequence || hasEmailLikeSequence || hasInstagramIdentifier;
     };
 
     const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversation.id, true);
@@ -93,8 +115,19 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             }
         };
 
+        const handleMessagesRead = (data) => {
+            if (data.conversationId !== conversation.id || !data.messageIds?.length) return;
+            setMessages(prev => prev.map((message) => (
+                data.messageIds.includes(message.id) ? { ...message, isRead: true } : message
+            )));
+        };
+
         socketService.onNewMessage(handleNewMessage);
-        return () => socketService.off('new_message', handleNewMessage);
+        socketService.onMessagesRead?.(handleMessagesRead);
+        return () => {
+            socketService.off('new_message', handleNewMessage);
+            socketService.off('messages_read', handleMessagesRead);
+        };
     }, [conversation.id, socketService]);
 
     const fetchMessages = async () => {
@@ -135,12 +168,14 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
         sendStopTyping();
 
         try {
-            let contentToSend = buildMessagePayload(newMessage);
+            const plainContent = newMessage.trim();
+            const moderatedContent = violatesPrivacyPolicy(plainContent) ? PRIVACY_POLICY_DELETED_MESSAGE : plainContent;
+            let contentToSend = buildMessagePayload(moderatedContent);
             let isEncrypted = false;
 
             // Apply E2EE if recipient key is available
             if (isSecure && otherUserPublicKey) {
-                contentToSend = await encryptionService.encryptMessage(newMessage, otherUserPublicKey);
+                contentToSend = await encryptionService.encryptMessage(contentToSend, otherUserPublicKey);
                 isEncrypted = true;
             }
 
@@ -153,7 +188,12 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             const savedMsg = res.data.data.message;
 
             // For local UI, show the decrypted version
-            const displayMsg = { ...savedMsg, content: newMessage };
+            const displayMsg = {
+                ...savedMsg,
+                content: moderatedContent,
+                isDelivered: true,
+                isDeleted: moderatedContent === PRIVACY_POLICY_DELETED_MESSAGE
+            };
 
             setMessages(prev => [...prev, displayMsg]);
             setNewMessage('');
@@ -162,7 +202,8 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
             // Broadcast via Socket
             if (otherUserId) {
-                socketService.sendMessage(conversation.id, displayMsg, otherUserId);
+                const tempId = savedMsg.id;
+                socketService.sendMessage(conversation.id, displayMsg, otherUserId, tempId);
             }
 
         } catch (error) {
