@@ -68,11 +68,11 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onRe
                         }`}
                 >
                     {parsed.displayContent}
-                    {!isOwn && !message.isDeleted && onReply && (
+                    {!message.isDeleted && onReply && (
                         <button
                             type="button"
                             onClick={() => onReply({ id: message.id, content: parsed.displayContent })}
-                            className="absolute top-2 -right-10 opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-xl bg-gray-100 dark:bg-dark-800 border border-gray-200 dark:border-dark-700 text-primary-500 hover:text-primary-400"
+                            className={`absolute top-2 ${isOwn ? '-left-10' : '-right-10'} opacity-0 group-hover:opacity-100 transition-opacity p-2 rounded-xl bg-gray-100 dark:bg-dark-800 border border-gray-200 dark:border-dark-700 text-primary-500 hover:text-primary-400`}
                             title="Reply"
                         >
                             <FaReply size={11} />

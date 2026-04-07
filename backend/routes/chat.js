@@ -19,6 +19,8 @@ const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { userCacheMiddleware } = require('../middleware/cache');
 const { sanitizeContent } = require('../utils/sanitizer');
+        const PRIVACY_POLICY_DELETED_MESSAGE = 'This message was deleted under privacy policy';
+
 
 /**
  * Validation middleware
@@ -30,6 +32,25 @@ const handleValidation = (req, res, next) => {
             success: false,
             message: 'Validation failed',
             errors: errors.array()
+
+        const hasPhoneLikeSequence = (content = '') => {
+            // Accept separators and country codes, but require at least 10 digits total.
+            const candidates = content.match(/(?:\+?\d[\d\s().-]{8,}\d)/g) || [];
+            return candidates.some((candidate) => (candidate.match(/\d/g) || []).length >= 10);
+        };
+
+        const hasInstagramIdentifier = (content = '') => {
+            const normalized = String(content || '').toLowerCase();
+            const hasInstaKeyword = /(instagram|insta|ig\s*id|insta\s*id|instaid|igid)/i.test(normalized);
+            const hasHandle = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content);
+
+            // Catch direct handle sharing and common "share insta id" phrasing.
+            return hasHandle || (hasInstaKeyword && /([a-z0-9._]{2,30}|@)/i.test(normalized));
+        };
+
+        const violatesPrivacyPolicy = (content = '') => {
+            return hasPhoneLikeSequence(content) || hasInstagramIdentifier(content);
+        };
         });
     }
     next();
@@ -839,14 +860,14 @@ router.post('/conversations/:id/messages', auth, [
                 });
             }
 
-            // Block attachments, links and contact info pre-escrow
+            // Block attachments and links pre-escrow.
+            // Contact patterns are handled by privacy moderation below.
             const content = req.body.content || '';
             const hasLink = /https?:\/\//i.test(content);
-            const hasContact = /(\+91|\+1|whatsapp|telegram|@gmail|@yahoo|instagram\.com\/direct)/i.test(content);
-            if (hasLink || hasContact) {
+            if (hasLink) {
                 return res.status(403).json({
                     success: false,
-                    message: 'Links and contact information are blocked before escrow payment. Finalize the collaboration to share these.',
+                    message: 'Links are blocked before escrow payment. Finalize the collaboration to share these.',
                     isLocked: true
                 });
             }
@@ -885,7 +906,9 @@ router.post('/conversations/:id/messages', auth, [
                     conversationId: conversationId,
                     senderId: userId,
                     content: contentToSave,
-                    isEncrypted: req.body.isEncrypted || false,
+                    isDeleted: isPrivacyViolation,
+                    deletedAt: isPrivacyViolation ? new Date() : null,
+                    isEncrypted: isPrivacyViolation ? false : (req.body.isEncrypted || false),
                     encryptionVersion: req.body.encryptionVersion || '1.0'
                 },
                 include: {

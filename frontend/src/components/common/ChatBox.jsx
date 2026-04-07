@@ -408,6 +408,13 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                     
                                                     {isOwn && !message.isDeleted && (
                                                         <div className="absolute top-0 -left-12 opacity-0 group-hover:opacity-100 transition-all flex flex-col gap-2 p-1">
+                                                            <button
+                                                                onClick={() => setReplyingTo({ id: message.id, content: parseMessageContent(message.content).displayContent })}
+                                                                className="p-2 bg-dark-800 text-primary-400 rounded-xl border border-white/5 hover:bg-primary-500 hover:text-white transition-all"
+                                                                title="Reply"
+                                                            >
+                                                                <FaReply size={12} />
+                                                            </button>
                                                             <button onClick={() => startEdit(message)} className="p-2 bg-dark-800 text-primary-400 rounded-xl border border-white/5 hover:bg-primary-500 hover:text-white transition-all"><FaEdit size={12} /></button>
                                                             <button onClick={() => handleDeleteMessage(message.id)} className="p-2 bg-dark-800 text-rose-400 rounded-xl border border-white/5 hover:bg-rose-500 hover:text-white transition-all"><FaTrash size={12} /></button>
                                                         </div>
