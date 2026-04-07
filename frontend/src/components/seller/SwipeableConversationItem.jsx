@@ -22,18 +22,6 @@ const SwipeableConversationItem = ({ conversation, isSelected, onClick, onDelete
         }
     }, [peek, x]);
 
-    // Peek animation for onboarding
-    useEffect(() => {
-        if (peek) {
-            const sequence = async () => {
-                await animate(x, -60, { duration: 0.6, ease: "easeInOut" });
-                await new Promise(resolve => setTimeout(resolve, 300));
-                await animate(x, 0, { duration: 0.5, ease: "easeInOut" });
-            };
-            sequence();
-        }
-    }, [peek, x]);
-
     const handleDragEnd = (_, info) => {
         if (info.offset.x < -100) {
             onDelete(conversation.id);

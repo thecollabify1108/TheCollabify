@@ -37,12 +37,12 @@ const hasPhoneLikeSequence = (content = '') => {
         .replace(/[\s().-]/g, '')
         .replace(/\+/g, '');
 
-    if ((normalized.match(/\d/g) || []).length >= 10) {
+    if ((normalized.match(/\d/g) || []).length >= 7) {
         return true;
     }
 
     // Covers patterns like +91 98 13 99 11 50 or 98139-91150
-    return /(?:\+?\d[\d\s().-]{7,}\d)/.test(content);
+    return /(?:\+?\d[\d\s().-]{6,}\d)/.test(content);
 };
 
 const hasEmailLikeSequence = (content = '') => {
@@ -56,7 +56,7 @@ const hasEmailLikeSequence = (content = '') => {
 const hasInstagramIdentifier = (content = '') => {
     const normalized = String(content || '').toLowerCase();
     const hasHandle = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content);
-    const hasInstaKeyword = /\b(instagram|insta|ig|insta\s*id|ig\s*id)\b/i.test(normalized);
+    const hasInstaKeyword = /\b(instagram|insta|ig|insta\s*id|ig\s*id|handle|username)\b/i.test(normalized);
     const hasSocialLabel = /\b(?:instagram|insta|ig)\b.{0,24}\b[a-z0-9._]{3,}\b/i.test(normalized);
 
     return hasHandle || (hasInstaKeyword && hasSocialLabel);
@@ -221,10 +221,26 @@ router.get('/conversations', auth, userCacheMiddleware(15), async (req, res) => 
             })
         ]);
 
+        const sanitizedConversations = conversations.map((conversation) => {
+            const lastMessageContent = conversation.lastMessageContent;
+            if (!lastMessageContent || conversation.status !== 'ACTIVE') {
+                return conversation;
+            }
+
+            if (!conversation.lastMessageContent || !violatesPrivacyPolicy(lastMessageContent)) {
+                return conversation;
+            }
+
+            return {
+                ...conversation,
+                lastMessageContent: PRIVACY_POLICY_DELETED_MESSAGE
+            };
+        });
+
         res.json({
             success: true,
             data: {
-                conversations,
+                conversations: sanitizedConversations,
                 pagination: {
                     page,
                     limit,
@@ -844,6 +860,45 @@ router.get('/conversations/:id/messages', auth, async (req, res) => {
             take: parseInt(limit)
         });
 
+        const offendingMessageIds = [];
+        const sanitizedMessages = messages.map((message) => {
+            if (message.isDeleted || message.isEncrypted) {
+                return message;
+            }
+
+            if (!violatesPrivacyPolicy(message.content || '')) {
+                return message;
+            }
+
+            offendingMessageIds.push(message.id);
+            return {
+                ...message,
+                content: PRIVACY_POLICY_DELETED_MESSAGE,
+                isDeleted: true,
+                deletedAt: message.deletedAt || new Date(),
+                isEncrypted: false
+            };
+        });
+
+        if (offendingMessageIds.length > 0) {
+            await prisma.message.updateMany({
+                where: { id: { in: offendingMessageIds } },
+                data: {
+                    content: PRIVACY_POLICY_DELETED_MESSAGE,
+                    isDeleted: true,
+                    deletedAt: new Date(),
+                    isEncrypted: false
+                }
+            });
+
+            if (sanitizedMessages.some((message) => offendingMessageIds.includes(message.id) && message.id === messages[messages.length - 1]?.id)) {
+                await prisma.conversation.update({
+                    where: { id: conversationId },
+                    data: { lastMessageContent: PRIVACY_POLICY_DELETED_MESSAGE }
+                });
+            }
+        }
+
         // Mark messages as read
         await prisma.message.updateMany({
             where: {
@@ -878,7 +933,7 @@ router.get('/conversations/:id/messages', auth, async (req, res) => {
 
         res.json({
             success: true,
-            data: { messages }
+            data: { messages: sanitizedMessages }
         });
     } catch (error) {
         console.error('Get messages error:', error);
@@ -977,6 +1032,14 @@ router.post('/conversations/:id/messages', auth, [
         }
 
         let contentToSave = req.body.content;
+        if (!req.body.isEncrypted) {
+            contentToSave = sanitizeContent(contentToSave);
+        }
+
+        const isPrivacyViolation = !req.body.isEncrypted && violatesPrivacyPolicy(contentToSave);
+        if (isPrivacyViolation) {
+            contentToSave = PRIVACY_POLICY_DELETED_MESSAGE;
+        }
 
         // Also check Conversation status
         if (conversation.status !== 'ACTIVE') {
@@ -1152,6 +1215,13 @@ router.put('/messages/:messageId', auth, [
             });
         }
 
+        if (message.content === PRIVACY_POLICY_DELETED_MESSAGE || message.isDeleted) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot edit a deleted message'
+            });
+        }
+
         // Only sender can edit
         if (message.senderId !== req.userId) {
             return res.status(403).json({
@@ -1160,19 +1230,18 @@ router.put('/messages/:messageId', auth, [
             });
         }
 
-        // Can't edit deleted messages (our soft delete uses messageType or content check)
-        if (message.content === 'This message was deleted') {
-            return res.status(400).json({
-                success: false,
-                message: 'Cannot edit a deleted message'
-            });
-        }
+        const sanitizedContent = sanitizeContent(req.body.content.trim());
+        const isPrivacyViolation = violatesPrivacyPolicy(sanitizedContent);
+        const nextContent = isPrivacyViolation ? PRIVACY_POLICY_DELETED_MESSAGE : sanitizedContent;
 
         const updatedMessage = await prisma.message.update({
             where: { id: req.params.messageId },
             data: {
-                content: req.body.content,
-                // In Prisma we don't have isEdited field in schema but we can use metadata or just content
+                content: nextContent,
+                isDeleted: isPrivacyViolation,
+                deletedAt: isPrivacyViolation ? new Date() : null,
+                isEncrypted: isPrivacyViolation ? false : message.isEncrypted,
+                encryptionVersion: isPrivacyViolation ? null : message.encryptionVersion,
             },
             include: {
                 sender: { select: { id: true, name: true, avatar: true } }
@@ -1221,7 +1290,10 @@ router.delete('/messages/:messageId', auth, async (req, res) => {
         await prisma.message.update({
             where: { id: req.params.messageId },
             data: {
-                content: 'This message was deleted',
+                content: PRIVACY_POLICY_DELETED_MESSAGE,
+                isDeleted: true,
+                deletedAt: new Date(),
+                isEncrypted: false,
             }
         });
 

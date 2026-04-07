@@ -80,6 +80,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const [activeMessageMenu, setActiveMessageMenu] = useState(null);
     const [isPending, setIsPending] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null);
+    const sendLockRef = useRef(false);
     
     // Confirm Modal State
     const [confirmModal, setConfirmModal] = useState({
@@ -89,7 +90,6 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         message: '',
         variant: 'primary'
     });
-    const messagesEndRef = useRef(null);
     const pollInterval = useRef(null);
 
     // WebSocket hooks
@@ -176,9 +176,8 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
     useEffect(() => {
         const handleNewMessage = (data) => {
-            if (data.conversationId === conversationId) {
-                setMessages(prev => [...prev, data.message]);
-                scrollToBottom();
+            if (data.conversationId === conversationId && data.message?.id) {
+                setMessages(prev => (prev.some((message) => message.id === data.message.id) ? prev : [...prev, data.message]));
             }
         };
 
@@ -197,10 +196,6 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
             webSocketService.off('messages_read', handleMessagesRead);
         };
     }, [conversationId]);
-
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
 
     const fetchMessages = async () => {
         if (!conversationId || conversationId === 'undefined') return;
@@ -226,14 +221,11 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         }
     };
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
-
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || sending || !conversationId || conversationId === 'undefined') return;
+        if (!newMessage.trim() || sending || sendLockRef.current || !conversationId || conversationId === 'undefined') return;
 
+        sendLockRef.current = true;
         sendStopTyping();
         setSending(true);
 
@@ -257,12 +249,12 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
             });
             const newMsg = res.data.data.message;
 
-            setMessages(prev => [...prev, {
+            setMessages(prev => (prev.some((message) => message.id === newMsg.id) ? prev : [...prev, {
                 ...newMsg,
                 content: moderatedContent,
                 isDelivered: true,
                 isDeleted: moderatedContent === PRIVACY_POLICY_DELETED_MESSAGE
-            }]);
+            }]));
             setNewMessage('');
             setReplyingTo(null);
 
@@ -278,6 +270,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
             }
         } finally {
             setSending(false);
+            sendLockRef.current = false;
         }
     };
 
@@ -315,7 +308,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                 try {
                     await chatAPI.deleteMessage(messageId);
                     setMessages(prev => prev.map(m =>
-                        m.id === messageId ? { ...m, content: 'This message was deleted', isDeleted: true } : m
+                        m.id === messageId ? { ...m, content: PRIVACY_POLICY_DELETED_MESSAGE, isDeleted: true, deletedAt: new Date().toISOString() } : m
                     ));
                     toast.success('Message deleted');
                 } catch (error) {
@@ -349,6 +342,8 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         setActiveMessageMenu(null);
     };
 
+    const lastOwnMessageId = [...messages].reverse().find((message) => message.senderId === user?.id)?.id;
+
     const formatTime = (date) => new Date(date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
     const formatDate = (date) => {
@@ -381,7 +376,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                 initial={{ opacity: 0, scale: 0.98, x: 20 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.98, x: 20 }}
-                className="fixed right-0 top-0 bottom-0 w-full sm:w-[480px] bg-dark-950/80 backdrop-blur-3xl border-l border-white/10 shadow-[20px_0_60px_rgba(0,0,0,0.8)] z-[100] flex flex-col overflow-hidden"
+                className="fixed inset-0 w-full h-[100dvh] bg-dark-950/90 backdrop-blur-3xl border-0 shadow-none z-[100] flex flex-col overflow-hidden"
             >
                 <ConfirmModal 
                     {...confirmModal}
@@ -527,11 +522,11 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                     </div>
                                                 )}
                                                 <div
-                                                    className={`px-5 py-3.5 rounded-3xl shadow-2xl relative
+                                                    className={`px-5 py-3.5 rounded-3xl shadow-2xl relative group
                                                         ${message.isDeleted 
                                                             ? 'bg-dark-800/40 border border-white/5 text-dark-600 italic text-xs' 
                                                             : isOwn 
-                                                                ? 'bg-gradient-to-br from-primary-600 to-indigo-600 text-white rounded-tr-none border border-white/10' 
+                                                                ? 'bg-gradient-to-br from-primary-600 via-indigo-600 to-fuchsia-600 text-white rounded-tr-none border border-white/10' 
                                                                 : 'bg-white/5 backdrop-blur-md border border-white/10 text-white rounded-tl-none'
                                                         }`}
                                                 >
@@ -541,38 +536,93 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                                 Privacy policy
                                                             </div>
                                                         )}
-                                                    <p className="text-[14px] leading-relaxed font-medium tracking-tight whitespace-pre-wrap">{parseMessageContent(message.content).displayContent}</p>
-                                                    
-                                                    {isOwn && !message.isDeleted && (
-                                                        <div className="absolute top-0 -left-12 opacity-0 group-hover:opacity-100 transition-all flex flex-col gap-2 p-1">
-                                                            <button
-                                                                onClick={() => setReplyingTo({ id: message.id, content: parseMessageContent(message.content).displayContent })}
-                                                                className="p-2 bg-dark-800 text-primary-400 rounded-xl border border-white/5 hover:bg-primary-500 hover:text-white transition-all"
-                                                                title="Reply"
-                                                            >
-                                                                <FaReply size={12} />
-                                                            </button>
-                                                            <button onClick={() => startEdit(message)} className="p-2 bg-dark-800 text-primary-400 rounded-xl border border-white/5 hover:bg-primary-500 hover:text-white transition-all"><FaEdit size={12} /></button>
-                                                            <button onClick={() => handleDeleteMessage(message.id)} className="p-2 bg-dark-800 text-rose-400 rounded-xl border border-white/5 hover:bg-rose-500 hover:text-white transition-all"><FaTrash size={12} /></button>
+                                                    {editingMessageId === message.id ? (
+                                                        <div className="space-y-3">
+                                                            <textarea
+                                                                value={editContent}
+                                                                onChange={(e) => setEditContent(e.target.value)}
+                                                                className="w-full min-h-[96px] resize-none rounded-2xl border border-white/10 bg-dark-950/50 px-4 py-3 text-sm text-white outline-none focus:border-primary-500/60"
+                                                            />
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setEditingMessageId(null);
+                                                                        setEditContent('');
+                                                                    }}
+                                                                    className="rounded-xl border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wider text-dark-300 hover:bg-white/5"
+                                                                >
+                                                                    Cancel
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleEditMessage(message.id)}
+                                                                    className="rounded-xl bg-primary-500 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white hover:bg-primary-400"
+                                                                >
+                                                                    Save
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    )}
+                                                    ) : (
+                                                        <>
+                                                            <p className="text-[14px] leading-relaxed font-medium tracking-tight whitespace-pre-wrap">{parseMessageContent(message.content).displayContent}</p>
 
-                                                    {!isOwn && !message.isDeleted && (
-                                                        <div className="absolute top-0 -right-12 opacity-0 group-hover:opacity-100 transition-all flex flex-col gap-2 p-1">
-                                                            <button
-                                                                onClick={() => setReplyingTo({ id: message.id, content: parseMessageContent(message.content).displayContent })}
-                                                                className="p-2 bg-dark-800 text-primary-400 rounded-xl border border-white/5 hover:bg-primary-500 hover:text-white transition-all"
-                                                                title="Reply"
-                                                            >
-                                                                <FaReply size={12} />
-                                                            </button>
-                                                        </div>
+                                                            {!message.isDeleted && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id);
+                                                                    }}
+                                                                    className="absolute top-2 right-2 p-2 bg-dark-900/70 text-white rounded-xl border border-white/10 hover:bg-white/10 transition-all"
+                                                                    title="Message options"
+                                                                >
+                                                                    <FaEllipsisV size={12} />
+                                                                </button>
+                                                            )}
+
+                                                            {activeMessageMenu === message.id && !message.isDeleted && (
+                                                                <div className="absolute top-12 right-2 z-20 w-44 rounded-2xl border border-white/10 bg-dark-900/95 shadow-2xl overflow-hidden">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setReplyingTo({ id: message.id, content: parseMessageContent(message.content).displayContent });
+                                                                            setActiveMessageMenu(null);
+                                                                        }}
+                                                                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-dark-100 hover:bg-white/5"
+                                                                    >
+                                                                        <FaReply size={12} /> Reply
+                                                                    </button>
+                                                                    {isOwn && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => startEdit(message)}
+                                                                            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-dark-100 hover:bg-white/5"
+                                                                        >
+                                                                            <FaEdit size={12} /> Edit
+                                                                        </button>
+                                                                    )}
+                                                                    {isOwn && (
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                                handleDeleteMessage(message.id);
+                                                                                setActiveMessageMenu(null);
+                                                                            }}
+                                                                            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-rose-400 hover:bg-rose-500/10"
+                                                                        >
+                                                                            <FaTrash size={12} /> Delete
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            )}
+                                                        </>
                                                     )}
                                                 </div>
                                                 <div className={`flex items-center gap-2 px-1 text-[10px] font-black text-dark-500 uppercase tracking-widest ${isOwn ? 'flex-row-reverse' : ''}`}>
                                                     <span>{formatTime(message.createdAt)}</span>
                                                     {message.isEdited && <span>• Edited</span>}
-                                                    {isOwn && (
+                                                    {isOwn && message.id === lastOwnMessageId && (
                                                         <span className={`inline-flex items-center gap-1 ${message.isRead ? 'text-sky-400' : 'text-dark-500'}`} title={message.isRead ? 'Read' : 'Delivered'}>
                                                             {message.isRead ? <FaCheckDouble size={10} /> : <FaCheck size={10} />}
                                                             <span>{message.isRead ? 'Read' : 'Delivered'}</span>
@@ -599,7 +649,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                              </div>
                         </div>
                     )}
-                    <div ref={messagesEndRef} className="h-4" />
+                    <div className="h-4" />
                 </div>
 
                 {/* Premium Input */}

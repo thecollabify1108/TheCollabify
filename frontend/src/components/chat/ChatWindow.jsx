@@ -21,7 +21,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const [isSecure, setIsSecure] = useState(false);
     const [otherUserPublicKey, setOtherUserPublicKey] = useState(null);
     const [replyingTo, setReplyingTo] = useState(null);
-    const messagesEndRef = useRef(null);
+    const sendLockRef = useRef(false);
 
     const otherUser = conversation.otherUser || conversation.creatorUser || conversation.seller || {};
     const otherUserId = otherUser?.id;
@@ -130,9 +130,8 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     // Real-time listener for THIS conversation
     useEffect(() => {
         const handleNewMessage = (data) => {
-            if (data.conversationId === conversation.id) {
-                setMessages(prev => [...prev, data.message]);
-                scrollToBottom();
+            if (data.conversationId === conversation.id && data.message?.id) {
+                setMessages(prev => (prev.some((message) => message.id === data.message.id) ? prev : [...prev, data.message]));
             }
         };
 
@@ -169,22 +168,16 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             }));
 
             setMessages(decryptedMessages);
-            scrollToBottom();
         } catch (error) {
             console.error('Failed to load messages', error);
         }
     };
 
-    const scrollToBottom = () => {
-        setTimeout(() => {
-            messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        }, 100);
-    };
-
     const handleSendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || sending) return;
+        if (!newMessage.trim() || sending || sendLockRef.current) return;
 
+        sendLockRef.current = true;
         setSending(true);
         sendStopTyping();
 
@@ -216,10 +209,9 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
                 isDeleted: moderatedContent === PRIVACY_POLICY_DELETED_MESSAGE
             };
 
-            setMessages(prev => [...prev, displayMsg]);
+            setMessages(prev => (prev.some((message) => message.id === displayMsg.id) ? prev : [...prev, displayMsg]));
             setNewMessage('');
             setReplyingTo(null);
-            scrollToBottom();
 
             // Broadcast via Socket
             if (otherUserId) {
@@ -232,6 +224,42 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             toast.error('Failed to send encrypted message');
         } finally {
             setSending(false);
+            sendLockRef.current = false;
+        }
+    };
+
+    const handleEditMessage = async (message) => {
+        const currentDisplayContent = parseMessageContent(message?.content || '').displayContent;
+        const nextContent = window.prompt('Edit message', currentDisplayContent || '');
+        if (nextContent == null) return;
+
+        const trimmed = nextContent.trim();
+        if (!trimmed) return;
+
+        try {
+            const res = await chatAPI.editMessage(message.id, trimmed);
+            const updatedMessage = res?.data?.data?.message || { ...message, content: trimmed };
+            setMessages(prev => prev.map((item) => (item.id === message.id ? updatedMessage : item)));
+            toast.success('Message edited');
+        } catch (error) {
+            toast.error('Failed to edit message');
+        }
+    };
+
+    const handleDeleteMessage = async (messageId) => {
+        const confirmed = window.confirm('Delete this message?');
+        if (!confirmed) return;
+
+        try {
+            await chatAPI.deleteMessage(messageId);
+            setMessages(prev => prev.map((message) => (
+                message.id === messageId
+                    ? { ...message, content: PRIVACY_POLICY_DELETED_MESSAGE, isDeleted: true, deletedAt: new Date().toISOString() }
+                    : message
+            )));
+            toast.success('Message deleted');
+        } catch (error) {
+            toast.error('Failed to delete message');
         }
     };
 
@@ -240,6 +268,8 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
         if (e.target.value) sendTyping();
         else sendStopTyping();
     };
+
+    const lastOwnMessageId = [...messages].reverse().find((message) => message.senderId === currentUser.id)?.id;
 
     return (
         <div className="flex-1 flex flex-col h-full bg-gray-50/50 dark:bg-dark-950/50 backdrop-blur-sm relative">
@@ -299,10 +329,12 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
                             showAvatar={showAvatar}
                             senderName={otherUserName}
                             onReply={(message) => setReplyingTo(message)}
+                            onEdit={handleEditMessage}
+                            onDelete={handleDeleteMessage}
+                            showDeliveryStatus={msg.id === lastOwnMessageId}
                         />
                     );
                 })}
-                <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}

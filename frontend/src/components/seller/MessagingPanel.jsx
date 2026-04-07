@@ -24,7 +24,7 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [showSwipeHint, setShowSwipeHint] = useState(false);
-    const messagesEndRef = useRef(null);
+    const sendLockRef = useRef(false);
 
     // Onboarding Hint Logic
     useEffect(() => {
@@ -49,10 +49,6 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
         }
     }, [selectedConversation]);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
-
     const fetchMessages = async () => {
         if (!selectedConversation?.id) return;
         try {
@@ -68,19 +64,19 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
 
     const sendMessage = async (e) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedConversation?.id) return;
+        if (!newMessage.trim() || !selectedConversation?.id || sendLockRef.current) return;
 
+        sendLockRef.current = true;
         try {
             const res = await chatAPI.sendMessage(selectedConversation.id, newMessage);
-            setMessages([...messages, res.data.data.message]);
+            const nextMessage = res.data.data.message;
+            setMessages(prev => (prev.some(message => message.id === nextMessage.id) ? prev : [...prev, nextMessage]));
             setNewMessage('');
         } catch (error) {
             console.error('Failed to send message', error);
+        } finally {
+            sendLockRef.current = false;
         }
-    };
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
     const formatMessageTime = (date) => {
@@ -213,7 +209,6 @@ const MessagingPanel = ({ conversations, onSelectConversation, selectedConversat
                                     </motion.div>
                                 ))
                             )}
-                            <div ref={messagesEndRef} />
                         </div>
 
                         {/* Message Input - Always enabled but sanitized if pending */}

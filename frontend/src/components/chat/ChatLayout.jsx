@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 
 const ChatLayout = ({ children }) => {
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-dark-950 flex flex-col">
+        <div className="min-h-screen bg-gray-50 dark:bg-dark-950 flex flex-col overflow-hidden">
             <Navbar />
 
-            <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-6 h-[100dvh]">
-                <div className="h-full bg-white dark:bg-dark-900 border border-gray-200 dark:border-dark-800 rounded-2xl overflow-hidden shadow-2xl flex relative">
+            <div className="flex-1 w-full px-0 pt-24 pb-0 h-[calc(100dvh-6rem)]">
+                <div className="h-full w-full bg-white dark:bg-dark-900 border border-gray-200 dark:border-dark-800 rounded-none overflow-hidden shadow-none flex relative">
                     {children}
                 </div>
             </div>
