@@ -81,6 +81,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const [isPending, setIsPending] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null);
     const sendLockRef = useRef(false);
+    const touchStartRef = useRef(null);
     
     // Confirm Modal State
     const [confirmModal, setConfirmModal] = useState({
@@ -342,6 +343,27 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         setActiveMessageMenu(null);
     };
 
+    const handleMessageTouchStart = (event, messageId) => {
+        if (typeof window === 'undefined' || window.innerWidth >= 768) return;
+        const touch = event.touches?.[0];
+        if (!touch) return;
+        touchStartRef.current = { x: touch.clientX, y: touch.clientY, messageId };
+    };
+
+    const handleMessageTouchEnd = (event, message) => {
+        if (typeof window === 'undefined' || window.innerWidth >= 768) return;
+        const start = touchStartRef.current;
+        const touch = event.changedTouches?.[0];
+        touchStartRef.current = null;
+        if (!start || !touch || start.messageId !== message.id || message.isDeleted) return;
+
+        const deltaX = touch.clientX - start.x;
+        const deltaY = touch.clientY - start.y;
+        if (deltaX < -60 && Math.abs(deltaY) < 40) {
+            setReplyingTo({ id: message.id, content: parseMessageContent(message.content).displayContent });
+        }
+    };
+
     const lastOwnMessageId = [...messages].reverse().find((message) => message.senderId === user?.id)?.id;
 
     const formatTime = (date) => new Date(date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -529,6 +551,9 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                                 ? 'bg-gradient-to-br from-primary-600 via-indigo-600 to-fuchsia-600 text-white rounded-tr-none border border-white/10' 
                                                                 : 'bg-white/5 backdrop-blur-md border border-white/10 text-white rounded-tl-none'
                                                         }`}
+                                                    onTouchStart={(event) => handleMessageTouchStart(event, message.id)}
+                                                    onTouchEnd={(event) => handleMessageTouchEnd(event, message)}
+                                                    style={{ touchAction: 'pan-y' }}
                                                 >
                                                         {message.isDeleted && (
                                                             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300 not-italic">
