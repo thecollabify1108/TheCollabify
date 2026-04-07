@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaReply } from 'react-icons/fa';
+import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaReply, FaShieldAlt } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -404,6 +404,12 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                                 : 'bg-white/5 backdrop-blur-md border border-white/10 text-white rounded-tl-none'
                                                         }`}
                                                 >
+                                                        {message.isDeleted && (
+                                                            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300 not-italic">
+                                                                <FaShieldAlt size={8} />
+                                                                Privacy policy
+                                                            </div>
+                                                        )}
                                                     <p className="text-[14px] leading-relaxed font-medium tracking-tight whitespace-pre-wrap">{parseMessageContent(message.content).displayContent}</p>
                                                     
                                                     {isOwn && !message.isDeleted && (

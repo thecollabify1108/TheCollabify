@@ -19,7 +19,52 @@ const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { userCacheMiddleware } = require('../middleware/cache');
 const { sanitizeContent } = require('../utils/sanitizer');
-        const PRIVACY_POLICY_DELETED_MESSAGE = 'This message was deleted under privacy policy';
+
+const PRIVACY_POLICY_DELETED_MESSAGE = 'This message was deleted under privacy policy';
+const DIGIT_WORDS = {
+    zero: '0', one: '1', two: '2', three: '3', four: '4',
+    five: '5', six: '6', seven: '7', eight: '8', nine: '9'
+};
+
+const normalizeDigitWords = (content = '') => {
+    return String(content || '')
+        .toLowerCase()
+        .replace(/\b(zero|one|two|three|four|five|six|seven|eight|nine)\b/g, (word) => DIGIT_WORDS[word] || word);
+};
+
+const hasPhoneLikeSequence = (content = '') => {
+    const normalized = normalizeDigitWords(content)
+        .replace(/[\s().-]/g, '')
+        .replace(/\+/g, '');
+
+    if ((normalized.match(/\d/g) || []).length >= 10) {
+        return true;
+    }
+
+    // Covers patterns like +91 98 13 99 11 50 or 98139-91150
+    return /(?:\+?\d[\d\s().-]{7,}\d)/.test(content);
+};
+
+const hasEmailLikeSequence = (content = '') => {
+    const normalized = String(content || '').toLowerCase();
+    const directEmail = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(normalized);
+    const obfuscatedEmail = /[a-z0-9._%+-]+\s*(?:@|\[at\]|\bat\b)\s*[a-z0-9.-]+\s*(?:\.|\[dot\]|\bdot\b)\s*[a-z]{2,}/i.test(normalized);
+
+    return directEmail || obfuscatedEmail;
+};
+
+const hasInstagramIdentifier = (content = '') => {
+    const normalized = String(content || '').toLowerCase();
+    const hasHandle = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content);
+    const hasInstaKeyword = /\b(instagram|insta|ig|insta\s*id|ig\s*id)\b/i.test(normalized);
+    const hasSocialLabel = /\b(?:instagram|insta|ig)\b.{0,24}\b[a-z0-9._]{3,}\b/i.test(normalized);
+
+    return hasHandle || (hasInstaKeyword && hasSocialLabel);
+};
+
+const violatesPrivacyPolicy = (content = '') => {
+    return hasPhoneLikeSequence(content) || hasEmailLikeSequence(content) || hasInstagramIdentifier(content);
+};
 
 
 /**
@@ -32,25 +77,6 @@ const handleValidation = (req, res, next) => {
             success: false,
             message: 'Validation failed',
             errors: errors.array()
-
-        const hasPhoneLikeSequence = (content = '') => {
-            // Accept separators and country codes, but require at least 10 digits total.
-            const candidates = content.match(/(?:\+?\d[\d\s().-]{8,}\d)/g) || [];
-            return candidates.some((candidate) => (candidate.match(/\d/g) || []).length >= 10);
-        };
-
-        const hasInstagramIdentifier = (content = '') => {
-            const normalized = String(content || '').toLowerCase();
-            const hasInstaKeyword = /(instagram|insta|ig\s*id|insta\s*id|instaid|igid)/i.test(normalized);
-            const hasHandle = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content);
-
-            // Catch direct handle sharing and common "share insta id" phrasing.
-            return hasHandle || (hasInstaKeyword && /([a-z0-9._]{2,30}|@)/i.test(normalized));
-        };
-
-        const violatesPrivacyPolicy = (content = '') => {
-            return hasPhoneLikeSequence(content) || hasInstagramIdentifier(content);
-        };
         });
     }
     next();

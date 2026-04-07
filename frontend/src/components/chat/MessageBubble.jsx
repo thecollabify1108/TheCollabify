@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { FaCheck, FaCheckDouble, FaLock, FaReply } from 'react-icons/fa';
+import { FaCheck, FaCheckDouble, FaLock, FaReply, FaShieldAlt } from 'react-icons/fa';
 
 const REPLY_HEADER_REGEX = /^\[\[reply:([^|\]]+)\|([^\]]*)\]\]\n/;
 
@@ -67,6 +67,12 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onRe
                         : 'bg-white dark:bg-dark-800 text-gray-900 dark:text-dark-100 border border-gray-200 dark:border-dark-700 rounded-bl-sm shadow-sm'
                         }`}
                 >
+                    {message.isDeleted && (
+                        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
+                            <FaShieldAlt size={8} />
+                            Privacy policy
+                        </div>
+                    )}
                     {parsed.displayContent}
                     {!message.isDeleted && onReply && (
                         <button
