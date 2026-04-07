@@ -14,7 +14,7 @@ const DIGIT_WORDS = {
     five: '5', six: '6', seven: '7', eight: '8', nine: '9'
 };
 
-const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onBack }) => {
+const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onBack, refreshPresence, getPresenceLabel }) => {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [sending, setSending] = useState(false);
@@ -27,6 +27,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const otherUserId = otherUser?.id;
     const otherUserName = otherUser?.name || 'Unknown User';
     const isOnline = otherUserId ? onlineUsers.includes(otherUserId) : false;
+    const [presenceLabel, setPresenceLabel] = useState('Offline');
 
     const replyHeaderRegex = /^\[\[reply:([^|\]]+)\|([^\]]*)\]\]\n/;
 
@@ -71,6 +72,26 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     };
 
     const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversation.id, true);
+
+    useEffect(() => {
+        if (!otherUserId) return;
+        if (refreshPresence) {
+            refreshPresence(otherUserId);
+        }
+    }, [otherUserId, refreshPresence]);
+
+    useEffect(() => {
+        if (!otherUserId) {
+            setPresenceLabel('Offline');
+            return;
+        }
+
+        if (getPresenceLabel) {
+            setPresenceLabel(getPresenceLabel(otherUserId));
+        } else {
+            setPresenceLabel(isOnline ? 'Online' : 'Offline');
+        }
+    }, [otherUserId, getPresenceLabel, isOnline, onlineUsers]);
 
     useEffect(() => {
         if (conversation.id) {
@@ -242,7 +263,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
                             {isSecure && <FaShieldAlt className="text-emerald-500 text-xs" title="Guardian Elite Encrypted Session" />}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-dark-400">
-                            {isOnline ? <span className="text-emerald-400">Online</span> : <span>Offline</span>}
+                            <span className={isOnline ? 'text-emerald-400' : ''}>{presenceLabel}</span>
                             {typingUsers.length > 0 && <span className="text-primary-400 animate-pulse">• typing...</span>}
                         </div>
                     </div>

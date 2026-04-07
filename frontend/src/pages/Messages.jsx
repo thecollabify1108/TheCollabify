@@ -15,7 +15,7 @@ const Messages = () => {
     const [activeConversationId, setActiveConversationId] = useState(null);
 
     // WebSocket Hook
-    const { onlineUsers } = useWebSocket(user);
+    const { onlineUsers, refreshPresence, getPresenceLabel } = useWebSocket(user);
 
     const fetchConversations = useCallback(async () => {
         if (!user?.role) return;
@@ -88,6 +88,8 @@ const Messages = () => {
                         currentUser={user}
                         socketService={webSocketService}
                         onlineUsers={onlineUsers}
+                        refreshPresence={refreshPresence}
+                        getPresenceLabel={getPresenceLabel}
                         onBack={() => setActiveConversationId(null)}
                     />
                 </div>

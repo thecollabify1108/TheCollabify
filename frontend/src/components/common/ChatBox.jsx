@@ -93,8 +93,9 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const pollInterval = useRef(null);
 
     // WebSocket hooks
-    const { isConnected, isUserOnline } = useWebSocket(user);
+    const { isConnected, isUserOnline, refreshPresence, getPresenceLabel } = useWebSocket(user);
     const { typingUsers, sendTyping, sendStopTyping } = useTypingIndicator(conversationId, isConnected);
+    const [presenceLabel, setPresenceLabel] = useState('Offline');
 
     const otherUser = conversation?.otherUser || conversation?.creatorUser || conversation?.seller || conversation?.participants?.find(p => p.id !== user?.id) || {};
     const otherUserId = otherUser?.id;
@@ -143,6 +144,19 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
         setupEncryption();
     }, [otherUserId, user?.id, user?.email, user?.name]);
+
+    useEffect(() => {
+        if (!otherUserId) return;
+        refreshPresence?.(otherUserId);
+    }, [otherUserId, refreshPresence]);
+
+    useEffect(() => {
+        if (!otherUserId) {
+            setPresenceLabel('Offline');
+            return;
+        }
+        setPresenceLabel(getPresenceLabel ? getPresenceLabel(otherUserId) : (isUserOnline(otherUserId) ? 'Online' : 'Offline'));
+    }, [otherUserId, getPresenceLabel, isUserOnline, isConnected]);
 
     useEffect(() => {
         if (!conversationId || conversationId === 'undefined') {
@@ -402,7 +416,9 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                     </span>
                                     <span className="w-1 h-1 rounded-full bg-dark-600" />
                                     <span className="text-xs font-medium text-dark-400">
-                                        {isConnected ? <span className="text-emerald-400/80">Secured</span> : 'Establishing...'}
+                                        {isUserOnline(otherUserId)
+                                            ? <span className="text-emerald-400/80">Online</span>
+                                            : presenceLabel}
                                     </span>
                                 </div>
                             </div>

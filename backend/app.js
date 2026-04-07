@@ -623,11 +623,12 @@ if (process.env.NODE_ENV !== 'test') {
 
         if (initializeSocketServer) {
             try {
-                const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification } = initializeSocketServer(server);
+                const { io, sendNotification, broadcastCampaignUpdate, sendBulkNotification, getPresence } = initializeSocketServer(server);
                 app.locals.io = io;
                 app.locals.sendNotification = sendNotification;
                 app.locals.broadcastCampaignUpdate = broadcastCampaignUpdate;
                 app.locals.sendBulkNotification = sendBulkNotification;
+                app.locals.getPresence = getPresence;
                 console.log('✅ Socket.io initialized');
             } catch (e) {
                 console.error('❌ Socket.io initialization failed:', e.message);

@@ -242,6 +242,57 @@ router.get('/conversations', auth, userCacheMiddleware(15), async (req, res) => 
     }
 });
 
+/**
+ * @route   GET /api/chat/presence/:userId
+ * @desc    Get online / last-seen presence for a user you are connected with
+ * @access  Private
+ */
+router.get('/presence/:userId', auth, async (req, res) => {
+    try {
+        const requesterId = req.userId;
+        const targetUserId = req.params.userId;
+
+        if (requesterId !== targetUserId) {
+            const hasAcceptedConnection = await prisma.matchedCreator.findFirst({
+                where: {
+                    status: 'ACCEPTED',
+                    OR: [
+                        { creator: { userId: requesterId }, promotion: { sellerId: targetUserId } },
+                        { creator: { userId: targetUserId }, promotion: { sellerId: requesterId } }
+                    ]
+                },
+                select: { id: true }
+            });
+
+            if (!hasAcceptedConnection) {
+                return res.status(403).json({
+                    success: false,
+                    message: 'Presence is restricted to connected collaborators.'
+                });
+            }
+        }
+
+        const presenceFromSocket = req.app?.locals?.getPresence
+            ? req.app.locals.getPresence(targetUserId)
+            : { userId: targetUserId, isOnline: false, lastSeenAt: null };
+
+        res.json({
+            success: true,
+            data: {
+                userId: targetUserId,
+                isOnline: !!presenceFromSocket.isOnline,
+                lastSeenAt: presenceFromSocket.lastSeenAt || null
+            }
+        });
+    } catch (error) {
+        console.error('Get presence error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to get presence'
+        });
+    }
+});
+
 // Send message request (seller to creator)
 router.post('/message-request', auth, async (req, res) => {
     try {

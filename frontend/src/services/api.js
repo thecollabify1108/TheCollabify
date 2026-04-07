@@ -181,7 +181,8 @@ export const chatAPI = {
     acceptRequest: (conversationId) => api.post(`chat/message-request/${conversationId}/accept`),
     rejectRequest: (conversationId) => api.post(`chat/message-request/${conversationId}/reject`),
     updatePGPKey: (publicKey) => api.put('chat/pgp-key', { publicKey }),
-    getPGPKey: (userId) => api.get(`chat/pgp-key/${userId}`)
+    getPGPKey: (userId) => api.get(`chat/pgp-key/${userId}`),
+    getPresence: (userId) => api.get(`chat/presence/${userId}`)
 };
 
 // Admin API

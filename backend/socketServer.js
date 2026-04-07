@@ -15,6 +15,7 @@ const jwt = require('jsonwebtoken');
 // In-memory storage for online users (use Redis/Database in production!)
 const onlineUsers = new Map();
 const userSockets = new Map();
+const userLastSeen = new Map();
 
 function initializeSocketServer(httpServer) {
     const envOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:5173')
@@ -87,6 +88,7 @@ function initializeSocketServer(httpServer) {
             socketId: socket.id,
             connectedAt: new Date()
         });
+        userLastSeen.delete(socket.userId);
 
         // Join user's personal room
         socket.join(`user_${socket.userId}`);
@@ -184,10 +186,13 @@ function initializeSocketServer(httpServer) {
 
             userSockets.delete(socket.userId);
             onlineUsers.delete(socket.userId);
+            const lastSeenAt = new Date().toISOString();
+            userLastSeen.set(socket.userId, lastSeenAt);
 
             // Broadcast user is offline
             io.emit('user_offline', {
-                userId: socket.userId
+                userId: socket.userId,
+                lastSeenAt
             });
         };
 
@@ -222,11 +227,21 @@ function initializeSocketServer(httpServer) {
         });
     };
 
+    const getPresence = (userId) => {
+        const isOnline = onlineUsers.has(userId);
+        return {
+            userId,
+            isOnline,
+            lastSeenAt: isOnline ? null : (userLastSeen.get(userId) || null)
+        };
+    };
+
     return {
         io,
         sendNotification,
         broadcastCampaignUpdate,
-        sendBulkNotification
+        sendBulkNotification,
+        getPresence
     };
 }
 
