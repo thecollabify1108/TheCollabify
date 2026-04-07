@@ -336,10 +336,10 @@ router.post('/bulk-delete', auth, isAdmin, [
     handleValidation
 ], async (req, res) => {
     try {
-        const { userIds } = req.body;
+        const uniqueUserIds = [...new Set(req.body.userIds || [])];
 
         const users = await prisma.user.findMany({
-            where: { id: { in: userIds } }
+            where: { id: { in: uniqueUserIds } }
         });
 
         if (users.length === 0) {
@@ -360,68 +360,90 @@ router.post('/bulk-delete', auth, isAdmin, [
 
 
 
-        const deletedCount = await prisma.$transaction(async (tx) => {
-            let count = 0;
-            for (const user of users) {
-                // Same logic as single delete but in loop or optimized queries
-                if (user.activeRole === 'CREATOR') {
-                    await tx.creatorProfile.deleteMany({ where: { userId: user.id } });
-                    await tx.matchedCreator.deleteMany({ where: { creatorId: user.id } });
-                } else if (user.activeRole === 'SELLER') {
-                    const promptIds = (await tx.promotionRequest.findMany({
-                        where: { sellerId: user.id },
-                        select: { id: true }
-                    })).map(p => p.id);
+        let deletedCount = 0;
+        const failedUsers = [];
 
-                    // First get conversation IDs related to these promotion requests
-                    const conversationIds = (await tx.conversation.findMany({
-                        where: { promotionId: { in: promptIds } },
+        for (const user of users) {
+            try {
+                await prisma.$transaction(async (tx) => {
+                    if (user.activeRole === 'CREATOR') {
+                        await tx.creatorProfile.deleteMany({ where: { userId: user.id } });
+                    } else if (user.activeRole === 'SELLER') {
+                        const promptIds = (await tx.promotionRequest.findMany({
+                            where: { sellerId: user.id },
+                            select: { id: true }
+                        })).map(p => p.id);
+
+                        if (promptIds.length > 0) {
+                            const sellerConversationIds = (await tx.conversation.findMany({
+                                where: { promotionId: { in: promptIds } },
+                                select: { id: true }
+                            })).map(c => c.id);
+
+                            if (sellerConversationIds.length > 0) {
+                                await tx.message.deleteMany({ where: { conversationId: { in: sellerConversationIds } } });
+                                await tx.conversationDeletion.deleteMany({ where: { conversationId: { in: sellerConversationIds } } });
+                            }
+
+                            await tx.conversation.deleteMany({ where: { promotionId: { in: promptIds } } });
+                            await tx.matchedCreator.deleteMany({ where: { promotionId: { in: promptIds } } });
+                            await tx.promotionRequest.deleteMany({ where: { sellerId: user.id } });
+                        }
+                    }
+
+                    await tx.notification.deleteMany({ where: { userId: user.id } });
+
+                    const userConversationIds = (await tx.conversation.findMany({
+                        where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] },
                         select: { id: true }
                     })).map(c => c.id);
 
-                    // Then delete messages within those conversations
-                    if (conversationIds.length > 0) {
-                        await tx.message.deleteMany({
-                            where: { conversationId: { in: conversationIds } }
-                        });
+                    if (userConversationIds.length > 0) {
+                        await tx.message.deleteMany({ where: { conversationId: { in: userConversationIds } } });
+                        await tx.conversationDeletion.deleteMany({ where: { conversationId: { in: userConversationIds } } });
                     }
-                    await tx.conversation.deleteMany({ where: { promotionId: { in: promptIds } } });
-                    await tx.matchedCreator.deleteMany({ where: { promotionId: { in: promptIds } } });
-                    await tx.promotionRequest.deleteMany({ where: { sellerId: user.id } });
-                }
 
-                await tx.notification.deleteMany({ where: { userId: user.id } });
-                
-                const userConvos = await tx.conversation.findMany({
-                    where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] },
-                    select: { id: true }
+                    await tx.message.deleteMany({ where: { senderId: user.id } });
+                    await tx.conversation.deleteMany({ where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] } });
+
+                    await tx.matchedCreator.deleteMany({ where: { creator: { userId: user.id } } });
+                    await tx.creatorProfile.deleteMany({ where: { userId: user.id } });
+                    await tx.userRole.deleteMany({ where: { userId: user.id } });
+                    await tx.analytics.deleteMany({ where: { userId: user.id } });
+                    await tx.userIntent.deleteMany({ where: { userId: user.id } });
+                    await tx.apiKey.deleteMany({ where: { userId: user.id } });
+
+                    await tx.user.delete({ where: { id: user.id } });
                 });
-                const userConvoIds = userConvos.map(c => c.id);
-                if (userConvoIds.length > 0) {
-                    await tx.message.deleteMany({ where: { conversationId: { in: userConvoIds } } });
-                    await tx.conversationDeletion.deleteMany({ where: { conversationId: { in: userConvoIds } } });
-                }
-                await tx.message.deleteMany({ where: { senderId: user.id } });
 
-                await tx.conversation.deleteMany({ where: { OR: [{ sellerId: user.id }, { creatorUserId: user.id }] } });
-
-                // Delete UserRole first to avoid FK constraint
-                await tx.userRole.deleteMany({ where: { userId: user.id } });
-
-                // Defensive: delete other restrict relations before user
-                await tx.analytics.deleteMany({ where: { userId: user.id } });
-                await tx.userIntent.deleteMany({ where: { userId: user.id } });
-                await tx.apiKey.deleteMany({ where: { userId: user.id } });
-
-                await tx.user.delete({ where: { id: user.id } });
-                count++;
+                deletedCount++;
+            } catch (userError) {
+                failedUsers.push({
+                    userId: user.id,
+                    email: user.email,
+                    error: userError.message
+                });
             }
-            return count;
-        });
+        }
+
+        if (deletedCount === 0) {
+            return res.status(500).json({
+                success: false,
+                message: 'Failed to bulk delete users',
+                failedUsers
+            });
+        }
 
         res.json({
             success: true,
-            message: `Successfully deleted ${deletedCount} user(s)`
+            message: failedUsers.length > 0
+                ? `Deleted ${deletedCount} user(s). ${failedUsers.length} failed.`
+                : `Successfully deleted ${deletedCount} user(s)`,
+            data: {
+                deletedCount,
+                failedCount: failedUsers.length,
+                failedUsers
+            }
         });
     } catch (error) {
         console.error('Bulk delete error:', error);
