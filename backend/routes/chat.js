@@ -17,7 +17,7 @@ const { body, validationResult } = require('express-validator');
 const { randomUUID } = require('crypto');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
-const { userCacheMiddleware } = require('../middleware/cache');
+const { userCacheMiddleware, clearUserCache } = require('../middleware/cache');
 
 const PRIVACY_POLICY_DELETED_MESSAGE = 'Message deleted due to privacy policies';
 const DIGIT_WORDS = {
@@ -788,6 +788,8 @@ router.post('/find-or-restore', auth, async (req, res) => {
                     promotion: { select: { id: true, title: true, status: true } }
                 }
             });
+
+            await clearUserCache(userId);
         }
 
         res.json({
@@ -1408,6 +1410,8 @@ router.delete('/conversations/:id', auth, async (req, res) => {
                 userId
             }
         });
+
+        await clearUserCache(userId);
 
         res.json({
             success: true,
