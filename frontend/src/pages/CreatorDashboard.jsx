@@ -70,6 +70,7 @@ const CreatorDashboard = () => {
     const [loading, setLoading] = useState(true);
     const [showProfileForm, setShowProfileForm] = useState(false);
     const [selectedConversation, setSelectedConversation] = useState(null);
+    const [conversationRefreshKey, setConversationRefreshKey] = useState(0);
     const [messageSubTab, setMessageSubTab] = useState('conversations'); // 'conversations' or 'requests'
     const [isEditingProfile, setIsEditingProfile] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
@@ -780,7 +781,7 @@ const CreatorDashboard = () => {
                             </div>
 
                             {messageSubTab === 'conversations' ? (
-                                <ConversationList onSelectConversation={setSelectedConversation} />
+                                <ConversationList onSelectConversation={setSelectedConversation} refreshKey={conversationRefreshKey} />
                             ) : (
                                 <MessageRequests
                                     onAccept={() => setMessageSubTab('conversations')}
@@ -897,6 +898,10 @@ const CreatorDashboard = () => {
                         otherUserName={selectedConversation.seller?.name || selectedConversation.otherUser?.name || 'Seller'}
                         promotionTitle={selectedConversation.promotion?.title || selectedConversation.promotionId?.title || 'Promotion'}
                         conversation={selectedConversation}
+                        onConversationDeleted={() => {
+                            setConversationRefreshKey((prev) => prev + 1);
+                            setSelectedConversation(null);
+                        }}
                         onClose={() => setSelectedConversation(null)}
                     />
                 )}

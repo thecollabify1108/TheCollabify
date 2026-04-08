@@ -117,24 +117,34 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onRe
                 >
                     {message.isDeleted ? PRIVACY_POLICY_DELETED_MESSAGE : parsed.displayContent}
                     {!message.isDeleted && isOwn && (
-                        <button
-                            type="button"
-                            onClick={() => setShowMenu((prev) => !prev)}
-                            className="absolute top-1 -left-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity p-2 rounded-xl bg-gray-100 dark:bg-dark-800 border border-gray-200 dark:border-dark-700 text-primary-500 hover:text-primary-400"
-                            title="Message options"
-                        >
-                            <FaEllipsisV size={11} />
-                        </button>
+                        <>
+                            <button
+                                type="button"
+                                onClick={handleReply}
+                                className="absolute top-1 -left-[4.6rem] inline-flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-dark-700 bg-white/90 dark:bg-dark-900 text-primary-600 dark:text-primary-300"
+                                title="Reply"
+                            >
+                                <FaReply size={11} />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowMenu((prev) => !prev)}
+                                className="absolute top-1 -left-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity p-2 rounded-xl bg-gray-100 dark:bg-dark-800 border border-gray-200 dark:border-dark-700 text-primary-500 hover:text-primary-400"
+                                title="Message options"
+                            >
+                                <FaEllipsisV size={11} />
+                            </button>
+                        </>
                     )}
 
                     {!message.isDeleted && !isOwn && (
                         <button
                             type="button"
                             onClick={handleReply}
-                            className="hidden md:inline-flex absolute top-1 -left-14 items-center gap-1 rounded-lg border border-gray-200 dark:border-dark-700 bg-white/90 dark:bg-dark-900 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-300"
+                            className="inline-flex absolute top-1 -right-12 h-8 w-8 items-center justify-center rounded-lg border border-gray-200 dark:border-dark-700 bg-white/90 dark:bg-dark-900 text-primary-600 dark:text-primary-300"
                             title="Reply"
                         >
-                            <FaReply size={10} /> Reply
+                            <FaReply size={11} />
                         </button>
                     )}
 

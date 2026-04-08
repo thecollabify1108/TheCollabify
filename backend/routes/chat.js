@@ -18,13 +18,14 @@ const { randomUUID } = require('crypto');
 const prisma = require('../config/prisma');
 const { auth } = require('../middleware/auth');
 const { userCacheMiddleware } = require('../middleware/cache');
-const { sanitizeContent } = require('../utils/sanitizer');
 
 const PRIVACY_POLICY_DELETED_MESSAGE = 'Message deleted due to privacy policies';
 const DIGIT_WORDS = {
     zero: '0', one: '1', two: '2', three: '3', four: '4',
     five: '5', six: '6', seven: '7', eight: '8', nine: '9'
 };
+const CONTACT_INTENT_REGEX = /\b(phone|number|mobile|call|contact|whatsapp|wa)\b/i;
+const INSTAGRAM_KEYWORD_REGEX = /\b(instagram|insta|ig|insta\s*id|ig\s*id|instagram\s*id|handle|username)\b/i;
 
 const normalizeDigitWords = (content = '') => {
     return String(content || '')
@@ -37,12 +38,14 @@ const hasPhoneLikeSequence = (content = '') => {
         .replace(/[\s().-]/g, '')
         .replace(/\+/g, '');
 
-    if ((normalized.match(/\d/g) || []).length >= 7) {
+    const digitCount = (normalized.match(/\d/g) || []).length;
+    const hasPhonePattern = /(?:\+?\d[\d\s().-]{8,}\d)/.test(content);
+
+    if (digitCount >= 10 && (hasPhonePattern || CONTACT_INTENT_REGEX.test(content))) {
         return true;
     }
 
-    // Covers patterns like +91 98 13 99 11 50 or 98139-91150
-    return /(?:\+?\d[\d\s().-]{6,}\d)/.test(content);
+    return false;
 };
 
 const hasEmailLikeSequence = (content = '') => {
@@ -55,11 +58,11 @@ const hasEmailLikeSequence = (content = '') => {
 
 const hasInstagramIdentifier = (content = '') => {
     const normalized = String(content || '').toLowerCase();
-    const hasHandle = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content);
-    const hasInstaKeyword = /\b(instagram|insta|ig|insta\s*id|ig\s*id|handle|username)\b/i.test(normalized);
-    const hasSocialLabel = /\b(?:instagram|insta|ig)\b.{0,24}\b[a-z0-9._]{3,}\b/i.test(normalized);
+    const hasHandle = /(^|\s)@[a-z0-9._]{3,30}\b/i.test(content);
+    const hasInstaKeyword = INSTAGRAM_KEYWORD_REGEX.test(normalized);
+    const hasSocialLabel = /\b(?:instagram|insta|ig|insta\s*id|ig\s*id|instagram\s*id)\b.{0,24}@?[a-z0-9._]{3,30}\b/i.test(normalized);
 
-    return hasHandle || (hasInstaKeyword && hasSocialLabel);
+    return hasSocialLabel || (hasHandle && hasInstaKeyword);
 };
 
 const violatesPrivacyPolicy = (content = '') => {
@@ -756,15 +759,29 @@ router.post('/find-or-restore', auth, async (req, res) => {
             });
         }
 
-        // Restore logic: remove user from deletedBy if present
-        const deletedByList = conversation.deletedBy || [];
-        const wasDeleted = deletedByList.some(d => d.userId === userId);
+        // Restore logic: remove one-sided deletion record if present
+        const existingDeletion = await prisma.conversationDeletion.findUnique({
+            where: {
+                conversationId_userId: {
+                    conversationId: conversation.id,
+                    userId
+                }
+            }
+        });
+        const wasDeleted = !!existingDeletion;
 
-        if (wasDeleted) {
-            const updatedDeletedBy = deletedByList.filter(d => d.userId !== userId);
-            conversation = await prisma.conversation.update({
+        if (existingDeletion) {
+            await prisma.conversationDeletion.delete({
+                where: {
+                    conversationId_userId: {
+                        conversationId: conversation.id,
+                        userId
+                    }
+                }
+            });
+
+            conversation = await prisma.conversation.findUnique({
                 where: { id: conversation.id },
-                data: { deletedBy: updatedDeletedBy },
                 include: {
                     seller: { select: { id: true, name: true, email: true, avatar: true } },
                     creatorUser: { select: { id: true, name: true, email: true, avatar: true } },
@@ -1072,9 +1089,6 @@ router.post('/conversations/:id/messages', auth, [
         }
 
         let contentToSave = req.body.content;
-        if (!req.body.isEncrypted) {
-            contentToSave = sanitizeContent(contentToSave);
-        }
 
         const isPrivacyViolation = !req.body.isEncrypted && violatesPrivacyPolicy(contentToSave);
         if (isPrivacyViolation) {
@@ -1270,9 +1284,9 @@ router.put('/messages/:messageId', auth, [
             });
         }
 
-        const sanitizedContent = sanitizeContent(req.body.content.trim());
-        const isPrivacyViolation = violatesPrivacyPolicy(sanitizedContent);
-        const nextContent = isPrivacyViolation ? PRIVACY_POLICY_DELETED_MESSAGE : sanitizedContent;
+        const rawContent = req.body.content.trim();
+        const isPrivacyViolation = violatesPrivacyPolicy(rawContent);
+        const nextContent = isPrivacyViolation ? PRIVACY_POLICY_DELETED_MESSAGE : rawContent;
 
         const updatedMessage = await prisma.message.update({
             where: { id: req.params.messageId },
@@ -1378,17 +1392,22 @@ router.delete('/conversations/:id', auth, async (req, res) => {
             });
         }
 
-        // Add user to deletedBy array (one-sided delete)
-        const deletedByList = conversation.deletedBy || [];
-        const alreadyDeleted = deletedByList.some(d => d.userId === userId);
-
-        if (!alreadyDeleted) {
-            const updatedDeletedBy = [...deletedByList, { userId: userId, deletedAt: new Date() }];
-            await prisma.conversation.update({
-                where: { id: conversationId },
-                data: { deletedBy: updatedDeletedBy }
-            });
-        }
+        // One-sided delete via ConversationDeletion relation
+        await prisma.conversationDeletion.upsert({
+            where: {
+                conversationId_userId: {
+                    conversationId,
+                    userId
+                }
+            },
+            update: {
+                deletedAt: new Date()
+            },
+            create: {
+                conversationId,
+                userId
+            }
+        });
 
         res.json({
             success: true,
@@ -1532,13 +1551,7 @@ router.get('/requests', auth, async (req, res) => {
             where: {
                 creatorUserId: userId,
                 status: 'PENDING',
-                // Filter out if user deleted it
-                NOT: {
-                    deletedBy: {
-                        path: ['$[*]'],
-                        array_contains: { userId: userId }
-                    }
-                }
+                deletions: { none: { userId: userId } }
             },
             include: {
                 seller: { select: { id: true, name: true, email: true, avatar: true } },

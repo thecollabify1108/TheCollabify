@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaReply, FaCheck, FaCheckDouble } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import ThemeToggle from './ThemeToggle';
 import toast from 'react-hot-toast';
 import ConfirmModal from './ConfirmModal';
 import useTypingIndicator from '../../hooks/useTypingIndicator';
@@ -48,6 +50,8 @@ const DIGIT_WORDS = {
     zero: '0', one: '1', two: '2', three: '3', four: '4',
     five: '5', six: '6', seven: '7', eight: '8', nine: '9'
 };
+const CONTACT_INTENT_REGEX = /\b(phone|number|mobile|call|contact|whatsapp|wa)\b/i;
+const INSTAGRAM_KEYWORD_REGEX = /\b(instagram|insta|ig|insta\s*id|ig\s*id|instagram\s*id|handle|username)\b/i;
 
 const normalizeDigitWords = (content = '') => {
     return String(content || '')
@@ -57,12 +61,15 @@ const normalizeDigitWords = (content = '') => {
 
 const violatesPrivacyPolicy = (content = '') => {
     const normalized = normalizeDigitWords(content).replace(/[\s().-]/g, '').replace(/\+/g, '');
-    const hasPhoneLikeSequence = (normalized.match(/\d/g) || []).length >= 10 || /(?:\+?\d[\d\s().-]{7,}\d)/.test(content);
+    const digitCount = (normalized.match(/\d/g) || []).length;
+    const hasPhonePattern = /(?:\+?\d[\d\s().-]{8,}\d)/.test(content);
+    const hasPhoneLikeSequence = digitCount >= 10 && (hasPhonePattern || CONTACT_INTENT_REGEX.test(content));
     const hasEmailLikeSequence = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(content)
         || /[a-z0-9._%+-]+\s*(?:@|\[at\]|\bat\b)\s*[a-z0-9.-]+\s*(?:\.|\[dot\]|\bdot\b)\s*[a-z]{2,}/i.test(content);
-    const lowered = content.toLowerCase();
-    const hasInstagramIdentifier = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content)
-        || /\b(instagram|insta|ig|insta\s*id|ig\s*id)\b/i.test(lowered) && /\b(?:instagram|insta|ig)\b.{0,24}\b[a-z0-9._]{3,}\b/i.test(lowered);
+    const hasAtHandle = /(^|\s)@[a-z0-9._]{3,30}\b/i.test(content);
+    const hasInstagramContext = INSTAGRAM_KEYWORD_REGEX.test(content);
+    const hasInstagramIdentifier = /\b(instagram|insta|ig|insta\s*id|ig\s*id|instagram\s*id)\b[^\n]{0,24}@?[a-z0-9._]{3,30}\b/i.test(content)
+        || (hasAtHandle && hasInstagramContext);
     return hasPhoneLikeSequence || hasEmailLikeSequence || hasInstagramIdentifier;
 };
 
@@ -76,6 +83,7 @@ const ChatBox = ({
     onConversationDeleted
 }) => {
     const { user } = useAuth();
+    const { isDark } = useTheme();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
@@ -241,7 +249,10 @@ const ChatBox = ({
 
         try {
             const plainContent = newMessage.trim();
-            const moderatedContent = violatesPrivacyPolicy(plainContent) ? PRIVACY_POLICY_DELETED_MESSAGE : plainContent;
+            const shouldModerateClientSide = !!(isSecure && otherUserPublicKey);
+            const moderatedContent = shouldModerateClientSide && violatesPrivacyPolicy(plainContent)
+                ? PRIVACY_POLICY_DELETED_MESSAGE
+                : plainContent;
             const outgoingContent = buildMessagePayload(moderatedContent, replyingTo);
 
             let payloadContent = outgoingContent;
@@ -420,7 +431,7 @@ const ChatBox = ({
                 initial={{ opacity: 0, scale: 0.98, x: 20 }}
                 animate={{ opacity: 1, scale: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.98, x: 20 }}
-                className="fixed inset-0 w-full h-[100dvh] bg-dark-950/90 backdrop-blur-3xl border-0 shadow-none z-[100] flex flex-col overflow-hidden"
+                className={`fixed inset-0 w-full h-[100dvh] backdrop-blur-3xl border-0 shadow-none z-[100] flex flex-col overflow-hidden ${isDark ? 'bg-dark-950/90' : 'bg-slate-100/95'}`}
             >
                 <ConfirmModal 
                     {...confirmModal}
@@ -428,7 +439,7 @@ const ChatBox = ({
                 />
                 
                 {/* Premium Header */}
-                <div className="relative px-5 py-3 border-b border-white/5 bg-dark-900/40">
+                <div className={`relative px-5 py-3 border-b ${isDark ? 'border-white/5 bg-dark-900/40' : 'border-slate-200 bg-white/90'}`}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="relative group">
@@ -464,8 +475,8 @@ const ChatBox = ({
                                     <span className="text-[10px] font-bold text-primary-400 bg-primary-400/10 px-2 py-0.5 rounded-md uppercase tracking-wider border border-primary-500/20">
                                         {promotionTitle || 'Collaboration'}
                                     </span>
-                                    <span className="w-1 h-1 rounded-full bg-dark-600" />
-                                    <span className="text-xs font-medium text-dark-400">
+                                    <span className={`w-1 h-1 rounded-full ${isDark ? 'bg-dark-600' : 'bg-slate-300'}`} />
+                                    <span className={`text-xs font-medium ${isDark ? 'text-dark-400' : 'text-slate-500'}`}>
                                         {isUserOnline(otherUserId)
                                             ? <span className="text-emerald-400/80">Online</span>
                                             : presenceLabel}
@@ -475,15 +486,16 @@ const ChatBox = ({
                         </div>
 
                         <div className="flex items-center gap-2">
+                            <ThemeToggle />
                             <button 
                                 onClick={() => setShowMenu(!showMenu)}
-                                className="p-3 text-dark-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5"
+                                className={`p-3 rounded-xl transition-all border ${isDark ? 'text-dark-400 hover:text-white bg-white/5 hover:bg-white/10 border-white/5' : 'text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 border-slate-200'}`}
                             >
                                 <FaEllipsisV size={16} />
                             </button>
                             <button 
                                 onClick={onClose}
-                                className="p-3 text-dark-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5"
+                                className={`p-3 rounded-xl transition-all border ${isDark ? 'text-dark-400 hover:text-white bg-white/5 hover:bg-white/10 border-white/5' : 'text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 border-slate-200'}`}
                             >
                                 <FaTimes size={18} />
                             </button>
@@ -494,7 +506,7 @@ const ChatBox = ({
                                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        className="absolute right-5 top-16 bg-dark-800/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl py-2 w-56 z-50 overflow-hidden"
+                                        className={`absolute right-5 top-16 backdrop-blur-xl rounded-2xl shadow-2xl py-2 w-56 z-50 overflow-hidden ${isDark ? 'bg-dark-800/90 border border-white/10' : 'bg-white border border-slate-200'}`}
                                     >
                                         <button
                                             onClick={handleDeleteConversation}
@@ -512,9 +524,17 @@ const ChatBox = ({
 
                 {/* Messages Container */}
                 <div 
-                    className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar bg-dark-950/40 relative"
+                    className={`flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar relative ${isDark ? 'bg-dark-950/40' : 'bg-white/80'}`}
                     onClick={() => { setActiveMessageMenu(null); setShowMenu(false); }}
                 >
+                    <div
+                        className="absolute inset-0 pointer-events-none bg-center bg-no-repeat"
+                        style={{
+                            backgroundImage: "url('/favicon.png')",
+                            backgroundSize: '240px',
+                            opacity: isDark ? 0.05 : 0.08
+                        }}
+                    />
                     {isPending && (
                         <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3 shadow-lg shadow-amber-500/5 animate-pulse">
                             <div className="p-2 bg-amber-500/20 rounded-xl text-amber-500">
@@ -568,7 +588,7 @@ const ChatBox = ({
                                             key={message.id || index}
                                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
+                                            className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group relative z-10`}
                                         >
                                             <div className={`relative max-w-[85%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}>
                                                 {parsedMessage.replyMeta && (
@@ -623,17 +643,30 @@ const ChatBox = ({
                                                             <p className="text-[14px] leading-relaxed font-medium tracking-tight whitespace-pre-wrap">{parsedMessage.displayContent}</p>
 
                                                             {!message.isDeleted && isOwn && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={(event) => {
-                                                                        event.stopPropagation();
-                                                                        setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id);
-                                                                    }}
-                                                                    className="absolute top-1 -left-11 p-2 bg-dark-900/70 text-white rounded-xl border border-white/10 hover:bg-white/10 transition-all"
-                                                                    title="Message options"
-                                                                >
-                                                                    <FaEllipsisV size={12} />
-                                                                </button>
+                                                                <>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            setReplyingTo({ id: message.id, content: parsedMessage.displayContent });
+                                                                        }}
+                                                                        className={`absolute top-1 -left-20 h-8 w-8 inline-flex items-center justify-center rounded-lg transition-all ${isDark ? 'border border-white/10 bg-dark-900/70 text-primary-200 hover:bg-white/10' : 'border border-slate-200 bg-white text-primary-600 hover:bg-slate-100'}`}
+                                                                        title="Reply"
+                                                                    >
+                                                                        <FaReply size={11} />
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={(event) => {
+                                                                            event.stopPropagation();
+                                                                            setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id);
+                                                                        }}
+                                                                        className={`absolute top-1 -left-11 p-2 rounded-xl transition-all ${isDark ? 'bg-dark-900/70 text-white border border-white/10 hover:bg-white/10' : 'bg-white text-primary-600 border border-slate-200 hover:bg-slate-100'}`}
+                                                                        title="Message options"
+                                                                    >
+                                                                        <FaEllipsisV size={12} />
+                                                                    </button>
+                                                                </>
                                                             )}
 
                                                             {!message.isDeleted && !isOwn && (
@@ -643,10 +676,10 @@ const ChatBox = ({
                                                                         event.stopPropagation();
                                                                         setReplyingTo({ id: message.id, content: parsedMessage.displayContent });
                                                                     }}
-                                                                    className="hidden md:inline-flex absolute top-1 -left-20 items-center gap-1 rounded-lg border border-white/10 bg-dark-900/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-200 hover:bg-white/10"
+                                                                    className={`absolute top-1 -right-12 h-8 w-8 inline-flex items-center justify-center rounded-lg transition-all ${isDark ? 'border border-white/10 bg-dark-900/70 text-primary-200 hover:bg-white/10' : 'border border-slate-200 bg-white text-primary-600 hover:bg-slate-100'}`}
                                                                     title="Reply"
                                                                 >
-                                                                    <FaReply size={10} /> Reply
+                                                                    <FaReply size={11} />
                                                                 </button>
                                                             )}
 
@@ -721,7 +754,7 @@ const ChatBox = ({
                 </div>
 
                 {/* Premium Input */}
-                <div className="p-6 bg-dark-900/60 backdrop-blur-2xl border-t border-white/5">
+                <div className={`p-6 backdrop-blur-2xl border-t ${isDark ? 'bg-dark-900/60 border-white/5' : 'bg-white/90 border-slate-200'}`}>
                     {replyingTo && (
                         <div className="mb-3 rounded-xl border border-primary-500/30 bg-primary-500/10 px-4 py-2">
                             <div className="flex items-start justify-between gap-3">
@@ -741,7 +774,7 @@ const ChatBox = ({
                     )}
                     <form 
                         onSubmit={handleSendMessage}
-                        className={`overflow-hidden rounded-[28px] border border-white/10 bg-dark-950/40 p-1.5 flex gap-3 focus-within:border-primary-500/50 focus-within:bg-dark-950 transition-all shadow-2xl ${(!canSendMessage || !conversationId) ? 'opacity-40 grayscale pointer-events-none' : ''}`}
+                        className={`overflow-hidden rounded-[28px] p-1.5 flex gap-3 focus-within:border-primary-500/50 transition-all shadow-2xl ${isDark ? 'border border-white/10 bg-dark-950/40 focus-within:bg-dark-950' : 'border border-slate-200 bg-slate-50 focus-within:bg-white'} ${(!canSendMessage || !conversationId) ? 'opacity-40 grayscale pointer-events-none' : ''}`}
                     >
                         <input
                             type="text"
@@ -749,7 +782,7 @@ const ChatBox = ({
                             onChange={handleMessageChange}
                             onBlur={sendStopTyping}
                             placeholder={isPending ? (canSendMessage ? "Send your initial pitch..." : "Awaiting response...") : "Write a proposal..."}
-                            className="flex-1 bg-transparent px-5 py-3 text-[15px] font-medium text-white placeholder-dark-500 focus:outline-none"
+                            className={`flex-1 bg-transparent px-5 py-3 text-[15px] font-medium focus:outline-none ${isDark ? 'text-white placeholder-dark-500' : 'text-slate-900 placeholder-slate-400'}`}
                             disabled={!canSendMessage || !conversationId}
                         />
                         <motion.button

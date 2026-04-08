@@ -7,12 +7,16 @@ import TypingIndicator from '../realtime/TypingIndicator';
 import encryptionService from '../../services/encryptionService';
 import { FaLock, FaShieldAlt } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
+import { useTheme } from '../../context/ThemeContext';
 
 const PRIVACY_POLICY_DELETED_MESSAGE = 'Message deleted due to privacy policies';
 const DIGIT_WORDS = {
     zero: '0', one: '1', two: '2', three: '3', four: '4',
     five: '5', six: '6', seven: '7', eight: '8', nine: '9'
 };
+
+const CONTACT_INTENT_REGEX = /\b(phone|number|mobile|call|contact|whatsapp|wa)\b/i;
+const INSTAGRAM_KEYWORD_REGEX = /\b(instagram|insta|ig|insta\s*id|ig\s*id|instagram\s*id|handle|username)\b/i;
 
 const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onBack, refreshPresence, getPresenceLabel }) => {
     const [messages, setMessages] = useState([]);
@@ -22,6 +26,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const [otherUserPublicKey, setOtherUserPublicKey] = useState(null);
     const [replyingTo, setReplyingTo] = useState(null);
     const sendLockRef = useRef(false);
+    const { isDark } = useTheme();
 
     const otherUser = conversation.otherUser || conversation.creatorUser || conversation.seller || {};
     const otherUserId = otherUser?.id;
@@ -63,11 +68,15 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
     const violatesPrivacyPolicy = (content = '') => {
         const normalized = normalizeDigitWords(content).replace(/[\s().-]/g, '').replace(/\+/g, '');
-        const hasPhoneLikeSequence = (normalized.match(/\d/g) || []).length >= 10 || /(?:\+?\d[\d\s().-]{7,}\d)/.test(content);
+        const digitCount = (normalized.match(/\d/g) || []).length;
+        const hasPhonePattern = /(?:\+?\d[\d\s().-]{8,}\d)/.test(content);
+        const hasPhoneLikeSequence = digitCount >= 10 && (hasPhonePattern || CONTACT_INTENT_REGEX.test(content));
         const hasEmailLikeSequence = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i.test(content)
             || /[a-z0-9._%+-]+\s*(?:@|\[at\]|\bat\b)\s*[a-z0-9.-]+\s*(?:\.|\[dot\]|\bdot\b)\s*[a-z]{2,}/i.test(content);
-        const hasInstagramIdentifier = /(^|\s)@[a-z0-9._]{2,30}\b/i.test(content)
-            || /\b(instagram|insta|ig|insta\s*id|ig\s*id)\b/i.test(content.toLowerCase()) && /\b(?:instagram|insta|ig)\b.{0,24}\b[a-z0-9._]{3,}\b/i.test(content.toLowerCase());
+        const hasAtHandle = /(^|\s)@[a-z0-9._]{3,30}\b/i.test(content);
+        const hasInstagramContext = INSTAGRAM_KEYWORD_REGEX.test(content);
+        const hasInstagramIdentifier = /\b(instagram|insta|ig|insta\s*id|ig\s*id|instagram\s*id)\b[^\n]{0,24}@?[a-z0-9._]{3,30}\b/i.test(content)
+            || (hasAtHandle && hasInstagramContext);
         return hasPhoneLikeSequence || hasEmailLikeSequence || hasInstagramIdentifier;
     };
 
@@ -183,7 +192,10 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
 
         try {
             const plainContent = newMessage.trim();
-            const moderatedContent = violatesPrivacyPolicy(plainContent) ? PRIVACY_POLICY_DELETED_MESSAGE : plainContent;
+            const shouldModerateClientSide = !!(isSecure && otherUserPublicKey);
+            const moderatedContent = shouldModerateClientSide && violatesPrivacyPolicy(plainContent)
+                ? PRIVACY_POLICY_DELETED_MESSAGE
+                : plainContent;
             let contentToSend = buildMessagePayload(moderatedContent);
             let isEncrypted = false;
 
@@ -276,9 +288,9 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
     const lastOwnMessageId = [...messages].reverse().find((message) => message.senderId === currentUser.id)?.id;
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-gray-50/50 dark:bg-dark-950/50 backdrop-blur-sm relative">
+        <div className={`flex-1 flex flex-col h-full backdrop-blur-sm relative ${isDark ? 'bg-dark-950/70' : 'bg-slate-100/95'}`}>
             {/* Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-dark-800 flex items-center justify-between bg-white/80 dark:bg-dark-900/80 z-10">
+            <div className={`p-4 border-b flex items-center justify-between z-10 ${isDark ? 'border-dark-800 bg-dark-900/80' : 'border-slate-200 bg-white/90'}`}>
                 <div className="flex items-center gap-3">
                     <button onClick={onBack} className="md:hidden text-gray-500 hover:text-gray-900 dark:text-dark-400 dark:hover:text-white mr-2">
                         <FaArrowLeft />
@@ -311,7 +323,15 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-1 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-dark-700 scrollbar-track-transparent">
+            <div className={`flex-1 overflow-y-auto p-4 sm:p-6 space-y-1 scrollbar-thin scrollbar-track-transparent relative ${isDark ? 'scrollbar-thumb-dark-700 bg-dark-950/35' : 'scrollbar-thumb-slate-300 bg-white/65'}`}>
+                <div
+                    className="absolute inset-0 pointer-events-none bg-center bg-no-repeat"
+                    style={{
+                        backgroundImage: "url('/favicon.png')",
+                        backgroundSize: '220px',
+                        opacity: isDark ? 0.05 : 0.08
+                    }}
+                />
                 {messages.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-dark-400 opacity-50">
                         <div className="text-6xl mb-4">-</div>
@@ -342,7 +362,7 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white dark:bg-dark-900 border-t border-gray-200 dark:border-dark-800">
+            <div className={`p-4 border-t ${isDark ? 'bg-dark-900 border-dark-800' : 'bg-white border-slate-200'}`}>
                 {replyingTo && (
                     <div className="mb-3 rounded-xl border border-primary-500/30 bg-primary-500/10 px-4 py-2">
                         <div className="flex items-start justify-between gap-3">
