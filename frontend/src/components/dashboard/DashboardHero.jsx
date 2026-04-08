@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { useTheme } from '../../context/ThemeContext';
 import ReliabilityBadge from '../creator/ReliabilityBadge';
 
 const CREATOR_TIPS = [
@@ -39,6 +40,8 @@ const SELLER_TIPS = [
 ];
 
 const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onToggleAvailability, reliability }) => {
+    const { isDark } = useTheme();
+    
     const getGreeting = () => {
         const hour = new Date().getHours();
         if (hour < 12) return "Good morning";
@@ -73,13 +76,21 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
         <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 bg-gradient-to-r from-indigo-950 to-slate-900 relative overflow-hidden border border-indigo-900/40"
+            className={`rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 relative overflow-hidden border transition-all ${
+                isDark 
+                    ? 'bg-gradient-to-r from-indigo-950 to-slate-900 border-indigo-900/40' 
+                    : 'bg-gradient-to-r from-indigo-50 to-slate-50 border-indigo-200/60'
+            }`}
         >
             <div className="relative z-10">
                 <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-3 sm:gap-4">
                     <div className="min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
-                            <span className="px-2 py-0.5 bg-white/10 rounded text-[10px] font-semibold text-indigo-200 uppercase tracking-widest border border-white/5">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-semibold border uppercase tracking-widest ${
+                                isDark
+                                    ? 'bg-white/10 text-indigo-200 border-white/5'
+                                    : 'bg-indigo-100 text-indigo-700 border-indigo-300/50'
+                            }`}>
                                 {role} Dashboard
                             </span>
 
@@ -95,7 +106,9 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                         </div>
                         <div className="flex items-center gap-3 mb-1.5">
                             {/* Small screens: show only first name to avoid truncation */}
-                            <h1 className="text-base sm:text-lg md:text-xl font-bold text-white leading-tight">
+                            <h1 className={`text-base sm:text-lg md:text-xl font-bold leading-tight ${
+                                isDark ? 'text-white' : 'text-indigo-900'
+                            }`}>
                                 <span className="sm:hidden">{userName?.split(' ')[0]}</span>
                                 <span className="hidden sm:inline">{getGreeting()}, {userName}</span>
                             </h1>
@@ -107,21 +120,33 @@ const DashboardHero = ({ userName, role, dailyInsight, availabilityStatus, onTog
                                 />
                             )}
                         </div>
-                        <p className="text-indigo-300/70 text-xs hidden sm:block">
+                        <p className={`text-xs hidden sm:block ${isDark ? 'text-indigo-300/70' : 'text-indigo-700/70'}`}>
                             Performance snapshot and collaboration activity.
                         </p>
                     </div>
 
                     {/* Insight Card — hidden on small screens to save space */}
-                    <div className="hidden sm:flex p-2.5 sm:p-3 rounded-lg bg-white/5 border border-white/10 items-start gap-2 sm:gap-3 w-full md:max-w-sm">
-                        <div className="bg-indigo-800/60 p-1.5 rounded text-indigo-300 shrink-0">
+                    <div className={`hidden sm:flex p-2.5 sm:p-3 rounded-lg border items-start gap-2 sm:gap-3 w-full md:max-w-sm ${
+                        isDark
+                            ? 'bg-white/5 border-white/10'
+                            : 'bg-indigo-100/60 border-indigo-200/60'
+                    }`}>
+                        <div className={`p-1.5 rounded shrink-0 ${
+                            isDark
+                                ? 'bg-indigo-800/60 text-indigo-300'
+                                : 'bg-indigo-200/80 text-indigo-700'
+                        }`}>
                             <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path d="M11 3a1 1 0 10-2 0v1a1 1 0 002 0V3zm4.657 2.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zm3 6v-1h4v1a2 2 0 11-4 0zm4-2c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" /></svg>
                         </div>
                         <div>
-                            <h4 className="font-semibold text-indigo-200 text-[10px] uppercase tracking-widest mb-0.5">
+                            <h4 className={`font-semibold text-[10px] uppercase tracking-widest mb-0.5 ${
+                                isDark ? 'text-indigo-200' : 'text-indigo-700'
+                            }`}>
                                 Daily Insight
                             </h4>
-                            <p className="text-indigo-100/70 text-xs leading-relaxed">
+                            <p className={`text-xs leading-relaxed ${
+                                isDark ? 'text-indigo-100/70' : 'text-indigo-600/80'
+                            }`}>
                                 {smartInsight}
                             </p>
                         </div>

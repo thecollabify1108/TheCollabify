@@ -20,10 +20,9 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) =>
     });
 
     return (
-        <div className={`w-full md:w-80 lg:w-96 bg-white dark:bg-dark-900 border-r border-gray-200 dark:border-dark-800 flex flex-col h-full ${activeId ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-96 lg:w-[28rem] bg-white dark:bg-dark-900 border-r border-gray-200 dark:border-dark-800 flex flex-col h-full ${activeId ? 'hidden md:flex' : 'flex'}`}>
             {/* Header */}
-            <div className="p-4 border-b border-gray-200 dark:border-dark-800">
-                <h2 className="text-xl font-bold text-gray-900 dark:text-dark-100 mb-4">Messages</h2>
+            <div className="p-3 border-b border-gray-200 dark:border-dark-800">
                 <div className="relative">
                     <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-dark-400" />
                     <input

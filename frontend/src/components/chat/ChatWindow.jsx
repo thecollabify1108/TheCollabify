@@ -8,7 +8,7 @@ import encryptionService from '../../services/encryptionService';
 import { FaLock, FaShieldAlt } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
-const PRIVACY_POLICY_DELETED_MESSAGE = 'This message was deleted under privacy policy';
+const PRIVACY_POLICY_DELETED_MESSAGE = 'Message deleted due to privacy policies';
 const DIGIT_WORDS = {
     zero: '0', one: '1', two: '2', three: '3', four: '4',
     five: '5', six: '6', seven: '7', eight: '8', nine: '9'
@@ -239,7 +239,11 @@ const ChatWindow = ({ conversation, currentUser, socketService, onlineUsers, onB
         try {
             const res = await chatAPI.editMessage(message.id, trimmed);
             const updatedMessage = res?.data?.data?.message || { ...message, content: trimmed };
-            setMessages(prev => prev.map((item) => (item.id === message.id ? updatedMessage : item)));
+            setMessages(prev => prev.map((item) => (
+                item.id === message.id
+                    ? { ...updatedMessage, previousContent: currentDisplayContent, isEdited: true }
+                    : item
+            )));
             toast.success('Message edited');
         } catch (error) {
             toast.error('Failed to edit message');

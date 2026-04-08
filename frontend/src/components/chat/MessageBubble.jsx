@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { FaCheck, FaCheckDouble, FaEllipsisV, FaEdit, FaLock, FaReply, FaShieldAlt, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaCheckDouble, FaEllipsisV, FaEdit, FaLock, FaReply, FaTrash } from 'react-icons/fa';
 
 const REPLY_HEADER_REGEX = /^\[\[reply:([^|\]]+)\|([^\]]*)\]\]\n/;
 
@@ -26,8 +26,11 @@ const parseMessageContent = (content = '') => {
     };
 };
 
+const PRIVACY_POLICY_DELETED_MESSAGE = 'Message deleted due to privacy policies';
+
 const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onReply, onEdit, onDelete, showDeliveryStatus = false }) => {
     const [showMenu, setShowMenu] = useState(false);
+    const [showEditedHistory, setShowEditedHistory] = useState(false);
     const touchStartRef = useRef(null);
     const time = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const parsed = parseMessageContent(message.content);
@@ -105,38 +108,44 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onRe
                 )}
 
                 <div
-                    className={`px-4 py-3 rounded-2xl shadow-md text-sm sm:text-base break-words overflow-hidden ${isOwn
-                        ? 'bg-gradient-to-br from-primary-600 via-indigo-600 to-fuchsia-600 text-white rounded-br-sm'
-                        : 'bg-slate-100 dark:bg-dark-800 text-gray-900 dark:text-dark-100 border border-slate-200 dark:border-dark-700 rounded-bl-sm shadow-sm'
+                    className={`shadow-md break-words overflow-hidden ${message.isDeleted
+                        ? 'px-3 py-2 rounded-xl text-xs text-gray-500 dark:text-dark-400 bg-gray-100 dark:bg-dark-800/70 border border-gray-200 dark:border-dark-700'
+                        : isOwn
+                            ? 'px-4 py-3 rounded-2xl text-sm sm:text-base bg-gradient-to-br from-primary-600 via-indigo-600 to-fuchsia-600 text-white rounded-br-sm'
+                            : 'px-4 py-3 rounded-2xl text-sm sm:text-base bg-slate-100 dark:bg-dark-800 text-gray-900 dark:text-dark-100 border border-slate-200 dark:border-dark-700 rounded-bl-sm shadow-sm'
                         }`}
                 >
-                    {message.isDeleted && (
-                        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300">
-                            <FaShieldAlt size={8} />
-                            Privacy policy
-                        </div>
+                    {message.isDeleted ? PRIVACY_POLICY_DELETED_MESSAGE : parsed.displayContent}
+                    {!message.isDeleted && isOwn && (
+                        <button
+                            type="button"
+                            onClick={() => setShowMenu((prev) => !prev)}
+                            className="absolute top-1 -left-10 opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity p-2 rounded-xl bg-gray-100 dark:bg-dark-800 border border-gray-200 dark:border-dark-700 text-primary-500 hover:text-primary-400"
+                            title="Message options"
+                        >
+                            <FaEllipsisV size={11} />
+                        </button>
                     )}
-                    {parsed.displayContent}
-                    <button
-                        type="button"
-                        onClick={() => setShowMenu((prev) => !prev)}
-                        className={`absolute top-2 ${isOwn ? '-left-10' : '-right-10'} opacity-100 md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 transition-opacity p-2 rounded-xl bg-gray-100 dark:bg-dark-800 border border-gray-200 dark:border-dark-700 text-primary-500 hover:text-primary-400`}
-                        title="Message options"
-                    >
-                        <FaEllipsisV size={11} />
-                    </button>
 
-                    {showMenu && (
-                        <div className={`absolute top-10 ${isOwn ? '-left-10' : '-right-10'} z-20 w-40 rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-900 shadow-2xl overflow-hidden`}>
-                            <button type="button" onClick={handleReply} className="w-full px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-dark-100 hover:bg-gray-50 dark:hover:bg-dark-800 flex items-center gap-2">
-                                <FaReply size={12} /> Reply
-                            </button>
-                            {isOwn && !message.isDeleted && onEdit && (
+                    {!message.isDeleted && !isOwn && (
+                        <button
+                            type="button"
+                            onClick={handleReply}
+                            className="hidden md:inline-flex absolute top-1 -left-14 items-center gap-1 rounded-lg border border-gray-200 dark:border-dark-700 bg-white/90 dark:bg-dark-900 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-300"
+                            title="Reply"
+                        >
+                            <FaReply size={10} /> Reply
+                        </button>
+                    )}
+
+                    {showMenu && isOwn && !message.isDeleted && (
+                        <div className="absolute top-10 -left-32 z-20 w-36 rounded-2xl border border-gray-200 dark:border-dark-700 bg-white dark:bg-dark-900 shadow-2xl overflow-hidden">
+                            {!message.isDeleted && onEdit && (
                                 <button type="button" onClick={handleEdit} className="w-full px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-dark-100 hover:bg-gray-50 dark:hover:bg-dark-800 flex items-center gap-2">
                                     <FaEdit size={12} /> Edit
                                 </button>
                             )}
-                            {isOwn && !message.isDeleted && onDelete && (
+                            {!message.isDeleted && onDelete && (
                                 <button type="button" onClick={handleDelete} className="w-full px-4 py-3 text-left text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 flex items-center gap-2">
                                     <FaTrash size={12} /> Delete
                                 </button>
@@ -148,6 +157,15 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onRe
                 {/* Meta info */}
                 <div className={`flex items-center gap-1 mt-1 text-[10px] sm:text-xs text-gray-500 dark:text-dark-400 ${isOwn ? 'justify-end' : 'justify-start'}`}>
                     <span>{time}</span>
+                    {message.isEdited && (
+                        <button
+                            type="button"
+                            onClick={() => setShowEditedHistory((prev) => !prev)}
+                            className="ml-1 text-[10px] uppercase tracking-widest hover:text-primary-500 dark:hover:text-primary-300"
+                        >
+                            Edited
+                        </button>
+                    )}
                     {message.isEncrypted && <span className="text-emerald-500 ml-1" title="End-to-end encrypted"><FaLock size={8} /></span>}
                     {isOwn && (
                         <span className={`ml-1 inline-flex items-center gap-1 ${message.isRead ? 'text-blue-400' : 'text-gray-400 dark:text-dark-400'}`} title={deliveryLabel}>
@@ -156,6 +174,11 @@ const MessageBubble = ({ message, isOwn, showAvatar, senderName, avatarUrl, onRe
                         </span>
                     )}
                 </div>
+                {showEditedHistory && message.isEdited && (
+                    <div className={`mt-1 rounded-lg border px-2 py-1 text-[11px] leading-snug ${isOwn ? 'border-primary-500/30 bg-primary-500/10 text-primary-100' : 'border-gray-200 dark:border-dark-700 bg-gray-50 dark:bg-dark-800/60 text-gray-700 dark:text-dark-200'}`}>
+                        Previous: {message.previousContent || 'Previous version unavailable'}
+                    </div>
+                )}
             </div>
         </motion.div>
     );

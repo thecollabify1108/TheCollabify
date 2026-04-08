@@ -20,7 +20,7 @@ const { auth } = require('../middleware/auth');
 const { userCacheMiddleware } = require('../middleware/cache');
 const { sanitizeContent } = require('../utils/sanitizer');
 
-const PRIVACY_POLICY_DELETED_MESSAGE = 'This message was deleted under privacy policy';
+const PRIVACY_POLICY_DELETED_MESSAGE = 'Message deleted due to privacy policies';
 const DIGIT_WORDS = {
     zero: '0', one: '1', two: '2', three: '3', four: '4',
     five: '5', six: '6', seven: '7', eight: '8', nine: '9'

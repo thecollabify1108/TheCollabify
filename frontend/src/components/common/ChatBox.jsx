@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaReply, FaShieldAlt, FaCheck, FaCheckDouble } from 'react-icons/fa';
+import { FaPaperPlane, FaTimes, FaComments, FaEllipsisV, FaEdit, FaTrash, FaLock, FaReply, FaCheck, FaCheckDouble } from 'react-icons/fa';
 import { chatAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -43,7 +43,7 @@ const buildMessagePayload = (content, replyTo) => {
     return `[[reply:${replyTo.id}|${snippet}]]\n${content}`;
 };
 
-const PRIVACY_POLICY_DELETED_MESSAGE = 'This message was deleted under privacy policy';
+const PRIVACY_POLICY_DELETED_MESSAGE = 'Message deleted due to privacy policies';
 const DIGIT_WORDS = {
     zero: '0', one: '1', two: '2', three: '3', four: '4',
     five: '5', six: '6', seven: '7', eight: '8', nine: '9'
@@ -66,7 +66,15 @@ const violatesPrivacyPolicy = (content = '') => {
     return hasPhoneLikeSequence || hasEmailLikeSequence || hasInstagramIdentifier;
 };
 
-const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conversation, onOpenCreatorProfile }) => {
+const ChatBox = ({
+    conversationId,
+    otherUserName,
+    promotionTitle,
+    onClose,
+    conversation,
+    onOpenCreatorProfile,
+    onConversationDeleted
+}) => {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -80,6 +88,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     const [activeMessageMenu, setActiveMessageMenu] = useState(null);
     const [isPending, setIsPending] = useState(false);
     const [replyingTo, setReplyingTo] = useState(null);
+    const [showEditedForMessageId, setShowEditedForMessageId] = useState(null);
     const sendLockRef = useRef(false);
     const touchStartRef = useRef(null);
     
@@ -288,9 +297,15 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
         if (!editContent.trim()) return;
         try {
             await chatAPI.editMessage(messageId, editContent.trim());
-            setMessages(prev => prev.map(m =>
-                m.id === messageId ? { ...m, content: editContent.trim(), isEdited: true } : m
-            ));
+            setMessages(prev => prev.map(m => {
+                if (m.id !== messageId) return m;
+                return {
+                    ...m,
+                    previousContent: parseMessageContent(m.content).displayContent,
+                    content: editContent.trim(),
+                    isEdited: true
+                };
+            }));
             setEditingMessageId(null);
             setEditContent('');
             toast.success('Message edited');
@@ -320,6 +335,12 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
     };
 
     const handleDeleteConversation = async () => {
+        const targetConversationId = conversationId || conversation?.id;
+        if (!targetConversationId || targetConversationId === 'undefined') {
+            toast.error('Unable to identify conversation');
+            return;
+        }
+
         setConfirmModal({
             isOpen: true,
             title: 'Delete Conversation?',
@@ -327,11 +348,12 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
             variant: 'danger',
             onConfirm: async () => {
                 try {
-                    await chatAPI.deleteConversation(conversationId);
+                    await chatAPI.deleteConversation(targetConversationId);
+                    onConversationDeleted?.(targetConversationId);
                     toast.success('Conversation deleted');
                     onClose();
                 } catch (error) {
-                    toast.error('Failed to delete conversation');
+                    toast.error(error?.response?.data?.message || 'Failed to delete conversation');
                 }
             }
         });
@@ -406,15 +428,15 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                 />
                 
                 {/* Premium Header */}
-                <div className="relative px-6 py-6 border-b border-white/5 bg-dark-900/40">
+                <div className="relative px-5 py-3 border-b border-white/5 bg-dark-900/40">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-5">
+                        <div className="flex items-center gap-4">
                             <div className="relative group">
                                 <motion.div 
                                     whileHover={{ scale: 1.05 }}
-                                    className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-500 p-[2px] shadow-lg shadow-primary-500/20"
+                                    className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-primary-600 to-indigo-500 p-[2px] shadow-lg shadow-primary-500/20"
                                 >
-                                    <div className="w-full h-full rounded-2xl bg-dark-900 flex items-center justify-center text-white text-2xl font-black">
+                                    <div className="w-full h-full rounded-2xl bg-dark-900 flex items-center justify-center text-white text-lg font-black">
                                         {otherUserDisplayName?.[0]?.toUpperCase()}
                                     </div>
                                 </motion.div>
@@ -430,13 +452,13 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                     <button
                                         type="button"
                                         onClick={() => onOpenCreatorProfile(conversation)}
-                                        className="text-xl font-black text-white tracking-tight leading-none mb-1 hover:text-primary-300 transition-colors"
+                                        className="text-lg font-black text-white tracking-tight leading-none mb-1 hover:text-primary-300 transition-colors"
                                         title="View creator profile"
                                     >
                                         {otherUserDisplayName}
                                     </button>
                                 ) : (
-                                    <h3 className="text-xl font-black text-white tracking-tight leading-none mb-1">{otherUserDisplayName}</h3>
+                                    <h3 className="text-lg font-black text-white tracking-tight leading-none mb-1">{otherUserDisplayName}</h3>
                                 )}
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-primary-400 bg-primary-400/10 px-2 py-0.5 rounded-md uppercase tracking-wider border border-primary-500/20">
@@ -472,7 +494,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        className="absolute right-6 top-24 bg-dark-800/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl py-2 w-56 z-50 overflow-hidden"
+                                        className="absolute right-5 top-16 bg-dark-800/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl py-2 w-56 z-50 overflow-hidden"
                                     >
                                         <button
                                             onClick={handleDeleteConversation}
@@ -490,7 +512,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
                 {/* Messages Container */}
                 <div 
-                    className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar bg-dark-950/40 relative"
+                    className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar bg-dark-950/40 relative"
                     onClick={() => { setActiveMessageMenu(null); setShowMenu(false); }}
                 >
                     {isPending && (
@@ -540,6 +562,7 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
 
                                 {msgs.map((message, index) => {
                                     const isOwn = message.senderId === user?.id;
+                                    const parsedMessage = parseMessageContent(message.content);
                                     return (
                                         <motion.div
                                             key={message.id || index}
@@ -548,31 +571,27 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                             className={`flex ${isOwn ? 'justify-end' : 'justify-start'} group`}
                                         >
                                             <div className={`relative max-w-[85%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}>
-                                                {parseMessageContent(message.content).replyMeta && (
+                                                {parsedMessage.replyMeta && (
                                                     <div className={`max-w-full px-3 py-2 rounded-xl border text-xs ${isOwn ? 'bg-primary-500/10 border-primary-500/30 text-primary-200' : 'bg-white/5 border-white/10 text-dark-300'}`}>
                                                         <p className="font-bold uppercase tracking-wider text-[10px] mb-1">Replying to</p>
-                                                        <p className="line-clamp-2">{parseMessageContent(message.content).replyMeta.replySnippet || 'Previous message'}</p>
+                                                        <p className="line-clamp-2">{parsedMessage.replyMeta.replySnippet || 'Previous message'}</p>
                                                     </div>
                                                 )}
                                                 <div
-                                                    className={`px-5 py-3.5 rounded-3xl shadow-2xl relative group
-                                                        ${message.isDeleted 
-                                                            ? 'bg-dark-800/40 border border-white/5 text-dark-600 italic text-xs' 
-                                                            : isOwn 
-                                                                ? 'bg-gradient-to-br from-primary-600 via-indigo-600 to-fuchsia-600 text-white rounded-tr-none border border-white/10' 
-                                                                : 'bg-white/5 backdrop-blur-md border border-white/10 text-white rounded-tl-none'
+                                                    className={`relative group shadow-2xl
+                                                        ${message.isDeleted
+                                                            ? 'px-3 py-2 rounded-xl bg-dark-800/40 border border-white/5 text-dark-500 text-xs'
+                                                            : isOwn
+                                                                ? 'px-5 py-3.5 rounded-3xl bg-gradient-to-br from-primary-600 via-indigo-600 to-fuchsia-600 text-white rounded-tr-none border border-white/10'
+                                                                : 'px-5 py-3.5 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 text-white rounded-tl-none'
                                                         }`}
                                                     onTouchStart={(event) => handleMessageTouchStart(event, message.id)}
                                                     onTouchEnd={(event) => handleMessageTouchEnd(event, message)}
                                                     style={{ touchAction: 'pan-y' }}
                                                 >
-                                                        {message.isDeleted && (
-                                                            <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-amber-300 not-italic">
-                                                                <FaShieldAlt size={8} />
-                                                                Privacy policy
-                                                            </div>
-                                                        )}
-                                                    {editingMessageId === message.id ? (
+                                                    {message.isDeleted ? (
+                                                        <p className="text-xs leading-snug">{PRIVACY_POLICY_DELETED_MESSAGE}</p>
+                                                    ) : editingMessageId === message.id ? (
                                                         <div className="space-y-3">
                                                             <textarea
                                                                 value={editContent}
@@ -601,55 +620,55 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            <p className="text-[14px] leading-relaxed font-medium tracking-tight whitespace-pre-wrap">{parseMessageContent(message.content).displayContent}</p>
+                                                            <p className="text-[14px] leading-relaxed font-medium tracking-tight whitespace-pre-wrap">{parsedMessage.displayContent}</p>
 
-                                                            {!message.isDeleted && (
+                                                            {!message.isDeleted && isOwn && (
                                                                 <button
                                                                     type="button"
                                                                     onClick={(event) => {
                                                                         event.stopPropagation();
                                                                         setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id);
                                                                     }}
-                                                                    className="absolute top-2 right-2 p-2 bg-dark-900/70 text-white rounded-xl border border-white/10 hover:bg-white/10 transition-all"
+                                                                    className="absolute top-1 -left-11 p-2 bg-dark-900/70 text-white rounded-xl border border-white/10 hover:bg-white/10 transition-all"
                                                                     title="Message options"
                                                                 >
                                                                     <FaEllipsisV size={12} />
                                                                 </button>
                                                             )}
 
-                                                            {activeMessageMenu === message.id && !message.isDeleted && (
-                                                                <div className="absolute top-12 right-2 z-20 w-44 rounded-2xl border border-white/10 bg-dark-900/95 shadow-2xl overflow-hidden">
+                                                            {!message.isDeleted && !isOwn && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        setReplyingTo({ id: message.id, content: parsedMessage.displayContent });
+                                                                    }}
+                                                                    className="hidden md:inline-flex absolute top-1 -left-20 items-center gap-1 rounded-lg border border-white/10 bg-dark-900/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-primary-200 hover:bg-white/10"
+                                                                    title="Reply"
+                                                                >
+                                                                    <FaReply size={10} /> Reply
+                                                                </button>
+                                                            )}
+
+                                                            {activeMessageMenu === message.id && !message.isDeleted && isOwn && (
+                                                                <div className="absolute top-10 -left-48 z-20 w-40 rounded-2xl border border-white/10 bg-dark-900/95 shadow-2xl overflow-hidden">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => startEdit(message)}
+                                                                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-dark-100 hover:bg-white/5"
+                                                                    >
+                                                                        <FaEdit size={12} /> Edit
+                                                                    </button>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => {
-                                                                            setReplyingTo({ id: message.id, content: parseMessageContent(message.content).displayContent });
+                                                                            handleDeleteMessage(message.id);
                                                                             setActiveMessageMenu(null);
                                                                         }}
-                                                                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-dark-100 hover:bg-white/5"
+                                                                        className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-rose-400 hover:bg-rose-500/10"
                                                                     >
-                                                                        <FaReply size={12} /> Reply
+                                                                        <FaTrash size={12} /> Delete
                                                                     </button>
-                                                                    {isOwn && (
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => startEdit(message)}
-                                                                            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-dark-100 hover:bg-white/5"
-                                                                        >
-                                                                            <FaEdit size={12} /> Edit
-                                                                        </button>
-                                                                    )}
-                                                                    {isOwn && (
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                                handleDeleteMessage(message.id);
-                                                                                setActiveMessageMenu(null);
-                                                                            }}
-                                                                            className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-semibold text-rose-400 hover:bg-rose-500/10"
-                                                                        >
-                                                                            <FaTrash size={12} /> Delete
-                                                                        </button>
-                                                                    )}
                                                                 </div>
                                                             )}
                                                         </>
@@ -657,7 +676,15 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                 </div>
                                                 <div className={`flex items-center gap-2 px-1 text-[10px] font-black text-dark-500 uppercase tracking-widest ${isOwn ? 'flex-row-reverse' : ''}`}>
                                                     <span>{formatTime(message.createdAt)}</span>
-                                                    {message.isEdited && <span>• Edited</span>}
+                                                    {message.isEdited && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowEditedForMessageId(prev => (prev === message.id ? null : message.id))}
+                                                            className="text-[10px] uppercase tracking-widest text-dark-400 hover:text-primary-300"
+                                                        >
+                                                            Edited
+                                                        </button>
+                                                    )}
                                                     {isOwn && message.id === lastOwnMessageId && (
                                                         <span className={`inline-flex items-center gap-1 ${message.isRead ? 'text-sky-400' : 'text-dark-500'}`} title={message.isRead ? 'Read' : 'Delivered'}>
                                                             {message.isRead ? <FaCheckDouble size={10} /> : <FaCheck size={10} />}
@@ -665,6 +692,11 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                                                         </span>
                                                     )}
                                                 </div>
+                                                {showEditedForMessageId === message.id && (
+                                                    <div className={`mt-1 rounded-lg border px-2 py-1 text-[11px] leading-snug ${isOwn ? 'border-primary-500/30 bg-primary-500/10 text-primary-100' : 'border-white/10 bg-white/5 text-dark-200'}`}>
+                                                        Previous: {message.previousContent || 'Previous version unavailable'}
+                                                    </div>
+                                                )}
                                             </div>
                                         </motion.div>
                                     );

@@ -7,10 +7,11 @@ import EmptyState from './EmptyState';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 
-const ConversationList = ({ onSelectConversation, onOpenCreatorProfile }) => {
+const ConversationList = ({ onSelectConversation, onOpenCreatorProfile, refreshKey = 0 }) => {
     const { user } = useAuth();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     
     // Modal State
     const [confirmModal, setConfirmModal] = useState({
@@ -22,7 +23,7 @@ const ConversationList = ({ onSelectConversation, onOpenCreatorProfile }) => {
 
     useEffect(() => {
         fetchConversations();
-    }, []);
+    }, [refreshKey]);
 
     const fetchConversations = async () => {
         try {
@@ -95,6 +96,15 @@ const ConversationList = ({ onSelectConversation, onOpenCreatorProfile }) => {
         return messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
+    const filteredConversations = conversations.filter((conversation) => {
+        if (!searchTerm.trim()) return true;
+        const displayName = getDisplayName(conversation).toLowerCase();
+        const campaignTitle = getCampaignTitle(conversation).toLowerCase();
+        const lastMessage = String(conversation.lastMessage?.content || '').toLowerCase();
+        const query = searchTerm.trim().toLowerCase();
+        return displayName.includes(query) || campaignTitle.includes(query) || lastMessage.includes(query);
+    });
+
     if (loading) {
         return (
             <div className="glass-card p-12 flex flex-col items-center justify-center space-y-4 border border-white/5">
@@ -124,17 +134,26 @@ const ConversationList = ({ onSelectConversation, onOpenCreatorProfile }) => {
                 confirmText="Delete"
             />
 
-            <div className="px-s6 py-s5 border-b border-dark-700/50 bg-dark-800/20">
-                <div className="flex items-center gap-2">
-                    <Icon name="chat" className="text-primary-400" size={18} />
-                    <h3 className="text-body font-black text-dark-100 uppercase tracking-wider">Messages</h3>
+            <div className="px-s5 py-s4 border-b border-dark-700/50 bg-dark-800/20">
+                <div className="relative">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(event) => setSearchTerm(event.target.value)}
+                        placeholder="Search chat"
+                        className="w-full rounded-xl border border-dark-700 bg-dark-900/60 px-3 py-2 text-sm text-dark-100 placeholder:text-dark-500 focus:border-primary-500 focus:outline-none"
+                    />
                 </div>
             </div>
             
-            <div className="divide-y divide-dark-700/50 max-h-[600px] overflow-y-auto premium-scrollbar">
+            <div className="divide-y divide-dark-700/50 max-h-[calc(100vh-220px)] lg:max-h-[calc(100vh-180px)] overflow-y-auto premium-scrollbar">
                 <AnimatePresence>
-                    {conversations.map((conversation, index) => {
-                        const otherUser = getOtherUser(conversation);
+                    {filteredConversations.length === 0 && (
+                        <div className="px-s5 py-s6 text-center text-xs font-bold uppercase tracking-widest text-dark-500">
+                            No chats found
+                        </div>
+                    )}
+                    {filteredConversations.map((conversation, index) => {
                         const unreadCount = getUnreadCount(conversation);
                         const displayName = getDisplayName(conversation);
                         const campaignTitle = getCampaignTitle(conversation);

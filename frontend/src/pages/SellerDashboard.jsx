@@ -56,6 +56,7 @@ const SellerDashboard = () => {
     const [pendingCreators, setPendingCreators] = useState([]);
     const [leadsCount] = useState(0);
     const [selectedConversation, setSelectedConversation] = useState(null);
+    const [conversationRefreshKey, setConversationRefreshKey] = useState(0);
     const [selectedCreatorProfile, setSelectedCreatorProfile] = useState(null);
     const [isCreatorProfileOpen, setIsCreatorProfileOpen] = useState(false);
     const campaignsSectionRef = useRef(null);
@@ -402,15 +403,16 @@ const SellerDashboard = () => {
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
-                        className="p-s4 flex flex-col h-[calc(100vh-160px)] lg:h-[calc(100vh-100px)]"
+                        className="p-s4 flex flex-col h-[calc(100vh-120px)] lg:h-[calc(100vh-90px)]"
                     >
-                        <div className="mb-s4 shrink-0">
-                            <h2 className="text-h2 font-bold text-dark-100 mb-s1">Messages</h2>
-                            <p className="text-body text-dark-400">Chat with applicants and creators</p>
+                        <div className="mb-s2 shrink-0">
+                            <h2 className="text-h3 font-bold text-dark-100 mb-0.5">Messages</h2>
+                            <p className="text-xs text-dark-400">Chat with applicants and creators</p>
                         </div>
                         <ConversationList
                             onSelectConversation={setSelectedConversation}
                             onOpenCreatorProfile={handleOpenCreatorProfile}
+                            refreshKey={conversationRefreshKey}
                         />
                     </motion.div>
                 )}
@@ -658,6 +660,10 @@ const SellerDashboard = () => {
                         promotionTitle={selectedConversation.promotion?.title || selectedConversation.promotionId?.title || 'Campaign'}
                         conversation={selectedConversation}
                         onOpenCreatorProfile={handleOpenCreatorProfile}
+                        onConversationDeleted={() => {
+                            setConversationRefreshKey((prev) => prev + 1);
+                            setSelectedConversation(null);
+                        }}
                         onClose={() => setSelectedConversation(null)}
                     />
                 )}
