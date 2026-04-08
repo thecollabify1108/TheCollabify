@@ -8,7 +8,7 @@ import {
 import { adminAPI, analyticsAPI } from '../../services/api';
 
 // ─── Stat Card ──────────────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, suffix = '', color = 'primary', delay = 0 }) => {
+const StatCard = ({ icon: Icon, label, value, suffix = '', color = 'primary', delay = 0, onClick }) => {
     const colors = {
         primary: 'from-primary-500/10 to-primary-500/5 border-primary-500/20 text-primary-400',
         emerald: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20 text-emerald-400',
@@ -25,7 +25,8 @@ const StatCard = ({ icon: Icon, label, value, suffix = '', color = 'primary', de
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: delay * 0.08, duration: 0.3 }}
-            className={`bg-gradient-to-br ${colors[color]} border rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300`}
+            className={`bg-gradient-to-br ${colors[color]} border rounded-xl p-3 sm:p-4 shadow-sm hover:shadow-md transition-all duration-300 ${onClick ? 'cursor-pointer hover:-translate-y-0.5' : ''}`}
+            onClick={onClick}
         >
             <div className="flex items-start justify-between mb-2">
                 <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center shadow-sm`}>
@@ -99,7 +100,7 @@ export const AdminInsightCards = () => {
 };
 
 // ─── Brand Insight Cards ────────────────────────────────────────
-export const BrandInsightCards = () => {
+export const BrandInsightCards = ({ onCardClick }) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -121,11 +122,11 @@ export const BrandInsightCards = () => {
     if (!data) return null;
 
     const cards = [
-        { icon: FaBriefcase, label: 'Campaigns Launched', value: data.campaignsLaunched, color: 'primary' },
-        { icon: FaUsers, label: 'Creators Shortlisted', value: data.creatorsShortlisted, color: 'purple' },
-        { icon: FaUserCheck, label: 'Acceptance Rate', value: data.acceptanceRate, suffix: '%', color: 'emerald' },
-        { icon: FaCheckCircle, label: 'Completion Rate', value: data.completionRate, suffix: '%', color: 'blue' },
-        { icon: FaClock, label: 'Avg Collab Duration', value: data.avgCollaborationDays, suffix: 'd', color: 'amber' }
+        { id: 'campaigns', icon: FaBriefcase, label: 'Campaigns Launched', value: data.campaignsLaunched, color: 'primary' },
+        { id: 'shortlisted', icon: FaUsers, label: 'Creators Shortlisted', value: data.creatorsShortlisted, color: 'purple' },
+        { id: 'acceptance', icon: FaUserCheck, label: 'Acceptance Rate', value: data.acceptanceRate, suffix: '%', color: 'emerald' },
+        { id: 'completion', icon: FaCheckCircle, label: 'Completion Rate', value: data.completionRate, suffix: '%', color: 'blue' },
+        { id: 'duration', icon: FaClock, label: 'Avg Collab Duration', value: data.avgCollaborationDays, suffix: 'd', color: 'amber' }
     ];
 
     return (
@@ -134,7 +135,14 @@ export const BrandInsightCards = () => {
                 <FaChartLine className="text-primary-400" /> Your Brand Insights
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                {cards.map((card, i) => <StatCard key={i} {...card} delay={i} />)}
+                {cards.map((card, i) => (
+                    <StatCard
+                        key={card.id}
+                        {...card}
+                        delay={i}
+                        onClick={onCardClick ? () => onCardClick(card.id) : undefined}
+                    />
+                ))}
             </div>
         </div>
     );

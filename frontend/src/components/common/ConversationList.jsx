@@ -7,7 +7,7 @@ import EmptyState from './EmptyState';
 import ConfirmModal from './ConfirmModal';
 import Icon from './Icon';
 
-const ConversationList = ({ onSelectConversation }) => {
+const ConversationList = ({ onSelectConversation, onOpenCreatorProfile }) => {
     const { user } = useAuth();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -68,8 +68,12 @@ const ConversationList = ({ onSelectConversation }) => {
             || conversation.creatorUser?.name
             || conversation.creatorProfile?.user?.name
             || conversation.seller?.name
-            || conversation.promotionId?.title
+            || conversation.promotion?.title
             || 'Creator';
+    };
+
+    const getCampaignTitle = (conversation) => {
+        return conversation.promotion?.title || conversation.promotionId?.title || 'Campaign';
     };
 
     const getUnreadCount = (conversation) => {
@@ -133,6 +137,7 @@ const ConversationList = ({ onSelectConversation }) => {
                         const otherUser = getOtherUser(conversation);
                         const unreadCount = getUnreadCount(conversation);
                         const displayName = getDisplayName(conversation);
+                        const campaignTitle = getCampaignTitle(conversation);
 
                         return (
                             <motion.div
@@ -159,9 +164,23 @@ const ConversationList = ({ onSelectConversation }) => {
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-0.5">
-                                            <h4 className={`text-small font-black truncate ${unreadCount > 0 ? 'text-white' : 'text-dark-100'}`}>
-                                                {displayName}
-                                            </h4>
+                                            {onOpenCreatorProfile ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={(event) => {
+                                                        event.stopPropagation();
+                                                        onOpenCreatorProfile(conversation);
+                                                    }}
+                                                    className={`text-small font-black truncate text-left hover:text-primary-300 transition-colors ${unreadCount > 0 ? 'text-white' : 'text-dark-100'}`}
+                                                    title="View creator profile"
+                                                >
+                                                    {displayName}
+                                                </button>
+                                            ) : (
+                                                <h4 className={`text-small font-black truncate ${unreadCount > 0 ? 'text-white' : 'text-dark-100'}`}>
+                                                    {displayName}
+                                                </h4>
+                                            )}
                                             <span className="text-[10px] font-bold text-dark-500 uppercase whitespace-nowrap">
                                                 {formatTime(conversation.lastMessage?.createdAt || conversation.createdAt)}
                                             </span>
@@ -169,15 +188,15 @@ const ConversationList = ({ onSelectConversation }) => {
                                         
                                         <div className="flex items-center gap-2">
                                             <p className={`text-xs truncate flex-1 ${unreadCount > 0 ? 'text-dark-200 font-bold' : 'text-dark-400 font-medium'}`}>
-                                                {conversation.lastMessage?.content || `Started a chat about ${conversation.promotionId?.title || 'a promotion'}`}
+                                                {conversation.lastMessage?.content || `Started a chat about ${campaignTitle}`}
                                             </p>
                                         </div>
 
-                                        {conversation.promotionId && (
+                                        {(conversation.promotion || conversation.promotionId) && (
                                             <div className="mt-1 flex items-center gap-1.5 opacity-50">
                                                 <div className="w-1 h-1 rounded-full bg-dark-500" />
                                                 <span className="text-[10px] font-black uppercase tracking-widest text-dark-400 truncate">
-                                                    {conversation.promotionId.title}
+                                                    {campaignTitle}
                                                 </span>
                                             </div>
                                         )}

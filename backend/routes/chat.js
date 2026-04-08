@@ -208,6 +208,27 @@ router.get('/conversations', auth, userCacheMiddleware(15), async (req, res) => 
                     creatorUser: {
                         select: { id: true, name: true, email: true, avatar: true }
                     },
+                    creatorProfile: {
+                        select: {
+                            id: true,
+                            userId: true,
+                            category: true,
+                            bio: true,
+                            followerCount: true,
+                            engagementRate: true,
+                            instagramVerified: true,
+                            portfolioLinks: true,
+                            promotionTypes: true,
+                            location: true,
+                            minPrice: true,
+                            maxPrice: true,
+                            aiScore: true,
+                            engagementQuality: true,
+                            user: {
+                                select: { id: true, name: true, email: true, avatar: true }
+                            }
+                        }
+                    },
                     promotion: {
                         select: { id: true, title: true, status: true }
                     }
@@ -777,6 +798,25 @@ router.get('/conversations/:id', auth, async (req, res) => {
             include: {
                 seller: { select: { id: true, name: true, email: true, avatar: true } },
                 creatorUser: { select: { id: true, name: true, email: true, avatar: true } },
+                creatorProfile: {
+                    select: {
+                        id: true,
+                        userId: true,
+                        category: true,
+                        bio: true,
+                        followerCount: true,
+                        engagementRate: true,
+                        instagramVerified: true,
+                        portfolioLinks: true,
+                        promotionTypes: true,
+                        location: true,
+                        minPrice: true,
+                        maxPrice: true,
+                        aiScore: true,
+                        engagementQuality: true,
+                        user: { select: { id: true, name: true, email: true, avatar: true } }
+                    }
+                },
                 promotion: { select: { id: true, title: true, description: true, status: true } }
             }
         });

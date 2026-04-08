@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-const StatCard = ({ label, value, icon, trend, trendLabel, color = 'primary', delay = 0 }) => {
+const StatCard = ({ label, value, icon, trend, trendLabel, color = 'primary', delay = 0, onClick }) => {
     const bgColors = {
         primary: 'bg-indigo-500/8 border-indigo-500/15',
         emerald: 'bg-emerald-500/8 border-emerald-500/15',
@@ -22,7 +22,8 @@ const StatCard = ({ label, value, icon, trend, trendLabel, color = 'primary', de
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay }}
-            className={`p-2.5 sm:p-3 md:p-4 rounded-lg border ${bgColors[color] || bgColors.primary}`}
+            className={`p-2.5 sm:p-3 md:p-4 rounded-lg border ${bgColors[color] || bgColors.primary} ${onClick ? 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-transform' : ''}`}
+            onClick={onClick}
         >
             <div className="flex justify-between items-start mb-1.5 sm:mb-2">
                 <div className={`p-1.5 sm:p-2 rounded bg-dark-900/50 ${textColors[color] || textColors.primary}`}>

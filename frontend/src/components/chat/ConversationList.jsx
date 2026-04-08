@@ -8,6 +8,7 @@ const ConversationList = ({ conversations, activeId, onSelect, onlineUsers }) =>
         const otherUser = conversation.otherUser || conversation.creatorUser || conversation.seller || {};
         return otherUser?.name
             || conversation.creatorProfile?.user?.name
+            || conversation.promotion?.title
             || conversation.promotionId?.title
             || 'Creator';
     };

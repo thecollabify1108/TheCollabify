@@ -396,7 +396,7 @@ class AnalyticsService {
         ]);
 
         const campaignsLaunched = campaigns.length;
-        let creatorsShortlisted = 0;
+        const shortlistedCreatorIds = new Set();
         let totalCollabs = 0;
         let acceptedCollabs = 0;
         let completedCollabs = 0;
@@ -405,11 +405,16 @@ class AnalyticsService {
         // Collect all unique creator IDs to batch-fetch reliability scores
         const creatorIds = new Set();
         for (const campaign of campaigns) {
-            creatorsShortlisted += campaign.matchedCreators.length;
             for (const mc of campaign.matchedCreators) {
+                // Shortlisted should represent unique creators, not raw match rows.
+                if (mc.status !== 'REJECTED' && mc.creatorId) {
+                    shortlistedCreatorIds.add(mc.creatorId);
+                }
                 creatorIds.add(mc.creatorId);
             }
         }
+
+        const creatorsShortlisted = shortlistedCreatorIds.size;
 
         // Single batch query instead of N individual queries (fixes N+1)
         const creatorProfiles = creatorIds.size > 0

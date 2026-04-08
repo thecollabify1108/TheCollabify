@@ -66,7 +66,7 @@ const violatesPrivacyPolicy = (content = '') => {
     return hasPhoneLikeSequence || hasEmailLikeSequence || hasInstagramIdentifier;
 };
 
-const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conversation }) => {
+const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conversation, onOpenCreatorProfile }) => {
     const { user } = useAuth();
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
@@ -426,7 +426,18 @@ const ChatBox = ({ conversationId, otherUserName, promotionTitle, onClose, conve
                             </div>
 
                             <div>
-                                <h3 className="text-xl font-black text-white tracking-tight leading-none mb-1">{otherUserDisplayName}</h3>
+                                {onOpenCreatorProfile ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenCreatorProfile(conversation)}
+                                        className="text-xl font-black text-white tracking-tight leading-none mb-1 hover:text-primary-300 transition-colors"
+                                        title="View creator profile"
+                                    >
+                                        {otherUserDisplayName}
+                                    </button>
+                                ) : (
+                                    <h3 className="text-xl font-black text-white tracking-tight leading-none mb-1">{otherUserDisplayName}</h3>
+                                )}
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-primary-400 bg-primary-400/10 px-2 py-0.5 rounded-md uppercase tracking-wider border border-primary-500/20">
                                         {promotionTitle || 'Collaboration'}

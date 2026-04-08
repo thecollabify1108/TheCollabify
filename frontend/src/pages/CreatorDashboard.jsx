@@ -895,7 +895,7 @@ const CreatorDashboard = () => {
                     <ChatBox
                         conversationId={selectedConversation.id}
                         otherUserName={selectedConversation.seller?.name || selectedConversation.otherUser?.name || 'Seller'}
-                        promotionTitle={selectedConversation.promotionId?.title || 'Promotion'}
+                        promotionTitle={selectedConversation.promotion?.title || selectedConversation.promotionId?.title || 'Promotion'}
                         conversation={selectedConversation}
                         onClose={() => setSelectedConversation(null)}
                     />

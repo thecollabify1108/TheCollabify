@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FaFire
@@ -16,6 +16,7 @@ import CollaborationHub from '../components/common/CollaborationHub';
 import ConversationList from '../components/common/ConversationList';
 import ChatBox from '../components/common/ChatBox';
 import CreatorLeads from '../components/seller/CreatorLeads';
+import CreatorProfileModal from '../components/seller/CreatorProfileModal';
 
 // Lazy-loaded: defers InsightCards API call until dashboard scrolls into view
 const BrandInsightCards = lazy(() => import('../components/analytics/InsightCards').then(m => ({ default: m.BrandInsightCards })));
@@ -55,6 +56,9 @@ const SellerDashboard = () => {
     const [pendingCreators, setPendingCreators] = useState([]);
     const [leadsCount] = useState(0);
     const [selectedConversation, setSelectedConversation] = useState(null);
+    const [selectedCreatorProfile, setSelectedCreatorProfile] = useState(null);
+    const [isCreatorProfileOpen, setIsCreatorProfileOpen] = useState(false);
+    const campaignsSectionRef = useRef(null);
 
     const fetchData = async () => {
         setLoading(true);
@@ -144,7 +148,13 @@ const SellerDashboard = () => {
             const conversation = res?.data?.data?.conversation;
 
             if (conversation?.id) {
-                setSelectedConversation(conversation);
+                try {
+                    const detailsRes = await chatAPI.getConversation(conversation.id);
+                    const fullConversation = detailsRes?.data?.data?.conversation;
+                    setSelectedConversation(fullConversation || conversation);
+                } catch {
+                    setSelectedConversation(conversation);
+                }
                 toast.success('Conversation opened');
             } else {
                 toast.error('Unable to open conversation');
@@ -153,6 +163,48 @@ const SellerDashboard = () => {
             const errorMsg = error?.response?.data?.message || 'Failed to open chat';
             toast.error(errorMsg);
         }
+    };
+
+    const openCampaignsSection = () => {
+        setActiveTab('dashboard');
+        window.requestAnimationFrame(() => {
+            campaignsSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    };
+
+    const buildCreatorForModal = (conversation) => {
+        if (!conversation) return null;
+        const profile = conversation.creatorProfile || {};
+        const creatorUser = profile.user || conversation.creatorUser || {};
+        const location = profile.location && typeof profile.location === 'object'
+            ? [profile.location.city, profile.location.state, profile.location.country].filter(Boolean).join(', ')
+            : profile.location;
+
+        return {
+            ...profile,
+            user: creatorUser,
+            insights: {
+                score: profile.aiScore || 0,
+                engagementQuality: profile.engagementQuality || 'Medium'
+            },
+            priceRange: {
+                min: profile.minPrice || 0,
+                max: profile.maxPrice || 0
+            },
+            location: location || 'India',
+            languages: profile.languages || ['English'],
+            promotionTypes: profile.promotionTypes || []
+        };
+    };
+
+    const handleOpenCreatorProfile = (conversation) => {
+        const creatorForModal = buildCreatorForModal(conversation || selectedConversation);
+        if (!creatorForModal) {
+            toast.error('Creator profile is unavailable for this chat');
+            return;
+        }
+        setSelectedCreatorProfile(creatorForModal);
+        setIsCreatorProfileOpen(true);
     };
 
     // Bottom navigation - 6 tabs with Analytics & Team
@@ -356,7 +408,10 @@ const SellerDashboard = () => {
                             <h2 className="text-h2 font-bold text-dark-100 mb-s1">Messages</h2>
                             <p className="text-body text-dark-400">Chat with applicants and creators</p>
                         </div>
-                        <ConversationList onSelectConversation={setSelectedConversation} />
+                        <ConversationList
+                            onSelectConversation={setSelectedConversation}
+                            onOpenCreatorProfile={handleOpenCreatorProfile}
+                        />
                     </motion.div>
                 )}
 
@@ -374,7 +429,7 @@ const SellerDashboard = () => {
                             <p className="text-[10px] text-dark-500">Campaign performance metrics</p>
                         </div>
                         
-                        <BrandInsightCards />
+                        <BrandInsightCards onCardClick={openCampaignsSection} />
                         
                         <div className="h-[200px] lg:h-[250px]">
                             <PerformanceChart
@@ -420,6 +475,7 @@ const SellerDashboard = () => {
                                 color="orange"
                                 trend={0}
                                 delay={0.1}
+                                onClick={openCampaignsSection}
                             />
                             <StatCard
                                 label="Total Matches"
@@ -428,6 +484,7 @@ const SellerDashboard = () => {
                                 color="emerald"
                                 trend={0}
                                 delay={0.4}
+                                onClick={openCampaignsSection}
                             />
                         </div>
 
@@ -446,6 +503,7 @@ const SellerDashboard = () => {
                         </div>
 
                         {/* 4. Active Campaigns List (Aligned with Creator Opportunities) */}
+                        <div ref={campaignsSectionRef}>
                         <FocusWrapper sectionId="campaigns">
                             <div className="pt-2">
                                 <div className="flex items-center justify-between mb-4 px-1">
@@ -523,6 +581,7 @@ const SellerDashboard = () => {
                                         </motion.div>
                             </div>
                         </FocusWrapper>
+                        </div>
                     </motion.div>
                 )}
 
@@ -596,12 +655,25 @@ const SellerDashboard = () => {
                     <ChatBox
                         conversationId={selectedConversation.id}
                         otherUserName={selectedConversation.creatorUser?.name || selectedConversation.otherUser?.name || 'Creator'}
-                        promotionTitle={selectedConversation.promotionId?.title || 'Campaign'}
+                        promotionTitle={selectedConversation.promotion?.title || selectedConversation.promotionId?.title || 'Campaign'}
                         conversation={selectedConversation}
+                        onOpenCreatorProfile={handleOpenCreatorProfile}
                         onClose={() => setSelectedConversation(null)}
                     />
                 )}
             </AnimatePresence>
+
+            <CreatorProfileModal
+                creator={selectedCreatorProfile}
+                matchScore={selectedCreatorProfile?.insights?.score || 50}
+                isOpen={isCreatorProfileOpen}
+                onClose={() => setIsCreatorProfileOpen(false)}
+                onMessage={() => setIsCreatorProfileOpen(false)}
+                onInvite={() => {
+                    setIsCreatorProfileOpen(false);
+                    setShowRequestWizard(true);
+                }}
+            />
 
 
         </DashboardLayout>
