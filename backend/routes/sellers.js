@@ -179,12 +179,15 @@ router.post('/requests', auth, isSeller, [
             title,
             brandName,
             description,
+            requirements,
             budgetRange,
             promotionType,
             targetCategory,
             followerRange,
             campaignGoal,
-            deadline
+            deadline,
+            location,
+            locationType
         } = req.body;
 
         // Fire-and-forget: Log campaign creation; never block request on analytics tooling.
@@ -217,11 +220,15 @@ router.post('/requests', auth, isSeller, [
         };
         const finalGoal = goalMapping[campaignGoal ? campaignGoal.toUpperCase() : 'AWARENESS'] || 'REACH';
 
+        const mergedDescription = requirements
+            ? `${description}\n\nRequirements:\n${String(requirements).trim()}`
+            : description;
+
         // Create promotion request (brandName & followerRange are optional)
         const requestData = {
             sellerId: req.userId,
             title,
-            description,
+            description: mergedDescription,
             minBudget: budgetRange.min,
             maxBudget: budgetRange.max,
             promotionType: types,
@@ -230,6 +237,8 @@ router.post('/requests', auth, isSeller, [
             maxFollowers: followerRange?.max || 10000000,
             campaignGoal: finalGoal,
             deadline: deadline ? new Date(deadline) : undefined,
+            location: location || undefined,
+            locationType: locationType || undefined,
             status: 'OPEN'
         };
 
@@ -238,6 +247,30 @@ router.post('/requests', auth, isSeller, [
 
         let request;
         try {
+            request = await prisma.promotionRequest.create({
+                data: requestData,
+                select: {
+                    id: true,
+                    sellerId: true,
+                    title: true,
+                    description: true,
+                    minBudget: true,
+                    maxBudget: true,
+                    promotionType: true,
+                    targetCategory: true,
+                    minFollowers: true,
+                    maxFollowers: true,
+                    campaignGoal: true,
+                    deadline: true,
+                    status: true,
+                    createdAt: true,
+                    location: true,
+                    locationType: true
+                }
+            });
+        } catch (prismaCreateErr) {
+            console.warn('Prisma create failed, falling back to raw insert:', prismaCreateErr.message);
+
             const insertedRows = await prisma.$queryRaw`
                 INSERT INTO "PromotionRequest" (
                     "id",
@@ -259,7 +292,7 @@ router.post('/requests', auth, isSeller, [
                     ${randomUUID()},
                     ${req.userId},
                     ${title},
-                    ${description},
+                    ${mergedDescription},
                     ${budgetRange.min},
                     ${budgetRange.max},
                     ${scalarType}::"PromotionType",
@@ -285,7 +318,9 @@ router.post('/requests', auth, isSeller, [
                     "campaignGoal",
                     "deadline",
                     "status",
-                    "createdAt"
+                        "createdAt",
+                        "location",
+                        "locationType"
             `;
 
             const inserted = insertedRows?.[0];
@@ -302,9 +337,6 @@ router.post('/requests', auth, isSeller, [
                     ? inserted.targetCategory
                     : [inserted.targetCategory].filter(Boolean)
             };
-        } catch (createErr) {
-            console.error('Promotion request raw insert failed:', createErr);
-            throw createErr;
         }
 
         // Find matching creators using AI matching service (fail-safe to avoid blocking request creation)
@@ -887,6 +919,23 @@ router.post('/request-collaboration', auth, isSeller, [
     try {
         const { promotionId, creatorId } = req.body;
 
+        const creatorProfile = await prisma.creatorProfile.findFirst({
+            where: {
+                OR: [
+                    { id: creatorId },
+                    { userId: creatorId }
+                ]
+            },
+            select: { id: true, userId: true }
+        });
+
+        if (!creatorProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Creator profile not found'
+            });
+        }
+
         // Verify promotion ownership
         const promotion = await prisma.promotionRequest.findUnique({
             where: { id: promotionId }
@@ -904,7 +953,7 @@ router.post('/request-collaboration', auth, isSeller, [
             where: {
                 promotionId_creatorId: {
                     promotionId,
-                    creatorId
+                    creatorId: creatorProfile.id
                 }
             }
         });
@@ -926,12 +975,12 @@ router.post('/request-collaboration', auth, isSeller, [
 
         // Notify Creator
         try {
-            const creatorProfile = await prisma.creatorProfile.findUnique({
-                where: { id: creatorId }
+            const creatorProfileForNotify = await prisma.creatorProfile.findUnique({
+                where: { id: creatorProfile.id }
             });
-            if (creatorProfile) {
+            if (creatorProfileForNotify) {
                 // Assuming we have a notification service method for invites
-                // await notifyCreatorInvited(creatorProfile.userId, promotion);
+                // await notifyCreatorInvited(creatorProfileForNotify.userId, promotion);
             }
         } catch (err) {
             console.error('Failed to notify creator:', err);
