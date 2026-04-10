@@ -30,20 +30,15 @@ const DashboardLayout = ({
                     {children}
 
                     {activeTab === 'dashboard' && (
-                        <footer className="mt-10 mb-8 rounded-2xl border border-dark-800/80 bg-dark-900/50 backdrop-blur-xl p-4 sm:p-5">
-                            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm font-black uppercase tracking-wider text-dark-100">TheCollabify Dashboard</p>
-                                    <p className="text-xs text-dark-400 mt-1">Secure creator-brand collaboration workspace with encrypted chat and AI signals.</p>
-                                </div>
-                                <div className="flex flex-wrap items-center gap-3 text-xs font-bold uppercase tracking-widest">
-                                    <Link to="/privacy" className="text-dark-400 hover:text-primary-400 transition-colors">Privacy</Link>
-                                    <Link to="/terms-conditions" className="text-dark-400 hover:text-primary-400 transition-colors">Terms</Link>
-                                    <Link to="/contact" className="text-dark-400 hover:text-primary-400 transition-colors">Support</Link>
-                                </div>
-                            </div>
-                            <div className="mt-4 pt-3 border-t border-dark-800/80 text-[11px] text-dark-500 font-semibold">
-                                © {new Date().getFullYear()} TheCollabify. All rights reserved.
+                        <footer className="mt-8 mb-6 border-t border-dark-800/80 py-3">
+                            <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-dark-500 font-medium">
+                                <Link to="/contact" className="hover:text-dark-300 transition-colors">Support</Link>
+                                <span className="text-dark-700">|</span>
+                                <Link to="/terms-conditions" className="hover:text-dark-300 transition-colors">Terms of Use</Link>
+                                <span className="text-dark-700">|</span>
+                                <Link to="/privacy" className="hover:text-dark-300 transition-colors">Privacy Policy</Link>
+                                <span className="text-dark-700">|</span>
+                                <span>© {new Date().getFullYear()} TheCollabify</span>
                             </div>
                         </footer>
                     )}
