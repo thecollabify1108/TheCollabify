@@ -11,6 +11,8 @@ const DashboardLayout = ({
     activeTab,
     setActiveTab
 }) => {
+    const isHomeTab = activeTab === 'dashboard';
+
     return (
         <div className="min-h-screen bg-dark-950">
             <Navbar />
@@ -24,13 +26,13 @@ const DashboardLayout = ({
             />
 
             {/* Main Content Area */}
-            <main className={`transition-all duration-300 pt-24 pb-32 lg:pb-8 lg:pl-56`}>
+            <main className={`transition-all duration-300 pt-24 lg:pl-56 ${isHomeTab ? 'pb-20 lg:pb-6' : 'pb-32 lg:pb-8'}`}>
 
                 <div className="max-w-7xl mx-auto px-s2 sm:px-s4 lg:px-s6 pt-s1 md:pt-s6">
                     {children}
 
-                    {activeTab === 'dashboard' && (
-                        <footer className="mt-8 mb-6 border-t border-dark-800/80 py-3">
+                    {isHomeTab && (
+                        <footer className="mt-5 mb-2 border-t border-dark-800/80 py-2">
                             <div className="flex flex-wrap items-center justify-center gap-2 text-[11px] text-dark-500 font-medium">
                                 <Link to="/contact" className="hover:text-dark-300 transition-colors">Support</Link>
                                 <span className="text-dark-700">|</span>
