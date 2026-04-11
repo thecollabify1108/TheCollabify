@@ -16,12 +16,14 @@ const Navbar = () => {
     const menuRef = useRef(null);
     const notifRef = useRef(null);
 
-    // Close profile menu when clicking outside (but not on notification bell)
+    // Close profile menu and mobile menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
                 setShowUserMenu(false);
             }
+            // Close mobile menu when clicking outside
+            setIsMobileMenuOpen(false);
         };
 
         document.addEventListener('mousedown', handleClickOutside);
@@ -51,7 +53,7 @@ const Navbar = () => {
     };
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${scrolled
+        <nav className={`fixed top-4 left-4 right-4 md:left-6 md:right-6 z-50 border rounded-2xl transition-all duration-300 ${scrolled
             ? 'bg-dark-950/95 backdrop-blur-2xl border-dark-700 shadow-lg shadow-primary-500/5 py-1'
             : 'bg-dark-950/80 backdrop-blur-xl border-dark-800/50 py-3'
             }`}>

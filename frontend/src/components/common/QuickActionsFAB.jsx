@@ -30,12 +30,6 @@ const QuickActionsFAB = ({ userRole, onBrowse, onPitch, onCreateCampaign }) => {
 
     const sellerActions = [
         {
-            icon: <Icon name="search" size={20} />,
-            label: 'Search',
-            action: onBrowse,
-            bg: 'bg-primary-500'
-        },
-        {
             icon: <Icon name="plus" size={20} />,
             label: 'New Campaign',
             action: onCreateCampaign,
